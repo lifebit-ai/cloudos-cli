@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import click
 import cloudos.jobs.job as job
 from cloudos.clos import Cloudos
@@ -17,7 +19,8 @@ def run_cloudos_cli():
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help='The CloudOS url you are trying to access to.',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
               default='https://cloudos.lifebit.ai')
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
@@ -33,23 +36,21 @@ def run_cloudos_cli():
                     'parameters to use with your job.'),
               required=True)
 @click.option('--job-name',
-              help='The name of the job.',
+              help='The name of the job. Default=new_job.',
               default='new_job')
 @click.option('--resumable',
-              help='Whether make the job able to be resumed or not.',
-              is_flag=True,
-              default=True)
+              help='Whether to make the job able to be resumed or not.',
+              is_flag=True)
 @click.option('--instance-type',
-              help='The type of AMI to use.',
+              help='The type of AMI to use. Default=c5.xlarge.',
               default='c5.xlarge')
 @click.option('--instance-disk',
-              help='The amount of disk storage to configure.',
+              help='The amount of disk storage to configure. Default=500.',
               type=int,
               default=500)
 @click.option('--spot',
               help='Whether to make a spot instance.',
-              is_flag=True,
-              default=True)
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -99,7 +100,8 @@ def runjob(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help='The CloudOS url you are trying to access to.',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
               default='https://cloudos.lifebit.ai')
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',

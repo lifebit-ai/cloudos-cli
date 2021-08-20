@@ -1,4 +1,4 @@
-name: benchling-client
+name: cloudos
 channels:
     - conda-forge
     - defaults
@@ -7,5 +7,3 @@ dependencies:
     - pip
     - requests
     - click
-    - pandas
-    - numpy

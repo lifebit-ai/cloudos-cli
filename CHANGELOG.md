@@ -2,4 +2,6 @@
 
 ### 0.0.1 - 2021-08-18
 Initial implementation of the `cloudos` python package:
+- Implements `runjob` and `jobstatus` commands to send jobs and get
+their status, respectively.
 

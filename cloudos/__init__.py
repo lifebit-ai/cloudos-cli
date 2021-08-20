@@ -5,4 +5,6 @@ cloudos
 Python package for interacting with Cloud OS (https://cloudos.lifebit.ai/)
 """
 
-__all__ = []
+from .clos import Cloudos
+
+__all__ = ['jobs', 'utils', 'clos']

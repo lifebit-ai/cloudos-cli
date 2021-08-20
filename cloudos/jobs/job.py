@@ -1,5 +1,5 @@
 """
-This is a collection of functions to be used with cloudos jobs.
+This is the main class to create jobs.
 """
 
 from dataclasses import dataclass

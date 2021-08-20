@@ -1,6 +1,6 @@
 # Full contents of Dockerfile
 
-FROM continuumio/miniconda3:4.8.2	
+FROM continuumio/miniconda3:4.10.3	
 LABEL description="Base docker image with conda and util libraries"
 
 # Use the base conda env to not be reliant on conda activate when using pip
@@ -26,9 +26,10 @@ RUN apt-get update \
 # Copy local package files to be able to install
 COPY . /
 # Add the created folder to PATH so that tools are accessible
-ENV PATH  /benchling:$PATH
+ENV PATH  /cloudos:$PATH
 # Install from local files, -e / points to where the setup.py file is located
 RUN pip install -e /
 # Make the python files executable from anyone (user, group, owner)
-RUN chmod ugo+x /benchling/*py
-RUN chmod ugo+x /benchling/benchling-client
+RUN chmod ugo+x /cloudos/*py
+RUN chmod ugo+x /cloudos/jobs/*py
+RUN chmod ugo+x /cloudos/utils/*py

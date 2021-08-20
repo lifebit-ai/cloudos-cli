@@ -18,5 +18,8 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
     ],
     python_requires='>=3.8',
+    entry_points={"console_scripts": [
+        "cloudos=cloudos.__main__:run_cloudos_cli"
+    ]},
     include_package_data=True
 )
