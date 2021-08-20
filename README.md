@@ -20,7 +20,7 @@ requests
 It is recommended to install it as a docker image using the `Dockerfile`
 and the `environment.yml` files provided.
 
-To run the existing docker image at `quay.io/lifebitai`:
+To run the existing docker image at `quay.io`:
 
 ```
 docker run --rm -it quay.io/dpineyro/cloudos-py:latest
