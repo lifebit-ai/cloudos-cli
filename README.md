@@ -23,7 +23,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/dpineyro/cloudos-py:latest
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.1
 ```
 
 ### From Github
