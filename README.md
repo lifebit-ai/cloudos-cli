@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2021-08-18\
-__Version:__ 0.0.1
+__Date:__ 2021-09-07\
+__Version:__ 0.0.2
 
 Python package for interacting with CloudOS
 
@@ -23,7 +23,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.1
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.2
 ```
 
 ### From Github
@@ -59,18 +59,19 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  jobstatus
-  runjob
+  job  CloudOS job functionality: run and check jobs in CloudOS.
 ``` 
 
 This will tell you the implemented commands. Each implemented command has its
-own `--help`:
+own subcommands with its own `--help`:
 
 ```
-$ cloudos runjob --help
+$ cloudos job run --help
 CloudOS python package: a package for interacting with CloudOS.
 
-Usage: cloudos runjob [OPTIONS]
+CloudOS job functionality: run and check jobs in CloudOS.
+
+Usage: cloudos job run [OPTIONS]
 
 Options:
   -k, --apikey TEXT        Your CloudOS API key  [required]
@@ -88,6 +89,10 @@ Options:
   --instance-disk INTEGER  The amount of disk storage to configure.
                            Default=500.
   --spot                   Whether to make a spot instance.
+  --wait-completion        Whether to wait to job completion and report final
+                           job status.
+  --wait-time INTEGER      Max time to wait (in seconds) to job completion.
+                           Default=3600.
   --verbose                Whether to print information messages or not.
   --help                   Show this message and exit.
 ```
@@ -120,7 +125,7 @@ params {
 To submit our job:
 
 ```bash
-cloudos runjob \
+cloudos job run \
     -k $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --project-name "$PROJECT_NAME" \
@@ -135,29 +140,63 @@ If everything went well, you should see something like:
 ```
 CloudOS python package: a package for interacting with CloudOS.
 
-Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/612027b07db707019a095075
-Your assigned job id is: 612027b07db707019a095075
+CloudOS job functionality: run and check jobs in CloudOS.
+
+Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/61377b8631de9201a5befc31
+Your assigned job id is: 61377b8631de9201a5befc31
 Your current job status is: initializing
-To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/612027b07db707019a095075 or use the following command:
-cloudos jobstatus \
+To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/61377b8631de9201a5befc31 or use the following command:
+cloudos job status \
     --apikey $MY_API_KEY \
     --cloudos-url https://cloudos.lifebit.ai \
-    --job-id 612027b07db707019a095075
+    --job-id 61377b8631de9201a5befc31
 ```
 
 As you can see, the current status is `initializing`. This will change
 while the job progresses. To check the status, just apply the suggested
 command.
 
+Another option is to set the `--wait-completion` parameter, which run the same
+job run command but waiting for its completion:
+
+```bash
+cloudos job run \
+    -k $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
+    --job-params $JOB_PARAMS \
+    --resumable \
+    --spot \
+    --wait-completion
+```
+
+If the job takes less than `--wait-time` (3600 seconds by default), the
+previous command should have an output similar to:
+
+```
+CloudOS python package: a package for interacting with CloudOS.
+
+CloudOS job functionality: run and check jobs in CloudOS.
+
+Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/61377c2e31de9201a5befc38
+Your assigned job id is: 61377c2e31de9201a5befc38
+Please, wait until job completion or max wait time of 3600 seconds is reached.
+Your current job status is: initializing.
+Your current job status is: running.
+Your job took 264 seconds to complete successfully.
+```
+
+
 #### Check job status
 
 To check the status of a submitted job, just use the suggested command:
 
 ```bash
-cloudos jobstatus \
+cloudos job status \
     --apikey $MY_API_KEY \
     --cloudos-url https://cloudos.lifebit.ai \
-    --job-id 612027b07db707019a095075
+    --job-id 61377b8631de9201a5befc31
 ```
 
 You will see the following output while the job is running:
@@ -165,20 +204,25 @@ You will see the following output while the job is running:
 ```
 CloudOS python package: a package for interacting with CloudOS.
 
+CloudOS job functionality: run and check jobs in CloudOS.
+
 Your current job status is: running
 
-To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/612027b07db707019a095075 or repeat the command you just used.
+To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/61377b8631de9201a5befc31 or repeat the command you just used.
+
 ```
 
 And eventually, if everything went correctly:
 
-
 ```
 CloudOS python package: a package for interacting with CloudOS.
 
+CloudOS job functionality: run and check jobs in CloudOS.
+
 Your current job status is: completed
 
-To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/612027b07db707019a095075 or repeat the command you just used.
+To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/61377b8631de9201a5befc31 or repeat the command you just used.
+
 ```
 
 
@@ -191,7 +235,7 @@ status from inside a python script.
 Again, we will set up the environment to ease the work:
 
 ```python
-import cloudos.jobs.job as job
+import cloudos.jobs.job as jb
 import json
 
 
@@ -212,7 +256,7 @@ spot = True
 First, create the `Job` object:
 
 ```python
-j = job.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
+j = jb.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
 print(j)
 ```
 

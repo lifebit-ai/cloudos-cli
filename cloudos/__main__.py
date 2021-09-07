@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 
 import click
-import cloudos.jobs.job as job
+import cloudos.jobs.job as jb
 from cloudos.clos import Cloudos
 import json
+import time
+import sys
+
+
+# GLOBAL VARS
+JOB_SUCCESS = 'completed'
+JOB_FAIL = 'failed'
 
 
 @click.group()
@@ -12,7 +19,13 @@ def run_cloudos_cli():
     print(run_cloudos_cli.__doc__ + '\n')
 
 
-@run_cloudos_cli.command()
+@run_cloudos_cli.group()
+def job():
+    """CloudOS job functionality: run and check jobs in CloudOS."""
+    print(job.__doc__ + '\n')
+
+
+@job.command('run')
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -51,25 +64,35 @@ def run_cloudos_cli():
 @click.option('--spot',
               help='Whether to make a spot instance.',
               is_flag=True)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def runjob(apikey,
-           cloudos_url,
-           workspace_id,
-           project_name,
-           workflow_name,
-           job_params,
-           job_name,
-           resumable,
-           instance_type,
-           instance_disk,
-           spot,
-           verbose):
+def run(apikey,
+        cloudos_url,
+        workspace_id,
+        project_name,
+        workflow_name,
+        job_params,
+        job_name,
+        resumable,
+        instance_type,
+        instance_disk,
+        spot,
+        wait_completion,
+        wait_time,
+        verbose):
     if verbose:
-        print('Executing runjob...')
+        print('Executing run...')
         print('\t...Preparing objects')
-    j = job.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
+    j = jb.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -81,19 +104,54 @@ def runjob(apikey,
                       instance_disk,
                       spot)
     print(f'Your assigned job id is: {j_id}')
-    j_status = j.get_job_status(j_id)
-    j_status_h = json.loads(j_status.content)["status"]
-    print(f'Your current job status is: {j_status_h}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
-    print(f'To further check your job status you can either go to {j_url} ' +
-          'or use the following command:\n' +
-          'cloudos jobstatus \\\n' +
-          '    --apikey $MY_API_KEY \\\n' +
-          f'    --cloudos-url {cloudos_url} \\\n' +
-          f'    --job-id {j_id}')
+    if wait_completion:
+        print('Please, wait until job completion or max wait time of ' +
+              f'{wait_time} seconds is reached.')
+        elapsed = 0
+        j_status_h_old = ''
+        while elapsed < wait_time:
+            j_status = j.get_job_status(j_id)
+            j_status_h = json.loads(j_status.content)["status"]
+            if j_status_h == JOB_SUCCESS:
+                print(f'Your job took {elapsed} seconds to complete ' +
+                      'successfully.')
+                sys.exit(0)
+            elif j_status_h == JOB_FAIL:
+                print(f'Your job took {elapsed} seconds to fail.')
+                sys.exit(1)
+            else:
+                elapsed += 1
+                if j_status_h != j_status_h_old:
+                    print(f'Your current job status is: {j_status_h}.')
+                    j_status_h_old = j_status_h
+                time.sleep(1)
+        j_status = j.get_job_status(j_id)
+        j_status_h = json.loads(j_status.content)["status"]
+        if j_status_h != JOB_SUCCESS:
+            print(f'Your current job status is: {j_status_h}. The selected ' +
+                  f'wait-time of {wait_time} was exceeded. Please, ' +
+                  'consider to set a longer wait-time.')
+            print('To further check your job status you can either go to ' +
+                  f'{j_url} or use the following command:\n' +
+                  'cloudos job status \\\n' +
+                  '    --apikey $MY_API_KEY \\\n' +
+                  f'    --cloudos-url {cloudos_url} \\\n' +
+                  f'    --job-id {j_id}')
+            sys.exit(1)
+    else:
+        j_status = j.get_job_status(j_id)
+        j_status_h = json.loads(j_status.content)["status"]
+        print(f'Your current job status is: {j_status_h}')
+        print('To further check your job status you can either go to ' +
+              f'{j_url} or use the following command:\n' +
+              'cloudos job status \\\n' +
+              '    --apikey $MY_API_KEY \\\n' +
+              f'    --cloudos-url {cloudos_url} \\\n' +
+              f'    --job-id {j_id}')
 
 
-@run_cloudos_cli.command()
+@job.command('status')
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -109,12 +167,12 @@ def runjob(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def jobstatus(apikey,
-              cloudos_url,
-              job_id,
-              verbose):
+def status(apikey,
+           cloudos_url,
+           job_id,
+           verbose):
     if verbose:
-        print('Executing jobstatus...')
+        print('Executing status...')
         print('\t...Preparing objects')
     cl = Cloudos(apikey, cloudos_url)
     if verbose:
