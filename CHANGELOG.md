@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.3 - 2021-09-08
+- Adds `cloudos job list` command.
+- Minor changes in `stdout` of the other commands to improve
+readability.
+- Adds a small docstring to each command.
+
 ### 0.0.2 - 2021-09-07
 - Refactors `runjob` and `jobstatus` commands. Now, the main
 `cloudos` tool have the `job` subtool which in turn has its
