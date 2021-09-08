@@ -262,6 +262,6 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
-        print('Job successfully launched to CloudOS, please check the ' +
+        print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/jobs/{j_id}')
         return j_id
