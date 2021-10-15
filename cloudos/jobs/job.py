@@ -114,7 +114,7 @@ class Job(Cloudos):
                 return element["_id"]
 
     def convert_nextflow_to_json(self,
-                                 job_params,
+                                 job_config,
                                  project_id,
                                  workflow_id,
                                  job_name,
@@ -126,7 +126,7 @@ class Job(Cloudos):
 
         Parameters
         ----------
-        job_params : string
+        job_config : string
             Path to a nextflow.config file with parameters scope.
         project_id : string
             The CloudOS project id for a given project name.
@@ -149,7 +149,7 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
-        with open(job_params, 'r') as p:
+        with open(job_config, 'r') as p:
             reading = False
             for p_l in p:
                 if 'params' in p_l.lower():
@@ -165,7 +165,7 @@ class Job(Cloudos):
                             if len(p_list) != 2:
                                 raise ValueError('Please, specify your ' +
                                                  'parameters in ' +
-                                                 f'{job_params} using ' +
+                                                 f'{job_config} using ' +
                                                  'the \'=\' char as spacer. ' +
                                                  'E.g: name = my_name')
                             else:
@@ -175,7 +175,7 @@ class Job(Cloudos):
                                          "textValue": p_list[1]}
                                 workflow_params.append(param)
         if len(workflow_params) == 0:
-            raise ValueError(f'The {job_params} file did not contain any ' +
+            raise ValueError(f'The {job_config} file did not contain any ' +
                              'valid parameter')
         if spot:
             instance_type_block = {
@@ -210,7 +210,7 @@ class Job(Cloudos):
         return params
 
     def send_job(self,
-                 job_params,
+                 job_config,
                  job_name,
                  resumable,
                  instance_type,
@@ -220,7 +220,7 @@ class Job(Cloudos):
 
         Parameters
         ----------
-        job_params : string
+        job_config : string
             Path to a nextflow.config file with parameters scope.
         job_name : string
             The name to assign to the job.
@@ -248,7 +248,7 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": apikey
         }
-        params = self.convert_nextflow_to_json(job_params,
+        params = self.convert_nextflow_to_json(job_config,
                                                project_id,
                                                workflow_id,
                                                job_name,
@@ -262,6 +262,6 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
-        print('Job successfully launched to CloudOS, please check the ' +
+        print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/jobs/{j_id}')
         return j_id
