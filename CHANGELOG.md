@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.4 - 2021-10-15
+- Changes `--job-params` to `--job-config`
+- Removes the collection of the `project.description` column from the 
+returned json when listing all jobs, as this column is not available
+in all the CloudOS workspaces.
+
 ### 0.0.3 - 2021-09-08
 - Adds `cloudos job list` command.
 - Minor changes in `stdout` of the other commands to improve

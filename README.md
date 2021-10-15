@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2021-09-08\
-__Version:__ 0.0.3
+__Date:__ 2021-10-15\
+__Version:__ 0.0.4
 
 Python package for interacting with CloudOS
 
@@ -23,7 +23,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.3
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.4
 ```
 
 ### From Github
@@ -82,7 +82,7 @@ Options:
   --project-name TEXT      The name of a CloudOS project.  [required]
   --workflow-name TEXT     The name of a CloudOS workflow or pipeline.
                            [required]
-  --job-params TEXT        A nextflow.config file or similar, with the
+  --job-config TEXT        A nextflow.config file or similar, with the
                            parameters to use with your job.  [required]
   --job-name TEXT          The name of the job. Default=new_job.
   --resumable              Whether to make the job able to be resumed or not.
@@ -131,7 +131,7 @@ cloudos job run \
     --workspace-id $WORKSPACE_ID \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
-    --job-params $JOB_PARAMS \
+    --job-config $JOB_PARAMS \
     --resumable \
     --spot
 ```
@@ -168,7 +168,7 @@ cloudos job run \
     --workspace-id $WORKSPACE_ID \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
-    --job-params $JOB_PARAMS \
+    --job-config $JOB_PARAMS \
     --resumable \
     --spot \
     --wait-completion
@@ -274,7 +274,7 @@ cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = '5c6d3e9bd954e800b23f8c62'
 project_name = 'API jobs'
 workflow_name = 'rnatoy'
-job_params = 'cloudos/examples/rnatoy.config'
+job_config = 'cloudos/examples/rnatoy.config'
 job_name = 'new_job'
 resumable = True
 instance_type = 'c5.xlarge'
@@ -292,7 +292,7 @@ print(j)
 Then, send the job:
 
 ```python
-j_id = j.send_job(job_params,
+j_id = j.send_job(job_config,
                   job_name,
                   resumable,
                   instance_type,

@@ -44,7 +44,7 @@ def job():
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
               required=True)
-@click.option('--job-params',
+@click.option('--job-config',
               help=('A nextflow.config file or similar, with the ' +
                     'parameters to use with your job.'),
               required=True)
@@ -80,7 +80,7 @@ def run(apikey,
         workspace_id,
         project_name,
         workflow_name,
-        job_params,
+        job_config,
         job_name,
         resumable,
         instance_type,
@@ -98,7 +98,7 @@ def run(apikey,
         print('\tThe following Job object was created:')
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
-    j_id = j.send_job(job_params,
+    j_id = j.send_job(job_config,
                       job_name,
                       resumable,
                       instance_type,

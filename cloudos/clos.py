@@ -109,7 +109,6 @@ class Cloudos:
                    'workflow.workflowType',
                    'project._id',
                    'project.name',
-                   'project.description',
                    'project.user',
                    'project.team',
                    'project.createdAt',
