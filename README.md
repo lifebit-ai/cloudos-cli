@@ -319,3 +319,20 @@ my_jobs_r = j.get_job_list(workspace_id)
 my_jobs = j.process_job_list(my_jobs_r)
 print(my_jobs)
 ```
+### unit testing
+
+Unit tests require 3 additional packages:
+
+```
+requests-mock
+pandas
+pytest
+```
+
+Currently the Clos class function process_job_list and the Job class convert_nextflow_to_json are tested. To run untests run 
+
+```
+python -m pytest -s -v
+``` 
+
+from the cloudos-py main folder and 7 tests should pass. 
