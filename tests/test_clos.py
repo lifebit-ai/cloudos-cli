@@ -12,7 +12,7 @@ output_df = pd.read_csv("tests/test_data/output_df_of_results.csv",
 output_df_full = pd.read_csv("tests/test_data/output_df_of_results_FULL.csv", 
                                 index_col=0)
 
-
+@pytest.fixture()
 def mocked_requests_get():
     test_workspace_id = 1
     with open(input_json) as json_data:
@@ -24,28 +24,25 @@ def mocked_requests_get():
     return r
 
 
-def test_process_job_list_output_correct_shape():
-    r = mocked_requests_get()
-    df = Cloudos.process_job_list(r, full_data=False)
+def test_process_job_list_output_correct_shape(mocked_requests_get,):
+    df = Cloudos.process_job_list(mocked_requests_get, full_data=False)
     assert df.shape == output_df.shape
 
 
-def test_process_job_list_output_correct_headers():
-    r = mocked_requests_get()
-    df = Cloudos.process_job_list(r, full_data=False)
+def test_process_job_list_output_correct_headers(mocked_requests_get):
+    df = Cloudos.process_job_list(mocked_requests_get, full_data=False)
     correct_headers = list(output_df.columns)
     actual_headers = list(df.columns)
     assert correct_headers == actual_headers
 
 
-def test_process_job_list_df_values_equal():
+def test_process_job_list_df_values_equal(mocked_requests_get,):
     """
     Testing to check the values are the same. 3 columns (parameters, workflow.description and masterInstanceStorageCost)
     have been removed. Parameters has" added during making the csv, masterInstanceStorageCost there is a rounding error
     and workflow.description has nan.
     """
-    r = mocked_requests_get()
-    df = Cloudos.process_job_list(r)
+    df = Cloudos.process_job_list(mocked_requests_get)
     columns_to_compare = ['_id', 'team', 'name', 'status',
     'startTime', 'endTime', 'createdAt', 'updatedAt',
     'computeCostSpent',     'resumeWorkDir', 'user.id',
@@ -57,9 +54,8 @@ def test_process_job_list_df_values_equal():
     assert np.all(df[columns_to_compare] == output_df[columns_to_compare])
 
 
-def test_process_job_list_full_has_correct_columns():
-    r = mocked_requests_get()
-    df = Cloudos.process_job_list(r, full_data=True)
+def test_process_job_list_full_has_correct_columns(mocked_requests_get):
+    df = Cloudos.process_job_list(mocked_requests_get, full_data=True)
     correct_headers = list(output_df_full.columns)
     actual_headers = list(df.columns)
     assert correct_headers == actual_headers
