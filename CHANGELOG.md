@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.5 - 2021-10-26
+- Unittests added for method `process_job_list` from class `Cloudos`
+- Unittests added for method `convert_nextflow_to_json` from class `Jobs`
+
 ### 0.0.4 - 2021-10-15
 - Changes `--job-params` to `--job-config`
 - Removes the collection of the `project.description` column from the 

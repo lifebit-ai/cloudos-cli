@@ -16,25 +16,26 @@ param_dict = {
     "spot" : True
 }
 
-def test_output_correct():
+def test_convert_nextflow_to_json_output_correct():
     job_json = Job.convert_nextflow_to_json(1,param_dict["config"],
-project_id=param_dict["project_id"], workflow_id=param_dict["workflow_id"],
-job_name=param_dict["job_name"],resumable=param_dict["resumable"],instance_type=param_dict["instance_type"],
-instance_disk=param_dict["instance_disk"],spot=param_dict["spot"]
-)
+            project_id=param_dict["project_id"], workflow_id=param_dict["workflow_id"],
+            job_name=param_dict["job_name"],resumable=param_dict["resumable"],
+            instance_type=param_dict["instance_type"],
+            instance_disk=param_dict["instance_disk"],spot=param_dict["spot"]
+            )
     with open(actual_json_file) as json_data:
         correct_json = json.load(json_data)
     assert job_json == correct_json
 
-def test_badly_formed_config():
+
+def test_convert_nextflow_to_json_badly_formed_config():
     no_equals_config = "tests/test_data/wrong_params.config"
     with pytest.raises(ValueError) as excinfo:
         job_json = Job.convert_nextflow_to_json(1,no_equals_config,
         project_id=param_dict["project_id"], workflow_id=param_dict["workflow_id"],
-        job_name=param_dict["job_name"],resumable=param_dict["resumable"],instance_type=param_dict["instance_type"],
+        job_name=param_dict["job_name"], resumable=param_dict["resumable"],
+        instance_type=param_dict["instance_type"], 
         instance_disk=param_dict["instance_disk"],spot=param_dict["spot"]
         )
         print(str(excinfo.value))
     assert 'Please, specify your parameters in tests/test_data/wrong_params.config using the \'=\' char as spacer. E.g: name = my_name' in str(excinfo.value)
-
-
