@@ -115,6 +115,8 @@ class Job(Cloudos):
 
     def convert_nextflow_to_json(self,
                                  job_config,
+                                 git_commit,
+                                 git_tag,
                                  project_id,
                                  workflow_id,
                                  job_name,
@@ -128,6 +130,13 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        git_commit : string
+            The exact commit of the pipeline to use. Equivalent to -r
+            option in Nextflow. If not specified, the last commit of the
+            default branch will be used.
+        git_tag : string
+            The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
         project_id : string
             The CloudOS project id for a given project name.
         workflow_id : string
@@ -187,6 +196,22 @@ class Job(Cloudos):
             instance_type_block = instance_type
             instance = "instanceType"
 
+        if git_tag is not None and git_commit is not None:
+            raise ValueError('Please, specify none or only one of --git-tag' +
+                             ' or --git-commit options but not both.')
+        if git_commit is not None:
+            revision_block = {
+                                 "commit": git_commit,
+                                 "isLatest": False
+                             }
+        elif git_tag is not None:
+            revision_block = {
+                                 "tag": git_tag,
+                                 "isLatest": False
+                             }
+        else:
+            revision_block = ""
+
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -199,6 +224,7 @@ class Job(Cloudos):
                 "computeCostLimit": -1,
                 "optim": "test"
             },
+            "revision": revision_block,
             instance: instance_type_block,
             "masterInstance": {
                 "requestedInstance": {
@@ -211,6 +237,8 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config,
+                 git_commit,
+                 git_tag,
                  job_name,
                  resumable,
                  instance_type,
@@ -222,6 +250,13 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        git_commit : string
+            The exact commit of the pipeline to use. Equivalent to -r
+            option in Nextflow. If not specified, the last commit of the
+            default branch will be used.
+        git_tag : string
+            The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
         job_name : string
             The name to assign to the job.
         resumable: bool
@@ -249,6 +284,8 @@ class Job(Cloudos):
             "apikey": apikey
         }
         params = self.convert_nextflow_to_json(job_config,
+                                               git_commit,
+                                               git_tag,
                                                project_id,
                                                workflow_id,
                                                job_name,
