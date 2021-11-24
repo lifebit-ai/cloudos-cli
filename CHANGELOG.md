@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.5b - 2021-11-24
+- Adds Cohort class
+
 ### 0.0.5 - 2021-11-16
 - Adds `git-commit` and `--git-tag` optional arguments to 
 `cloudos job run` to be able to set the github commit or tag
