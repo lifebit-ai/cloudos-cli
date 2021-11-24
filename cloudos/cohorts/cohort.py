@@ -38,20 +38,17 @@ class Cohort(object):
         elif cohort_name is not None:
             self.cohort_id = self.fetch_cohort_id(cohort_name)
         else:
-            raise ValueError(f'One of cohort_id or cohort_name must be set.')
+            raise ValueError('One of cohort_id or cohort_name must be set.')
 
         # Fill in cohort info from API
         self.update()
-
-
     @property
     def column_ids(self) -> list:
         return [ item['field']['id'] for item in self.columns ]
 
-
     def update(self):
         """Update the stored cohort information in the cohort object instance with
-        the latest infromation from the Cohort Browser server."""
+        the latest information from the Cohort Browser server."""
 
         headers = {"apikey": self.apikey,
                    "Accept": "application/json, text/plain, */*",
@@ -61,7 +58,6 @@ class Cohort(object):
                                 params=params, headers=headers)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        
         r_json = r.json()
         self.cohort_name = r_json['name']
         self.num_participants = r_json['numberOfParticipants']
@@ -69,8 +65,5 @@ class Cohort(object):
         self.columns = r_json['columns']
         self.query_type = r_json['type']
 
-    
-
     def fetch_cohort_id(self, name):
         return NotImplemented
-
