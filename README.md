@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2021-10-15\
-__Version:__ 0.0.4
+__Date:__ 2021-11-24\
+__Version:__ 0.0.5b
 
 Python package for interacting with CloudOS
 

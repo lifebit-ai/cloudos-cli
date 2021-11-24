@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.5b - 2021-11-24
+- Adds Cohort class
+
 ### 0.0.4 - 2021-10-15
 - Changes `--job-params` to `--job-config`
 - Removes the collection of the `project.description` column from the 
