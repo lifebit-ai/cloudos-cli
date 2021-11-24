@@ -2,7 +2,7 @@
 Functions and classes related to cohorts.
 """
 
-from .cohort import Cohjort
+from .cohort import Cohort
 
 
 __all__ = ['cohort']
