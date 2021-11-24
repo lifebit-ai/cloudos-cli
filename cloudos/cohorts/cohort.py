@@ -42,6 +42,7 @@ class Cohort(object):
 
         # Fill in cohort info from API
         self.update()
+
     @property
     def column_ids(self) -> list:
         return [ item['field']['id'] for item in self.columns ]
