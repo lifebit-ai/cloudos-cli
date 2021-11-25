@@ -49,7 +49,8 @@ def job():
                     'parameters to use with your job.'),
               required=True)
 @click.option('--git-commit',
-              help=('The exact commit to run for the selected pipeline. ' +
+              help=('The exact whole 40 character commit hash to run for ' +
+                    'the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
                     'of the default branch.'))
 @click.option('--git-tag',

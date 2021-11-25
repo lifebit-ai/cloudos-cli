@@ -85,9 +85,9 @@ Options:
                            [required]
   --job-config TEXT        A nextflow.config file or similar, with the
                            parameters to use with your job.  [required]
-  --git-commit TEXT        The exact commit to run for the selected pipeline.
-                           If not specified it defaults to the last commit of
-                           the default branch.
+  --git-commit TEXT        The exact whole 40 character commit hash to run for
+                           the selected pipeline. If not specified it defaults
+                           to the last commit of the default branch.
   --git-tag TEXT           The tag to run for the selected pipeline. If not
                            specified it defaults to the last commit of the
                            default branch.
