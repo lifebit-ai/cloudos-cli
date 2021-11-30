@@ -56,15 +56,48 @@ class Cohort(object):
                    "Content-Type": "application/json;charset=UTF-8"}
         params = {"teamId": self.workspace_id}
         r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}",
-                                params=params, headers=headers)
+                         params=params, headers=headers)
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
         self.cohort_name = r_json['name']
+        self.cohort_desc = r_json.get('description')
         self.num_participants = r_json['numberOfParticipants']
-        self.query = r_json['query']
+        self.query = r_json.get('query')
         self.columns = r_json['columns']
         self.query_type = r_json['type']
 
     def fetch_cohort_id(self, name):
         return NotImplemented
+
+
+def create_cohort(apikey, cloudos_url, workspace_id, cohort_name, cohort_desc=""):
+    """Create a new cohort in the Cohort Browser.
+
+    Parameters
+    ----------
+    apikey : string
+        Your CloudOS API key.
+    cloudos_url : string
+        The CloudOS service url.
+    workspace_id : string
+        The specific Cloudos workspace id.
+    cohort_name : string
+        The name to assign to the new cohort.
+    Cohort_desc : string
+        The description to assign to the new cohort. (Optional)
+    """
+
+    headers = {"apikey": apikey,
+               "Accept": "application/json, text/plain, */*",
+               "Content-Type": "application/json;charset=UTF-8"}
+    params = {"teamId": workspace_id}
+    data = {"name": cohort_name,
+            "description": cohort_desc}
+    r = requests.post(f"{cloudos_url}/cohort-browser/v2/cohort",
+                      params=params, headers=headers, json=data)
+    if r.status_code >= 400:
+        raise BadRequestException(r)
+    r_json = r.json()
+    cohort = Cohort(apikey, cloudos_url, workspace_id, cohort_id=r_json['_id'])
+    return cohort
