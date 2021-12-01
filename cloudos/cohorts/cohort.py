@@ -80,14 +80,13 @@ class Cohort(object):
             The specific Cloudos workspace id.
         cohort_name : string
             The name to assign to the new cohort.
-        Cohort_desc : string
+        cohort_desc : string
             The description to assign to the new cohort. (Optional)
 
         Returns
         -------
         Cohort
         """
-
         headers = {"apikey": apikey,
                    "Accept": "application/json, text/plain, */*",
                    "Content-Type": "application/json;charset=UTF-8"}
