@@ -40,7 +40,7 @@ class CohortBrowser:
         Cohort
         """
         return Cohort.load(self.apikey, self.cloudos_url, self.workspace_id,
-                           cohort_id=None, cohort_name=None)
+                           cohort_id=cohort_id, cohort_name=cohort_name)
 
     def create_cohort(self, cohort_name, cohort_desc=""):
         """Create a new cohort in the Cohort Browser.
