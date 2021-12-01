@@ -43,6 +43,63 @@ class Cohort(object):
         # Fill in cohort info from API
         self.update()
 
+    @classmethod
+    def load(cls, apikey, cloudos_url, workspace_id, cohort_id=None, cohort_name=None):
+        """Load an existing cohort using its ID.
+
+        Parameters
+        ----------
+        apikey : string
+            Your CloudOS API key.
+        cloudos_url : string
+            The CloudOS service url.
+        workspace_id : string
+            The specific Cloudos workspace id.
+        cohort_id : string
+            The ID of a Cohort Browser cohort (Optional).
+        cohort_name : string
+            The name of a Cohort Browser cohort - can be used instead of cohort_id (Optional).
+
+        Returns
+        -------
+        Cohort
+        """
+        return cls(apikey, cloudos_url, workspace_id, cohort_id, cohort_name)
+
+    @classmethod
+    def create(cls, apikey, cloudos_url, workspace_id, cohort_name, cohort_desc=""):
+        """Create a new cohort in the Cohort Browser.
+
+        Parameters
+        ----------
+        apikey : string
+            Your CloudOS API key.
+        cloudos_url : string
+            The CloudOS service url.
+        workspace_id : string
+            The specific Cloudos workspace id.
+        cohort_name : string
+            The name to assign to the new cohort.
+        cohort_desc : string
+            The description to assign to the new cohort. (Optional)
+
+        Returns
+        -------
+        Cohort
+        """
+        headers = {"apikey": apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": workspace_id}
+        data = {"name": cohort_name,
+                "description": cohort_desc}
+        r = requests.post(f"{cloudos_url}/cohort-browser/v2/cohort",
+                          params=params, headers=headers, json=data)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        return cls(apikey, cloudos_url, workspace_id, cohort_id=r_json['_id'])
+
     @property
     def column_ids(self) -> list:
         return [ item['field']['id'] for item in self.columns ]
@@ -56,13 +113,14 @@ class Cohort(object):
                    "Content-Type": "application/json;charset=UTF-8"}
         params = {"teamId": self.workspace_id}
         r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}",
-                                params=params, headers=headers)
+                         params=params, headers=headers)
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
         self.cohort_name = r_json['name']
+        self.cohort_desc = r_json.get('description')
         self.num_participants = r_json['numberOfParticipants']
-        self.query = r_json['query']
+        self.query = r_json.get('query')
         self.columns = r_json['columns']
         self.query_type = r_json['type']
 
