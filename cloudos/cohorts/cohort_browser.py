@@ -2,10 +2,8 @@
 This is the main class for interacting with a cohort browser instance.
 """
 
-import requests
 from dataclasses import dataclass
 from cloudos.cohorts import Cohort
-from cloudos.utils.errors import BadRequestException
 
 
 @dataclass
