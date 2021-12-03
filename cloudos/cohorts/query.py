@@ -42,7 +42,7 @@ class Phenotype:
 
         Parameters
         ----------
-        pheno_dict: dict
+        pheno_dict : dict
             A dict containing the phenotype information as produced by the API response.
 
         Returns
@@ -113,6 +113,17 @@ class Phenotype:
 
 
 class Query:
+    """Class to represent a phenotype query. Expected to be nested into a tree of
+    queries/phenotypes.
+
+    Parameters
+    ----------
+    operator : string
+        The operator type of this node in the query.
+    subqueries : list
+        A list containing Query or Phenotype objects representing the subqueries nested within
+        this query. i.e. the children of this node in the query tree.
+    """
     def __init__(self, operator, subqueries):
         self.operator = operator
         self.subqueries = subqueries
