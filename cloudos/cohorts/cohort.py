@@ -4,6 +4,7 @@ This is the main class for interacting with cohort browser cohorts.
 
 import requests
 from cloudos.utils.errors import BadRequestException
+from cloudos.cohorts import Query
 
 
 class Cohort(object):
@@ -120,9 +121,14 @@ class Cohort(object):
         self.cohort_name = r_json['name']
         self.cohort_desc = r_json.get('description')
         self.num_participants = r_json['numberOfParticipants']
-        self.query = r_json.get('query')
         self.columns = r_json['columns']
         self.query_type = r_json['type']
+
+        query_dict = r_json.get('query')
+        if query_dict is not None:
+            self.query = Query.from_api_dict(query_dict)
+        else:
+            self.query = None
 
     def fetch_cohort_id(self, name):
         return NotImplemented
