@@ -188,7 +188,10 @@ class Query:
         -------
         None | Query
         """
+        # Beware, this function is recursive!
+
         if inplace:
+            # leave the current object intact and only modify the subqueries
             subqueries = []
             for sq in self.subqueries:
                 if type(sq) == Phenotype:
@@ -198,12 +201,18 @@ class Query:
             self.subqueries = subqueries
 
         else:
+            # return new Query objects recursively
+
             if len(self.subqueries) == 1 and self.operator != 'NOT':
+                # this is a redundant node so just return the subquery
                 if type(self.subqueries[0]) == Phenotype:
                     return self.subqueries[0]
                 else:
                     return self.subqueries[0].strip_singletons(inplace=False)
+
             else:
+                # this is not a redundant node so construct and return
+                # a copy of itself with the function applied recursively
                 subqueries = []
                 for sq in self.subqueries:
                     if type(sq) == Phenotype:
