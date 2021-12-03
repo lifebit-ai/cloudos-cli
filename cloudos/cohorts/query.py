@@ -192,6 +192,7 @@ class Query:
 
         if inplace:
             # leave the current object intact and only modify the subqueries
+
             subqueries = []
             for sq in self.subqueries:
                 if type(sq) == Phenotype:
