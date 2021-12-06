@@ -195,7 +195,7 @@ class Cohort(object):
             query = Query('AND', [])
 
         if keep_query:
-            query = self.query & query
+            query = Query('AND', [self.query]) & query
         else:
             query = Query('AND', [query])
 
