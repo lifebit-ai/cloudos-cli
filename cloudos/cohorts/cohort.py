@@ -4,7 +4,7 @@ This is the main class for interacting with cohort browser cohorts.
 
 import requests
 from cloudos.utils.errors import BadRequestException
-from cloudos.cohorts import Query
+from .query import Query
 
 
 class Cohort(object):
