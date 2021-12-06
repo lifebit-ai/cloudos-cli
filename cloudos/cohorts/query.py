@@ -254,7 +254,7 @@ class Query(QueryComponent):
         else:
             # return new Query objects recursively
 
-            if len(self.subqueries) == 1 and self.operator != 'NOT':
+            if len(self.subqueries) < 2 and self.operator != 'NOT':
                 # this is a redundant node so just return the subquery
                 if isinstance(self.subqueries[0], PhenoFilter):
                     return self.subqueries[0]
