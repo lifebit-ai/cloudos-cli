@@ -240,41 +240,41 @@ class Query(QueryComponent):
         """
         # Beware, this function is recursive!
 
-        self.subqueries = [sq for sq in self.subqueries if sq is not None]
+        subqueries = [ sq for sq in self.subqueries if sq is not None ]
 
         if inplace:
             # leave the current object intact and only modify the subqueries
 
-            subqueries = []
-            for sq in self.subqueries:
+            new_subqueries = []
+            for sq in subqueries:
                 if isinstance(sq, PhenoFilter):
-                    subqueries.append(sq)
+                    new_subqueries.append(sq)
                 else:
-                    subqueries.append(sq.strip_singletons(inplace=False))
-            self.subqueries = subqueries
+                    new_subqueries.append(sq.strip_singletons(inplace=False))
+            self.subqueries = new_subqueries
 
         else:
             # return new Query objects recursively
-            if len(self.subqueries) == 0:
+            if len(subqueries) == 0:
                 return None
 
-            elif len(self.subqueries) == 1 and self.operator != 'NOT':
+            elif len(subqueries) == 1 and self.operator != 'NOT':
                 # this is a redundant node so just return the subquery
-                if isinstance(self.subqueries[0], PhenoFilter):
-                    return self.subqueries[0]
+                if isinstance(subqueries[0], PhenoFilter):
+                    return subqueries[0]
                 else:
-                    return self.subqueries[0].strip_singletons(inplace=False)
+                    return subqueries[0].strip_singletons(inplace=False)
 
             else:
                 # this is not a redundant node so construct and return
                 # a copy of itself with the function applied recursively
-                subqueries = []
-                for sq in self.subqueries:
+                new_subqueries = []
+                for sq in subqueries:
                     if isinstance(sq, PhenoFilter):
-                        subqueries.append(sq)
+                        new_subqueries.append(sq)
                     else:
-                        subqueries.append(sq.strip_singletons(inplace=False))
-                return Query(self.operator, subqueries)
+                        new_subqueries.append(sq.strip_singletons(inplace=False))
+                return Query(self.operator, new_subqueries)
 
     def __repr__(self):
         result = f"Query('{self.operator}', [\n"
