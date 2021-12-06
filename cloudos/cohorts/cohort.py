@@ -134,7 +134,21 @@ class Cohort(object):
         return NotImplemented
 
     def preview_participant_count(self, query=None, keep_query=True):
+        """Retrieve the number of participants in the cohort if the supplied query were to be
+        applied.
 
+        Parameters
+        ----------
+        query : Query | PhenoFilter
+            The query for which to retrieve the participant count.
+        keep_query : bool
+            If True, the query argument will be combined with the existing query. If False, the
+            query argument will be considered in place of the existing query. (Default: True)
+
+        Returns
+        -------
+        dict
+        """
         if query is None:
             query = Query('AND', [])
 
