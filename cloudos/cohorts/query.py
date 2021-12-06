@@ -146,9 +146,9 @@ class PhenoFilter(QueryComponent):
 
     def __repr__(self):
         if self.continuous:
-            return f'PhenoFilter(field_id={self.pheno_id}, vals_min={self.v_min}, vals_max={self.v_max})'
+            return f'PhenoFilter(pheno_id={self.pheno_id}, vals_min={self.v_min}, vals_max={self.v_max})'
         else:
-            return f'PhenoFilter(field_id={self.pheno_id}, vals={self.v_list})'
+            return f'PhenoFilter(pheno_id={self.pheno_id}, vals={self.v_list})'
 
 
 class Query(QueryComponent):
