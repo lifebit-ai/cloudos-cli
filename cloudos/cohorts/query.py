@@ -240,6 +240,8 @@ class Query(QueryComponent):
         """
         # Beware, this function is recursive!
 
+        self.subqueries = [sq for sq in self.subqueries if sq is not None]
+
         if inplace:
             # leave the current object intact and only modify the subqueries
 
@@ -253,8 +255,10 @@ class Query(QueryComponent):
 
         else:
             # return new Query objects recursively
+            if len(self.subqueries) == 0:
+                return None
 
-            if len(self.subqueries) < 2 and self.operator != 'NOT':
+            elif len(self.subqueries) == 1 and self.operator != 'NOT':
                 # this is a redundant node so just return the subquery
                 if isinstance(self.subqueries[0], PhenoFilter):
                     return self.subqueries[0]
