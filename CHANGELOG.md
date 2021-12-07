@@ -3,6 +3,11 @@
 ### 0.0.5b - 2021-11-24
 - Adds Cohort class
 
+### 0.0.5 - 2021-11-16
+- Adds `git-commit` and `--git-tag` optional arguments to 
+`cloudos job run` to be able to set the github commit or tag
+to run.
+
 ### 0.0.4 - 2021-10-15
 - Changes `--job-params` to `--job-config`
 - Removes the collection of the `project.description` column from the 

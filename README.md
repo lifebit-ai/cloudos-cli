@@ -1,7 +1,7 @@
 # cloudos
 
 __Date:__ 2021-11-24\
-__Version:__ 0.0.5b
+__Version:__ 0.0.5
 
 Python package for interacting with CloudOS
 
@@ -12,6 +12,7 @@ The package requires Python >= 3.8 and the following python packages:
 ```
 click
 requests
+pandas
 ```
 
 ## Installation
@@ -23,7 +24,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.4
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.5
 ```
 
 ### From Github
@@ -70,7 +71,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: cloudos job run [OPTIONS]
+Usage: python -m cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
@@ -84,6 +85,12 @@ Options:
                            [required]
   --job-config TEXT        A nextflow.config file or similar, with the
                            parameters to use with your job.  [required]
+  --git-commit TEXT        The exact whole 40 character commit hash to run for
+                           the selected pipeline. If not specified it defaults
+                           to the last commit of the default branch.
+  --git-tag TEXT           The tag to run for the selected pipeline. If not
+                           specified it defaults to the last commit of the
+                           default branch.
   --job-name TEXT          The name of the job. Default=new_job.
   --resumable              Whether to make the job able to be resumed or not.
   --instance-type TEXT     The type of AMI to use. Default=c5.xlarge.
