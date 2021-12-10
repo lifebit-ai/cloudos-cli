@@ -11,6 +11,7 @@ import sys
 # GLOBAL VARS
 JOB_SUCCESS = 'completed'
 JOB_FAIL = 'failed'
+JOB_ABORTED = 'aborted'
 
 
 @click.group()
@@ -133,6 +134,9 @@ def run(apikey,
                 sys.exit(0)
             elif j_status_h == JOB_FAIL:
                 print(f'\tYour job took {elapsed} seconds to fail.')
+                sys.exit(1)
+            elif j_status_h == JOB_ABORTED:
+                print(f'\tYour job took {elapsed} seconds to abort.')
                 sys.exit(1)
             else:
                 elapsed += 1
