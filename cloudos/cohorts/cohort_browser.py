@@ -59,6 +59,16 @@ class CohortBrowser:
                              cohort_name, cohort_desc=cohort_desc)
 
     def get_phenotype_metadata(self, pheno_id):
+        """Get metadata on a phenotype.
+        Parameters
+        ----------
+        pheno_id : int
+            The id of the phenotype of interest.
+
+        Returns
+        -------
+        Dict
+        """
         headers = {"apikey": self.apikey,
                    "Accept": "application/json, text/plain, */*",
                    "Content-Type": "application/json;charset=UTF-8"}
