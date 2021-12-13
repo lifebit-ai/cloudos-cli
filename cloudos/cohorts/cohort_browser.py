@@ -80,3 +80,4 @@ class CohortBrowser:
         r_json = r.json()
         r_json.pop('_id', None)
         return r_json
+        
