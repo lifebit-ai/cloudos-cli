@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-py: changelog
 
-### 0.0.5 - 2021-10-26
+### 0.0.6 - 2021-12-09
 - Unittests added for method `process_job_list` from class `Cloudos`
 - Unittests added for method `convert_nextflow_to_json` from class `Jobs`
 
