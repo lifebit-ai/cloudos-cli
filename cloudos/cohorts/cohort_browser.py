@@ -60,6 +60,7 @@ class CohortBrowser:
 
     def get_phenotype_metadata(self, pheno_id):
         """Get metadata on a phenotype.
+        
         Parameters
         ----------
         pheno_id : int
