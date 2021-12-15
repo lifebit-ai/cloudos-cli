@@ -74,7 +74,7 @@ class CohortBrowser:
                    "Content-Type": "application/json;charset=UTF-8"}
         params = {"teamId": self.workspace_id}
         r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/metadata",
-                                params=params, headers=headers)
+                         params=params, headers=headers)
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
