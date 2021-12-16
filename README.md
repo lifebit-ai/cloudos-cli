@@ -1,7 +1,8 @@
 # cloudos
 
-__Date:__ 2021-11-24\
-__Version:__ 0.0.5b
+__Date:__ 2021-12-09\
+__Version:__ 0.0.6
+
 
 Python package for interacting with CloudOS
 
@@ -12,6 +13,7 @@ The package requires Python >= 3.8 and the following python packages:
 ```
 click
 requests
+pandas
 ```
 
 ## Installation
@@ -23,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.4
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.5
 ```
 
 ### From Github
@@ -70,7 +72,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: cloudos job run [OPTIONS]
+Usage: python -m cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
@@ -84,6 +86,12 @@ Options:
                            [required]
   --job-config TEXT        A nextflow.config file or similar, with the
                            parameters to use with your job.  [required]
+  --git-commit TEXT        The exact whole 40 character commit hash to run for
+                           the selected pipeline. If not specified it defaults
+                           to the last commit of the default branch.
+  --git-tag TEXT           The tag to run for the selected pipeline. If not
+                           specified it defaults to the last commit of the
+                           default branch.
   --job-name TEXT          The name of the job. Default=new_job.
   --resumable              Whether to make the job able to be resumed or not.
   --instance-type TEXT     The type of AMI to use. Default=c5.xlarge.
@@ -319,3 +327,20 @@ my_jobs_r = j.get_job_list(workspace_id)
 my_jobs = j.process_job_list(my_jobs_r)
 print(my_jobs)
 ```
+### unit testing
+
+Unit tests require 3 additional packages:
+
+```
+requests-mock
+pandas
+pytest
+```
+
+Currently the Clos class function process_job_list and the Job class convert_nextflow_to_json are tested. To run untests run 
+
+```
+python -m pytest -s -v
+``` 
+
+from the cloudos-py main folder and 7 tests should pass. 

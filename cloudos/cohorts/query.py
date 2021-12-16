@@ -34,7 +34,7 @@ class QueryComponent:
 
 
 def and_(q1, q2):
-    """Logical AND operation for combining two QueryComponent objects into a Query.
+    """Logical AND operation for combining two PhenoFilters/Query objects into a Query.
 
     Returns
     -------
@@ -46,7 +46,7 @@ def and_(q1, q2):
 
 
 def or_(q1, q2):
-    """Logical OR operation for combining two QueryComponent objects into a Query.
+    """Logical OR operation for combining two PhenoFilters/Query objects into a Query.
 
     Returns
     -------
@@ -74,7 +74,7 @@ class PhenoFilter(QueryComponent):
 
     Parameters
     ----------
-    field_id : int
+    pheno_id : int
         The field ID of the phenotype in the Cohort Browser.
     vals : list
         The list of selected values within the phenotype.
@@ -192,7 +192,7 @@ class Query(QueryComponent):
         return cls(operator, subqueries)
 
     def to_api_dict(self):
-        """Create a dict containing the nested query infromation suitable for use with the Cohort
+        """Create a dict containing the nested query information suitable for use with the Cohort
         Browser API. Inverse of Query.from_api_dict().
 
         Returns
@@ -222,7 +222,7 @@ class Query(QueryComponent):
             elif isinstance(item, Query):
                 pheno_list += item.list_phenofilters()
             else:
-                raise TypeError
+                raise TypeError('Subquery item is not a Query or a PhenoFilter object.')
         return pheno_list
 
     def strip_singletons(self, inplace=True):
