@@ -132,3 +132,46 @@ class Cohort(object):
 
     def fetch_cohort_id(self, name):
         return NotImplemented
+
+    def preview_participant_count(self, query=None, keep_query=True):
+        """Retrieve the number of participants in the cohort if the supplied query were to be
+        applied.
+
+        Parameters
+        ----------
+        query : Query | PhenoFilter
+            The query for which to retrieve the participant count.
+        keep_query : bool
+            If True, the query argument will be combined with the existing query. If False, the
+            query argument will be considered in place of the existing query. (Default: True)
+
+        Returns
+        -------
+        dict
+        """
+        if query is None:
+            query = Query('AND', [])
+
+        if keep_query:
+            query = self.query & query
+        else:
+            query = Query('AND', [query])
+
+        query.strip_singletons()
+
+        if len(query.subqueries) > 0:
+            data = {"query": query.to_api_dict()}
+        else:
+            data = None
+
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+        r = requests.post(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}/filter/participants",
+                          params=params, headers=headers, json=data)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+
+        return r_json
