@@ -175,3 +175,53 @@ class Cohort(object):
         r_json = r.json()
 
         return r_json
+
+    def apply_query(self, query=None, keep_query=True):
+        """Apply the supplied query to the cohort.
+
+        Parameters
+        ----------
+        query : Query | PhenoFilter
+            The query to apply.
+        keep_query : bool
+            If True, the query argument will be combined with the existing query. If False, the
+            query argument will be considered in place of the existing query. (Default: True)
+
+        Returns
+        -------
+        None
+        """
+        if query is None:
+            query = Query('AND', [])
+
+        if keep_query:
+            query = Query('AND', [self.query]) & query
+        else:
+            query = Query('AND', [query])
+
+        query.strip_singletons()
+
+        # keep_query is False because we have already combined the query if needed
+        new_count = self.preview_participant_count(query, keep_query=False)['count']
+
+        data = {'name': self.cohort_name,
+                'description': self.cohort_desc,
+                'columns': self.columns,
+                'type': 'advanced',
+                'numberOfParticipants': new_count}
+
+        if len(query.subqueries) > 0:
+            data['query'] = query.to_api_dict()
+        else:
+            data['query'] = None
+
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+        r = requests.put(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}",
+                         params=params, headers=headers, json=data)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        self.update()
