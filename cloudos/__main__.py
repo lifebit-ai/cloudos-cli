@@ -48,6 +48,15 @@ def job():
               help=('A nextflow.config file or similar, with the ' +
                     'parameters to use with your job.'),
               required=True)
+@click.option('--git-commit',
+              help=('The exact whole 40 character commit hash to run for ' +
+                    'the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--git-tag',
+              help=('The tag to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
@@ -81,6 +90,8 @@ def run(apikey,
         project_name,
         workflow_name,
         job_config,
+        git_commit,
+        git_tag,
         job_name,
         resumable,
         instance_type,
@@ -99,6 +110,8 @@ def run(apikey,
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
     j_id = j.send_job(job_config,
+                      git_commit,
+                      git_tag,
                       job_name,
                       resumable,
                       instance_type,

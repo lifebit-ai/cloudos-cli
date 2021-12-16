@@ -1,7 +1,16 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.6 - 2021-12-09
+- Unittests added for method `process_job_list` from class `Cloudos`
+- Unittests added for method `convert_nextflow_to_json` from class `Jobs`
+
 ### 0.0.5b - 2021-11-24
 - Adds Cohort class
+
+### 0.0.5 - 2021-11-16
+- Adds `git-commit` and `--git-tag` optional arguments to 
+`cloudos job run` to be able to set the github commit or tag
+to run.
 
 ### 0.0.4 - 2021-10-15
 - Changes `--job-params` to `--job-config`
