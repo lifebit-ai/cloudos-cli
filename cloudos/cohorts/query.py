@@ -74,7 +74,7 @@ class PhenoFilter(QueryComponent):
 
     Parameters
     ----------
-    field_id : int
+    pheno_id : int
         The field ID of the phenotype in the Cohort Browser.
     vals : list
         The list of selected values within the phenotype.
@@ -192,7 +192,7 @@ class Query(QueryComponent):
         return cls(operator, subqueries)
 
     def to_api_dict(self):
-        """Create a dict containing the nested query infromation suitable for use with the Cohort
+        """Create a dict containing the nested query information suitable for use with the Cohort
         Browser API. Inverse of Query.from_api_dict().
 
         Returns
