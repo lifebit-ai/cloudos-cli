@@ -222,7 +222,7 @@ class Query(QueryComponent):
             elif isinstance(item, Query):
                 pheno_list += item.list_phenofilters()
             else:
-                raise TypeError
+                raise TypeError('Subquery item is not a Query or a PhenoFilter object.')
         return pheno_list
 
     def strip_singletons(self, inplace=True):
