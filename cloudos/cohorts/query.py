@@ -34,7 +34,7 @@ class QueryComponent:
 
 
 def and_(q1, q2):
-    """Logical AND operation for combining two QueryComponent objects into a Query.
+    """Logical AND operation for combining two PhenoFilters/Query objects into a Query.
 
     Returns
     -------
@@ -46,7 +46,7 @@ def and_(q1, q2):
 
 
 def or_(q1, q2):
-    """Logical OR operation for combining two QueryComponent objects into a Query.
+    """Logical OR operation for combining two PhenoFilters/Query objects into a Query.
 
     Returns
     -------
