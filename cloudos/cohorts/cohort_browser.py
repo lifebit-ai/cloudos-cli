@@ -1,6 +1,7 @@
 """
 This is the main class for interacting with a cohort browser instance.
 """
+import json
 import requests
 from dataclasses import dataclass
 from cloudos.cohorts import Cohort
@@ -104,10 +105,7 @@ class CohortBrowser:
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
-        try:
-            print(f"Total number of phenotypic filters found - {len(r_json['filters'])}")
-        except:
-            print(f"No phenotypic filters found with - {term}")
+        print(f"Total number of phenotypic filters found - {len(r_json['filters'])}")
         values_to_take = ["id", "name", "description", "possibleValues",
                           "array", "type", "valueType", "units"]
         filters_dict = {}
