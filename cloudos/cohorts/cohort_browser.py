@@ -81,3 +81,38 @@ class CohortBrowser:
         r_json = r.json()
         r_json.pop('_id', None)
         return r_json
+
+    def search_phenotypes(self, term):
+        """Get information on a filter term.
+
+        Parameters
+        ----------
+        term : string
+            The name of the filter of interest.
+
+        Returns
+        -------
+        Dict
+        """
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"term": term,
+                  "teamId": self.workspace_id}
+        r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort/fields_search",
+                         params=params, headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        try:
+            print(f"Total number of phenotypic filters found - {len(r_json['filters'])}")
+        except:
+            print(f"No phenotypic filters found with - {term}")
+        values_to_take = ["id", "name", "description", "possibleValues",
+                          "array", "type", "valueType", "units"]
+        filters_dict = {}
+        for i in range(len(r_json['filters'])):
+            temp_dict = {x: r_json['filters'][i][x] for x in r_json['filters'][i]
+                         if x in values_to_take}
+            filters_dict[i] = temp_dict
+        return filters_dict
