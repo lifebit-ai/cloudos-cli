@@ -83,7 +83,7 @@ class CohortBrowser:
         return r_json
 
     def list_cohorts(self, size=10):
-        """List all cohorts on the first page of Cohort browser.
+        """List all cohorts from the first page of Cohort browser.
 
         Parameters
         ----------
@@ -107,14 +107,16 @@ class CohortBrowser:
         r_json = r.json()
         if size == 10:
             print(f"""Total number of cohorts found: {r_json['total']}. 
-            Showing {size} by default. Change 'size' parameter to return more.
+            Showing: {size} by default. Change 'size' parameter to return more.
             """.strip().replace("            ", ""))
-        values_to_take = ["name", "description", "numberOfParticipants",
+        else:
+            print(f"Total number of cohorts found: {r_json['total']}. Showing: {size}.")
+        values_to_take = ["name", "_id", "description", "numberOfParticipants",
                           "numberOfFilters", "createdAt", "updatedAt"]
-        cohort_dict = {}
-        for i in range(len(r_json['cohorts'])):
+        cohort_list = []
+        for i, item in enumerate(r_json['cohorts']):
             r_json['cohorts'][i]['numberOfFilters'] = len(r_json['cohorts'][i]['phenotypeFilters'])
-            temp_dict = {x: r_json['cohorts'][i][x] for x in r_json['cohorts'][i]
-                         if x in values_to_take}
-            cohort_dict[i] = temp_dict
-        return cohort_dict
+            temp_item = {item: r_json['cohorts'][i][item] for item in r_json['cohorts'][i]
+                         if item in values_to_take}
+            cohort_list.append(temp_item)
+        return cohort_list
