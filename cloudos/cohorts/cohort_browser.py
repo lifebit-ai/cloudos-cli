@@ -105,9 +105,11 @@ class CohortBrowser:
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
+        if size > r_json['total']:
+            size = r_json['total']
         if size == 10:
             print(f"""Total number of cohorts found: {r_json['total']}. 
-            Showing: {size} by default. Change 'size' parameter to return more.
+            Showing {size} by default. Change 'size' parameter to return more.
             """.strip().replace("            ", ""))
         else:
             print(f"Total number of cohorts found: {r_json['total']}. Showing: {size}.")
