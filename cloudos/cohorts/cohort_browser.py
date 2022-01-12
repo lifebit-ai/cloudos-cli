@@ -87,7 +87,7 @@ class CohortBrowser:
 
         Parameters
         ----------
-        term : int
+        term : int or String "all"
             Number of cohorts to list on the first page.
 
         Returns
@@ -97,18 +97,39 @@ class CohortBrowser:
         headers = {"apikey": self.apikey,
                    "Accept": "application/json, text/plain, */*",
                    "Content-Type": "application/json;charset=UTF-8"}
-        params = {"teamId": self.workspace_id,
-                  "pageNumber": 0,
-                  "pageSize": size}
-        r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
-                         params=params, headers=headers)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        r_json = r.json()
+        if size == "all":
+            size = 0
+            params = {"teamId": self.workspace_id,
+                    "pageNumber": 0,
+                    "pageSize": size}
+            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                            params=params, headers=headers)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            r_json = r.json()
+            size = r_json['total']
+            # inital request to get total second request to get all
+            params = {"teamId": self.workspace_id,
+                      "pageNumber": 0,
+                      "pageSize": size}
+            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                             params=params, headers=headers)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            r_json = r.json()
+        else:
+            params = {"teamId": self.workspace_id,
+                      "pageNumber": 0,
+                      "pageSize": size}
+            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                             params=params, headers=headers)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            r_json = r.json()
         if size > r_json['total']:
             size = r_json['total']
         if size == 10:
-            print(f"""Total number of cohorts found: {r_json['total']}. 
+            print(f"""Total number of cohorts found: {r_json['total']}.
             Showing {size} by default. Change 'size' parameter to return more.
             """.strip().replace("            ", ""))
         else:
