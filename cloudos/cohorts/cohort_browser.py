@@ -88,7 +88,7 @@ class CohortBrowser:
         Parameters
         ----------
         term : int or String "all"
-            Number of cohorts to list on the first page.
+            Number of cohorts to list from the first page.
 
         Returns
         -------
