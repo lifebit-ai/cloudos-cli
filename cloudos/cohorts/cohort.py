@@ -3,6 +3,7 @@ This is the main class for interacting with cohort browser cohorts.
 """
 
 import requests
+import pandas as pd
 from cloudos.utils.errors import BadRequestException
 from .query import Query
 
@@ -225,3 +226,63 @@ class Cohort(object):
             raise BadRequestException(r)
 
         self.update()
+
+    def get_participants_table(self, col, page_number=0, page_size=100):
+        """
+        """
+        if page_size == 0:
+            raise ValueError("page_size can't be 0")
+        if page_number != "all" and isinstance(page_number, int) != True:
+            raise ValueError("page_number must be integer or 'all'")
+        if page_number == "all":
+            iter_all = True
+        else:
+            iter_all = False
+
+        if col is None:
+            col = self.get_column_json()
+
+        r_body = {"criteria": {"pagination": {"pageNumber": page_number, "pageSize": page_size},
+                             "cohortId": self.cohort_id},
+                "columns": col}
+
+        r_json = self.fetch_table(r_body, iter_all)
+
+        res_df = pd.json_normalize(r_json['data'])
+        res_df.drop(['_id'], axis=1, inplace=True)
+        return res_df#r_json
+    
+    def fetch_table(self, r_body, iter_all = False):
+        """
+        1. do the json request
+        2. if its 'all' do a request with page 0 to get total pages
+        3. do the json request with all
+            a. need to work out total pages
+            b. take 1 of for the page you already have
+            c. make a request for each page and add the data to the json
+        """
+        headers = {"apikey": self.apikey,
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+
+        r = requests.post(f"{self.cloudos_url}/cohort-browser/v2/cohort/participants/search",
+                        params=params, headers=headers, json=r_body)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        return r_json
+
+    def get_column_json(self):
+        """
+        """
+        cohort_columns = []
+        if len(self.columns) == 0:
+            return cohort_columns
+        for col in self.columns:
+            col_temp = {"id" : col['field']['id'], "instance": col["instance"], "array" : col["array"]}
+            cohort_columns.append(col_temp)
+        return cohort_columns
+
+    # def make_column_json(self)
+
