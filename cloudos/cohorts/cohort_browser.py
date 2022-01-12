@@ -82,14 +82,15 @@ class CohortBrowser:
         r_json.pop('_id', None)
         return r_json
 
-    def search_phenotypes(self, term):
+    def search_phenotypes(self, term='', all_values=False):
         """Get information on a filter term.
 
         Parameters
         ----------
-        term : string
+        term : string. Default=''
             The name of the filter of interest.
-
+        all_values: boolean. Default=False
+            Choose either the full phenotype or a condensed view.
         Returns
         -------
         Dict
@@ -105,15 +106,20 @@ class CohortBrowser:
             raise BadRequestException(r)
         r_json = r.json()
         print(f"Total number of phenotypic filters found - {len(r_json['filters'])}")
-        values_to_take = ["id", "categoryPathLevel1", "categoryPathLevel2",  "categoryPathLevel3",
-                          "name", "description", "type", "valueType", "units", "display",
-                          "possibleValues", "min", "max", "recruiterDescription", "group",
-                          "clinicalForm", "parent", "instances", "array", "Sorting", "coding",
-                          "descriptionParticipantsNo", "link", "descriptionCategoryID",
-                          "descriptionItemType", "descriptionStrata", "descriptionSexed"]
-        filters_list = []
-        for i, item in enumerate(r_json['filters']):
-            temp_item = {item: r_json['filters'][i][item] for item in r_json['filters'][i]
-                         if item in values_to_take}
-            filters_list.append(temp_item)
-        return filters_list
+        if all_values is True:
+            return r_json['filters']
+        else:
+            values_to_take = ["id", "categoryPathLevel1", "categoryPathLevel2",
+                              "categoryPathLevel3", "name", "description",
+                              "type", "valueType", "units", "display",
+                              "possibleValues", "min", "max", "recruiterDescription",
+                              "group", "clinicalForm", "parent", "instances", "array",
+                              "Sorting", "coding", "descriptionParticipantsNo",
+                              "link", "descriptionCategoryID", "descriptionItemType",
+                              "descriptionStrata", "descriptionSexed"]
+            filters_list = []
+            for i, item in enumerate(r_json['filters']):
+                temp_item = {item: r_json['filters'][i][item] for item in r_json['filters'][i]
+                             if item in values_to_take}
+                filters_list.append(temp_item)
+            return filters_list
