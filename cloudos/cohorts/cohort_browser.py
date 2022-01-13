@@ -100,32 +100,22 @@ class CohortBrowser:
         if size == "all":
             size = 0
             params = {"teamId": self.workspace_id,
-                    "pageNumber": 0,
-                    "pageSize": size}
+                      "pageNumber": 0,
+                      "pageSize": size}
             r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
-                            params=params, headers=headers)
+                             params=params, headers=headers)
             if r.status_code >= 400:
                 raise BadRequestException(r)
             r_json = r.json()
             size = r_json['total']
-            # inital request to get total second request to get all
-            params = {"teamId": self.workspace_id,
-                      "pageNumber": 0,
-                      "pageSize": size}
-            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
-                             params=params, headers=headers)
-            if r.status_code >= 400:
-                raise BadRequestException(r)
-            r_json = r.json()
-        else:
-            params = {"teamId": self.workspace_id,
-                      "pageNumber": 0,
-                      "pageSize": size}
-            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
-                             params=params, headers=headers)
-            if r.status_code >= 400:
-                raise BadRequestException(r)
-            r_json = r.json()
+        params = {"teamId": self.workspace_id,
+                  "pageNumber": 0,
+                  "pageSize": size}
+        r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                            params=params, headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
         if size > r_json['total']:
             size = r_json['total']
         if size == 10:
@@ -137,9 +127,8 @@ class CohortBrowser:
         values_to_take = ["name", "_id", "description", "numberOfParticipants",
                           "numberOfFilters", "createdAt", "updatedAt"]
         cohort_list = []
-        for i, item in enumerate(r_json['cohorts']):
-            r_json['cohorts'][i]['numberOfFilters'] = len(r_json['cohorts'][i]['phenotypeFilters'])
-            temp_item = {item: r_json['cohorts'][i][item] for item in r_json['cohorts'][i]
-                         if item in values_to_take}
+        for cohort in r_json['cohorts']:
+            temp_item = {k: v for k, v in cohort.items() if k in values_to_take}
+            temp_item['numberOfFilters'] = len(cohort['phenotypeFilters'])
             cohort_list.append(temp_item)
         return cohort_list
