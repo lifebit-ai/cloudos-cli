@@ -81,3 +81,54 @@ class CohortBrowser:
         r_json = r.json()
         r_json.pop('_id', None)
         return r_json
+
+    def list_cohorts(self, size=10):
+        """List all cohorts from the first page of Cohort browser.
+
+        Parameters
+        ----------
+        term : int or String "all"
+            Number of cohorts to list from the first page.
+
+        Returns
+        -------
+        Dict
+        """
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        if size == "all":
+            size = 0
+            params = {"teamId": self.workspace_id,
+                      "pageNumber": 0,
+                      "pageSize": size}
+            r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                             params=params, headers=headers)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            r_json = r.json()
+            size = r_json['total']
+        params = {"teamId": self.workspace_id,
+                  "pageNumber": 0,
+                  "pageSize": size}
+        r = requests.get(f"{self.cloudos_url}/cohort-browser/v2/cohort",
+                            params=params, headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        if size > r_json['total']:
+            size = r_json['total']
+        if size == 10:
+            print(f"""Total number of cohorts found: {r_json['total']}.
+            Showing {size} by default. Change 'size' parameter to return more.
+            """.strip().replace("            ", ""))
+        else:
+            print(f"Total number of cohorts found: {r_json['total']}. Showing: {size}.")
+        values_to_take = ["name", "_id", "description", "numberOfParticipants",
+                          "numberOfFilters", "createdAt", "updatedAt"]
+        cohort_list = []
+        for cohort in r_json['cohorts']:
+            temp_item = {k: v for k, v in cohort.items() if k in values_to_take}
+            temp_item['numberOfFilters'] = len(cohort['phenotypeFilters'])
+            cohort_list.append(temp_item)
+        return cohort_list
