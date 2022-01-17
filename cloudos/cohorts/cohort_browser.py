@@ -82,15 +82,16 @@ class CohortBrowser:
         r_json.pop('_id', None)
         return r_json
 
-    def search_phenotypes(self, term='', all_values=False):
-        """Get information on a filter term.
+    def search_phenotypes(self, term='', all_metadata=False):
+        """Search for phenotypes with 'term' in their name.
 
         Parameters
         ----------
         term : string. Default=''
-            The name of the filter of interest.
-        all_values: boolean. Default=False
-            Choose either the full phenotype or a condensed view.
+            The string with which to search for phenotypes. Empty string will return
+            all phenotypes.
+        all_metadata: boolean. Default=False
+            Set to True to return all metadata for each returned phenotype.
         Returns
         -------
         Dict
@@ -105,8 +106,8 @@ class CohortBrowser:
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
-        print(f"Total number of phenotypic filters found - {len(r_json['filters'])}")
-        if all_values is True:
+        print(f"Total number of phenotypes found - {len(r_json['filters'])}")
+        if all_metadata is True:
             return r_json['filters']
         else:
             values_to_take = ["id", "categoryPathLevel1", "categoryPathLevel2",
@@ -117,9 +118,9 @@ class CohortBrowser:
                               "Sorting", "coding", "descriptionParticipantsNo",
                               "link", "descriptionCategoryID", "descriptionItemType",
                               "descriptionStrata", "descriptionSexed"]
-            filters_list = []
+            phenotypes_list = []
             for i, item in enumerate(r_json['filters']):
                 temp_item = {item: r_json['filters'][i][item] for item in r_json['filters'][i]
                              if item in values_to_take}
-                filters_list.append(temp_item)
-            return filters_list
+                phenotypes_list.append(temp_item)
+            return phenotypes_list
