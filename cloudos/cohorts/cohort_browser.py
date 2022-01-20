@@ -84,12 +84,12 @@ class CohortBrowser:
 
     def list_cohorts(self, size=10):
         """List all cohorts from the first page of Cohort browser.
-        
+
         Parameters
         ----------
         term : int or String "all"
             Number of cohorts to list from the first page.
-        
+
         Returns
         -------
         Dict
