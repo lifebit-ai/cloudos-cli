@@ -283,10 +283,9 @@ class Cohort(object):
             try:
                 res_df[k] = res_df[k].astype(v)
             except TypeError as e:
-                if "cannot safely cast non-equivalent float64 to int64" in str(e):
-                    res_df[k] = res_df[k].astype("float64")
-                else:
-                    res_df[k] = res_df[k].astype("object")
+                print(f"Error: could set {col_names[k]} as {v} set as object")
+                print(f"Error message: {str(e)}")
+                res_df[k] = res_df[k].astype("object")
         res_df = res_df.rename(columns=col_names)
         res_df.drop('_id', axis=1, inplace=True)
         return res_df
