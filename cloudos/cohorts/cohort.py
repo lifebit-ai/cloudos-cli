@@ -373,8 +373,8 @@ class Cohort(object):
         """
         cohort_columns = []
         for col_id in col_ids:
-            array_size = self.get_phenotype_array_size(col_id)
-            if array_size > 1:
+            phenotype = self.get_phenotype_metadata(col_id)
+            if phenotype["array"] > 1:
                 array = {"type": "all", "value": 0}
             else:
                 array = {"type": "exact", "value": 0}
@@ -385,8 +385,8 @@ class Cohort(object):
 
         return cohort_columns
 
-    def get_phenotype_array_size(self, pheno_id):
-        """Get array size of a phenotype. Based on the Cohort_browser class function
+    def get_phenotype_metadata(self, pheno_id):
+        """Get metadata of a phenotype. Based on the Cohort_browser class function
         get_phenotype_metadata. Made here to avoid circule imports.
 
         Parameters
@@ -396,7 +396,7 @@ class Cohort(object):
 
         Returns
         -------
-        int
+        Dict
         """
         headers = {"apikey": self.apikey,
                    "Accept": "application/json, text/plain, */*",
@@ -408,4 +408,4 @@ class Cohort(object):
             raise BadRequestException(r)
         r_json = r.json()
 
-        return r_json["array"]
+        return r_json
