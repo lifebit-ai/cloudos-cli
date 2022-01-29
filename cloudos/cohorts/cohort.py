@@ -232,7 +232,7 @@ class Cohort(object):
 
         Parameters
         ----------
-        col: int list
+        col: int list or None
             List of the ids of the phenotypes of interest.
         page_number: int or "all"
             Get information from this page on cohort browser.
@@ -241,7 +241,7 @@ class Cohort(object):
 
         Returns
         -------
-        Dict
+        pandas.DataFrame
         """
         if page_size == 0:
             raise ValueError("page_size can't be 0")
@@ -283,8 +283,7 @@ class Cohort(object):
             try:
                 res_df[k] = res_df[k].astype(v)
             except TypeError as e:
-                print(f"Error: could set {col_names[k]} as {v} set as object")
-                print(f"Error message: {str(e)}")
+                print(f'Warning: the column \"{col_names[k]}\" has been converted from {v} to object')
                 res_df[k] = res_df[k].astype("object")
         res_df = res_df.rename(columns=col_names)
         res_df.drop('_id', axis=1, inplace=True)
