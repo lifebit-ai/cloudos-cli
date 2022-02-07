@@ -121,7 +121,7 @@ class Cohort(object):
             raise BadRequestException(r)
         r_json = r.json()
         self.cohort_name = r_json['name']
-        self.cohort_desc = r_json.get('description')
+        self.cohort_desc = r_json.get('description', '')
         self.num_participants = r_json['numberOfParticipants']
         self.columns = r_json['columns']
         self.query_type = r_json['type']
@@ -413,3 +413,48 @@ class Cohort(object):
         r_json = r.json()
 
         return r_json
+
+    def set_columns(self, col, append=False):
+        """Set the columns to be used as for a cohort.
+
+        Parameters
+        ----------
+        col: int list
+            A list of phenotype IDs to use as the columns.
+        append: bool.
+            If True append the col list to existing columns.
+            (Default=False).
+
+        Returns
+        -------
+        None
+        """
+        columns = []
+        existing_columns = []
+        if append is True:
+            for i in self.columns:
+                col_id = i["field"]["id"]
+                existing_columns.append(col_id)
+                columns.append({"id": col_id, "instance": "0", "array": {"type": "exact", "value": 0}})
+        for col_id in col:
+            if col_id not in existing_columns:
+                columns.append({"id": col_id, "instance": "0", "array": {"type": "exact", "value": 0}})
+
+        data = {'name': self.cohort_name,
+                'description': self.cohort_desc,
+                'columns': columns,
+                'type': 'advanced',
+                'numberOfParticipants': self.num_participants,
+                'query': self.query.to_api_dict()}
+
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+
+        r = requests.put(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}",
+                         params=params, headers=headers, json=data)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        self.update()
