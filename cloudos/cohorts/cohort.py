@@ -415,7 +415,7 @@ class Cohort(object):
         return r_json
 
     def set_columns(self, col, append=False):
-        """Set the columns to be used as for a cohort.
+        """Set the columns to be used for a cohort.
 
         Parameters
         ----------
@@ -435,17 +435,25 @@ class Cohort(object):
             for i in self.columns:
                 col_id = i["field"]["id"]
                 existing_columns.append(col_id)
-                columns.append({"id": col_id, "instance": "0", "array": {"type": "exact", "value": 0}})
+                columns.append({"id": col_id, "instance": "0",
+                                "array": {"type": "exact", "value": 0}})
         for col_id in col:
             if col_id not in existing_columns:
-                columns.append({"id": col_id, "instance": "0", "array": {"type": "exact", "value": 0}})
+                columns.append({"id": col_id, "instance": "0",
+                                "array": {"type": "exact", "value": 0}})
+
+        try:
+            query = self.query.to_api_dict()
+        except AttributeError:
+            query = Query('AND', [])
+            query = query.to_api_dict()
 
         data = {'name': self.cohort_name,
                 'description': self.cohort_desc,
                 'columns': columns,
                 'type': 'advanced',
                 'numberOfParticipants': self.num_participants,
-                'query': self.query.to_api_dict()}
+                'query': query}
 
         headers = {"apikey": self.apikey,
                    "Accept": "application/json, text/plain, */*",
