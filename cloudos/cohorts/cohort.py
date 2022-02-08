@@ -6,6 +6,7 @@ import requests
 import pandas as pd
 from cloudos.utils.errors import BadRequestException
 from .query import Query
+from sys import stderr
 
 
 class Cohort(object):
@@ -227,17 +228,18 @@ class Cohort(object):
 
         self.update()
 
-    def get_participants_table(self, col, page_number=0, page_size=100):
-        """Requests information on a cohort of interest.
+    def get_participants_table(self, cols=None, page_number="all", page_size=5000):
+        """Fetch the participant data table for the cohort.
 
         Parameters
         ----------
-        col: int list or None
-            List of the ids of the phenotypes of interest.
+        cols: int list or None
+            List of phenotype IDs to determine the table columns. If None, use the columns saved
+            in the cohort. (Default: None)
         page_number: int or "all"
-            Get information from this page on cohort browser.
+            Page number to fetch from the paginated table. (Default: 'all')
         page_number: page_size
-            The size of page to get.
+            The size of page to get. (Default: 5000)
 
         Returns
         -------
@@ -252,15 +254,15 @@ class Cohort(object):
         else:
             iter_all = False
 
-        if col is None:
-            columns = self.get_column_json()
+        if cols is None:
+            columns = self.__get_column_json()
         else:
-            columns = self.make_column_json(col)
+            columns = self.__make_column_json(cols)
 
         r_body = {"criteria": {"pagination": {"pageNumber": page_number, "pageSize": page_size},
                                "cohortId": self.cohort_id},
                   "columns": columns}
-        r_json = self.fetch_table(r_body, iter_all)
+        r_json = self.__fetch_table(r_body, iter_all)
 
         col_names = {"_id": "_id", "i": "i"}
         col_types = {"_id": "object", "i": "object"}
@@ -283,13 +285,15 @@ class Cohort(object):
             try:
                 res_df[k] = res_df[k].astype(v)
             except TypeError as e:
-                print(f'Warning: the column \"{col_names[k]}\" has been converted from {v} to object')
-                res_df[k] = res_df[k].astype("object")
+                print(f'Warning: values in the column \"{col_names[k]}\" do not fit the '
+                      f'data type ({v}) specified in the Cohort Browser metadata. '
+                      f'Leaving data type as `object`.',
+                      file=stderr)
         res_df = res_df.rename(columns=col_names)
         res_df.drop('_id', axis=1, inplace=True)
         return res_df
 
-    def fetch_table(self, r_body, iter_all=False):
+    def __fetch_table(self, r_body, iter_all=False):
         """Requests information on a cohort of interest specified based on dict
         made in get_participants_table.
 
@@ -336,7 +340,7 @@ class Cohort(object):
 
         return result
 
-    def get_column_json(self):
+    def __get_column_json(self):
         """Make a list of all columns for a cohort that will be quieried in
         get_participants_table.
 
@@ -358,7 +362,7 @@ class Cohort(object):
 
         return cohort_columns
 
-    def make_column_json(self, col_ids):
+    def __make_column_json(self, col_ids):
         """Make a list of columns of interest for a cohort that will be quieried
         in get_participants_table.
 
