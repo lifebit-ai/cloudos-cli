@@ -2,6 +2,7 @@
 This is the main class for interacting with cohort browser cohorts.
 """
 
+from enum import unique
 import requests
 import pandas as pd
 from cloudos.utils.errors import BadRequestException
@@ -414,12 +415,12 @@ class Cohort(object):
 
         return r_json
 
-    def set_columns(self, col, append=False):
+    def set_columns(self, cols, append=False):
         """Set the columns to be used for a cohort.
 
         Parameters
         ----------
-        col: int list
+        cols: int list
             A list of phenotype IDs to use as the columns.
         append: bool.
             If True append the col list to existing columns.
@@ -429,18 +430,20 @@ class Cohort(object):
         -------
         None
         """
-        columns = []
-        existing_columns = []
         if append is True:
-            for i in self.columns:
-                col_id = i["field"]["id"]
-                existing_columns.append(col_id)
-                columns.append({"id": col_id, "instance": "0",
-                                "array": {"type": "exact", "value": 0}})
-        for col_id in col:
-            if col_id not in existing_columns:
-                columns.append({"id": col_id, "instance": "0",
-                                "array": {"type": "exact", "value": 0}})
+            temp_columns = []
+            existing_ids = []
+            for col in self.columns:
+                col_id = col["field"]["id"]
+                existing_ids.append(col_id)
+            existing_columns = self.__get_column_json()
+            for col_id in cols:
+                if col_id not in existing_ids:
+                    temp_columns.append(col_id)
+            columns = self.__make_column_json(temp_columns)
+            columns = columns + existing_columns
+        else:
+            columns = self.__make_column_json(cols)
 
         try:
             query = self.query.to_api_dict()
