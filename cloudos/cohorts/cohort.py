@@ -2,6 +2,7 @@
 This is the main class for interacting with cohort browser cohorts.
 """
 
+from enum import unique
 import requests
 import pandas as pd
 from cloudos.utils.errors import BadRequestException
@@ -121,7 +122,7 @@ class Cohort(object):
             raise BadRequestException(r)
         r_json = r.json()
         self.cohort_name = r_json['name']
-        self.cohort_desc = r_json.get('description')
+        self.cohort_desc = r_json.get('description', '')
         self.num_participants = r_json['numberOfParticipants']
         self.columns = r_json['columns']
         self.query_type = r_json['type']
@@ -413,3 +414,58 @@ class Cohort(object):
         r_json = r.json()
 
         return r_json
+
+    def set_columns(self, cols, append=False):
+        """Set the columns to be used for a cohort.
+
+        Parameters
+        ----------
+        cols: int list
+            A list of phenotype IDs to use as the columns.
+        append: bool.
+            If True append the col list to existing columns.
+            (Default=False).
+
+        Returns
+        -------
+        None
+        """
+        if append is True:
+            temp_columns = []
+            existing_ids = []
+            for col in self.columns:
+                col_id = col["field"]["id"]
+                existing_ids.append(col_id)
+            existing_columns = self.__get_column_json()
+            for col_id in cols:
+                if col_id not in existing_ids:
+                    temp_columns.append(col_id)
+            columns = self.__make_column_json(temp_columns)
+            columns = columns + existing_columns
+        else:
+            columns = self.__make_column_json(cols)
+
+        try:
+            query = self.query.to_api_dict()
+        except AttributeError:
+            query = Query('AND', [])
+            query = query.to_api_dict()
+
+        data = {'name': self.cohort_name,
+                'description': self.cohort_desc,
+                'columns': columns,
+                'type': 'advanced',
+                'numberOfParticipants': self.num_participants,
+                'query': query}
+
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+
+        r = requests.put(f"{self.cloudos_url}/cohort-browser/v2/cohort/{self.cohort_id}",
+                         params=params, headers=headers, json=data)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        self.update()
