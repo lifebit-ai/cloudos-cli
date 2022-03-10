@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.7 - 2021-03-10
+- Adds support for aborted jobs
+- Adds `--batch` option to `job` subtool to be able to use `batch`
+executor instead of the default `ignite` in CloudOS.
+
 ### 0.0.6 - 2021-12-09
 - Unittests added for method `process_job_list` from class `Cloudos`
 - Unittests added for method `convert_nextflow_to_json` from class `Jobs`

@@ -72,7 +72,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: python -m cloudos job run [OPTIONS]
+Usage: cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
@@ -94,6 +94,8 @@ Options:
                            default branch.
   --job-name TEXT          The name of the job. Default=new_job.
   --resumable              Whether to make the job able to be resumed or not.
+  --batch                  Whether to make use the batch executor instead of
+                           the default ignite.
   --instance-type TEXT     The type of AMI to use. Default=c5.xlarge.
   --instance-disk INTEGER  The amount of disk storage to configure.
                            Default=500.
