@@ -1,4 +1,6 @@
-# cloudos
+[![CodeFactor](https://www.codefactor.io/repository/github/lifebit-ai/cloudos-py/badge)](https://www.codefactor.io/repository/github/lifebit-ai/cloudos-py)
+
+# cloudos 
 
 __Date:__ 2021-12-09\
 __Version:__ 0.0.6
