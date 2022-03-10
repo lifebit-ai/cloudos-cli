@@ -121,6 +121,7 @@ class Job(Cloudos):
                                  workflow_id,
                                  job_name,
                                  resumable,
+                                 batch,
                                  instance_type,
                                  instance_disk,
                                  spot):
@@ -145,6 +146,8 @@ class Job(Cloudos):
             The name to assign to the job.
         resumable: bool
             Whether to create a resumable job or not.
+        batch: bool
+            Whether to create a batch job instead of the default ignite.
         instance_type : string
             Name of the AMI to choose.
         instance_disk : int
@@ -218,6 +221,9 @@ class Job(Cloudos):
             "workflow": workflow_id,
             "name": job_name,
             "resumable": resumable,
+            "batch": {
+                "enabled": batch
+            },
             "executionPlatform": "aws",
             "storageSizeInGb": instance_disk,
             "execution": {

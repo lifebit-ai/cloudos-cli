@@ -64,6 +64,9 @@ def job():
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
+@click.option('--batch',
+              help='Whether to make use the batch executor instead of the default ignite.',
+              is_flag=True)
 @click.option('--instance-type',
               help='The type of AMI to use. Default=c5.xlarge.',
               default='c5.xlarge')
@@ -95,6 +98,7 @@ def run(apikey,
         git_tag,
         job_name,
         resumable,
+        batch,
         instance_type,
         instance_disk,
         spot,
@@ -115,6 +119,7 @@ def run(apikey,
                       git_tag,
                       job_name,
                       resumable,
+                      batch,
                       instance_type,
                       instance_disk,
                       spot)
