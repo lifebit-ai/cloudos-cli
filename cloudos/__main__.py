@@ -9,8 +9,8 @@ import sys
 
 
 # GLOBAL VARS
-JOB_SUCCESS = 'completed'
-JOB_FAIL = 'failed'
+JOB_COMPLETED = 'completed'
+JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 
 
@@ -128,11 +128,11 @@ def run(apikey,
         while elapsed < wait_time:
             j_status = j.get_job_status(j_id)
             j_status_h = json.loads(j_status.content)["status"]
-            if j_status_h == JOB_SUCCESS:
+            if j_status_h == JOB_COMPLETED:
                 print(f'\tYour job took {elapsed} seconds to complete ' +
                       'successfully.')
                 sys.exit(0)
-            elif j_status_h == JOB_FAIL:
+            elif j_status_h == JOB_FAILED:
                 print(f'\tYour job took {elapsed} seconds to fail.')
                 sys.exit(1)
             elif j_status_h == JOB_ABORTED:
@@ -146,7 +146,7 @@ def run(apikey,
                 time.sleep(1)
         j_status = j.get_job_status(j_id)
         j_status_h = json.loads(j_status.content)["status"]
-        if j_status_h != JOB_SUCCESS:
+        if j_status_h != JOB_COMPLETED:
             print(f'\tYour current job status is: {j_status_h}. The ' +
                   f'selected wait-time of {wait_time} was exceeded. Please, ' +
                   'consider to set a longer wait-time.')
