@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2021-12-09\
-__Version:__ 0.0.6
+__Date:__ 2022-03-10\
+__Version:__ 0.0.7
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.5
+docker run --rm -it quay.io/lifebitai/cloudos-py:v0.0.7
 ```
 
 ### From Github
@@ -72,7 +72,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: python -m cloudos job run [OPTIONS]
+Usage: cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
@@ -94,6 +94,8 @@ Options:
                            default branch.
   --job-name TEXT          The name of the job. Default=new_job.
   --resumable              Whether to make the job able to be resumed or not.
+  --batch                  Whether to make use the batch executor instead of
+                           the default ignite.
   --instance-type TEXT     The type of AMI to use. Default=c5.xlarge.
   --instance-disk INTEGER  The amount of disk storage to configure.
                            Default=500.
