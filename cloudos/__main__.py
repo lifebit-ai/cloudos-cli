@@ -148,7 +148,7 @@ def run(apikey,
                 if j_status_h != j_status_h_old:
                     print(f'\tYour current job status is: {j_status_h}.')
                     j_status_h_old = j_status_h
-                time.sleep(1)
+                time.sleep(60)
         j_status = j.get_job_status(j_id)
         j_status_h = json.loads(j_status.content)["status"]
         if j_status_h != JOB_COMPLETED:
