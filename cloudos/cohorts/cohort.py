@@ -469,3 +469,83 @@ class Cohort(object):
             raise BadRequestException(r)
 
         self.update()
+
+    def get_phenotype_statistics(self, pheno_id, page_number='all', page_size=1000):
+        """Get statistics on a phenotype of interest.
+
+        Parameters
+        ----------
+        pheno_id: int
+            The id of the phenotype of interest.
+        page_number: int or "all"
+            Page number to fetch from the paginated table. (Default: 'all').
+        page_size: int
+            The size of page to get. (Default: 1000).
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
+        r_body = {"criteria": {"cohortId": self.cohort_id,
+                               "pageSize": page_size,
+                               "pageNumber": page_number},
+                  "filter": {"instance": ["0"]}}
+        if page_number == "all":
+            res_data = self.__fetch_stats_table(r_body, pheno_id, iter_all=True)
+        else:
+            res_data = self.__fetch_stats_table(r_body, pheno_id, iter_all=False)
+        res_df = pd.DataFrame(res_data)
+        res_df.drop(['total'], axis=1, inplace=True)
+        res_df.rename(columns={'_id': 'value', 'number': 'count'}, inplace=True)
+        res_df['value'] = res_df['value'].astype('object')
+
+        return res_df
+
+    def __fetch_stats_table(self, r_body, pheno_id, iter_all=False):
+        """Requests information on a phenotype made in get_phenotype_statistics.
+
+        Parameters
+        ----------
+        r_body: dict
+            Parameters for the API request.
+        pheno_id: int
+            The id of the phenotypes of interest.
+        iter_all: boolean
+            Get all information. (Default: False).
+
+        Returns
+        -------
+        Dict
+        """
+        page_size = r_body["criteria"]["pageSize"]
+        headers = {"apikey": self.apikey,
+                   "Accept": "application/json, text/plain, */*",
+                   "Content-Type": "application/json;charset=UTF-8"}
+        params = {"teamId": self.workspace_id}
+        if r_body["criteria"]["pageNumber"] == "all":
+            r_body["criteria"]["pageNumber"] = 0
+        r = requests.post(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/data",
+                          params=params, headers=headers, json=r_body)
+        print(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/data")
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        if "data" not in r_json:
+            paged = False
+            res_data = r_json
+        else:
+            paged = True
+            res_data = r_json["data"]
+            total = r_json["total"]
+        if iter_all and paged is True:
+            iters = (total // page_size)
+            for i in range(1, (iters + 1)):
+                r_body["criteria"]["pageNumber"] = i
+                r_body["criteria"]["pageSize"] = page_size
+                r = requests.post(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/data",
+                                  params=params, headers=headers, json=r_body)
+                if r.status_code >= 400:
+                    raise BadRequestException(r)
+                r_json = r.json()
+                res_data.extend(r_json["data"])
+        return res_data
