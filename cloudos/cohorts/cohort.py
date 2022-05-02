@@ -526,7 +526,6 @@ class Cohort(object):
             r_body["criteria"]["pageNumber"] = 0
         r = requests.post(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/data",
                           params=params, headers=headers, json=r_body)
-        print(f"{self.cloudos_url}/cohort-browser/v2/cohort/filter/{pheno_id}/data")
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
