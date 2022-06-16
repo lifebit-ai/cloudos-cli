@@ -122,6 +122,7 @@ class Job(Cloudos):
                                  job_name,
                                  resumable,
                                  batch,
+                                 nextflow_profile,
                                  instance_type,
                                  instance_disk,
                                  spot):
@@ -148,6 +149,8 @@ class Job(Cloudos):
             Whether to create a resumable job or not.
         batch: bool
             Whether to create a batch job instead of the default ignite.
+        nextflow_profile: string
+            A comma separated string with the profiles to be used.
         instance_type : string
             Name of the AMI to choose.
         instance_disk : int
@@ -161,34 +164,38 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
-        with open(job_config, 'r') as p:
-            reading = False
-            for p_l in p:
-                if 'params' in p_l.lower():
-                    reading = True
-                else:
-                    if reading:
-                        p_l_strip = p_l.strip().replace(
-                            ' ', '').replace('\"', '').replace('\'', '')
-                        if '}' in p_l_strip:
-                            reading = False
-                        else:
-                            p_list = p_l_strip.split('=')
-                            if len(p_list) != 2:
-                                raise ValueError('Please, specify your ' +
-                                                 'parameters in ' +
-                                                 f'{job_config} using ' +
-                                                 'the \'=\' char as spacer. ' +
-                                                 'E.g: name = my_name')
+        if nextflow_profile is None and job_config is None:
+            raise ValueError('No --job-config or --nextflow_profile was specified, please use ' +
+                             'at least one of these options.')
+        if job_config is not None:
+            with open(job_config, 'r') as p:
+                reading = False
+                for p_l in p:
+                    if 'params' in p_l.lower():
+                        reading = True
+                    else:
+                        if reading:
+                            p_l_strip = p_l.strip().replace(
+                                ' ', '').replace('\"', '').replace('\'', '')
+                            if '}' in p_l_strip:
+                                reading = False
                             else:
-                                param = {"prefix": "--",
-                                         "name": p_list[0],
-                                         "parameterKind": "textValue",
-                                         "textValue": p_list[1]}
-                                workflow_params.append(param)
-        if len(workflow_params) == 0:
-            raise ValueError(f'The {job_config} file did not contain any ' +
-                             'valid parameter')
+                                p_list = p_l_strip.split('=')
+                                if len(p_list) != 2:
+                                    raise ValueError('Please, specify your ' +
+                                                     'parameters in ' +
+                                                     f'{job_config} using ' +
+                                                     'the \'=\' char as spacer. ' +
+                                                     'E.g: name = my_name')
+                                else:
+                                    param = {"prefix": "--",
+                                             "name": p_list[0],
+                                             "parameterKind": "textValue",
+                                             "textValue": p_list[1]}
+                                    workflow_params.append(param)
+            if len(workflow_params) == 0:
+                raise ValueError(f'The {job_config} file did not contain any ' +
+                                 'valid parameter')
         if spot:
             instance_type_block = {
                 "instanceType": instance_type,
@@ -231,6 +238,7 @@ class Job(Cloudos):
                 "optim": "test"
             },
             "revision": revision_block,
+            "profile": nextflow_profile,
             instance: instance_type_block,
             "masterInstance": {
                 "requestedInstance": {
@@ -248,6 +256,7 @@ class Job(Cloudos):
                  job_name,
                  resumable,
                  batch,
+                 nextflow_profile,
                  instance_type,
                  instance_disk,
                  spot):
@@ -270,6 +279,8 @@ class Job(Cloudos):
             Whether to create a resumable job or not.
         batch: bool
             Whether to create a batch job instead of the default ignite.
+        nextflow_profile: string
+            A comma separated string with the profiles to be used.
         instance_type : string
             Type of the AMI to choose.
         instance_disk : int
@@ -300,6 +311,7 @@ class Job(Cloudos):
                                                job_name,
                                                resumable,
                                                batch,
+                                               nextflow_profile,
                                                instance_type,
                                                instance_disk,
                                                spot)
