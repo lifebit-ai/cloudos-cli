@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.8 - 2022-06-16
+- Adds `--nextflow-profile` parameter to accept nextflow profiles. It
+also makes `--job-config` parameter optional, as a run with only
+profiles is possible.
+
+### 0.0.7a - 2022-04-07
+- Hotfix: extends the wait time from 1s to 60s when checking for job
+status (`--wait-completion true`). This helps preventing API call
+errors from CloudOS API server.
+
 ### 0.0.7 - 2021-03-10
 - Adds support for aborted jobs
 - Adds `--batch` option to `job` subtool to be able to use `batch`

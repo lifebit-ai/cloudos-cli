@@ -46,9 +46,12 @@ def job():
               help='The name of a CloudOS workflow or pipeline.',
               required=True)
 @click.option('--job-config',
-              help=('A nextflow.config file or similar, with the ' +
-                    'parameters to use with your job.'),
-              required=True)
+              help=('A config file similar to a nextflow.config file, ' +
+                    'but only with the parameters to use with your job.'))
+@click.option('-p',
+              '--nextflow-profile',
+              help=('A comma separated string indicating the nextflow profile/s ' +
+                    'to use with your job.'))
 @click.option('--git-commit',
               help=('The exact whole 40 character commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -99,6 +102,7 @@ def run(apikey,
         job_name,
         resumable,
         batch,
+        nextflow_profile,
         instance_type,
         instance_disk,
         spot,
@@ -120,6 +124,7 @@ def run(apikey,
                       job_name,
                       resumable,
                       batch,
+                      nextflow_profile,
                       instance_type,
                       instance_disk,
                       spot)
@@ -148,7 +153,7 @@ def run(apikey,
                 if j_status_h != j_status_h_old:
                     print(f'\tYour current job status is: {j_status_h}.')
                     j_status_h_old = j_status_h
-                time.sleep(1)
+                time.sleep(60)
         j_status = j.get_job_status(j_id)
         j_status_h = json.loads(j_status.content)["status"]
         if j_status_h != JOB_COMPLETED:
