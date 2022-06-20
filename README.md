@@ -346,3 +346,191 @@ python -m pytest -s -v
 ``` 
 
 from the cloudos-py main folder and 7 tests should pass. 
+
+## CohortBrowser worked example
+
+### Load the library
+
+Navigate to the root folder of the cloudos-py package and run cloudos-py from here. Initially, we will be importing the two main classes. These are Cohort (used to manage cohorts) and CohortBrowser (used to analyse a cohort). There are two other classes (Query and PhenoFilter) which are used for making a query of phenotypes in CloudOs and we will introduce them later.
+
+``` python
+from cloudos.cohorts import Cohort, CohortBrowser
+```
+
+### Configure CloudOS
+
+This package is primarily a means of communicating with a CloudOS instance using its API. This is done through the CohortBrowser and Cohort classes. Before it can  communicate with the CloudOS instance, the package must be configured with some key information:
+- The CloudOS base URL. This is the URL in your browser when you navigate to the Cohort Browser in CloudOS. Often of the form `https://my_instance.lifebit.ai/app/cohort-browser`.
+- The CloudOS token. Navigate to the settings page in CloudOS to generate an API key you can use as your token (see image below).
+- The CloudOS team ID. Also found in the settings page in CloudOS labelled as the "Workspace ID" (see image below).
+
+![CloudOS settings page](man/figures/settings_page.png)
+
+This information is given as environmental variables:
+
+```python
+>>> apikey = '***'
+>>> workspace_id = '***'
+>>> cloudos_url = "***"
+```
+To make a CohortBrowser object:
+
+```python
+>>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
+```
+
+### List Cohorts
+
+To check list of available cohorts in a workspace use `list_cohorts()` from the `CohortBrowser` class. This will
+provide a dictionary of cohorts. By default 10 are shown this can be varied with `size`. To get all cohorts use `size=all`.
+
+```python
+>>> c = cb.list_cohorts()
+Total number of cohorts found: 115.
+Showing 10 by default. Change 'size' parameter to return more.
+>>> print(c)
+[{'_id': '6267e400bf19bc13dc2de40b', 'name': 'phenotype cohort', 'description': '', 'numberOfParticipants': 44756, 'createdAt': '2022-04-26T12:22:24.361Z', 'updatedAt': '2022-04-26T12:22:24.361Z', 'numberOfFilters': 0}, {'_id': '6267b5cbbf19bc13dc2dd651', 'name': 'diego test', 'numberOfParticipants': 36029, 'createdAt': '2022-04-26T09:05:15.129Z', 'updatedAt': '2022-04-29T09:34:29.790Z', 'numberOfFilters': 1}, {'_id': '6262bca5bf19bc13dc2dac2d', 'name': 'QA.Test.005.1', 'description': 'QA', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:33:09.484Z', 'updatedAt': '2022-04-22T14:33:09.484Z', 'numberOfFilters': 0}, {'_id': '6262bc91bf19bc13dc2dac2c', 'name': 'QA.Test.005', 'description': 'QA', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:32:49.651Z', 'updatedAt': '2022-04-22T14:32:49.651Z', 'numberOfFilters': 0}, {'_id': '6262baf8bf19bc13dc2dac21', 'name': 'QA.Test.006', 'description': 'qa', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:26:00.104Z', 'updatedAt': '2022-04-22T14:26:00.104Z', 'numberOfFilters': 0}, {'_id': '6262b6fdbf19bc13dc2dabfe', 'name': 'QA.Test.009', 'description': 'QA', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:09:01.461Z', 'updatedAt': '2022-04-22T14:09:01.461Z', 'numberOfFilters': 0}, {'_id': '6262b6e0bf19bc13dc2dabfc', 'name': 'QA.Test.008', 'description': 'QA', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:08:32.299Z', 'updatedAt': '2022-04-22T14:08:32.299Z', 'numberOfFilters': 0}, {'_id': '6262b6cebf19bc13dc2dabf8', 'name': 'QA.Test.007', 'numberOfParticipants': 44755, 'createdAt': '2022-04-22T14:08:14.966Z', 'updatedAt': '2022-04-22T14:25:45.611Z', 'numberOfFilters': 0}, {'_id': '6256b29f9f5d720717d98f8d', 'name': 'long-format-cohort-test', 'numberOfParticipants': 44727, 'createdAt': '2022-04-13T11:23:11.791Z', 'updatedAt': '2022-04-13T20:24:22.085Z', 'numberOfFilters': 0}, {'_id': '62556ff506421f187f840a53', 'name': 'Export Cohort', 'numberOfParticipants': 11, 'createdAt': '2022-04-12T12:26:29.569Z', 'updatedAt': '2022-04-14T11:27:14.173Z', 'numberOfFilters': 1}]
+```
+
+### Create a cohort
+
+`Cohort.create()` is used to create a new cohort. Every cohort needs a specific name, and you can give it a description, but this is optional. 
+
+```python
+>>> new_c = Cohort.create(apikey, cloudos_url, workspace_id, cohort_name="example cohort 2022", cohort_desc="Cohort made to demonstrate how to use cohort-py")
+>>> print(new_c.cohort_id)
+6273f57e9ca9580fd84b2c4f
+>>> print(new_c.cohort_name)
+example cohort 2022
+```
+
+### Get a cohort
+
+Get an available cohort in a Cohort class. This can be done using either `cohort_id` (the hash index of the cohort) or `cohort_name` (the name we gave the cohort). This cohort object can be used in many different other functions.
+
+```python
+>>> cohort_id =  '61cbd1c5b948af25c65ef7d0'
+>>> other_cohort = Cohort.load(apikey, cloudos_url, workspace_id, cohort_id=cohort_id)
+>>> print(other_cohort.cohort_name)
+test1222
+```
+
+### Explore available phenotypes
+
+#### Search phenotypes
+
+Search for phenotypes based on a term using the CohortBrowser class. Searching with `term = ""` will return all the available phenotypes. By default, this will provide a summary of the metadata but all the metadata can be accessed by setting `all_metadata` to `True`.
+
+```python
+>>> c = cb.search_phenotypes('disease')
+Total number of phenotypes found - 2
+>>> print(c)
+[{'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}, {'display': 'radioButtonWithClear', 'possibleValues': [{'key': 'Yes', 'label': 'Yes'}, {'key': 'No', 'label': 'No'}, {'key': 'Uncertain', 'label': 'Uncertain'}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Radiological Findings', 'id': 69, 'instances': 1, 'name': 'Evidence of disease', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}]
+```
+
+With `all_metadata=True` the output looks like this:
+
+```python
+>>> c_all = cb.search_phenotypes('disease', all_metadata=True)
+Total number of phenotypes found - 2
+>>> print(c_all)
+[{'_id': '6272993454e1b46398ea1179', 'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}, {'_id': '6272993454e1b46398ea11a3', 'display': 'radioButtonWithClear', 'possibleValues': [{'key': 'Yes', 'label': 'Yes'}, {'key': 'No', 'label': 'No'}, {'key': 'Uncertain', 'label': 'Uncertain'}], 'clinicalForm': 'cancerForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Radiological Findings', 'id': 69, 'instances': 1, 'name': 'Evidence of disease', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}]
+```
+
+Let’s choose a phenotype from the above table. The “id” is the most important part as it will allow us to use this phenotype for cohort queries and other functions.
+
+```python
+>>> print(c[0])
+{'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}
+```
+
+### Update a cohort with a new query
+
+A query defines what participants are included in a cohort based on phenotypes. These are made using the `Query` class and a cohort can be filtered using the `PhenoFilter` class. We can get a preview of this by using `preview_participant_count()` and setting `keep_query` to `False`. To get all participants use `None` instead of a Query object.
+
+
+```python
+from cloudos.cohorts import Query, PhenoFilter
+
+>>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
+>>> c = cb.load_cohort('6273f57e9ca9580fd84b2c4f')
+>>> c.preview_participant_count(None, keep_query=False)
+{'count': 44765, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+Phenotypes can be continuous - in which case a selected range needs to be specified, or they can be categorical - in which case selected categories need to be specified.
+
+#### Continuous phenotype
+
+For phenotype “Year of birth” (with id = 8)
+
+```python
+>>> continuous_query = PhenoFilter(pheno_id=8, vals_min=1965, vals_max=1995)
+>>> c.preview_participant_count(continuous_query, keep_query=False)
+{'count': 20778, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+#### Categorical phenotype
+
+For phenotype “Total full brothers” (with id = 48)
+
+```python
+>>> categorical_query = PhenoFilter(pheno_id=48, vals=[1])
+>>> c.preview_participant_count(categorical_query, keep_query=False)
+{'count': 7791, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+To combine single phenotype queries, you can use `&`, `|` and `!` operators.
+
+```python
+>>> query = categorical_query & continuous_query
+>>> c.preview_participant_count(query, keep_query=False)
+{'count': 2524, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+Any number of single phenotypes can be combined using any combination of operators. The order in which logic is resolved follows the usual rules and can be controlled using brackets.
+
+```python
+>>> categorical_query_2 = PhenoFilter(pheno_id=48, vals=[2])
+>>> query = (categorical_query | categorical_query_2) & continuous_query
+>>> c.preview_participant_count(query, keep_query=False)
+{'count': 2883, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+If we’re happy that this is a sensible query to apply, we can apply the query to the cohort, making sure to override the previous query by setting `keep_query` to `FALSE`. If we wanted to keep the criteria from the pre-existing query and add our new phenotype-based criteria to them we would leave `keep_query` set to the default value of `TRUE`. 
+
+```python
+>>> new_query = PhenoFilter(10, vals=["Female"])
+>>> c.apply_query(query=new_query)
+>>> c.query
+Query('AND', [
+    PhenoFilter(pheno_id=10, vals=['Female'])
+])
+>>> c.preview_participant_count()
+{'count': 23741, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
+```
+
+### Retreive the participant table
+
+After the cohort has been suitably queried a participant phenotype table can be reviewed. Participants in cloudos are held in a paginated table. By default, all pages are retrieved and the first 5000 participants are shown. The page size (number of participants to display) can be changed with `page_size`, and if a specific page is wanted it can be specified with `page_number`.
+
+```python
+
+>>> df = cb.get_participants_table(cols=None, page_size=100, page_number=0)
+Warning: values in the column "Maternal age during pregnancy (years)" do not fit the data type (Int64) specified in the Cohort Browser metadata. Leaving data type as `object`.
+>>> print(df)
+          i            Sex  ... Perinatal complications Method of diagnosis
+0   1000020  Rare Diseases  ...                 Unknown            Relative
+1   1000035  Rare Diseases  ...            Not Supplied            Relative
+2   1000061  Rare Diseases  ...            Not Supplied            Relative
+3   1000232         Cancer  ...                     NaN                 NaN
+4   1000233  Rare Diseases  ...            Not Supplied             Proband
+..      ...            ...  ...                     ...                 ...
+95  1005097  Rare Diseases  ...                 Unknown             Proband
+96  1005143         Cancer  ...                     NaN                 NaN
+97  1005244  Rare Diseases  ...                 Unknown            Relative
+98  1005270  Rare Diseases  ...            Not Supplied             Proband
+99   100529  Rare Diseases  ...            Not Supplied            Relative
+
+[100 rows x 7 columns]
+```
