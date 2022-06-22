@@ -444,6 +444,19 @@ Let’s choose a phenotype from the above table. The “id” is the most import
 {'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}
 ```
 
+### Exploring phenotypes
+
+To get more information on a phenotype `get_phenotype_metadata` can be used.
+
+```python
+>>> pheno_id = '4'
+>>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
+>>> c = cb.get_phenotype_metadata('4')
+>>> print(c)
+{'display': 'dropdown', 'possibleValues': [{'key': 'Male', 'label': 'Male'}, {'key': 'Female', 'label': 'Female'}, {'key': 'Prefer not to say', 'label': 'Prefer not to say'}], 'clinicalForm': 'MainForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Main form data', 'id': 4, 'instances': 1, 'name': 'Sex', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical multiple', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 1, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}
+>>> 
+```
+
 ### Update a cohort with a new query
 
 A query defines what participants are included in a cohort based on phenotypes. These are made using the `Query` class and a cohort can be filtered using the `PhenoFilter` class. We can get a preview of this by using `preview_participant_count()` and setting `keep_query` to `False`. To get all participants use `None` instead of a Query object.
@@ -532,4 +545,54 @@ Warning: values in the column "Maternal age during pregnancy (years)" do not fit
 99   100529  Rare Diseases  ...            Not Supplied            Relative
 
 [100 rows x 7 columns]
+```
+
+### Customising the phenotype display.
+
+Sometimes we might want to add or remove columns to make it easier to analyse the phenotypes. This can be done using `set_columns`. This takes a list of phenotypes and can either replace the existing columns in a cohort, or append these phenotypes to the existing columns (`append=True`).
+
+Lets replace the old columns with the columns we're interested in.
+```python
+>>> columns = [12,56]
+>>> cb.set_columns(cols=columns, append=False)
+>>> cb.columns
+[{'field': {'_id': '6272993454e1b46398ea1169', 'display': 'dropdown', 'possibleValues': [{'key': 'Current everyday smoker', 'label': 'Current everyday smoker'}, {'key': 'Current some day smoker', 'label': 'Current some day smoker'}, {'key': 'Former smoker', 'label': 'Former smoker'}, {'key': 'Never smoke', 'label': 'Never smoke'}], 'clinicalForm': 'MainForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Main form data', 'id': 12, 'instances': 1, 'name': 'Smoking status', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical multiple', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 1, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}, 'instance': '0', 'array': {'type': 'exact', 'value': 0}}, {'field': {'_id': '6272993454e1b46398ea1196', 'display': 'dropdown', 'possibleValues': [{'key': 'Core', 'label': 'Core'}, {'key': 'Needle', 'label': 'Needle'}, {'key': 'Resection', 'label': 'Resection'}, {'key': 'Whole blood', 'label': 'Whole blood'}], 'clinicalForm': 'cancerForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Genetic findings', 'id': 56, 'instances': 1, 'name': 'Type of biopsy', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}, 'instance': '0', 'array': {'type': 'all', 'value': 0}}]
+>>> df = cb.get_participants_table(cols=None, page_size=100, page_number=0)
+>>> print(df)
+          i Smoking status       Type of biopsy
+0   1000020           Male           [Adult R1]
+1   1000035         Female           [Adult R1]
+2   1000061           Male           [Adult R1]
+3   1000232         Female           [Adult C1]
+4   1000233           Male  [Deceased Child R6]
+..      ...            ...                  ...
+95  1005097         Female           [Adult R1]
+96  1005143         Female           [Child C5]
+97  1005244         Female           [Adult R1]
+98  1005270         Female           [Child R5]
+99   100529         Female           [Adult R1]
+
+[100 rows x 3 columns]
+```
+
+Appending new columns to the columns we set.
+```python
+>>> col2 = [4]
+>>> cb.set_columns(cols=col2, append=True)
+>>> df = cb.get_participants_table(cols=None, page_size=100, page_number=0)
+>>> print(df)
+          i            Sex Smoking status       Type of biopsy
+0   1000020  Rare Diseases           Male           [Adult R1]
+1   1000035  Rare Diseases         Female           [Adult R1]
+2   1000061  Rare Diseases           Male           [Adult R1]
+3   1000232         Cancer         Female           [Adult C1]
+4   1000233  Rare Diseases           Male  [Deceased Child R6]
+..      ...            ...            ...                  ...
+95  1005097  Rare Diseases         Female           [Adult R1]
+96  1005143         Cancer         Female           [Child C5]
+97  1005244  Rare Diseases         Female           [Adult R1]
+98  1005270  Rare Diseases         Female           [Child R5]
+99   100529  Rare Diseases         Female           [Adult R1]
+
+[100 rows x 4 columns]
 ```
