@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-06-16\
-__Version:__ 0.0.8
+__Date:__ 2022-06-28\
+__Version:__ 0.0.9
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.0.8
+docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.0.9
 ```
 
 ### From Github
@@ -77,35 +77,46 @@ Usage: cloudos job run [OPTIONS]
   Submit a job to CloudOS.
 
 Options:
-  -k, --apikey TEXT        Your CloudOS API key  [required]
-  -c, --cloudos-url TEXT   The CloudOS url you are trying to access to.
-                           Default=https://cloudos.lifebit.ai.
-  --workspace-id TEXT      The specific CloudOS workspace id.  [required]
-  --project-name TEXT      The name of a CloudOS project.  [required]
-  --workflow-name TEXT     The name of a CloudOS workflow or pipeline.
-                           [required]
-  --job-config TEXT        A nextflow.config file or similar, with the
-                           parameters to use with your job.  [required]
-  --git-commit TEXT        The exact whole 40 character commit hash to run for
-                           the selected pipeline. If not specified it defaults
-                           to the last commit of the default branch.
-  --git-tag TEXT           The tag to run for the selected pipeline. If not
-                           specified it defaults to the last commit of the
-                           default branch.
-  --job-name TEXT          The name of the job. Default=new_job.
-  --resumable              Whether to make the job able to be resumed or not.
-  --batch                  Whether to make use the batch executor instead of
-                           the default ignite.
-  --instance-type TEXT     The type of AMI to use. Default=c5.xlarge.
-  --instance-disk INTEGER  The amount of disk storage to configure.
-                           Default=500.
-  --spot                   Whether to make a spot instance.
-  --wait-completion        Whether to wait to job completion and report final
-                           job status.
-  --wait-time INTEGER      Max time to wait (in seconds) to job completion.
-                           Default=3600.
-  --verbose                Whether to print information messages or not.
-  --help                   Show this message and exit.
+  -k, --apikey TEXT            Your CloudOS API key  [required]
+  -c, --cloudos-url TEXT       The CloudOS url you are trying to access to.
+                               Default=https://cloudos.lifebit.ai.
+  --workspace-id TEXT          The specific CloudOS workspace id.  [required]
+  --project-name TEXT          The name of a CloudOS project.  [required]
+  --workflow-name TEXT         The name of a CloudOS workflow or pipeline.
+                               [required]
+  --job-config TEXT            A config file similar to a nextflow.config
+                               file, but only with the parameters to use with
+                               your job.
+  -p, --nextflow-profile TEXT  A comma separated string indicating the
+                               nextflow profile/s to use with your job.
+  --git-commit TEXT            The exact whole 40 character commit hash to run
+                               for the selected pipeline. If not specified it
+                               defaults to the last commit of the default
+                               branch.
+  --git-tag TEXT               The tag to run for the selected pipeline. If
+                               not specified it defaults to the last commit of
+                               the default branch.
+  --job-name TEXT              The name of the job. Default=new_job.
+  --resumable                  Whether to make the job able to be resumed or
+                               not.
+  --batch                      Whether to make use the batch executor instead
+                               of the default ignite.
+  --instance-type TEXT         The type of AMI to use. Default=c5.xlarge.
+  --instance-disk INTEGER      The amount of disk storage to configure.
+                               Default=500.
+  --spot                       Whether to make a spot instance.
+  --storage-mode TEXT          Either 'lustre' or 'regular'. Indicates if the
+                               user wants to select regular or lustre storage.
+                               Default=regular.
+  --lustre-size INTEGER        The lustre storage to be used when --storage-
+                               mode=lustre, in GB. It should be 1200 or a
+                               multiple of it. Default=1200.
+  --wait-completion            Whether to wait to job completion and report
+                               final job status.
+  --wait-time INTEGER          Max time to wait (in seconds) to job
+                               completion. Default=3600.
+  --verbose                    Whether to print information messages or not.
+  --help                       Show this message and exit.
 ```
 
 #### Send a job to CloudOS

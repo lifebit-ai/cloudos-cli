@@ -233,7 +233,7 @@ class Job(Cloudos):
             if int(lustre_size) % 1200:
                 raise ValueError('Please, specify a lustre storage size of 1200 or a multiple ' +
                                  f'{lustre_size} is not a valid number.')
-        if storage_mode is not in ['lustre', 'regular']:
+        if storage_mode not in ['lustre', 'regular']:
             raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
                              f'{storage_mode} is not allowed')
 
@@ -252,8 +252,8 @@ class Job(Cloudos):
                 "computeCostLimit": -1,
                 "optim": "test"
             },
-            lusterFsxStorageSizeinGb: lustre_size,
-            storageMode: storage_mode,
+            "lusterFsxStorageSizeinGb": lustre_size,
+            "storageMode": storage_mode,
             "revision": revision_block,
             "profile": nextflow_profile,
             instance: instance_type_block,
