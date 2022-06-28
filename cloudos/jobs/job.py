@@ -231,7 +231,7 @@ class Job(Cloudos):
             revision_block = ""
         if storage_mode == "lustre":
             if lustre_size % 1200:
-                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple ' +
+                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
                                  f'{lustre_size} is not a valid number.')
         if storage_mode not in ['lustre', 'regular']:
             raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
