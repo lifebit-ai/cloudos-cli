@@ -125,7 +125,9 @@ class Job(Cloudos):
                                  nextflow_profile,
                                  instance_type,
                                  instance_disk,
-                                 spot):
+                                 spot,
+                                 storage_mode,
+                                 lustre_size):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -157,6 +159,12 @@ class Job(Cloudos):
             The disk space of the instance, in GB.
         spot : bool
             Whether to create a spot instance or not.
+        storage_mode : string
+            Either 'lustre' or 'regular'. Indicates if the user wants to select regular
+            or lustre storage.
+        lustre_size : int
+            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
+            a multiple of it.
 
         Returns
         -------
@@ -221,6 +229,13 @@ class Job(Cloudos):
                              }
         else:
             revision_block = ""
+        if storage_mode == "lustre":
+            if int(lustre_size) % 1200:
+                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple ' +
+                                 f'{lustre_size} is not a valid number.')
+        if storage_mode is not in ['lustre', 'regular']:
+            raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
+                             f'{storage_mode} is not allowed')
 
         params = {
             "parameters": workflow_params,
@@ -237,6 +252,8 @@ class Job(Cloudos):
                 "computeCostLimit": -1,
                 "optim": "test"
             },
+            lusterFsxStorageSizeinGb: lustre_size,
+            storageMode: storage_mode,
             "revision": revision_block,
             "profile": nextflow_profile,
             instance: instance_type_block,
@@ -259,7 +276,9 @@ class Job(Cloudos):
                  nextflow_profile,
                  instance_type,
                  instance_disk,
-                 spot):
+                 spot,
+                 storage_mode,
+                 lustre_size):
         """Send a job to CloudOS.
 
         Parameters
@@ -287,6 +306,12 @@ class Job(Cloudos):
             The disk space of the instance, in GB.
         spot : bool
             Whether to create a spot instance or not.
+        storage_mode : string
+            Either 'lustre' or 'regular'. Indicates if the user wants to select regular
+            or lustre storage.
+        lustre_size : int
+            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
+            a multiple of it.
 
         Returns
         -------
@@ -314,7 +339,9 @@ class Job(Cloudos):
                                                nextflow_profile,
                                                instance_type,
                                                instance_disk,
-                                               spot)
+                                               spot,
+                                               storage_mode,
+                                               lustre_size)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                           data=json.dumps(params), headers=headers)
