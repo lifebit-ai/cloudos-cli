@@ -26,6 +26,12 @@ def job():
     print(job.__doc__ + '\n')
 
 
+@run_cloudos_cli.group()
+def workflow():
+    """CloudOS workflow functionality: list workflows in CloudOS."""
+    print(workflow.__doc__ + '\n')
+
+
 @job.command('run')
 @click.option('-k',
               '--apikey',
@@ -254,12 +260,12 @@ def status(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def list(apikey,
-         cloudos_url,
-         workspace_id,
-         outfile,
-         full_data,
-         verbose):
+def list_jobs(apikey,
+              cloudos_url,
+              workspace_id,
+              outfile,
+              full_data,
+              verbose):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     print('Executing list...')
     if verbose:
@@ -275,6 +281,54 @@ def list(apikey,
     my_jobs.to_csv(outfile, index=False)
     print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
     print(f'\tJob list table saved to {outfile}')
+
+
+@workflow.command('list')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--outfile',
+              help=('Output filename where to save workflow table. ' +
+                    'Default=workflow_list.csv'),
+              default='workflow_list.csv',
+              required=False)
+@click.option('--full-data',
+              help=('Whether to collect full available data from workflows or ' +
+                    'just the preconfigured selected fields.'),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+def list_workflows(apikey,
+                   cloudos_url,
+                   workspace_id,
+                   outfile,
+                   full_data,
+                   verbose):
+    """Collect all workflows from a CloudOS workspace in CSV format."""
+    print('Executing list...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(apikey, cloudos_url)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tSearching for workflows in the following workspace: ' +
+              f'{workspace_id}')
+    my_workflows_r = cl.get_workflow_list(workspace_id)
+    my_workflows = cl.process_workflow_list(my_workflows_r, full_data)
+    my_workflows.to_csv(outfile, index=False)
+    print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
+    print(f'\tWorkflow list table saved to {outfile}')
 
 
 if __name__ == "__main__":
