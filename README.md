@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-06-28\
-__Version:__ 0.0.9
+__Date:__ 2022-07-07\
+__Version:__ 0.1.0
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```
-docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.0.9
+docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.0
 ```
 
 ### From Github
@@ -72,7 +72,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: cloudos job run [OPTIONS]
+Usage: python -m cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
@@ -126,6 +126,7 @@ try to submit a small toy example already available.
 
 ```bash
 MY_API_KEY="xxxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
 WORKSPACE_ID="5c6d3e9bd954e800b23f8c62"
 PROJECT_NAME="API jobs"
 WORKFLOW_NAME="rnatoy"
@@ -148,6 +149,7 @@ To submit our job:
 
 ```bash
 cloudos job run \
+    -c $CLOUDOS \
     -k $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --project-name "$PROJECT_NAME" \
@@ -185,6 +187,7 @@ job run command but waiting for its completion:
 
 ```bash
 cloudos job run \
+    -c $CLOUDOS \
     -k $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --project-name "$PROJECT_NAME" \
@@ -218,6 +221,7 @@ To check the status of a submitted job, just use the suggested command:
 
 ```bash
 cloudos job status \
+    -c $CLOUDOS \
     --apikey $MY_API_KEY \
     --cloudos-url https://cloudos.lifebit.ai \
     --job-id 6138ec6e31de9201a5bf3786
@@ -256,6 +260,7 @@ the following command:
 
 ```bash
 cloudos job list \
+    -c $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --outfile my_job_list.csv
@@ -275,6 +280,34 @@ Executing list...
 
 In addition, a file named `my_job_list.csv` is created, with all your jobs
 information, in CSV format.
+
+#### Get a list of all available workflows from a CloudOS workspace
+
+To get a CSV table with all the available workflows for a given workspace, use
+the following command:
+
+```bash
+cloudos workflow list \
+    -c $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --outfile workflow_list.csv
+```
+
+The expected output is something similar to:
+
+```
+CloudOS python package: a package for interacting with CloudOS.
+
+CloudOS workflow functionality: list workflows in CloudOS.
+
+Executing list...
+	Workflow list collected with a total of 116 workflows.
+	Workflow list table saved to workflow_list.csv
+```
+
+In addition, a file named `workflow_list.csv` is created, with all the available 
+workflows for the given workspace, in CSV format.
 
 ### Import the functionality to your own python scripts
 
@@ -340,6 +373,16 @@ my_jobs_r = j.get_job_list(workspace_id)
 my_jobs = j.process_job_list(my_jobs_r)
 print(my_jobs)
 ```
+
+Or inspect all the available workflows for a given workspace using the
+following command.
+
+```python
+my_workflows_r = j.get_workflow_list(workspace_id)
+my_jobs = j.process_workflow_list(my_workflows_r)
+print(my_workflows)
+```
+
 ### unit testing
 
 Unit tests require 3 additional packages:

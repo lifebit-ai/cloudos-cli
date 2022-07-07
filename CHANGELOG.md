@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.1.0 - 2022-07-07
+- Adds `cloudos workflow list` command. This command allows to
+collect all the workflows data from a given workspace.
+
 ### 0.0.9 - 2022-06-28
 - Adds support for lustre storage with the new `--storage-mode` and
 `--lustre-size` parameters.

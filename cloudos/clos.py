@@ -165,14 +165,15 @@ class Cloudos:
         """
         COLUMNS = ['_id',
                    'name',
+                   'archived.status',
                    'mainFile',
                    'workflowType',
                    'repository.name',
-                   'repository.url'
+                   'repository.platform',
+                   'repository.url',
+                   'repository.isPrivate'
                    ]
         my_workflows = json.loads(r.content)
-        #with open('workflows.json', 'w') as f:
-        #    f.write(r.text)
         df_full = pd.json_normalize(my_workflows)
         if full_data:
             df = df_full

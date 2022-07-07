@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cloudos",
-    version="0.0.9",
+    version="0.1.0",
     author="David Piñeyro",
     author_email="dapineyro.dev@gmail.com",
     description="Python package for interacting with CloudOS",
