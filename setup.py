@@ -7,7 +7,7 @@ setuptools.setup(
     name="cloudos",
     version="0.1.0",
     author="David Piñeyro",
-    author_email="dapineyro.dev@gmail.com",
+    author_email="davidp@lifebit.ai",
     description="Python package for interacting with CloudOS",
     long_description=long_description,
     long_description_content_type="text/markdown",
