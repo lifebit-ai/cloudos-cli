@@ -15,24 +15,28 @@ JOB_ABORTED = 'aborted'
 
 
 @click.group()
+@click.version_option()
 def run_cloudos_cli():
     """CloudOS python package: a package for interacting with CloudOS."""
     print(run_cloudos_cli.__doc__ + '\n')
 
 
 @run_cloudos_cli.group()
+@click.version_option()
 def job():
     """CloudOS job functionality: run and check jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
 @run_cloudos_cli.group()
+@click.version_option()
 def workflow():
     """CloudOS workflow functionality: list workflows in CloudOS."""
     print(workflow.__doc__ + '\n')
 
 
 @job.command('run')
+@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -199,6 +203,7 @@ def run(apikey,
 
 
 @job.command('status')
+@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -236,6 +241,7 @@ def status(apikey,
 
 
 @job.command('list')
+@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -284,6 +290,7 @@ def list_jobs(apikey,
 
 
 @workflow.command('list')
+@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
