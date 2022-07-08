@@ -1,7 +1,7 @@
 # Full contents of Dockerfile
 
 FROM continuumio/miniconda3:4.10.3	
-LABEL name="quay.io/lifebitaiorg/cloudos-py" \
+LABEL container_location="quay.io/lifebitaiorg/cloudos-py" \
       description="The cloudos-py docker container" \
       maintainer="David Pineyro <davidp@lifebit.ai>"
 
