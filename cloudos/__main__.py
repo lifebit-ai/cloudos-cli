@@ -6,7 +6,7 @@ from cloudos.clos import Cloudos
 import json
 import time
 import sys
-
+from ._version import __version__
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -15,10 +15,11 @@ JOB_ABORTED = 'aborted'
 
 
 @click.group()
-@click.version_option()
+@click.version_option(__version__)
 def run_cloudos_cli():
     """CloudOS python package: a package for interacting with CloudOS."""
     print(run_cloudos_cli.__doc__ + '\n')
+    print('Version: ' + __version__ + '\n')
 
 
 @run_cloudos_cli.group()

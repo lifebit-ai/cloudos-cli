@@ -3,6 +3,8 @@
 ### 0.1.0 - 2022-07-07
 - Adds `cloudos workflow list` command. This command allows to
 collect all the workflows data from a given workspace.
+- Adds JSON output for `cloudos job list` and `cloudos workflow list`
+commands.
 
 ### 0.0.9 - 2022-06-28
 - Adds support for lustre storage with the new `--storage-mode` and

@@ -3,9 +3,10 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+exec(open('cloudos/_version.py').read())
 setuptools.setup(
     name="cloudos",
-    version="0.1.0",
+    version=__version__,
     author="David Piñeyro",
     author_email="davidp@lifebit.ai",
     description="Python package for interacting with CloudOS",
