@@ -22,21 +22,18 @@ def run_cloudos_cli():
 
 
 @run_cloudos_cli.group()
-@click.version_option()
 def job():
     """CloudOS job functionality: run and check jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
 @run_cloudos_cli.group()
-@click.version_option()
 def workflow():
     """CloudOS workflow functionality: list workflows in CloudOS."""
     print(workflow.__doc__ + '\n')
 
 
 @job.command('run')
-@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -203,7 +200,6 @@ def run(apikey,
 
 
 @job.command('status')
-@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -241,7 +237,6 @@ def status(apikey,
 
 
 @job.command('list')
-@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -254,14 +249,19 @@ def status(apikey,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--outfile',
-              help=('Output filename where to save job table. ' +
-                    'Default=joblist.csv'),
-              default='joblist.csv',
+@click.option('--output-basename',
+              help=('Output file base name to save jobs list. ' +
+                    'Default=joblist'),
+              default='joblist',
               required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
 @click.option('--full-data',
               help=('Whether to collect full available data from jobs or ' +
-                    'just the preconfigured selected fields.'),
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -269,10 +269,12 @@ def status(apikey,
 def list_jobs(apikey,
               cloudos_url,
               workspace_id,
-              outfile,
+              output_basename,
+              output_format,
               full_data,
               verbose):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
+    outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -283,14 +285,20 @@ def list_jobs(apikey,
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
     my_jobs_r = cl.get_job_list(workspace_id)
-    my_jobs = cl.process_job_list(my_jobs_r, full_data)
-    my_jobs.to_csv(outfile, index=False)
-    print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
-    print(f'\tJob list table saved to {outfile}')
+    if output_format == 'csv':
+        my_jobs = cl.process_job_list(my_jobs_r, full_data)
+        my_jobs.to_csv(outfile, index=False)
+        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(my_jobs_r.text)
+        print(f'\tJob list collected with a total of {len(json.loads(my_jobs_r.content)["jobs"])} jobs.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tJob list saved to {outfile}')
 
 
 @workflow.command('list')
-@click.version_option()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -303,14 +311,19 @@ def list_jobs(apikey,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--outfile',
-              help=('Output filename where to save workflow table. ' +
-                    'Default=workflow_list.csv'),
-              default='workflow_list.csv',
+@click.option('--output-basename',
+              help=('Output file base name to save workflow list. ' +
+                    'Default=workflow_list'),
+              default='workflow_list',
               required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
 @click.option('--full-data',
               help=('Whether to collect full available data from workflows or ' +
-                    'just the preconfigured selected fields.'),
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -318,10 +331,12 @@ def list_jobs(apikey,
 def list_workflows(apikey,
                    cloudos_url,
                    workspace_id,
-                   outfile,
+                   output_basename,
+                   output_format,
                    full_data,
                    verbose):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -332,10 +347,17 @@ def list_workflows(apikey,
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
     my_workflows_r = cl.get_workflow_list(workspace_id)
-    my_workflows = cl.process_workflow_list(my_workflows_r, full_data)
-    my_workflows.to_csv(outfile, index=False)
-    print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
-    print(f'\tWorkflow list table saved to {outfile}')
+    if output_format == 'csv':
+        my_workflows = cl.process_workflow_list(my_workflows_r, full_data)
+        my_workflows.to_csv(outfile, index=False)
+        print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(my_workflows_r.text)
+        print(f'\tWorkflow list collected with a total of {len(json.loads(my_workflows_r.content))} workflows.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tWorkflow list saved to {outfile}')
 
 
 if __name__ == "__main__":

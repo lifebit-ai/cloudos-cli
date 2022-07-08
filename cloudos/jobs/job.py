@@ -101,7 +101,7 @@ class Job(Cloudos):
         allowed_resources = ['projects', 'workflows']
         if resource not in allowed_resources:
             raise ValueError('Your specified resource is not supported. ' +
-                             'Use one of the following: {allowed_resources}')
+                             f'Use one of the following: {allowed_resources}')
         data = {"apikey": apikey}
         r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
