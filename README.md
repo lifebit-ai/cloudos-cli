@@ -24,7 +24,7 @@ and the `environment.yml` files provided.
 
 To run the existing docker image at `quay.io`:
 
-```
+```bash
 docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.0
 ```
 
@@ -34,7 +34,7 @@ You will need Python >= 3.8 and pip installed.
 
 Clone the repo and install it using pip:
 
-```
+```bash
 git clone https://github.com/lifebit-ai/cloudos-py
 cd cloudos-py
 pip install -r requirements.txt
@@ -50,8 +50,10 @@ import to your own scripts.
 
 To get general information about the tool:
 
+```bash
+cloudos --help
 ```
-$ cloudos --help
+```console
 Usage: cloudos [OPTIONS] COMMAND [ARGS]...
 
   CloudOS python package: a package for interacting with CloudOS.
@@ -68,8 +70,10 @@ Commands:
 This will tell you the implemented commands. Each implemented command has its
 own subcommands with its own `--help`:
 
+```bash
+cloudos job run --help
 ```
-$ cloudos job run --help
+```console
 CloudOS python package: a package for interacting with CloudOS.
 
 Version: 0.1.0
@@ -380,11 +384,6 @@ workspace_id = 'xxxxx'
 project_name = 'API jobs'
 workflow_name = 'rnatoy'
 job_config = 'cloudos/examples/rnatoy.config'
-job_name = 'new_job'
-resumable = True
-instance_type = 'c5.xlarge'
-instance_disk = 500
-spot = True
 ```
 
 First, create the `Job` object:
@@ -397,12 +396,7 @@ print(j)
 Then, send the job:
 
 ```python
-j_id = j.send_job(job_config,
-                  job_name,
-                  resumable,
-                  instance_type,
-                  instance_disk,
-                  spot)
+j_id = j.send_job(job_config)
 ```
 
 To check the status:
@@ -416,7 +410,7 @@ print(j_status_h)
 The status will change while your job progresses, so to check again just
 repeat the above code.
 
-You can also collect all your submitted jobs for a given workspace using the
+You can also collect your last 30 submitted jobs for a given workspace using the
 following command.
 
 ```python
