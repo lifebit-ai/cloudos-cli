@@ -65,7 +65,6 @@ class Cloudos:
         cloudos_url = self.cloudos_url
         apikey = self.apikey
         headers = {
-            "Content-type": "application/json",
             "apikey": apikey
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
