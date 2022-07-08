@@ -72,7 +72,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: python -m cloudos job run [OPTIONS]
+Usage: cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
