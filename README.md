@@ -379,7 +379,7 @@ following command.
 
 ```python
 my_workflows_r = j.get_workflow_list(workspace_id)
-my_jobs = j.process_workflow_list(my_workflows_r)
+my_workflows = j.process_workflow_list(my_workflows_r)
 print(my_workflows)
 ```
 
