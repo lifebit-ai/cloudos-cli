@@ -80,6 +80,15 @@ def job():
 @click.option('--spot',
               help='Whether to make a spot instance.',
               is_flag=True)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -106,6 +115,8 @@ def run(apikey,
         instance_type,
         instance_disk,
         spot,
+        storage_mode,
+        lustre_size,
         wait_completion,
         wait_time,
         verbose):
@@ -127,7 +138,9 @@ def run(apikey,
                       nextflow_profile,
                       instance_type,
                       instance_disk,
-                      spot)
+                      spot,
+                      storage_mode,
+                      lustre_size)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:

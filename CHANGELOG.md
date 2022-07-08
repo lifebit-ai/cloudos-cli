@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.0.9 - 2022-06-28
+- Adds support for lustre storage with the new `--storage-mode` and
+`--lustre-size` parameters.
+
 ### 0.0.8 - 2022-06-16
 - Adds `--nextflow-profile` parameter to accept nextflow profiles. It
 also makes `--job-config` parameter optional, as a run with only
