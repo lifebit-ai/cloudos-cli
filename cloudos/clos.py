@@ -49,6 +49,32 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def get_cromwell_status(self, workspace_id):
+        """Get Cromwell server status from CloudOS.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id from to check the Cromwell status.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
+                                                               workspace_id),
+                         headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
     def get_job_list(self, workspace_id):
         """Get all the jobs from a CloudOS workspace.
 

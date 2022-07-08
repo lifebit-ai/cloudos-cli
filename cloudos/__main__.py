@@ -35,6 +35,13 @@ def workflow():
     print(workflow.__doc__ + '\n')
 
 
+@run_cloudos_cli.group()
+@click.version_option()
+def cromwell():
+    """CloudOS Cromwell server functionality: check status, restart and stop."""
+    print(workflow.__doc__ + '\n')
+
+
 @job.command('run')
 @click.version_option()
 @click.option('-k',
@@ -219,10 +226,10 @@ def run(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def status(apikey,
-           cloudos_url,
-           job_id,
-           verbose):
+def job_status(apikey,
+               cloudos_url,
+               job_id,
+               verbose):
     """Check job status in CloudOS."""
     print('Executing status...')
     if verbose:
@@ -336,6 +343,45 @@ def list_workflows(apikey,
     my_workflows.to_csv(outfile, index=False)
     print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
     print(f'\tWorkflow list table saved to {outfile}')
+
+
+@cromwell.command('status')
+@click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+def cromwell_status(apikey,
+                    cloudos_url,
+                    workspace_id,
+                    verbose):
+    """Check Cromwell server status in CloudOS."""
+    print('Executing status...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(apikey, cloudos_url)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tChecking Cromwell status in {workspace_id} workspace')
+    c_status = cl.get_cromwell_status(workspace_id)
+    print(c_status.text)
+    c_status_h = json.loads(c_status.content)["status"]
+    print(f'\tYour current job status is: {j_status_h}\n')
+    j_url = f'{cloudos_url}/app/jobs/{job_id}'
+    print(f'\tTo further check your job status you can either go to {j_url} ' +
+          'or repeat the command you just used.')
 
 
 if __name__ == "__main__":
