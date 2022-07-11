@@ -1,4 +1,4 @@
-import pytest 
+import pytest
 import json
 
 from cloudos.jobs.job import Job
@@ -7,26 +7,38 @@ actual_json_file = "tests/test_data/convert_nextflow_to_json_params.json"
 
 param_dict = {
     "config": "cloudos/examples/rnatoy.config",
-    "project_id": "614b181e31de9201a5c3fab4",
-    "workflow_id": "616edcf11b866a01d69f9480",
+    "git_commit": None,
+    "git_tag": None,
+    "project_id": "6054754029b82f0112762b9c",
+    "workflow_id": "60b0ca54303ee601a69b42d1",
     "job_name": "new_job",
     "resumable": True,
+    "batch": False,
+    "nextflow_profile": None,
     "instance_type": "c5.xlarge",
     "instance_disk": 500,
-    "spot": True
+    "spot": True,
+    "storage_mode": 'regular',
+    "lustre_size": 1200
 }
 
 
 def test_convert_nextflow_to_json_output_correct():
     job_json = Job.convert_nextflow_to_json(
         1, param_dict["config"],
+        git_commit=param_dict["git_commit"],
+        git_tag=param_dict["git_tag"],
         project_id=param_dict["project_id"],
         workflow_id=param_dict["workflow_id"],
         job_name=param_dict["job_name"],
         resumable=param_dict["resumable"],
+        batch=param_dict["batch"],
+        nextflow_profile=param_dict["nextflow_profile"],
         instance_type=param_dict["instance_type"],
         instance_disk=param_dict["instance_disk"],
-        spot=param_dict["spot"]
+        spot=param_dict["spot"],
+        storage_mode=param_dict["storage_mode"],
+        lustre_size=param_dict["lustre_size"]
         )
     with open(actual_json_file) as json_data:
         correct_json = json.load(json_data)
@@ -38,13 +50,19 @@ def test_convert_nextflow_to_json_badly_formed_config():
     with pytest.raises(ValueError) as excinfo:
         job_json = Job.convert_nextflow_to_json(
             1, no_equals_config,
+            git_commit=param_dict["git_commit"],
+            git_tag=param_dict["git_tag"],
             project_id=param_dict["project_id"],
             workflow_id=param_dict["workflow_id"],
             job_name=param_dict["job_name"],
             resumable=param_dict["resumable"],
+            batch=param_dict["batch"],
+            nextflow_profile=param_dict["nextflow_profile"],
             instance_type=param_dict["instance_type"],
             instance_disk=param_dict["instance_disk"],
-            spot=param_dict["spot"]
+            spot=param_dict["spot"],
+            storage_mode=param_dict["storage_mode"],
+            lustre_size=param_dict["lustre_size"]
             )
         print(str(excinfo.value))
     assert "Please, specify your parameters in\

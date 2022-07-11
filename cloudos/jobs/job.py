@@ -101,7 +101,7 @@ class Job(Cloudos):
         allowed_resources = ['projects', 'workflows']
         if resource not in allowed_resources:
             raise ValueError('Your specified resource is not supported. ' +
-                             'Use one of the following: {allowed_resources}')
+                             f'Use one of the following: {allowed_resources}')
         data = {"apikey": apikey}
         r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
@@ -269,18 +269,18 @@ class Job(Cloudos):
         return params
 
     def send_job(self,
-                 job_config,
-                 git_commit,
-                 git_tag,
-                 job_name,
-                 resumable,
-                 batch,
-                 nextflow_profile,
-                 instance_type,
-                 instance_disk,
-                 spot,
-                 storage_mode,
-                 lustre_size):
+                 job_config=None,
+                 git_commit=None,
+                 git_tag=None,
+                 job_name='new_job',
+                 resumable=False,
+                 batch=False,
+                 nextflow_profile=None,
+                 instance_type='c5.xlarge',
+                 instance_disk=500,
+                 spot=False,
+                 storage_mode='regular',
+                 lustre_size=1200):
         """Send a job to CloudOS.
 
         Parameters
