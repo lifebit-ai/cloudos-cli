@@ -63,9 +63,10 @@ class Cloudos:
             The server response
         """
         cloudos_url = self.cloudos_url
-        apikey = self.apikey
+        apikey = f'Bearer {self.apikey}'
         headers = {
-            "apikey": apikey
+            "Accept": "application/json",
+            "Authorization": apikey
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
