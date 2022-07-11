@@ -401,10 +401,7 @@ def cromwell_status(apikey,
     c_status = cl.get_cromwell_status(workspace_id)
     print(c_status.text)
     c_status_h = json.loads(c_status.content)["status"]
-    print(f'\tYour current job status is: {j_status_h}\n')
-    j_url = f'{cloudos_url}/app/jobs/{job_id}'
-    print(f'\tTo further check your job status you can either go to {j_url} ' +
-          'or repeat the command you just used.')
+    print(f'\tYour current cromwell status is: {c_status_h}\n')
 
 
 if __name__ == "__main__":
