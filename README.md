@@ -521,8 +521,6 @@ apikey = 'xxxxx'
 cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
-project_name = 'wdl-test'
-workflow_name = 'wdl- test'
 
 # First create cloudos object
 cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
