@@ -63,6 +63,7 @@ Options:
   --help     Show this message and exit.
 
 Commands:
+  cromwell  Cromwell server functionality: check status, restart and stop.
   job       CloudOS job functionality: run and check jobs in CloudOS.
   workflow  CloudOS workflow functionality: list workflows in CloudOS.
 ``` 

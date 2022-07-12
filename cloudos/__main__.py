@@ -235,7 +235,7 @@ def job_status(apikey,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, apikey)
+    cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
