@@ -138,7 +138,7 @@ def run(apikey,
     print('Executing run...')
     if verbose:
         print('\t...Preparing objects')
-    j = jb.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
+    j = jb.Job(cloudos_url, apikey, workspace_id, project_name, workflow_name)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -234,7 +234,7 @@ def job_status(apikey,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(apikey, cloudos_url)
+    cl = Cloudos(cloudos_url, apikey)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -292,7 +292,7 @@ def list_jobs(apikey,
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(apikey, cloudos_url)
+    cl = Cloudos(cloudos_url, apikey)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -354,7 +354,7 @@ def list_workflows(apikey,
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(apikey, cloudos_url)
+    cl = Cloudos(cloudos_url, apikey)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -403,7 +403,7 @@ def cromwell_status(cromwell_token,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(None, cloudos_url, cromwell_token)
+    cl = Cloudos(cloudos_url, cromwell_token=cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -446,7 +446,7 @@ def cromwell_switch(cromwell_token,
     print('Restarting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(None, cloudos_url, cromwell_token)
+    cl = Cloudos(cloudos_url, cromwell_token=cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')

@@ -15,16 +15,16 @@ class Cloudos:
 
     Parameters
     ----------
-    apikey : string
-        Your CloudOS API key.
     cloudos_url : string
         The CloudOS service url.
+    apikey : string
+        Your CloudOS API key.
     cromwell_token : string
         Cromwell server token.
     """
-    apikey: str
     cloudos_url: str
-    cromwell_token: str
+    apikey: str = None
+    cromwell_token: str = None
 
     def get_job_status(self, j_id):
         """Get job status from CloudOS.
