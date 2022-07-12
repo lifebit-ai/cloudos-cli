@@ -507,6 +507,48 @@ my_workflows = j.process_workflow_list(my_workflows_r)
 print(my_workflows)
 ```
 
+#### Running WDL pipelines using your own scripts
+
+You can even run WDL pipelines. First check the Cromwell server status and restart it if Stopped:
+
+```python
+import cloudos.clos as cl
+import json
+
+
+# GLOBAL VARS.
+apikey = 'xxxxx'
+cromwell_token = 'xxxx'
+cloudos_url = 'https://cloudos.lifebit.ai'
+workspace_id = 'xxxxx'
+project_name = 'wdl-test'
+workflow_name = 'wdl- test'
+
+# First create cloudos object
+cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
+
+# Then, check Cromwell status
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
+
+# Restart Cromwell server
+cl.cromwell_switch(workspace_id, 'restart')
+
+# Check again Cromwell status
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
+
+# Stop Cromwell server
+cl.cromwell_switch(workspace_id, 'stop')
+
+# Check again Cromwell status
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
+```
+
 ### unit testing
 
 Unit tests require 3 additional packages:
