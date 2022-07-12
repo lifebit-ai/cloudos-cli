@@ -436,11 +436,11 @@ def cromwell_status(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def cromwell_switch(cromwell_token,
-                    cloudos_url,
-                    workspace_id,
-                    write_response,
-                    verbose):
+def cromwell_restart(cromwell_token,
+                     cloudos_url,
+                     workspace_id,
+                     write_response,
+                     verbose):
     """Restart Cromwell server in CloudOS."""
     action = 'restart'
     print('Restarting Cromwell server...')
@@ -456,6 +456,51 @@ def cromwell_switch(cromwell_token,
         with open('cromwell_restart.json', 'w') as out:
             out.write(c_restart.text)
     print('\tCromwell server restarted...')
+    c_status = cl.get_cromwell_status(workspace_id)
+    c_status_h = json.loads(c_status.content)["status"]
+    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+
+
+@cromwell.command('stop')
+@click.version_option()
+@click.option('-t',
+              '--cromwell-token',
+              help='Specific Cromwell server authentication token.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--write-response',
+              help='Write the server response, in JSON format.',
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+def cromwell_stop(cromwell_token,
+                  cloudos_url,
+                  workspace_id,
+                  write_response,
+                  verbose):
+    """Stop Cromwell server in CloudOS."""
+    action = 'stop'
+    print('Stopping Cromwell server...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, None, cromwell_token)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tRestarting Cromwell server in {workspace_id} workspace')
+    c_stop = cl.cromwell_switch(workspace_id, action)
+    if write_response:
+        with open('cromwell_stop.json', 'w') as out:
+            out.write(c_stop.text)
+    print('\tCromwell server stopped...')
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
