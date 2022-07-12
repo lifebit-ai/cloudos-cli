@@ -19,9 +19,12 @@ class Cloudos:
         Your CloudOS API key.
     cloudos_url : string
         The CloudOS service url.
+    cromwell_token : string
+        Cromwell server token.
     """
     apikey: str
     cloudos_url: str
+    cromwell_token: str
 
     def get_job_status(self, j_id):
         """Get job status from CloudOS.
@@ -63,10 +66,10 @@ class Cloudos:
             The server response
         """
         cloudos_url = self.cloudos_url
-        apikey = f'Bearer {self.apikey}'
+        token = f'Bearer {self.cromwell_token}'
         headers = {
             "Accept": "application/json",
-            "Authorization": apikey
+            "Authorization": token
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),

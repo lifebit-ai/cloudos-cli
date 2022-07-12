@@ -370,9 +370,9 @@ def list_workflows(apikey,
 
 @cromwell.command('status')
 @click.version_option()
-@click.option('-k',
-              '--apikey',
-              help='Your CloudOS API key',
+@click.option('-t',
+              '--cromwell-token',
+              help='Specific Cromwell server authentication token.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
@@ -382,10 +382,13 @@ def list_workflows(apikey,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
+@click.option('--write-response',
+              help='Write the server response, in JSON format.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def cromwell_status(apikey,
+def cromwell_status(cromwell_token,
                     cloudos_url,
                     workspace_id,
                     verbose):
@@ -393,15 +396,17 @@ def cromwell_status(apikey,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(apikey, cloudos_url)
+    cl = Cloudos(cromwell_token, cloudos_url)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tChecking Cromwell status in {workspace_id} workspace')
     c_status = cl.get_cromwell_status(workspace_id)
-    print(c_status.text)
+    if write_response:
+        with open('cromwell_status.json', 'w') as out:
+            out.write(c_status.text)
     c_status_h = json.loads(c_status.content)["status"]
-    print(f'\tYour current cromwell status is: {c_status_h}\n')
+    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
 
 if __name__ == "__main__":
