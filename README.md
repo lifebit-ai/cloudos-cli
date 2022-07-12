@@ -411,6 +411,16 @@ cloudos cromwell restart \
 ```
 
 ```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, restart and stop.
+
+Restarting Cromwell server...
+	Current Cromwell server status is: Initializing
+
+	Current Cromwell server status is: Running
 ```
 
 ```bash
@@ -422,6 +432,14 @@ cloudos cromwell stop \
 ```
 
 ```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, restart and stop.
+
+Stopping Cromwell server...
+	Current Cromwell server status is: Stopped
 ```
 
 ### Import the functionality to your own python scripts
