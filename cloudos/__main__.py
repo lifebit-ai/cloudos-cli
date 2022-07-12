@@ -37,7 +37,7 @@ def workflow():
 
 @run_cloudos_cli.group()
 def cromwell():
-    """CloudOS Cromwell server functionality: check status, restart and stop."""
+    """Cromwell server functionality: check status, restart and stop."""
     print(cromwell.__doc__ + '\n')
 
 
