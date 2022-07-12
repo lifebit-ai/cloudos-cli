@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-07\
-__Version:__ 0.1.0
+__Date:__ 2022-07-12\
+__Version:__ 0.1.1
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.1
 ```
 
 ### From Github
@@ -76,7 +76,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -172,7 +172,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -213,7 +213,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -233,8 +233,9 @@ To check the status of a submitted job, just use the suggested command:
 ```bash
 cloudos job status \
     --apikey $MY_API_KEY \
-    --cloudos-url https://cloudos.lifebit.ai \
-    --job-id 62c83a1191fe06013b7ef355
+    --cloudos-url $CLOUDOS \
+    --job-id 62c83a1191fe06013b7ef355 \
+    --write-response
 ```
 
 The expected output should be something similar to:
@@ -242,7 +243,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -251,6 +252,9 @@ Executing status...
 
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
+
+In addition, using the `--write-response` flag, a file named `job_<job_id>_status.json` will be created,
+with the server response in `JSON` format.
 
 #### Get a list of your jobs from a CloudOS workspace
 
@@ -277,7 +281,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -300,7 +304,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -333,7 +337,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -355,13 +359,60 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.json
+```
+
+### WDL pipeline support
+
+#### Cromwell server managing
+
+WDL pipelines run using a Cromwell server in CloudOS. This server can be accessed to
+check its status, restart it or stop it, using the following commands:
+
+```bash
+# Cromwell server requires its particular token
+CROMWELL_TOKEN="xxxx"
+
+# Check Cromwell status
+cloudos cromwell status \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID \
+    --write-response
+```
+
+```console
+```
+
+Using the `--write-response` flag, a file named `cromwell_status.json` will be created, with
+the server response in `JSON` format.
+
+```bash    
+# Cromwell restart
+cloudos cromwell restart \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID
+```
+
+```console
+```
+
+```bash
+# Cromwell stop
+cloudos cromwell stop \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID
+```
+
+```console
 ```
 
 ### Import the functionality to your own python scripts
@@ -379,6 +430,7 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
+cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'API jobs'
@@ -389,7 +441,7 @@ job_config = 'cloudos/examples/rnatoy.config'
 First, create the `Job` object:
 
 ```python
-j = jb.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
+j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name)
 print(j)
 ```
 
