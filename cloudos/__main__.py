@@ -35,10 +35,9 @@ def workflow():
 
 
 @run_cloudos_cli.group()
-@click.version_option()
 def cromwell():
     """CloudOS Cromwell server functionality: check status, restart and stop."""
-    print(workflow.__doc__ + '\n')
+    print(cromwell.__doc__ + '\n')
 
 
 @job.command('run')
@@ -391,6 +390,7 @@ def list_workflows(apikey,
 def cromwell_status(cromwell_token,
                     cloudos_url,
                     workspace_id,
+                    write_response,
                     verbose):
     """Check Cromwell server status in CloudOS."""
     print('Executing status...')
