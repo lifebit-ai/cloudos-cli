@@ -78,6 +78,35 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def cromwell_switch(self, workspace_id, action):
+        """Restart Cromwell server.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id in which restart/stop Cromwell status.
+        action : string [restart|stop]
+            The action to perform.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        token = f'Bearer {self.cromwell_token}'
+        headers = {
+            "Accept": "application/json",
+            "Authorization": token
+        }
+        r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
+                                                                  action,
+                                                                  workspace_id),
+                         headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
     def get_job_list(self, workspace_id):
         """Get all the jobs from a CloudOS workspace.
 
