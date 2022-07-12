@@ -396,7 +396,7 @@ def cromwell_status(cromwell_token,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cromwell_token, cloudos_url)
+    cl = Cloudos(None, cloudos_url, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
