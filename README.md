@@ -224,7 +224,7 @@ Executing run...
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.
 	Your current job status is: running.
-	Your job took 7 seconds to complete successfully.
+	Your job took 420 seconds to complete successfully.
 ```
 
 #### Check job status
@@ -373,8 +373,8 @@ Executing list...
 
 #### Cromwell server managing
 
-WDL pipelines run using a Cromwell server in CloudOS. This server can be accessed to
-check its status, restart it or stop it, using the following commands:
+In order to run WDL pipelines, a Cromwell server in CloudOS should be running. This server can
+be accessed to check its status, restart it or stop it, using the following commands:
 
 ```bash
 # Cromwell server requires its particular token
