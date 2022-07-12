@@ -138,7 +138,7 @@ def run(apikey,
     print('Executing run...')
     if verbose:
         print('\t...Preparing objects')
-    j = jb.Job(cloudos_url, apikey, workspace_id, project_name, workflow_name)
+    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -292,7 +292,7 @@ def list_jobs(apikey,
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, apikey)
+    cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -354,7 +354,7 @@ def list_workflows(apikey,
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, apikey)
+    cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -403,7 +403,7 @@ def cromwell_status(cromwell_token,
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, cromwell_token=cromwell_token)
+    cl = Cloudos(cloudos_url, None, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -446,7 +446,7 @@ def cromwell_switch(cromwell_token,
     print('Restarting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, cromwell_token=cromwell_token)
+    cl = Cloudos(cloudos_url, None, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')

@@ -23,8 +23,8 @@ class Cloudos:
         Cromwell server token.
     """
     cloudos_url: str
-    apikey: str = None
-    cromwell_token: str = None
+    apikey: str
+    cromwell_token: str
 
     def get_job_status(self, j_id):
         """Get job status from CloudOS.
