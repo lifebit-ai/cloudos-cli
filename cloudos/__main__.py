@@ -454,7 +454,6 @@ def cromwell_restart(cromwell_token,
         print('\t' + str(cl) + '\n')
         print(f'\tRestarting Cromwell server in {workspace_id} workspace')
     cl.cromwell_switch(workspace_id, action)
-    print('\tCromwell server restarted...')
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
@@ -499,7 +498,6 @@ def cromwell_stop(cromwell_token,
         print('\t' + str(cl) + '\n')
         print(f'\tRestarting Cromwell server in {workspace_id} workspace')
     cl.cromwell_switch(workspace_id, action)
-    print('\tCromwell server stopped...')
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
