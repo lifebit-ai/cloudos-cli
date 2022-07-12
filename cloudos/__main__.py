@@ -459,7 +459,7 @@ def cromwell_restart(cromwell_token,
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
     elapsed = 0
-    while elapsed < wait_time or c_status_h != 'Initializing':
+    while elapsed < wait_time and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
         time.sleep(REQUEST_INTERVAL)
         elapsed += REQUEST_INTERVAL
         c_status = cl.get_cromwell_status(workspace_id)
