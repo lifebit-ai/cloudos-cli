@@ -389,6 +389,14 @@ cloudos cromwell status \
 ```
 
 ```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, restart and stop.
+
+Executing status...
+	Current Cromwell server status is: Stopped
 ```
 
 Using the `--write-response` flag, a file named `cromwell_status.json` will be created, with

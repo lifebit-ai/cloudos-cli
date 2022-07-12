@@ -459,11 +459,24 @@ def cromwell_restart(cromwell_token,
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
     elapsed = 0
     while elapsed < wait_time and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
+        c_status_old = c_status_h
         time.sleep(REQUEST_INTERVAL)
         elapsed += REQUEST_INTERVAL
         c_status = cl.get_cromwell_status(workspace_id)
         c_status_h = json.loads(c_status.content)["status"]
-        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+        if c_status_h != c_status_old:
+            print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+    if c_status_h != 'Running':
+        print(f'\tYour current Cromwell status is: {c_status_h}. The ' +
+              f'selected wait-time of {wait_time} was exceeded. Please, ' +
+              'consider to set a longer wait-time.')
+        print('\tTo further check your Cromwell status you can either go to ' +
+              f'{cloudos_url} or use the following command:\n' +
+              'cloudos cromwell status \\\n' +
+              f'    -c {cloudos_url} \\\n' +
+              '    -t $CROMWELL_TOKEN \\\n' +
+              f'    --workspace-id {workspace_id}')
+        sys.exit(1)
 
 
 @cromwell.command('stop')
