@@ -12,6 +12,7 @@ from ._version import __version__
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
+REQUEST_INTERVAL = 60
 
 
 @click.group()
@@ -176,11 +177,11 @@ def run(apikey,
                 print(f'\tYour job took {elapsed} seconds to abort.')
                 sys.exit(1)
             else:
-                elapsed += 1
+                elapsed += REQUEST_INTERVAL
                 if j_status_h != j_status_h_old:
                     print(f'\tYour current job status is: {j_status_h}.')
                     j_status_h_old = j_status_h
-                time.sleep(60)
+                time.sleep(REQUEST_INTERVAL)
         j_status = j.get_job_status(j_id)
         j_status_h = json.loads(j_status.content)["status"]
         if j_status_h != JOB_COMPLETED:
@@ -430,16 +431,17 @@ def cromwell_status(cromwell_token,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to Cromwell restart. ' +
+                    'Default=300.'),
+              default=300)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
 def cromwell_restart(cromwell_token,
                      cloudos_url,
                      workspace_id,
-                     write_response,
+                     wait_time,
                      verbose):
     """Restart Cromwell server in CloudOS."""
     action = 'restart'
@@ -451,14 +453,18 @@ def cromwell_restart(cromwell_token,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tRestarting Cromwell server in {workspace_id} workspace')
-    c_restart = cl.cromwell_switch(workspace_id, action)
-    if write_response:
-        with open('cromwell_restart.json', 'w') as out:
-            out.write(c_restart.text)
+    cl.cromwell_switch(workspace_id, action)
     print('\tCromwell server restarted...')
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+    elapsed = 0
+    while elapsed < wait_time or c_status_h != 'Initializing':
+        time.sleep(REQUEST_INTERVAL)
+        elapsed += REQUEST_INTERVAL
+        c_status = cl.get_cromwell_status(workspace_id)
+        c_status_h = json.loads(c_status.content)["status"]
+        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
 
 @cromwell.command('stop')
@@ -475,16 +481,12 @@ def cromwell_restart(cromwell_token,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
 def cromwell_stop(cromwell_token,
                   cloudos_url,
                   workspace_id,
-                  write_response,
                   verbose):
     """Stop Cromwell server in CloudOS."""
     action = 'stop'
@@ -496,10 +498,7 @@ def cromwell_stop(cromwell_token,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tRestarting Cromwell server in {workspace_id} workspace')
-    c_stop = cl.cromwell_switch(workspace_id, action)
-    if write_response:
-        with open('cromwell_stop.json', 'w') as out:
-            out.write(c_stop.text)
+    cl.cromwell_switch(workspace_id, action)
     print('\tCromwell server stopped...')
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
