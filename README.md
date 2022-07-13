@@ -385,7 +385,7 @@ To check list of available cohorts in a workspace use `list_cohorts()` from the 
 provide a dictionary of cohorts. By default 10 are shown this can be varied with the `size` argument. To get all cohorts use `size=all`.
 
 ```python
->>> c = cb.list_cohorts()
+>>> cohorts = cb.list_cohorts()
 Total number of cohorts found: 115.
 Showing 10 by default. Change 'size' parameter to return more.
 >>> print(c)
