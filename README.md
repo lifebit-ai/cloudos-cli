@@ -452,9 +452,8 @@ To get more information on a phenotype `get_phenotype_metadata` can be used.
 
 ```python
 >>> pheno_id = '4'
->>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
->>> c = cb.get_phenotype_metadata('4')
->>> print(c)
+>>> pheno_metadata = cb.get_phenotype_metadata(pheno_id)
+>>> print(pheno_metadata)
 {'display': 'dropdown', 'possibleValues': [{'key': 'Male', 'label': 'Male'}, {'key': 'Female', 'label': 'Female'}, {'key': 'Prefer not to say', 'label': 'Prefer not to say'}], 'clinicalForm': 'MainForm', 'bucket500': False, 'bucket1000': False, 'bucket2500': False, 'bucket5000': False, 'bucket300': False, 'bucket10000': False, 'categoryPathLevel1': 'Main form data', 'id': 4, 'instances': 1, 'name': 'Sex', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical multiple', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 1, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': '', 'orderPhenotype': '', 'instance0Name': '', 'instance1Name': '', 'instance2Name': '', 'instance3Name': '', 'instance4Name': '', 'instance5Name': '', 'instance6Name': '', 'instance7Name': '', 'instance8Name': '', 'instance9Name': '', 'instance10Name': '', 'instance11Name': '', 'instance12Name': '', 'instance13Name': '', 'instance14Name': '', 'instance15Name': '', 'instance16Name': ''}
 >>> 
 ```
