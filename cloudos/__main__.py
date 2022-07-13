@@ -143,7 +143,7 @@ def run(apikey,
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, None)
-    workflow_type = cl.detect_workflow(workflow_name)
+    workflow_type = cl.detect_workflow(workflow_name, workspace_id)
     if workflow_type == 'wdl' and wdl_mainfile is None:
         raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
     if verbose:
