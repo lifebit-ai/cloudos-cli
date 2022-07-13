@@ -397,10 +397,10 @@ Showing 10 by default. Change 'size' parameter to return more.
 `Cohort.create()` is used to create a new cohort. Every cohort needs a specific name, and you can give it a description, but this is optional. 
 
 ```python
->>> new_c = Cohort.create(apikey, cloudos_url, workspace_id, cohort_name="example cohort 2022", cohort_desc="Cohort made to demonstrate how to use cohort-py")
->>> print(new_c.cohort_id)
+>>> new_cohort = Cohort.create(apikey, cloudos_url, workspace_id, cohort_name="example cohort 2022", cohort_desc="Cohort made to demonstrate how to use cohort-py")
+>>> print(new_cohort.cohort_id)
 6273f57e9ca9580fd84b2c4f
->>> print(new_c.cohort_name)
+>>> print(new_cohort.cohort_name)
 example cohort 2022
 ```
 
