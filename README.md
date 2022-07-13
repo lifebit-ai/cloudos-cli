@@ -373,7 +373,7 @@ Save this information in variables that we can use to create a `CohortBrowser` o
 >>> workspace_id = '***'
 >>> cloudos_url = "***"
 ```
-To make a CohortBrowser object:
+To make a `CohortBrowser` object:
 
 ```python
 >>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
