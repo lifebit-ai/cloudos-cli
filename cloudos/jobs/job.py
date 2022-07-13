@@ -145,7 +145,8 @@ class Job(Cloudos):
                                  spot,
                                  storage_mode,
                                  lustre_size,
-                                 workflow_type):
+                                 workflow_type,
+                                 cromwell_id):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -185,6 +186,8 @@ class Job(Cloudos):
             a multiple of it.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
+        cromwell_id : str
+            Cromwell server ID.
 
         Returns
         -------
@@ -195,6 +198,9 @@ class Job(Cloudos):
         if nextflow_profile is None and job_config is None:
             raise ValueError('No --job-config or --nextflow_profile was specified, please use ' +
                              'at least one of these options.')
+        if workflow_type == 'wdl' and cromwell_id is None:
+            raise ValueError('No --cromwell_id was provided. You can get the Cromwell id using ' +
+                             '\'cloudos cromwell status\' command.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -282,6 +288,7 @@ class Job(Cloudos):
             "batch": {
                 "enabled": batch
             },
+            "cromwellCloudResources": cromwell_id,
             "executionPlatform": "aws",
             "storageSizeInGb": instance_disk,
             "execution": {
@@ -315,7 +322,8 @@ class Job(Cloudos):
                  spot=False,
                  storage_mode='regular',
                  lustre_size=1200,
-                 workflow_type='nextflow'):
+                 workflow_type='nextflow',
+                 cromwell_id=None):
         """Send a job to CloudOS.
 
         Parameters
@@ -351,6 +359,8 @@ class Job(Cloudos):
             a multiple of it.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
+        cromwell_id : str
+            Cromwell server ID.
 
         Returns
         -------
@@ -381,7 +391,8 @@ class Job(Cloudos):
                                                spot,
                                                storage_mode,
                                                lustre_size,
-                                               workflow_type)
+                                               workflow_type,
+                                               cromwell_id)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                           data=json.dumps(params), headers=headers)

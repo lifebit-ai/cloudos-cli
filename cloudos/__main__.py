@@ -114,6 +114,9 @@ def cromwell():
               default=3600)
 @click.option('--wdl-mainfile',
               help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
+@click.option('--cromwell-id',
+              help=('ID for the cromwell server. You can get it using ' +
+                    '\'cloudos cromwell status\' command.'))
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -137,6 +140,7 @@ def run(apikey,
         wait_completion,
         wait_time,
         wdl_mainfile,
+        cromwell_id,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
@@ -166,7 +170,8 @@ def run(apikey,
                       spot,
                       storage_mode,
                       lustre_size,
-                      workflow_type)
+                      workflow_type,
+                      cromwell_id)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
