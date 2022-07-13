@@ -366,7 +366,7 @@ This package is primarily a means of communicating with a CloudOS instance using
 
 ![CloudOS settings page](man/figures/settings_page.png)
 
-This information is given as environmental variables:
+Save this information in variables that we can use to create a `CohortBrowser` object:
 
 ```python
 >>> apikey = '***'
