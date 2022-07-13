@@ -507,7 +507,7 @@ Any number of single phenotypes can be combined using any combination of operato
 ```python
 >>> categorical_query_2 = PhenoFilter(pheno_id=48, vals=[2])
 >>> query = (categorical_query | categorical_query_2) & continuous_query
->>> c.preview_participant_count(query, keep_query=False)
+>>> cohort.preview_participant_count(query, keep_query=False)
 {'count': 2883, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
