@@ -23,6 +23,9 @@ class Job(Cloudos):
         The specific Cloudos workspace id.
     project_name : string
         The name of a CloudOS project.
+    mainfile : string
+        The name of the mainFile used by the workflow. Required for WDL pipelines as different
+        mainFiles could be loaded for a single pipeline.
     workflow_name : string
         The name of a CloudOS workflow or pipeline.
     project_id : string
@@ -33,6 +36,7 @@ class Job(Cloudos):
     workspace_id: str
     project_name: str
     workflow_name: str
+    mainfile: str = None
     project_id: str = None
     workflow_id: str = None
 
@@ -67,7 +71,8 @@ class Job(Cloudos):
                 self.cloudos_url,
                 'workflows',
                 self.workspace_id,
-                self.workflow_name)
+                self.workflow_name,
+                self.mainfile)
         else:
             # Let the user define the value.
             self._workflow_id = v
@@ -77,7 +82,8 @@ class Job(Cloudos):
                          cloudos_url,
                          resource,
                          workspace_id,
-                         name):
+                         name,
+                         mainfile=None):
         """Fetch the cloudos id for a given name.
 
         Paramters
@@ -92,6 +98,10 @@ class Job(Cloudos):
             The specific Cloudos workspace id.
         name : string
             The name of a CloudOS resource element.
+        mainfile : string
+            The name of the mainFile used by the workflow. Only used when resource == 'workflows'.
+            Required for WDL pipelines as different mainFiles could be loaded for a single
+            pipeline.
 
         Returns
         -------
@@ -111,7 +121,14 @@ class Job(Cloudos):
             raise BadRequestException(r)
         for element in json.loads(r.content):
             if element["name"] == name:
-                return element["_id"]
+                if mainfile is not None and element["mainFile"] == mainfile:
+                    return element["_id"]
+                else:
+                    return element["_id"]
+        if mainfile is not None:
+            raise ValueError(f'[ERROR] Either workflow {name} or mainFile {mainfile} are not found')
+        else:
+            raise ValueError(f'[ERROR] Workflow {name} is not found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
@@ -127,7 +144,8 @@ class Job(Cloudos):
                                  instance_disk,
                                  spot,
                                  storage_mode,
-                                 lustre_size):
+                                 lustre_size,
+                                 workflow_type):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -165,6 +183,8 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        workflow_type : str
+            The type of workflow to run. Either 'nextflow' or 'wdl'.
 
         Returns
         -------
@@ -183,9 +203,17 @@ class Job(Cloudos):
                         reading = True
                     else:
                         if reading:
-                            p_l_strip = p_l.strip().replace(
-                                ' ', '').replace('\"', '').replace('\'', '')
-                            if '}' in p_l_strip:
+                            if workflow_type == 'wdl':
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '')
+                            else:
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '').replace('\"', '').replace('\'', '')
+                            if len(p_l_strip) == 0:
+                                continue
+                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
+                                continue
+                            elif p_l_strip == '}':
                                 reading = False
                             else:
                                 p_list = p_l_strip.split('=')
@@ -195,6 +223,12 @@ class Job(Cloudos):
                                                      f'{job_config} using ' +
                                                      'the \'=\' char as spacer. ' +
                                                      'E.g: name = my_name')
+                                elif workflow_type == 'wdl':
+                                    param = {"prefix": "",
+                                             "name": p_list[0],
+                                             "parameterKind": "textValue",
+                                             "textValue": p_list[1]}
+                                    workflow_params.append(param)
                                 else:
                                     param = {"prefix": "--",
                                              "name": p_list[0],
@@ -280,7 +314,8 @@ class Job(Cloudos):
                  instance_disk=500,
                  spot=False,
                  storage_mode='regular',
-                 lustre_size=1200):
+                 lustre_size=1200,
+                 workflow_type='nextflow'):
         """Send a job to CloudOS.
 
         Parameters
@@ -314,6 +349,8 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        workflow_type : str
+            The type of workflow to run. Either 'nextflow' or 'wdl'.
 
         Returns
         -------
@@ -343,7 +380,8 @@ class Job(Cloudos):
                                                instance_disk,
                                                spot,
                                                storage_mode,
-                                               lustre_size)
+                                               lustre_size,
+                                               workflow_type)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                           data=json.dumps(params), headers=headers)

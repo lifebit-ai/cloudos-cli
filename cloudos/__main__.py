@@ -112,6 +112,8 @@ def cromwell():
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
+@click.option('--wdl-mainfile',
+              help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -134,12 +136,20 @@ def run(apikey,
         lustre_size,
         wait_completion,
         wait_time,
+        wdl_mainfile,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
     if verbose:
+        print('\t...Detecting workflow type')
+    cl = Cloudos(cloudos_url, apikey, None)
+    workflow_type = cl.detect_workflow(workflow_name)
+    if workflow_type == 'wdl' and wdl_mainfile is None:
+        raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
+    if verbose:
         print('\t...Preparing objects')
-    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name)
+    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+               mainfile=wdl_mainfile)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -155,7 +165,8 @@ def run(apikey,
                       instance_disk,
                       spot,
                       storage_mode,
-                      lustre_size)
+                      lustre_size,
+                      workflow_type)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
