@@ -515,12 +515,12 @@ If we’re happy that this is a sensible query to apply, we can apply the query 
 
 ```python
 >>> new_query = PhenoFilter(10, vals=["Female"])
->>> c.apply_query(query=new_query)
->>> c.query
+>>> cohort.apply_query(query=new_query)
+>>> cohort.query
 Query('AND', [
     PhenoFilter(pheno_id=10, vals=['Female'])
 ])
->>> c.preview_participant_count()
+>>> cohort.preview_participant_count()
 {'count': 23741, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
