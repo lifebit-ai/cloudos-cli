@@ -490,7 +490,7 @@ For phenotype “Total full brothers” (with id = 48)
 
 ```python
 >>> categorical_query = PhenoFilter(pheno_id=48, vals=[1])
->>> c.preview_participant_count(categorical_query, keep_query=False)
+>>> cohort.preview_participant_count(categorical_query, keep_query=False)
 {'count': 7791, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
