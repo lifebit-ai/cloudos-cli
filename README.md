@@ -381,7 +381,7 @@ To make a `CohortBrowser` object:
 
 ### List Cohorts
 
-To check list of available cohorts in a workspace use `list_cohorts()` from the `CohortBrowser` class. This will
+To check list of available cohorts in a workspace use `list_cohorts()` from the `CohortBrowser` object. This will
 provide a dictionary of cohorts. By default 10 are shown this can be varied with `size`. To get all cohorts use `size=all`.
 
 ```python
