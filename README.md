@@ -498,7 +498,7 @@ To combine single phenotype queries, you can use `&`, `|` and `!` operators.
 
 ```python
 >>> query = categorical_query & continuous_query
->>> c.preview_participant_count(query, keep_query=False)
+>>> cohort.preview_participant_count(query, keep_query=False)
 {'count': 2524, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
