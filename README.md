@@ -467,8 +467,8 @@ A query defines what participants are included in a cohort based on phenotypes. 
 from cloudos.cohorts import Query, PhenoFilter
 
 >>> cb = CohortBrowser(apikey, cloudos_url, workspace_id)
->>> c = cb.load_cohort('6273f57e9ca9580fd84b2c4f')
->>> c.preview_participant_count(None, keep_query=False)
+>>> cohort = cb.load_cohort('6273f57e9ca9580fd84b2c4f')
+>>> cohort.preview_participant_count(None, keep_query=False)
 {'count': 44765, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
