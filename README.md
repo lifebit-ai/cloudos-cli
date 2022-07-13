@@ -442,7 +442,7 @@ Total number of phenotypes found - 2
 Let’s choose a phenotype from the above table. The “id” is the most important part as it will allow us to use this phenotype for cohort queries and other functions.
 
 ```python
->>> print(c[0])
+>>> print(disease_phenotypes[0])
 {'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}
 ```
 
