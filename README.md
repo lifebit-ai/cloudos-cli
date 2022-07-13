@@ -415,6 +415,8 @@ Get an available cohort in a Cohort class. This can be done using either `cohort
 test1222
 ```
 
+For convenience, a cohort can be created or loaded from a `CohortBrowser` object so that cloudos configuration information does not need to be explicitly passed each time a cohort is made or loaded. E.g. `cb.create_cohort(cohort_name="example cohort 2022")` or `cb.load_cohort('6273f57e9ca9580fd84b2c4f')`.
+
 ### Explore available phenotypes
 
 #### Search phenotypes
