@@ -424,9 +424,9 @@ For convenience, a cohort can be created or loaded from a `CohortBrowser` object
 Search for phenotypes based on a term using the CohortBrowser class. Searching with `term = ""` will return all the available phenotypes. By default, this will provide a summary of the metadata but all the metadata can be accessed by setting `all_metadata` to `True`.
 
 ```python
->>> c = cb.search_phenotypes('disease')
+>>> disease_phenotypes = cb.search_phenotypes('disease')
 Total number of phenotypes found - 2
->>> print(c)
+>>> print(disease_phenotypes)
 [{'display': 'dropdown', 'possibleValues': [{'key': 'Primary', 'label': 'Primary', 'array': 0}, {'key': 'Metastasis', 'label': 'Metastasis', 'array': 1}, {'key': 'Relapse (Local / Regional / Distant)', 'label': 'Relapse (Local / Regional / Distant)', 'array': 2}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Secondary/Multifocal cancer condition', 'id': 33, 'instances': 1, 'name': 'Disease Type', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}, {'display': 'radioButtonWithClear', 'possibleValues': [{'key': 'Yes', 'label': 'Yes'}, {'key': 'No', 'label': 'No'}, {'key': 'Uncertain', 'label': 'Uncertain'}], 'clinicalForm': 'cancerForm', 'categoryPathLevel1': 'Cancer diagnosis', 'categoryPathLevel2': 'Radiological Findings', 'id': 69, 'instances': 1, 'name': 'Evidence of disease', 'type': 'bars', 'Sorting': '', 'valueType': 'Categorical single', 'units': '', 'coding': '', 'description': '', 'descriptionParticipantsNo': 'Not provided', 'link': '', 'array': 100, 'descriptionCategoryID': '', 'descriptionItemType': '', 'descriptionStrata': '', 'descriptionSexed': ''}]
 ```
 
