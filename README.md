@@ -526,7 +526,7 @@ Query('AND', [
 
 ### Retrieve the participant table
 
-After the cohort has been suitably queried a participant phenotype table can be reviewed. Participants in cloudos are held in a paginated table. By default, all pages are retrieved and the first 5000 participants are shown. The page size (number of participants to display) can be changed with `page_size`, and if a specific page is wanted it can be specified with `page_number`.
+After the cohort has been suitably queried a participant phenotype table can be reviewed. Participants in cloudos are held in a paginated table. By default, all participants in the cohort are retrieved by iterating through all pages. The page size (number of participants to display) can be changed with `page_size`, and if a specific page is wanted it can be specified with `page_number`.
 
 ```python
 >>> df = cb.get_participants_table(cols=None, page_size=100, page_number=0)
