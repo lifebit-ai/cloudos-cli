@@ -579,8 +579,8 @@ Lets replace the old columns with the columns we're interested in.
 Appending new columns to the columns we set.
 ```python
 >>> col2 = [4]
->>> cb.set_columns(cols=col2, append=True)
->>> df = cb.get_participants_table(cols=None, page_size=100, page_number=0)
+>>> cohort.set_columns(cols=col2, append=True)
+>>> df = cohort.get_participants_table(cols=None, page_size=100, page_number=0)
 >>> print(df)
           i            Sex Smoking status       Type of biopsy
 0   1000020  Rare Diseases           Male           [Adult R1]
