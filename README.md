@@ -480,7 +480,7 @@ For phenotype “Year of birth” (with id = 8)
 
 ```python
 >>> continuous_query = PhenoFilter(pheno_id=8, vals_min=1965, vals_max=1995)
->>> c.preview_participant_count(continuous_query, keep_query=False)
+>>> cohort.preview_participant_count(continuous_query, keep_query=False)
 {'count': 20778, 'meta': {'relationalSearch': False, 'reason': 'The tryRelationalSearch parameter was not specified'}, 'total': 44765}
 ```
 
