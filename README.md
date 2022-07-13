@@ -533,7 +533,7 @@ print(c_status_h)
 # Restart Cromwell server
 cl.cromwell_switch(workspace_id, 'restart')
 
-# Check again Cromwell status (wait until status is 'Running')
+# Check again Cromwell status (wait until status: 'Running')
 c_status = cl.get_cromwell_status(workspace_id)
 c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
