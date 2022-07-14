@@ -172,12 +172,14 @@ def run(apikey,
         if c_status_h != 'Running':
             raise Exception('[ERROR] Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
-        print('\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
+        print('\t' + ('*' * 80) + '\n' +
+              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
               'your job finishes. You can use the following command:\n' +
               '\tcloudos cromwell stop \\\n' +
               '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
-              f'\t\t--workspace-id {workspace_id}\n')
+              f'\t\t--workspace-id {workspace_id}\n' +
+              '\t' + ('*' * 80) + '\n')
     else:
         cromwell_id = None
     if verbose:
