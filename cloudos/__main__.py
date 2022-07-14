@@ -114,9 +114,9 @@ def cromwell():
               default=3600)
 @click.option('--wdl-mainfile',
               help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
-@click.option('--cromwell-id',
-              help=('ID for the cromwell server. You can get it using ' +
-                    '\'cloudos cromwell status\' command.'))
+@click.option('-t',
+              '--cromwell-token',
+              help='Specific Cromwell server authentication token. Only required for WDL jobs.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -140,7 +140,7 @@ def run(apikey,
         wait_completion,
         wait_time,
         wdl_mainfile,
-        cromwell_id,
+        cromwell_token,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
@@ -148,8 +148,24 @@ def run(apikey,
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, None)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id)
-    if workflow_type == 'wdl' and wdl_mainfile is None:
-        raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
+    if workflow_type == 'wdl':
+        if wdl_mainfile is None:
+            raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
+        if cromwell_token is None:
+            raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
+        cl.cromwell_token = cromwell_token
+        c_status = cl.get_cromwell_status(workspace_id)
+        c_status_h = json.loads(c_status.content)["status"]
+        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+        if c_status_h == 'Stopped':
+            cromwell_restart(cromwell_token, cloudos_url, workspace_id, 300, False)
+        c_status = cl.get_cromwell_status(workspace_id)
+        c_status_h = json.loads(c_status.content)["status"]
+        if c_status_h == 'Stopped':
+            raise Exception('[ERROR] Cromwell server did not restarted properly.')
+        cromwell_id = json.loads(c_status.content)["_id"]
+    else:
+        cromwell_id = None
     if verbose:
         print('\t...Preparing objects')
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
