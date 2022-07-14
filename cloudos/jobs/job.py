@@ -195,6 +195,9 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
+        if workflow_type == 'wdl':
+            # This is required as non-resumable jobs fails always using WDL workflows.
+            resumable = True
         if nextflow_profile is None and job_config is None:
             raise ValueError('No --job-config or --nextflow_profile was specified, please use ' +
                              'at least one of these options.')
