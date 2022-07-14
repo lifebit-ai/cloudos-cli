@@ -123,7 +123,7 @@ class Job(Cloudos):
             if element["name"] == name:
                 if mainfile is not None and element["mainFile"] == mainfile:
                     return element["_id"]
-                else:
+                elif mainfile is None:
                     return element["_id"]
         if mainfile is not None:
             raise ValueError(f'[ERROR] Either workflow {name} or mainFile {mainfile} are not found')
