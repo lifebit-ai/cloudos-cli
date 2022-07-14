@@ -257,6 +257,8 @@ class Cloudos:
         my_workflows_r = self.get_workflow_list(workspace_id)
         my_workflows = self.process_workflow_list(my_workflows_r)
         wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
+        if len(wt_all) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
         wt = wt_all.unique()
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
