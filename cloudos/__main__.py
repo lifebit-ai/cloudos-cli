@@ -173,7 +173,7 @@ def run(apikey,
             raise Exception('[ERROR] Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
         print('\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
-              '\tyour job finishes. You can use the following command:\n' +
+              'your job finishes. You can use the following command:\n' +
               '\tcloudos cromwell stop \\\n' +
               '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
@@ -236,10 +236,10 @@ def run(apikey,
                   'consider to set a longer wait-time.')
             print('\tTo further check your job status you can either go to ' +
                   f'{j_url} or use the following command:\n' +
-                  'cloudos job status \\\n' +
-                  '    --apikey $MY_API_KEY \\\n' +
-                  f'    --cloudos-url {cloudos_url} \\\n' +
-                  f'    --job-id {j_id}')
+                  '\tcloudos job status \\\n' +
+                  '\t\t--apikey $MY_API_KEY \\\n' +
+                  f'\t\t--cloudos-url {cloudos_url} \\\n' +
+                  f'\t\t--job-id {j_id}\n')
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id)
@@ -247,10 +247,10 @@ def run(apikey,
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
-              'cloudos job status \\\n' +
-              '    --apikey $MY_API_KEY \\\n' +
-              f'    --cloudos-url {cloudos_url} \\\n' +
-              f'    --job-id {j_id}')
+              '\tcloudos job status \\\n' +
+              '\t\t--apikey $MY_API_KEY \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--job-id {j_id}\n')
 
 
 @job.command('status')
@@ -518,10 +518,10 @@ def cromwell_restart(cromwell_token,
               'consider to set a longer wait-time.')
         print('\tTo further check your Cromwell status you can either go to ' +
               f'{cloudos_url} or use the following command:\n' +
-              'cloudos cromwell status \\\n' +
-              f'    -c {cloudos_url} \\\n' +
-              '    -t $CROMWELL_TOKEN \\\n' +
-              f'    --workspace-id {workspace_id}')
+              '\tcloudos cromwell status \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
+              f'\t\t--workspace-id {workspace_id}')
         sys.exit(1)
 
 
