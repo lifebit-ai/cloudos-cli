@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.1.2 - 2022-07-14
+- Adds WDL pipeline support, iteration 2: WDL workflows can be run
+using the regular `cloudos job run` using the new arguments:
+    * `--wdl-mainfile`
+    * `--cromwell-token`
+
 ### 0.1.1 - 2022-07-12
 - Adds WDL pipeline support, iteration 1: cromwell server managing.
 Now, a new command `cloudos cromwell` is available, with the following

@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-12\
-__Version:__ 0.1.1
+__Date:__ 2022-07-14\
+__Version:__ 0.1.2
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.1
+docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.2
 ```
 
 ### From Github
@@ -440,6 +440,38 @@ Cromwell server functionality: check status, restart and stop.
 
 Stopping Cromwell server...
 	Current Cromwell server status is: Stopped
+```
+
+#### Running WDL workflows
+
+To run WDL workflows, `cloudos job run` command can be used normally, but adding two extra
+parameters:
+
+- `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
+- `--cromwell-token`: specific token for Cromwell server, different from the presonal API token.
+
+All the rest of the `cloudos job run` functionality is available.
+
+> NOTE: WDL does not support `profiles` and therefore, `--nextflow-profile` option is not
+available. Instead, only `--job-config` could be used. The format of the job config file is
+expected to be the same as for nextflow pipelines.
+
+Example:
+
+```bash
+cloudos job run \
+  --cloudos-url $CLOUDOS \
+  --apikey $MY_API_KEY \
+  --workspace-id $WORKSPACE_ID \
+  --project-name $PROJECT_NAME \
+  --workflow-name $WORKFLOW_NAME \
+  --wdl-mainfile $MAINFILE \
+  --cromwell-token $CROMWELL_TOKEN \
+  --job-config $JOB_PARAMS \
+  --resumable
+```
+
+```console
 ```
 
 ### Import the functionality to your own python scripts
