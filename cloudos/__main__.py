@@ -174,7 +174,7 @@ def run(apikey,
         cromwell_id = json.loads(c_status.content)["_id"]
         print('\t' + ('*' * 80) + '\n' +
               '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
-              'your job finishes. You can use the following command:\n' +
+              'your\n' + '\tjob finishes. You can use the following command:\n' +
               '\tcloudos cromwell stop \\\n' +
               '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
