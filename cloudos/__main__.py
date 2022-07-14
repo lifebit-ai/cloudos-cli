@@ -159,7 +159,7 @@ def run(apikey,
         if c_status_h == 'Stopped':
             cl.cromwell_switch(workspace_id, 'restart')
             elapsed = 0
-            while elapsed < 300 and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
+            while elapsed < 300 and c_status_h != 'Running':
                 c_status_old = c_status_h
                 time.sleep(REQUEST_INTERVAL)
                 elapsed += REQUEST_INTERVAL
@@ -167,7 +167,7 @@ def run(apikey,
                 c_status_h = json.loads(c_status.content)["status"]
                 if c_status_h != c_status_old:
                     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
-        if c_status_h == 'Stopped':
+        if c_status_h != 'Running':
             raise Exception('[ERROR] Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
     else:
@@ -496,7 +496,7 @@ def cromwell_restart(cromwell_token,
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
     elapsed = 0
-    while elapsed < wait_time and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
+    while elapsed < wait_time and c_status_h != 'Running':
         c_status_old = c_status_h
         time.sleep(REQUEST_INTERVAL)
         elapsed += REQUEST_INTERVAL
