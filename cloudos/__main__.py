@@ -170,7 +170,7 @@ def run(apikey,
                 if c_status_h != c_status_old:
                     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
         if c_status_h != 'Running':
-            raise Exception('[ERROR] Cromwell server did not restarted properly.')
+            raise Exception('Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
         print('\t' + ('*' * 80) + '\n' +
               '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +

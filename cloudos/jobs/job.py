@@ -198,9 +198,9 @@ class Job(Cloudos):
         if nextflow_profile is None and job_config is None:
             raise ValueError('No --job-config or --nextflow_profile was specified, please use ' +
                              'at least one of these options.')
-        if workflow_type == 'wdl' and cromwell_id is None:
-            raise ValueError('No --cromwell_id was provided. You can get the Cromwell id using ' +
-                             '\'cloudos cromwell status\' command.')
+        if workflow_type == 'wdl' and job_config is None:
+            raise ValueError('No --job-config was provided. This parameter is required for WDL ' +
+                             'workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
