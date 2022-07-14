@@ -146,21 +146,27 @@ def run(apikey,
     print('Executing run...')
     if verbose:
         print('\t...Detecting workflow type')
-    cl = Cloudos(cloudos_url, apikey, None)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id)
     if workflow_type == 'wdl':
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
         if cromwell_token is None:
             raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
-        cl.cromwell_token = cromwell_token
         c_status = cl.get_cromwell_status(workspace_id)
         c_status_h = json.loads(c_status.content)["status"]
         print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
         if c_status_h == 'Stopped':
-            cromwell_restart(cromwell_token, cloudos_url, workspace_id, 300, False)
-        c_status = cl.get_cromwell_status(workspace_id)
-        c_status_h = json.loads(c_status.content)["status"]
+            cl.cromwell_switch(workspace_id, 'restart')
+            elapsed = 0
+            while elapsed < 300 and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
+                c_status_old = c_status_h
+                time.sleep(REQUEST_INTERVAL)
+                elapsed += REQUEST_INTERVAL
+                c_status = cl.get_cromwell_status(workspace_id)
+                c_status_h = json.loads(c_status.content)["status"]
+                if c_status_h != c_status_old:
+                    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
         if c_status_h == 'Stopped':
             raise Exception('[ERROR] Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
