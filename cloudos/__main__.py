@@ -149,7 +149,7 @@ def run(apikey,
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id)
     if workflow_type == 'wdl':
-        print('\tWDL workflow detected\n.')
+        print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
         if cromwell_token is None:
