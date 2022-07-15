@@ -500,7 +500,7 @@ CloudOS job functionality: run and check jobs in CloudOS.
 Executing run...
     WDL workflow detected
 
-    Current Cromwll server status is: Stopped
+    Current Cromwell server status is: Stopped
 
     Starting Cromwell server...
 
