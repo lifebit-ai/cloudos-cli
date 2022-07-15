@@ -26,12 +26,12 @@ def mocked_requests_get():
 
 
 def test_process_job_list_output_correct_shape(mocked_requests_get,):
-    df = Cloudos.process_job_list(mocked_requests_get, full_data=False)
+    df = Cloudos.process_job_list(mocked_requests_get, all_fields=False)
     assert df.shape == output_df.shape
 
 
 def test_process_job_list_output_correct_headers(mocked_requests_get):
-    df = Cloudos.process_job_list(mocked_requests_get, full_data=False)
+    df = Cloudos.process_job_list(mocked_requests_get, all_fields=False)
     correct_headers = list(output_df.columns)
     actual_headers = list(df.columns)
     assert correct_headers == actual_headers
@@ -58,7 +58,7 @@ def test_process_job_list_df_values_equal(mocked_requests_get,):
 
 
 def test_process_job_list_full_has_correct_columns(mocked_requests_get):
-    df = Cloudos.process_job_list(mocked_requests_get, full_data=True)
+    df = Cloudos.process_job_list(mocked_requests_get, all_fields=True)
     correct_headers = list(output_df_full.columns)
     actual_headers = list(df.columns)
     assert correct_headers == actual_headers
