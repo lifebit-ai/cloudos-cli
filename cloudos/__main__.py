@@ -12,7 +12,7 @@ from ._version import __version__
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
-REQUEST_INTERVAL = 60
+REQUEST_INTERVAL = 30
 
 
 @click.group()
@@ -37,7 +37,7 @@ def workflow():
 
 @run_cloudos_cli.group()
 def cromwell():
-    """Cromwell server functionality: check status, restart and stop."""
+    """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
 
 
@@ -268,16 +268,12 @@ def run(apikey,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
 def job_status(apikey,
                cloudos_url,
                job_id,
-               write_response,
                verbose):
     """Check job status in CloudOS."""
     print('Executing status...')
@@ -289,9 +285,6 @@ def job_status(apikey,
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     j_status = cl.get_job_status(job_id)
-    if write_response:
-        with open(f'job_{job_id}_status.json', 'w') as out:
-            out.write(j_status.text)
     j_status_h = json.loads(j_status.content)["status"]
     print(f'\tYour current job status is: {j_status_h}\n')
     j_url = f'{cloudos_url}/app/jobs/{job_id}'
@@ -321,8 +314,8 @@ def job_status(apikey,
               help='The desired file format (file extension) for the output.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
-@click.option('--full-data',
-              help=('Whether to collect full available data from jobs or ' +
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
@@ -334,7 +327,7 @@ def list_jobs(apikey,
               workspace_id,
               output_basename,
               output_format,
-              full_data,
+              all_fields,
               verbose):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     outfile = output_basename + '.' + output_format
@@ -349,7 +342,7 @@ def list_jobs(apikey,
               f'{workspace_id}')
     my_jobs_r = cl.get_job_list(workspace_id)
     if output_format == 'csv':
-        my_jobs = cl.process_job_list(my_jobs_r, full_data)
+        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
     elif output_format == 'json':
@@ -383,8 +376,8 @@ def list_jobs(apikey,
               help='The desired file format (file extension) for the output.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
-@click.option('--full-data',
-              help=('Whether to collect full available data from workflows or ' +
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from workflows or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
@@ -396,7 +389,7 @@ def list_workflows(apikey,
                    workspace_id,
                    output_basename,
                    output_format,
-                   full_data,
+                   all_fields,
                    verbose):
     """Collect all workflows from a CloudOS workspace in CSV format."""
     outfile = output_basename + '.' + output_format
@@ -411,7 +404,7 @@ def list_workflows(apikey,
               f'{workspace_id}')
     my_workflows_r = cl.get_workflow_list(workspace_id)
     if output_format == 'csv':
-        my_workflows = cl.process_workflow_list(my_workflows_r, full_data)
+        my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
         print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
     elif output_format == 'json':
@@ -437,16 +430,12 @@ def list_workflows(apikey,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
 def cromwell_status(cromwell_token,
                     cloudos_url,
                     workspace_id,
-                    write_response,
                     verbose):
     """Check Cromwell server status in CloudOS."""
     print('Executing status...')
@@ -458,14 +447,11 @@ def cromwell_status(cromwell_token,
         print('\t' + str(cl) + '\n')
         print(f'\tChecking Cromwell status in {workspace_id} workspace')
     c_status = cl.get_cromwell_status(workspace_id)
-    if write_response:
-        with open('cromwell_status.json', 'w') as out:
-            out.write(c_status.text)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
 
-@cromwell.command('restart')
+@cromwell.command('start')
 @click.version_option()
 @click.option('-t',
               '--cromwell-token',
@@ -493,14 +479,14 @@ def cromwell_restart(cromwell_token,
                      verbose):
     """Restart Cromwell server in CloudOS."""
     action = 'restart'
-    print('Restarting Cromwell server...')
+    print('Starting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, None, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
-        print(f'\tRestarting Cromwell server in {workspace_id} workspace')
+        print(f'\tStarting Cromwell server in {workspace_id} workspace')
     cl.cromwell_switch(workspace_id, action)
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]

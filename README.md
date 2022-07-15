@@ -314,7 +314,7 @@ Executing list...
 
 You can get a summary of all the available workspace workflows in two different formats:
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
-available columns using the `--all-fields` argument.
+available columns using the `--all-fields` parameter.
 - JSON: all the available information from workflows, in JSON format.
 
 To get a CSV table with all the available workflows for a given workspace, use
@@ -393,7 +393,6 @@ Cromwell server functionality: check status, start and stop.
 Executing status...
 	Current Cromwell server status is: Stopped
 ```
-
 
 ```bash    
 # Cromwell start

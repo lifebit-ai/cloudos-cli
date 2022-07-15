@@ -11,7 +11,7 @@ using the regular `cloudos job run` using the new arguments:
 Now, a new command `cloudos cromwell` is available, with the following
 subcommands:
     * status
-    * restart
+    * start
     * stop
 
 ### 0.1.0 - 2022-07-07
