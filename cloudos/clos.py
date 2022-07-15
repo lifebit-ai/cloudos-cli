@@ -15,13 +15,16 @@ class Cloudos:
 
     Parameters
     ----------
-    apikey : string
-        Your CloudOS API key.
     cloudos_url : string
         The CloudOS service url.
+    apikey : string
+        Your CloudOS API key.
+    cromwell_token : string
+        Cromwell server token.
     """
-    apikey: str
     cloudos_url: str
+    apikey: str
+    cromwell_token: str
 
     def get_job_status(self, j_id):
         """Get job status from CloudOS.
@@ -49,6 +52,61 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def get_cromwell_status(self, workspace_id):
+        """Get Cromwell server status from CloudOS.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id from to check the Cromwell status.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        token = f'Bearer {self.cromwell_token}'
+        headers = {
+            "Accept": "application/json",
+            "Authorization": token
+        }
+        r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
+                                                               workspace_id),
+                         headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
+    def cromwell_switch(self, workspace_id, action):
+        """Restart Cromwell server.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id in which restart/stop Cromwell status.
+        action : string [restart|stop]
+            The action to perform.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        token = f'Bearer {self.cromwell_token}'
+        headers = {
+            "Accept": "application/json",
+            "Authorization": token
+        }
+        r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
+                                                                  action,
+                                                                  workspace_id),
+                         headers=headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
     def get_job_list(self, workspace_id):
         """Get all the jobs from a CloudOS workspace.
 
@@ -71,7 +129,7 @@ class Cloudos:
         return r
 
     @staticmethod
-    def process_job_list(r, full_data=False):
+    def process_job_list(r, all_fields=False):
         """Process a server response from a self.get_job_list call.
 
         Parameters
@@ -79,7 +137,7 @@ class Cloudos:
         r : requests.models.Response
             The server response. It should contain a field named 'jobs' and
             the required columns (hard-coded in the function).
-        full_data : bool. Default=False
+        all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
 
@@ -118,7 +176,7 @@ class Cloudos:
                    ]
         my_jobs = json.loads(r.content)
         df_full = pd.json_normalize(my_jobs['jobs'])
-        if full_data:
+        if all_fields:
             df = df_full
         else:
             df = df_full.loc[:, COLUMNS]
@@ -146,7 +204,7 @@ class Cloudos:
         return r
 
     @staticmethod
-    def process_workflow_list(r, full_data=False):
+    def process_workflow_list(r, all_fields=False):
         """Process a server response from a self.get_workflow_list call.
 
         Parameters
@@ -154,7 +212,7 @@ class Cloudos:
         r : requests.models.Response
             The server response. It should contain a field named 'workflows' and
             the required columns (hard-coded in the function).
-        full_data : bool. Default=False
+        all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
 
@@ -175,7 +233,7 @@ class Cloudos:
                    ]
         my_workflows = json.loads(r.content)
         df_full = pd.json_normalize(my_workflows)
-        if full_data:
+        if all_fields:
             df = df_full
         else:
             df = df_full.loc[:, COLUMNS]

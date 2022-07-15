@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-07\
-__Version:__ 0.1.0
+__Date:__ 2022-07-12\
+__Version:__ 0.1.1
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-py:v0.1.1
 ```
 
 ### From Github
@@ -63,6 +63,7 @@ Options:
   --help     Show this message and exit.
 
 Commands:
+  cromwell  Cromwell server functionality: check status, start and stop.
   job       CloudOS job functionality: run and check jobs in CloudOS.
   workflow  CloudOS workflow functionality: list workflows in CloudOS.
 ``` 
@@ -76,7 +77,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -172,7 +173,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -213,7 +214,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -223,7 +224,7 @@ Executing run...
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.
 	Your current job status is: running.
-	Your job took 7 seconds to complete successfully.
+	Your job took 420 seconds to complete successfully.
 ```
 
 #### Check job status
@@ -233,7 +234,7 @@ To check the status of a submitted job, just use the suggested command:
 ```bash
 cloudos job status \
     --apikey $MY_API_KEY \
-    --cloudos-url https://cloudos.lifebit.ai \
+    --cloudos-url $CLOUDOS \
     --job-id 62c83a1191fe06013b7ef355
 ```
 
@@ -242,7 +243,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -257,7 +258,7 @@ Executing status...
 You can get a summary of your last 30 submitted jobs in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
-available columns using the `--full-data` parameter.
+available columns using the `--all-fields` argument.
 - JSON: all the available information from your jobs, in JSON format.
 
 To get a list with your last 30 submitted jobs to a given workspace, in CSV format, use
@@ -269,7 +270,7 @@ cloudos job list \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --output-format csv \
-    --full-data
+    --all-fields
 ```
 
 The expected output is something similar to:
@@ -277,7 +278,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -300,7 +301,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -313,7 +314,7 @@ Executing list...
 
 You can get a summary of all the available workspace workflows in two different formats:
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
-available columns using the `--full-data` parameter.
+available columns using the `--all-fields` parameter.
 - JSON: all the available information from workflows, in JSON format.
 
 To get a CSV table with all the available workflows for a given workspace, use
@@ -325,7 +326,7 @@ cloudos workflow list \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --output-format csv \
-    --full-data
+    --all-fields
 ```
 
 The expected output is something similar to:
@@ -333,7 +334,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -355,13 +356,83 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.0
+Version: 0.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.json
+```
+
+### WDL pipeline support
+
+#### Cromwell server managing
+
+In order to run WDL pipelines, a Cromwell server in CloudOS should be running. This server can
+be accessed to check its status, restart it or stop it, using the following commands:
+
+```bash
+# Cromwell server requires its particular token
+CROMWELL_TOKEN="xxxx"
+
+# Check Cromwell status
+cloudos cromwell status \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID
+```
+
+```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, start and stop.
+
+Executing status...
+	Current Cromwell server status is: Stopped
+```
+
+
+```bash    
+# Cromwell start
+cloudos cromwell start \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID
+```
+
+```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, start and stop.
+
+Starting Cromwell server...
+	Current Cromwell server status is: Initializing
+
+	Current Cromwell server status is: Running
+```
+
+```bash
+# Cromwell stop
+cloudos cromwell stop \
+    -c $CLOUDOS \
+    -t $CROMWELL_TOKEN \
+    --workspace-id $WORKSPACE_ID
+```
+
+```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.1
+
+Cromwell server functionality: check status, start and stop.
+
+Stopping Cromwell server...
+	Current Cromwell server status is: Stopped
 ```
 
 ### Import the functionality to your own python scripts
@@ -379,6 +450,7 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
+cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'API jobs'
@@ -389,7 +461,7 @@ job_config = 'cloudos/examples/rnatoy.config'
 First, create the `Job` object:
 
 ```python
-j = jb.Job(apikey, cloudos_url, workspace_id, project_name, workflow_name)
+j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name)
 print(j)
 ```
 
@@ -426,6 +498,46 @@ following command.
 my_workflows_r = j.get_workflow_list(workspace_id)
 my_workflows = j.process_workflow_list(my_workflows_r)
 print(my_workflows)
+```
+
+#### Running WDL pipelines using your own scripts
+
+You can even run WDL pipelines. First check the Cromwell server status and restart it if Stopped:
+
+```python
+import cloudos.clos as cl
+import json
+
+
+# GLOBAL VARS.
+apikey = 'xxxxx'
+cromwell_token = 'xxxx'
+cloudos_url = 'https://cloudos.lifebit.ai'
+workspace_id = 'xxxxx'
+
+# First create cloudos object
+cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
+
+# Then, check Cromwell status
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
+
+# Start Cromwell server
+cl.cromwell_switch(workspace_id, 'restart')
+
+# Check again Cromwell status (wait until status: 'Running')
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
+
+# Stop Cromwell server
+cl.cromwell_switch(workspace_id, 'stop')
+
+# Check again Cromwell status
+c_status = cl.get_cromwell_status(workspace_id)
+c_status_h = json.loads(c_status.content)["status"]
+print(c_status_h)
 ```
 
 ### unit testing
