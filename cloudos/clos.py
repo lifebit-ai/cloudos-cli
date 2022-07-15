@@ -129,7 +129,7 @@ class Cloudos:
         return r
 
     @staticmethod
-    def process_job_list(r, full_data=False):
+    def process_job_list(r, all_fields=False):
         """Process a server response from a self.get_job_list call.
 
         Parameters
@@ -137,7 +137,7 @@ class Cloudos:
         r : requests.models.Response
             The server response. It should contain a field named 'jobs' and
             the required columns (hard-coded in the function).
-        full_data : bool. Default=False
+        all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
 
@@ -176,7 +176,7 @@ class Cloudos:
                    ]
         my_jobs = json.loads(r.content)
         df_full = pd.json_normalize(my_jobs['jobs'])
-        if full_data:
+        if all_fields:
             df = df_full
         else:
             df = df_full.loc[:, COLUMNS]
@@ -204,7 +204,7 @@ class Cloudos:
         return r
 
     @staticmethod
-    def process_workflow_list(r, full_data=False):
+    def process_workflow_list(r, all_fields=False):
         """Process a server response from a self.get_workflow_list call.
 
         Parameters
@@ -212,7 +212,7 @@ class Cloudos:
         r : requests.models.Response
             The server response. It should contain a field named 'workflows' and
             the required columns (hard-coded in the function).
-        full_data : bool. Default=False
+        all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
 
@@ -233,7 +233,7 @@ class Cloudos:
                    ]
         my_workflows = json.loads(r.content)
         df_full = pd.json_normalize(my_workflows)
-        if full_data:
+        if all_fields:
             df = df_full
         else:
             df = df_full.loc[:, COLUMNS]

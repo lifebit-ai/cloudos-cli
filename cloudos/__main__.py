@@ -273,8 +273,8 @@ def job_status(apikey,
               help='The desired file format (file extension) for the output.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
-@click.option('--full-data',
-              help=('Whether to collect full available data from jobs or ' +
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
@@ -286,7 +286,7 @@ def list_jobs(apikey,
               workspace_id,
               output_basename,
               output_format,
-              full_data,
+              all_fields,
               verbose):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     outfile = output_basename + '.' + output_format
@@ -301,7 +301,7 @@ def list_jobs(apikey,
               f'{workspace_id}')
     my_jobs_r = cl.get_job_list(workspace_id)
     if output_format == 'csv':
-        my_jobs = cl.process_job_list(my_jobs_r, full_data)
+        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
     elif output_format == 'json':
@@ -335,8 +335,8 @@ def list_jobs(apikey,
               help='The desired file format (file extension) for the output.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
-@click.option('--full-data',
-              help=('Whether to collect full available data from workflows or ' +
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from workflows or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
@@ -348,7 +348,7 @@ def list_workflows(apikey,
                    workspace_id,
                    output_basename,
                    output_format,
-                   full_data,
+                   all_fields,
                    verbose):
     """Collect all workflows from a CloudOS workspace in CSV format."""
     outfile = output_basename + '.' + output_format
@@ -363,7 +363,7 @@ def list_workflows(apikey,
               f'{workspace_id}')
     my_workflows_r = cl.get_workflow_list(workspace_id)
     if output_format == 'csv':
-        my_workflows = cl.process_workflow_list(my_workflows_r, full_data)
+        my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
         print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
     elif output_format == 'json':
