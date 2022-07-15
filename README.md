@@ -77,7 +77,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -124,6 +124,10 @@ Options:
                                final job status.
   --wait-time INTEGER          Max time to wait (in seconds) to job
                                completion. Default=3600.
+  --wdl-mainfile TEXT          For WDL workflows, which mainFile (.wdl) is
+                               configured to use.
+  -t, --cromwell-token TEXT    Specific Cromwell server authentication token.
+                               Only required for WDL jobs.
   --verbose                    Whether to print information messages or not.
   --help                       Show this message and exit.
 ```
@@ -173,7 +177,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -182,10 +186,10 @@ Executing run...
 	Your assigned job id is: 62c83a1191fe06013b7ef355
 	Your current job status is: initializing
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355 or use the following command:
-cloudos job status \
-    --apikey $MY_API_KEY \
-    --cloudos-url https://cloudos.lifebit.ai \
-    --job-id 62c83a1191fe06013b7ef355
+    cloudos job status \
+        --apikey $MY_API_KEY \
+        --cloudos-url https://cloudos.lifebit.ai \
+        --job-id 62c83a1191fe06013b7ef355
 ```
 
 As you can see, the current status is `initializing`. This will change
@@ -214,7 +218,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -243,7 +247,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -278,7 +282,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -301,7 +305,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -334,7 +338,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -356,7 +360,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -386,7 +390,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 Cromwell server functionality: check status, start and stop.
 
@@ -405,7 +409,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 Cromwell server functionality: check status, start and stop.
 
@@ -426,7 +430,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.1
+Version: 0.1.2
 
 Cromwell server functionality: check status, start and stop.
 
@@ -448,19 +452,42 @@ All the rest of the `cloudos job run` functionality is available.
 available. Instead, only `--job-config` could be used. The format of the job config file is
 expected to be the same as for nextflow pipelines.
 
-Example:
+Example of job config file for WDL workflows:
 
 ```bash
+params {
+ test.hello.name = aasdajdad
+  test.bye.nameTwo = asijdadads
+  test.number.x = 2
+  test.greeter.morning = true
+  test.wf_hello_in = bomba
+  test.arrayTest = ["lala"]
+  test.mapTest = {"some":"props"}
+}
+```
+
+```bash
+# Configure variables
+MY_API_KEY="xxxxx"
+CROMWELL_TOKEN="xxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
+WORKSPACE_ID="xxxxx"
+PROJECT_NAME="wdl-test"
+WORKFLOW_NAME="wdl- test"
+MAINFILE="hello.wdl"
+JOB_PARAMS="cloudos/examples/wdl.config"
+
+# Run job
 cloudos job run \
   --cloudos-url $CLOUDOS \
   --apikey $MY_API_KEY \
   --workspace-id $WORKSPACE_ID \
   --project-name $PROJECT_NAME \
-  --workflow-name $WORKFLOW_NAME \
+  --workflow-name "$WORKFLOW_NAME" \
   --wdl-mainfile $MAINFILE \
   --cromwell-token $CROMWELL_TOKEN \
   --job-config $JOB_PARAMS \
-  --resumable
+  --wait-completion
 ```
 
 ```console
@@ -545,6 +572,10 @@ apikey = 'xxxxx'
 cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
+project_name = 'wdl-test'
+workflow_name = 'wdl- test'
+mainfile = 'hello.wdl'
+job_config = 'cloudos/examples/wdl.config'
 
 # First create cloudos object
 cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
@@ -561,6 +592,13 @@ cl.cromwell_switch(workspace_id, 'restart')
 c_status = cl.get_cromwell_status(workspace_id)
 c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
+
+# Send a job (wait until job has status: 'Completed')
+j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name, mainfile)
+j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
+j_status = j.get_job_status(j_id)
+j_status_h = json.loads(j_status.content)["status"]
+print(j_status_h)
 
 # Stop Cromwell server
 cl.cromwell_switch(workspace_id, 'stop')
