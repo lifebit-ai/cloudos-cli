@@ -37,7 +37,7 @@ def workflow():
 
 @run_cloudos_cli.group()
 def cromwell():
-    """Cromwell server functionality: check status, restart and stop."""
+    """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
 
 
@@ -417,7 +417,7 @@ def cromwell_status(cromwell_token,
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
 
-@cromwell.command('restart')
+@cromwell.command('start')
 @click.version_option()
 @click.option('-t',
               '--cromwell-token',
@@ -445,14 +445,14 @@ def cromwell_restart(cromwell_token,
                      verbose):
     """Restart Cromwell server in CloudOS."""
     action = 'restart'
-    print('Restarting Cromwell server...')
+    print('Starting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, None, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
-        print(f'\tRestarting Cromwell server in {workspace_id} workspace')
+        print(f'\tStarting Cromwell server in {workspace_id} workspace')
     cl.cromwell_switch(workspace_id, action)
     c_status = cl.get_cromwell_status(workspace_id)
     c_status_h = json.loads(c_status.content)["status"]
