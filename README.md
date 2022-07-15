@@ -313,6 +313,8 @@ Executing list...
 	Job list collected with a total of 30 jobs.
 	Job list saved to joblist.json
 ```
+```console
+CloudOS python package: a package for interacting with CloudOS.
 
 #### Get a list of all available workflows from a CloudOS workspace
 
