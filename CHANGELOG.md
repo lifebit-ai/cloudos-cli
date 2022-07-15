@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.1.1 - 2022-07-12
+- Adds WDL pipeline support, iteration 1: cromwell server managing.
+Now, a new command `cloudos cromwell` is available, with the following
+subcommands:
+    * status
+    * start
+    * stop
+
 ### 0.1.0 - 2022-07-07
 - Adds `cloudos workflow list` command. This command allows to
 collect all the workflows data from a given workspace.
