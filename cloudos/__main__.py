@@ -158,7 +158,7 @@ def run(apikey,
         c_status_h = json.loads(c_status.content)["status"]
         print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
         if c_status_h == 'Stopped':
-            print('\tRestarting Cromwell server...\n')
+            print('\tStarting Cromwell server...\n')
             cl.cromwell_switch(workspace_id, 'restart')
             elapsed = 0
             while elapsed < 300 and c_status_h != 'Running':

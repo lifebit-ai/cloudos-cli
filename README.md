@@ -491,6 +491,28 @@ cloudos job run \
 ```
 
 ```console
+CloudOS python package: a package for interacting with CloudOS.
+
+Version: 0.1.2
+
+CloudOS job functionality: run and check jobs in CloudOS.
+
+Executing run...
+    WDL workflow detected
+
+    Current Cromwll server status is: Stopped
+
+    Starting Cromwell server...
+
+    Current Cromwell server status is: Initializing
+
+
+	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a6191fe06013b7ef363
+	Your assigned job id is: 62c83a6191fe06013b7ef363
+	Please, wait until job completion or max wait time of 3600 seconds is reached.
+	Your current job status is: initializing.
+	Your current job status is: running.
+	Your job took 420 seconds to complete successfully.
 ```
 
 ### Import the functionality to your own python scripts
