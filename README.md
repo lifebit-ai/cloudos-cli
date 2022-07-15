@@ -63,7 +63,7 @@ Options:
   --help     Show this message and exit.
 
 Commands:
-  cromwell  Cromwell server functionality: check status, restart and stop.
+  cromwell  Cromwell server functionality: check status, start and stop.
   job       CloudOS job functionality: run and check jobs in CloudOS.
   workflow  CloudOS workflow functionality: list workflows in CloudOS.
 ``` 
@@ -235,8 +235,7 @@ To check the status of a submitted job, just use the suggested command:
 cloudos job status \
     --apikey $MY_API_KEY \
     --cloudos-url $CLOUDOS \
-    --job-id 62c83a1191fe06013b7ef355 \
-    --write-response
+    --job-id 62c83a1191fe06013b7ef355
 ```
 
 The expected output should be something similar to:
@@ -254,15 +253,12 @@ Executing status...
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
 
-In addition, using the `--write-response` flag, a file named `job_<job_id>_status.json` will be created,
-with the server response in `JSON` format.
-
 #### Get a list of your jobs from a CloudOS workspace
 
 You can get a summary of your last 30 submitted jobs in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
-available columns using the `--full-data` parameter.
+available columns using the `--all-fields` argument.
 - JSON: all the available information from your jobs, in JSON format.
 
 To get a list with your last 30 submitted jobs to a given workspace, in CSV format, use
@@ -274,7 +270,7 @@ cloudos job list \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --output-format csv \
-    --full-data
+    --all-fields
 ```
 
 The expected output is something similar to:
@@ -318,7 +314,7 @@ Executing list...
 
 You can get a summary of all the available workspace workflows in two different formats:
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
-available columns using the `--full-data` parameter.
+available columns using the `--all-fields` argument.
 - JSON: all the available information from workflows, in JSON format.
 
 To get a CSV table with all the available workflows for a given workspace, use
@@ -330,7 +326,7 @@ cloudos workflow list \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --output-format csv \
-    --full-data
+    --all-fields
 ```
 
 The expected output is something similar to:
@@ -384,8 +380,7 @@ CROMWELL_TOKEN="xxxx"
 cloudos cromwell status \
     -c $CLOUDOS \
     -t $CROMWELL_TOKEN \
-    --workspace-id $WORKSPACE_ID \
-    --write-response
+    --workspace-id $WORKSPACE_ID
 ```
 
 ```console
@@ -393,18 +388,16 @@ CloudOS python package: a package for interacting with CloudOS.
 
 Version: 0.1.1
 
-Cromwell server functionality: check status, restart and stop.
+Cromwell server functionality: check status, start and stop.
 
 Executing status...
 	Current Cromwell server status is: Stopped
 ```
 
-Using the `--write-response` flag, a file named `cromwell_status.json` will be created, with
-the server response in `JSON` format.
 
 ```bash    
-# Cromwell restart
-cloudos cromwell restart \
+# Cromwell start
+cloudos cromwell start \
     -c $CLOUDOS \
     -t $CROMWELL_TOKEN \
     --workspace-id $WORKSPACE_ID
@@ -415,9 +408,9 @@ CloudOS python package: a package for interacting with CloudOS.
 
 Version: 0.1.1
 
-Cromwell server functionality: check status, restart and stop.
+Cromwell server functionality: check status, start and stop.
 
-Restarting Cromwell server...
+Starting Cromwell server...
 	Current Cromwell server status is: Initializing
 
 	Current Cromwell server status is: Running
@@ -436,7 +429,7 @@ CloudOS python package: a package for interacting with CloudOS.
 
 Version: 0.1.1
 
-Cromwell server functionality: check status, restart and stop.
+Cromwell server functionality: check status, start and stop.
 
 Stopping Cromwell server...
 	Current Cromwell server status is: Stopped
@@ -562,7 +555,7 @@ c_status = cl.get_cromwell_status(workspace_id)
 c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
 
-# Restart Cromwell server
+# Start Cromwell server
 cl.cromwell_switch(workspace_id, 'restart')
 
 # Check again Cromwell status (wait until status: 'Running')
