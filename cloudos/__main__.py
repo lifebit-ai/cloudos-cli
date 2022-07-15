@@ -12,7 +12,7 @@ from ._version import __version__
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
-REQUEST_INTERVAL = 60
+REQUEST_INTERVAL = 30
 
 
 @click.group()
