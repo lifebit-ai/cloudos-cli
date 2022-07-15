@@ -507,12 +507,23 @@ Executing run...
     Current Cromwell server status is: Initializing
 
 
-	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a6191fe06013b7ef363
-	Your assigned job id is: 62c83a6191fe06013b7ef363
+    Current Cromwell server status is: Running
+
+    *******************************************************************************
+    [WARNING] Cromwell server is now running. Plase, remember to stop it when your
+    job finishes. You can use the following command:
+    cloudos cromwell stop \
+        --cromwell-token $CROMWELL_TOKEN \
+        --cloudos-url $CLOUDOS \
+        --workspace-id $WORKSPACE_ID
+    *******************************************************************************
+
+	Job successfully launched to CloudOS, please check the following link: ****
+	Your assigned job id is: ****
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.
 	Your current job status is: running.
-	Your job took 420 seconds to complete successfully.
+	Your job took 60 seconds to complete successfully.
 ```
 
 ### Import the functionality to your own python scripts
@@ -586,6 +597,7 @@ You can even run WDL pipelines. First check the Cromwell server status and resta
 
 ```python
 import cloudos.clos as cl
+import cloudos.jobs.job as jb
 import json
 
 
