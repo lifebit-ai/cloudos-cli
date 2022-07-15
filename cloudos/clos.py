@@ -239,63 +239,6 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def get_workflow_list(self, workspace_id):
-        """Get all the workflows from a CloudOS workspace.
-
-        Parameters
-        ----------
-        workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
-
-        Returns
-        -------
-        r : requests.models.Response
-            The server response
-        """
-        data = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
-                                                                workspace_id),
-                         params=data)
-        if r.status_code >= 400:
-            raise BadRequestException()
-        return r
-
-    @staticmethod
-    def process_workflow_list(r, full_data=False):
-        """Process a server response from a self.get_workflow_list call.
-
-        Parameters
-        ----------
-        r : requests.models.Response
-            The server response. It should contain a field named 'workflows' and
-            the required columns (hard-coded in the function).
-        full_data : bool. Default=False
-            Whether to return a reduced version of the DataFrame containing
-            only the selected columns or the full DataFrame.
-
-        Returns
-        -------
-        df : pandas.DataFrame
-            A DataFrame with the requested columns from the workflows.
-        """
-        COLUMNS = ['_id',
-                   'name',
-                   'archived.status',
-                   'mainFile',
-                   'workflowType',
-                   'repository.name',
-                   'repository.platform',
-                   'repository.url',
-                   'repository.isPrivate'
-                   ]
-        my_workflows = json.loads(r.content)
-        df_full = pd.json_normalize(my_workflows)
-        if full_data:
-            df = df_full
-        else:
-            df = df_full.loc[:, COLUMNS]
-        return df
-
     def detect_workflow(self, workflow_name, workspace_id):
         """Detects workflow type: nextflow or wdl.
 
