@@ -220,9 +220,6 @@ def run(apikey,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -241,9 +238,6 @@ def job_status(apikey,
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     j_status = cl.get_job_status(job_id)
-    if write_response:
-        with open(f'job_{job_id}_status.json', 'w') as out:
-            out.write(j_status.text)
     j_status_h = json.loads(j_status.content)["status"]
     print(f'\tYour current job status is: {j_status_h}\n')
     j_url = f'{cloudos_url}/app/jobs/{job_id}'
@@ -389,9 +383,6 @@ def list_workflows(apikey,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--write-response',
-              help='Write the server response, in JSON format.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -410,9 +401,6 @@ def cromwell_status(cromwell_token,
         print('\t' + str(cl) + '\n')
         print(f'\tChecking Cromwell status in {workspace_id} workspace')
     c_status = cl.get_cromwell_status(workspace_id)
-    if write_response:
-        with open('cromwell_status.json', 'w') as out:
-            out.write(c_status.text)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
