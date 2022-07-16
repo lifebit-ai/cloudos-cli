@@ -490,6 +490,8 @@ class Cohort(object):
                                "pageSize": page_size,
                                "pageNumber": page_number},
                   "filter": {"instance": ["0"]}}
+        if self.query:
+            r_body['query'] = self.query.to_api_dict()
         if page_number == "all":
             res_data = self.__fetch_stats_table(r_body, pheno_id, iter_all=True)
         else:
