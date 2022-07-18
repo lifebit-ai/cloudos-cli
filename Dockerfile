@@ -1,7 +1,9 @@
 # Full contents of Dockerfile
 
 FROM continuumio/miniconda3:4.10.3	
-LABEL description="Base docker image with conda and util libraries"
+LABEL name="quay.io/lifebitaiorg/cloudos-py" \
+      description="The cloudos-py docker container" \
+      maintainer="David Pineyro <davidp@lifebit.ai>"
 
 # Use the base conda env to not be reliant on conda activate when using pip
 ARG ENV_NAME="base"

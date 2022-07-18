@@ -1,5 +1,23 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.1.1 - 2022-07-12
+- Adds WDL pipeline support, iteration 1: cromwell server managing.
+Now, a new command `cloudos cromwell` is available, with the following
+subcommands:
+    * status
+    * start
+    * stop
+
+### 0.1.0 - 2022-07-07
+- Adds `cloudos workflow list` command. This command allows to
+collect all the workflows data from a given workspace.
+- Adds JSON output for `cloudos job list` and `cloudos workflow list`
+commands.
+
+### 0.0.9 - 2022-06-28
+- Adds support for lustre storage with the new `--storage-mode` and
+`--lustre-size` parameters.
+
 ### 0.0.8 - 2022-06-16
 - Adds `--nextflow-profile` parameter to accept nextflow profiles. It
 also makes `--job-config` parameter optional, as a run with only
