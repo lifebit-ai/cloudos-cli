@@ -144,8 +144,10 @@ class Job(Cloudos):
                         return element["_id"]
                     elif importsfile is None:
                         raise ValueError('Please, indicate importsfile when mainfile is used')
-                    elif element["mainFile"] == mainfile and element["importsFile"] == importsfile:
-                        return element["_id"]
+                    # Not all the wdl pipelines have importsFile field
+                    elif "importsFile" in element.keys():
+                        if element["mainFile"] == mainfile and element["importsFile"] == importsfile:
+                            return element["_id"]
             elif resource == 'projects':
                 if element["name"] == name:
                     return element["_id"]
