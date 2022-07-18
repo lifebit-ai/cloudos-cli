@@ -114,9 +114,15 @@ def cromwell():
               default=3600)
 @click.option('--wdl-mainfile',
               help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
+@click.option('--wdl-importsfile',
+              help='For WDL workflows, which importsFile (.zip) is configured to use.',)
 @click.option('-t',
               '--cromwell-token',
               help='Specific Cromwell server authentication token. Only required for WDL jobs.')
+@click.option('--repository-platform',
+              help=('Name of the repository platform of the workflow. Could be either \'github\' ' +
+                    'or \'bitbucket\'. Default=github.'),
+              default='github')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -140,7 +146,9 @@ def run(apikey,
         wait_completion,
         wait_time,
         wdl_mainfile,
+        wdl_importsfile,
         cromwell_token,
+        repository_platform,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
@@ -152,6 +160,8 @@ def run(apikey,
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
+        if wdl_importsfile is None:
+            raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
         if cromwell_token is None:
             raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
         c_status = cl.get_cromwell_status(workspace_id)
@@ -185,7 +195,8 @@ def run(apikey,
     if verbose:
         print('\t...Preparing objects')
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
-               mainfile=wdl_mainfile)
+               mainfile=wdl_mainfile, importsfile=wdl_importsfile,
+               repository_platform=repository_platform)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))

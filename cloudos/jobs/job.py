@@ -23,11 +23,17 @@ class Job(Cloudos):
         The specific Cloudos workspace id.
     project_name : string
         The name of a CloudOS project.
+    workflow_name : string
+        The name of a CloudOS workflow or pipeline.
     mainfile : string
         The name of the mainFile used by the workflow. Required for WDL pipelines as different
         mainFiles could be loaded for a single pipeline.
-    workflow_name : string
-        The name of a CloudOS workflow or pipeline.
+    importsfile : string
+        The name of the importsFile used by the workflow. Required for WDL pipelines as different
+        importsFiles could be loaded for a single pipeline.
+    repository_platform : string
+        The name of the repository platform where the workflow resides. Could be either
+        'github' or 'bitbucket'.
     project_id : string
         The CloudOS project id for a given project name.
     workflow_id : string
@@ -37,6 +43,8 @@ class Job(Cloudos):
     project_name: str
     workflow_name: str
     mainfile: str = None
+    importsfile: str = None
+    repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
 
@@ -72,7 +80,9 @@ class Job(Cloudos):
                 'workflows',
                 self.workspace_id,
                 self.workflow_name,
-                self.mainfile)
+                self.mainfile,
+                self.importsfile,
+                self.repository_platform)
         else:
             # Let the user define the value.
             self._workflow_id = v
@@ -83,7 +93,9 @@ class Job(Cloudos):
                          resource,
                          workspace_id,
                          name,
-                         mainfile=None):
+                         mainfile=None,
+                         importsfile=None,
+                         repository_platform='github'):
         """Fetch the cloudos id for a given name.
 
         Paramters
@@ -102,6 +114,12 @@ class Job(Cloudos):
             The name of the mainFile used by the workflow. Only used when resource == 'workflows'.
             Required for WDL pipelines as different mainFiles could be loaded for a single
             pipeline.
+        importsfile : string
+            The name of the importsFile used by the workflow. Required for WDL pipelines as different
+            importsFiles could be loaded for a single pipeline.
+        repository_platform : string
+            The name of the repository platform where the workflow resides. Could be either
+            'github' or 'bitbucket'.
 
         Returns
         -------
@@ -120,10 +138,13 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
-            if element["name"] == name:
-                if mainfile is not None and element["mainFile"] == mainfile:
+            if (element["name"] == name and
+                element["repository"]["platform"] == repository_platform):
+                if mainfile is None:
                     return element["_id"]
-                elif mainfile is None:
+                elif importsfile is None:
+                    raise ValueError('Please, indicate importsfile when mainfile is used')
+                elif element["mainFile"] == mainfile and element["importsFile"] == importsfile:
                     return element["_id"]
         if mainfile is not None:
             raise ValueError(f'[ERROR] Either workflow {name} or mainFile {mainfile} are not found')
