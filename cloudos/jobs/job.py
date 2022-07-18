@@ -138,18 +138,22 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
-            if (element["name"] == name and
-                element["repository"]["platform"] == repository_platform):
-                if mainfile is None:
-                    return element["_id"]
-                elif importsfile is None:
-                    raise ValueError('Please, indicate importsfile when mainfile is used')
-                elif element["mainFile"] == mainfile and element["importsFile"] == importsfile:
+            if resource == 'workflows':
+                if (element["name"] == name and element["repository"]["platform"] == repository_platform):
+                    if mainfile is None:
+                        return element["_id"]
+                    elif importsfile is None:
+                        raise ValueError('Please, indicate importsfile when mainfile is used')
+                    elif element["mainFile"] == mainfile and element["importsFile"] == importsfile:
+                        return element["_id"]
+            elif resource == 'projects':
+                if element["name"] == name:
                     return element["_id"]
         if mainfile is not None:
-            raise ValueError(f'[ERROR] Either workflow {name} or mainFile {mainfile} are not found')
+            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+                             f' and an importsFile \'{importsfile}\' was not found')
         else:
-            raise ValueError(f'[ERROR] Workflow {name} is not found')
+            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
