@@ -7,7 +7,7 @@ using the regular `cloudos job run` using the new arguments:
     * `--wdl-importsfile`
     * `--cromwell-token`
 - Adds the new argument `--repository-platform` to specify the
-repository platform ('github' or 'bitcucket')
+repository platform (Default: 'github').
 
 ### 0.1.1 - 2022-07-12
 - Adds WDL pipeline support, iteration 1: cromwell server managing.

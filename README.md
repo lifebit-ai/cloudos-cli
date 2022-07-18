@@ -131,8 +131,7 @@ Options:
   -t, --cromwell-token TEXT    Specific Cromwell server authentication token.
                                Only required for WDL jobs.
   --repository-platform TEXT   Name of the repository platform of the
-                               workflow. Could be either 'github' or
-                               'bitbucket'. Default=github.
+                               workflow. Default=github.
   --verbose                    Whether to print information messages or not.
   --help                       Show this message and exit.
 ```

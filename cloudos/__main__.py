@@ -120,8 +120,7 @@ def cromwell():
               '--cromwell-token',
               help='Specific Cromwell server authentication token. Only required for WDL jobs.')
 @click.option('--repository-platform',
-              help=('Name of the repository platform of the workflow. Could be either \'github\' ' +
-                    'or \'bitbucket\'. Default=github.'),
+              help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--verbose',
               help='Whether to print information messages or not.',

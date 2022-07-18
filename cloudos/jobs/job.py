@@ -32,8 +32,7 @@ class Job(Cloudos):
         The name of the importsFile used by the workflow. Required for WDL pipelines as different
         importsFiles could be loaded for a single pipeline.
     repository_platform : string
-        The name of the repository platform where the workflow resides. Could be either
-        'github' or 'bitbucket'.
+        The name of the repository platform of the workflow.
     project_id : string
         The CloudOS project id for a given project name.
     workflow_id : string
@@ -118,8 +117,7 @@ class Job(Cloudos):
             The name of the importsFile used by the workflow. Required for WDL pipelines as different
             importsFiles could be loaded for a single pipeline.
         repository_platform : string
-            The name of the repository platform where the workflow resides. Could be either
-            'github' or 'bitbucket'.
+            The name of the repository platform of the workflow resides.
 
         Returns
         -------
