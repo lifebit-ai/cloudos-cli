@@ -126,8 +126,13 @@ Options:
                                completion. Default=3600.
   --wdl-mainfile TEXT          For WDL workflows, which mainFile (.wdl) is
                                configured to use.
+  --wdl-importsfile TEXT       For WDL workflows, which importsFile (.zip) is
+                               configured to use.
   -t, --cromwell-token TEXT    Specific Cromwell server authentication token.
                                Only required for WDL jobs.
+  --repository-platform TEXT   Name of the repository platform of the
+                               workflow. Could be either 'github' or
+                               'bitbucket'. Default=github.
   --verbose                    Whether to print information messages or not.
   --help                       Show this message and exit.
 ```
@@ -444,6 +449,7 @@ To run WDL workflows, `cloudos job run` command can be used normally, but adding
 parameters:
 
 - `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
+- `--wdl-importsfile`: name of the worfklow imported file (importsFile, *.zip).
 - `--cromwell-token`: specific token for Cromwell server, different from the presonal API token.
 
 All the rest of the `cloudos job run` functionality is available.
@@ -475,6 +481,7 @@ WORKSPACE_ID="xxxxx"
 PROJECT_NAME="wdl-test"
 WORKFLOW_NAME="wdl- test"
 MAINFILE="hello.wdl"
+IMPORTSFILE="imports_7mb.zip"
 JOB_PARAMS="cloudos/examples/wdl.config"
 
 # Run job
@@ -485,6 +492,7 @@ cloudos job run \
   --project-name $PROJECT_NAME \
   --workflow-name "$WORKFLOW_NAME" \
   --wdl-mainfile $MAINFILE \
+  --wdl-importsfile $IMPORTSFILE \
   --cromwell-token $CROMWELL_TOKEN \
   --job-config $JOB_PARAMS \
   --wait-completion
@@ -609,6 +617,7 @@ workspace_id = 'xxxxx'
 project_name = 'wdl-test'
 workflow_name = 'wdl- test'
 mainfile = 'hello.wdl'
+importsfile = 'imports_7mb.zip'
 job_config = 'cloudos/examples/wdl.config'
 
 # First create cloudos object
@@ -628,7 +637,8 @@ c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
 
 # Send a job (wait until job has status: 'Completed')
-j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name, mainfile)
+j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name, mainfile,
+           importsfile)
 j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
 j_status = j.get_job_status(j_id)
 j_status_h = json.loads(j_status.content)["status"]
