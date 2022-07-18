@@ -285,7 +285,7 @@ class Cohort(object):
         for k, v in col_types.items():
             try:
                 res_df[k] = res_df[k].astype(v)
-            except TypeError as e:
+            except (TypeError, ValueError) as e:
                 print(f'Warning: values in the column \"{col_names[k]}\" do not fit the '
                       f'data type ({v}) specified in the Cohort Browser metadata. '
                       f'Leaving data type as `object`.',
