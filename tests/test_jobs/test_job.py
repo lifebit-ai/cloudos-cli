@@ -19,7 +19,9 @@ param_dict = {
     "instance_disk": 500,
     "spot": True,
     "storage_mode": 'regular',
-    "lustre_size": 1200
+    "lustre_size": 1200,
+    "workflow_type": 'nextflow',
+    "cromwell_id": None
 }
 
 
@@ -38,7 +40,9 @@ def test_convert_nextflow_to_json_output_correct():
         instance_disk=param_dict["instance_disk"],
         spot=param_dict["spot"],
         storage_mode=param_dict["storage_mode"],
-        lustre_size=param_dict["lustre_size"]
+        lustre_size=param_dict["lustre_size"],
+        workflow_type=param_dict["workflow_type"],
+        cromwell_id=param_dict["cromwell_id"]
         )
     with open(actual_json_file) as json_data:
         correct_json = json.load(json_data)
@@ -62,7 +66,9 @@ def test_convert_nextflow_to_json_badly_formed_config():
             instance_disk=param_dict["instance_disk"],
             spot=param_dict["spot"],
             storage_mode=param_dict["storage_mode"],
-            lustre_size=param_dict["lustre_size"]
+            lustre_size=param_dict["lustre_size"],
+            workflow_type=param_dict["workflow_type"],
+            cromwell_id=param_dict["cromwell_id"]
             )
         print(str(excinfo.value))
     assert "Please, specify your parameters in\

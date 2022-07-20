@@ -112,6 +112,16 @@ def cromwell():
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
+@click.option('--wdl-mainfile',
+              help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
+@click.option('--wdl-importsfile',
+              help='For WDL workflows, which importsFile (.zip) is configured to use.',)
+@click.option('-t',
+              '--cromwell-token',
+              help='Specific Cromwell server authentication token. Only required for WDL jobs.')
+@click.option('--repository-platform',
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -134,12 +144,58 @@ def run(apikey,
         lustre_size,
         wait_completion,
         wait_time,
+        wdl_mainfile,
+        wdl_importsfile,
+        cromwell_token,
+        repository_platform,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
     if verbose:
+        print('\t...Detecting workflow type')
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
+    workflow_type = cl.detect_workflow(workflow_name, workspace_id)
+    if workflow_type == 'wdl':
+        print('\tWDL workflow detected\n')
+        if wdl_mainfile is None:
+            raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
+        if wdl_importsfile is None:
+            raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
+        if cromwell_token is None:
+            raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
+        c_status = cl.get_cromwell_status(workspace_id)
+        c_status_h = json.loads(c_status.content)["status"]
+        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+        if c_status_h == 'Stopped':
+            print('\tStarting Cromwell server...\n')
+            cl.cromwell_switch(workspace_id, 'restart')
+            elapsed = 0
+            while elapsed < 300 and c_status_h != 'Running':
+                c_status_old = c_status_h
+                time.sleep(REQUEST_INTERVAL)
+                elapsed += REQUEST_INTERVAL
+                c_status = cl.get_cromwell_status(workspace_id)
+                c_status_h = json.loads(c_status.content)["status"]
+                if c_status_h != c_status_old:
+                    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+        if c_status_h != 'Running':
+            raise Exception('Cromwell server did not restarted properly.')
+        cromwell_id = json.loads(c_status.content)["_id"]
+        print('\t' + ('*' * 80) + '\n' +
+              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
+              'your\n' + '\tjob finishes. You can use the following command:\n' +
+              '\tcloudos cromwell stop \\\n' +
+              '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--workspace-id {workspace_id}\n' +
+              '\t' + ('*' * 80) + '\n')
+    else:
+        cromwell_id = None
+    if verbose:
         print('\t...Preparing objects')
-    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name)
+    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+               mainfile=wdl_mainfile, importsfile=wdl_importsfile,
+               repository_platform=repository_platform)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -155,7 +211,9 @@ def run(apikey,
                       instance_disk,
                       spot,
                       storage_mode,
-                      lustre_size)
+                      lustre_size,
+                      workflow_type,
+                      cromwell_id)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
@@ -190,10 +248,10 @@ def run(apikey,
                   'consider to set a longer wait-time.')
             print('\tTo further check your job status you can either go to ' +
                   f'{j_url} or use the following command:\n' +
-                  'cloudos job status \\\n' +
-                  '    --apikey $MY_API_KEY \\\n' +
-                  f'    --cloudos-url {cloudos_url} \\\n' +
-                  f'    --job-id {j_id}')
+                  '\tcloudos job status \\\n' +
+                  '\t\t--apikey $MY_API_KEY \\\n' +
+                  f'\t\t--cloudos-url {cloudos_url} \\\n' +
+                  f'\t\t--job-id {j_id}\n')
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id)
@@ -201,10 +259,10 @@ def run(apikey,
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
-              'cloudos job status \\\n' +
-              '    --apikey $MY_API_KEY \\\n' +
-              f'    --cloudos-url {cloudos_url} \\\n' +
-              f'    --job-id {j_id}')
+              '\tcloudos job status \\\n' +
+              '\t\t--apikey $MY_API_KEY \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--job-id {j_id}\n')
 
 
 @job.command('status')
@@ -444,7 +502,7 @@ def cromwell_restart(cromwell_token,
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
     elapsed = 0
-    while elapsed < wait_time and (c_status_h == 'Initializing' or c_status_h == 'Setup'):
+    while elapsed < wait_time and c_status_h != 'Running':
         c_status_old = c_status_h
         time.sleep(REQUEST_INTERVAL)
         elapsed += REQUEST_INTERVAL
@@ -458,10 +516,10 @@ def cromwell_restart(cromwell_token,
               'consider to set a longer wait-time.')
         print('\tTo further check your Cromwell status you can either go to ' +
               f'{cloudos_url} or use the following command:\n' +
-              'cloudos cromwell status \\\n' +
-              f'    -c {cloudos_url} \\\n' +
-              '    -t $CROMWELL_TOKEN \\\n' +
-              f'    --workspace-id {workspace_id}')
+              '\tcloudos cromwell status \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
+              f'\t\t--workspace-id {workspace_id}')
         sys.exit(1)
 
 

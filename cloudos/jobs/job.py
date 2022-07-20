@@ -25,6 +25,14 @@ class Job(Cloudos):
         The name of a CloudOS project.
     workflow_name : string
         The name of a CloudOS workflow or pipeline.
+    mainfile : string
+        The name of the mainFile used by the workflow. Required for WDL pipelines as different
+        mainFiles could be loaded for a single pipeline.
+    importsfile : string
+        The name of the importsFile used by the workflow. Required for WDL pipelines as different
+        importsFiles could be loaded for a single pipeline.
+    repository_platform : string
+        The name of the repository platform of the workflow.
     project_id : string
         The CloudOS project id for a given project name.
     workflow_id : string
@@ -33,6 +41,9 @@ class Job(Cloudos):
     workspace_id: str
     project_name: str
     workflow_name: str
+    mainfile: str = None
+    importsfile: str = None
+    repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
 
@@ -67,7 +78,10 @@ class Job(Cloudos):
                 self.cloudos_url,
                 'workflows',
                 self.workspace_id,
-                self.workflow_name)
+                self.workflow_name,
+                self.mainfile,
+                self.importsfile,
+                self.repository_platform)
         else:
             # Let the user define the value.
             self._workflow_id = v
@@ -77,7 +91,10 @@ class Job(Cloudos):
                          cloudos_url,
                          resource,
                          workspace_id,
-                         name):
+                         name,
+                         mainfile=None,
+                         importsfile=None,
+                         repository_platform='github'):
         """Fetch the cloudos id for a given name.
 
         Paramters
@@ -92,6 +109,15 @@ class Job(Cloudos):
             The specific Cloudos workspace id.
         name : string
             The name of a CloudOS resource element.
+        mainfile : string
+            The name of the mainFile used by the workflow. Only used when resource == 'workflows'.
+            Required for WDL pipelines as different mainFiles could be loaded for a single
+            pipeline.
+        importsfile : string
+            The name of the importsFile used by the workflow. Required for WDL pipelines as different
+            importsFiles could be loaded for a single pipeline.
+        repository_platform : string
+            The name of the repository platform of the workflow resides.
 
         Returns
         -------
@@ -110,8 +136,24 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
-            if element["name"] == name:
-                return element["_id"]
+            if resource == 'workflows':
+                if (element["name"] == name and element["repository"]["platform"] == repository_platform):
+                    if mainfile is None:
+                        return element["_id"]
+                    elif importsfile is None:
+                        raise ValueError('Please, indicate importsfile when mainfile is used')
+                    # Not all the wdl pipelines have importsFile field
+                    elif "importsFile" in element.keys():
+                        if element["mainFile"] == mainfile and element["importsFile"] == importsfile:
+                            return element["_id"]
+            elif resource == 'projects':
+                if element["name"] == name:
+                    return element["_id"]
+        if mainfile is not None:
+            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+                             f' and an importsFile \'{importsfile}\' was not found')
+        else:
+            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
@@ -127,7 +169,9 @@ class Job(Cloudos):
                                  instance_disk,
                                  spot,
                                  storage_mode,
-                                 lustre_size):
+                                 lustre_size,
+                                 workflow_type,
+                                 cromwell_id):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -165,6 +209,10 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        workflow_type : str
+            The type of workflow to run. Either 'nextflow' or 'wdl'.
+        cromwell_id : str
+            Cromwell server ID.
 
         Returns
         -------
@@ -172,9 +220,15 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
+        if workflow_type == 'wdl':
+            # This is required as non-resumable jobs fails always using WDL workflows.
+            resumable = True
         if nextflow_profile is None and job_config is None:
             raise ValueError('No --job-config or --nextflow_profile was specified, please use ' +
                              'at least one of these options.')
+        if workflow_type == 'wdl' and job_config is None:
+            raise ValueError('No --job-config was provided. This parameter is required for WDL ' +
+                             'workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -183,9 +237,17 @@ class Job(Cloudos):
                         reading = True
                     else:
                         if reading:
-                            p_l_strip = p_l.strip().replace(
-                                ' ', '').replace('\"', '').replace('\'', '')
-                            if '}' in p_l_strip:
+                            if workflow_type == 'wdl':
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '')
+                            else:
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '').replace('\"', '').replace('\'', '')
+                            if len(p_l_strip) == 0:
+                                continue
+                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
+                                continue
+                            elif p_l_strip == '}':
                                 reading = False
                             else:
                                 p_list = p_l_strip.split('=')
@@ -195,6 +257,12 @@ class Job(Cloudos):
                                                      f'{job_config} using ' +
                                                      'the \'=\' char as spacer. ' +
                                                      'E.g: name = my_name')
+                                elif workflow_type == 'wdl':
+                                    param = {"prefix": "",
+                                             "name": p_list[0],
+                                             "parameterKind": "textValue",
+                                             "textValue": p_list[1]}
+                                    workflow_params.append(param)
                                 else:
                                     param = {"prefix": "--",
                                              "name": p_list[0],
@@ -248,6 +316,7 @@ class Job(Cloudos):
             "batch": {
                 "enabled": batch
             },
+            "cromwellCloudResources": cromwell_id,
             "executionPlatform": "aws",
             "storageSizeInGb": instance_disk,
             "execution": {
@@ -280,7 +349,9 @@ class Job(Cloudos):
                  instance_disk=500,
                  spot=False,
                  storage_mode='regular',
-                 lustre_size=1200):
+                 lustre_size=1200,
+                 workflow_type='nextflow',
+                 cromwell_id=None):
         """Send a job to CloudOS.
 
         Parameters
@@ -314,6 +385,10 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        workflow_type : str
+            The type of workflow to run. Either 'nextflow' or 'wdl'.
+        cromwell_id : str
+            Cromwell server ID.
 
         Returns
         -------
@@ -343,7 +418,9 @@ class Job(Cloudos):
                                                instance_disk,
                                                spot,
                                                storage_mode,
-                                               lustre_size)
+                                               lustre_size,
+                                               workflow_type,
+                                               cromwell_id)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                           data=json.dumps(params), headers=headers)
