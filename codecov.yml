@@ -1,2 +1,2 @@
 ignore:
-  - "tests”
+  - "tests/*.py"
