@@ -238,3 +238,28 @@ class Cloudos:
         else:
             df = df_full.loc[:, COLUMNS]
         return df
+
+    def detect_workflow(self, workflow_name, workspace_id):
+        """Detects workflow type: nextflow or wdl.
+
+        Parameters
+        ----------
+        workflow_name : string
+            Name of the workflow.
+        workspace_id : string
+            The CloudOS workspace id from to collect the workflows.
+
+        Returns
+        -------
+        wt : string ['nextflow'|'wdl']
+            The workflow type detected
+        """
+        my_workflows_r = self.get_workflow_list(workspace_id)
+        my_workflows = self.process_workflow_list(my_workflows_r)
+        wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
+        if len(wt_all) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
+        wt = wt_all.unique()
+        if len(wt) > 1:
+            raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
+        return str(wt[0])
