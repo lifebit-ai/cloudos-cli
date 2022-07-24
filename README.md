@@ -110,7 +110,7 @@ Options:
                                not.
   --batch                      Whether to make use the batch executor instead
                                of the default ignite.
-  --instance-type TEXT         The type of AMI to use. Default=c5.xlarge.
+  --instance-type TEXT         The type of AWS EC2 instance to use. Default=c5.xlarge.
   --instance-disk INTEGER      The amount of disk storage to configure.
                                Default=500.
   --spot                       Whether to make a spot instance.
