@@ -198,7 +198,7 @@ class Job(Cloudos):
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         instance_type : string
-            Name of the AMI to choose.
+            Name of the instance type to choose, for example for AWS EC2 c5.xlarge.
         instance_disk : int
             The disk space of the instance, in GB.
         spot : bool
@@ -374,7 +374,7 @@ class Job(Cloudos):
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         instance_type : string
-            Type of the AMI to choose.
+            Name of the instance type to choose, for example for AWS EC2 c5.xlarge.
         instance_disk : int
             The disk space of the instance, in GB.
         spot : bool
