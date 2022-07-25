@@ -104,7 +104,7 @@ def test_create_name_and_desc():
     create_file = f"{path}update_responce_r_json_with_desc.json"
     create_json = load_json_file(create_file)
     create_post_file = f"{path}create_responce_r_json_with_desc.json"
-    create_post_json  = load_json_file(create_post_file)
+    create_post_json = load_json_file(create_post_file)
 
     params = {"teamId": workspace_id}
     cohort_name = "testing cohort 2022"
