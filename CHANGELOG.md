@@ -1,4 +1,4 @@
-## lifebit-ai/cloudos-py: changelog
+## lifebit-ai/cloudos-cli: changelog
 
 ### 0.1.2b - 2022-07-26
 - Adds worked example of CohortBrowser to README
