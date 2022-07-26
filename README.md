@@ -35,8 +35,8 @@ You will need Python >= 3.8 and pip installed.
 Clone the repo and install it using pip:
 
 ```bash
-git clone https://github.com/lifebit-ai/cloudos-py
-cd cloudos-py
+git clone https://github.com/lifebit-ai/cloudos-cli
+cd cloudos-cli
 pip install -r requirements.txt
 pip install .
 ```
