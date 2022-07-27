@@ -122,6 +122,10 @@ def cromwell():
 @click.option('--repository-platform',
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=-1 (no cost limit).',
+              type=float,
+              default=-1)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -148,6 +152,7 @@ def run(apikey,
         wdl_importsfile,
         cromwell_token,
         repository_platform,
+        cost_limit,
         verbose):
     """Submit a job to CloudOS."""
     print('Executing run...')
@@ -213,7 +218,8 @@ def run(apikey,
                       storage_mode,
                       lustre_size,
                       workflow_type,
-                      cromwell_id)
+                      cromwell_id,
+                      cost_limit)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:

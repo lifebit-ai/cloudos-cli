@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-py: changelog
 
+### 0.1.3 - 2022-07-26
+- Adds `--cost-limit <float>` to `cloudos job run` command. It is
+used to indicate the job cost limit, in $.
+
 ### 0.1.2 - 2022-07-14
 - Adds WDL pipeline support, iteration 2: WDL workflows can be run
 using the regular `cloudos job run` using the new arguments:
