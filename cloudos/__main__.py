@@ -210,6 +210,7 @@ def run(apikey,
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
     j_id = j.send_job(job_config,
+                      parameters,
                       git_commit,
                       git_tag,
                       job_name,
