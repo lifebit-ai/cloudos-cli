@@ -66,7 +66,7 @@ def cromwell():
 @click.option('-p',
               '--parameters',
               multiple=True,
-              help='Parameters to pass to the Nextflow call.')
+              help='Parameters to pass to the job call.')
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
