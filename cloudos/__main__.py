@@ -64,7 +64,10 @@ def cromwell():
               help=('A config file similar to a nextflow.config file, ' +
                     'but only with the parameters to use with your job.'))
 @click.option('-p',
-              '--nextflow-profile',
+              '--parameters',
+              multiple=True,
+              help='Parameters to pass to the Nextflow call.')
+@click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
 @click.option('--git-commit',
@@ -135,6 +138,7 @@ def run(apikey,
         project_name,
         workflow_name,
         job_config,
+        parameters,
         git_commit,
         git_tag,
         job_name,

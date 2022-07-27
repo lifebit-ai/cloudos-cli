@@ -15,10 +15,12 @@ class Job(Cloudos):
 
     Parameters
     ----------
-    apikey : string
-        Your CloudOS API key.
     cloudos_url : string
         The CloudOS service url.
+    apikey : string
+        Your CloudOS API key.
+    cromwell_token : string
+        Cromwell server token.
     workspace_id : string
         The specific Cloudos workspace id.
     project_name : string
