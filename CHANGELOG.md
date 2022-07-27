@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-### 0.1.3b - 2022-07-27
+### 0.1.4 - 2022-07-27
 - Unittests added for method `load` and `create` from class `Cloudos`
 
 ### 0.1.3 - 2022-07-26
