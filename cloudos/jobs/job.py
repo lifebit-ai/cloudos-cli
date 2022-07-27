@@ -171,7 +171,8 @@ class Job(Cloudos):
                                  storage_mode,
                                  lustre_size,
                                  workflow_type,
-                                 cromwell_id):
+                                 cromwell_id,
+                                 cost_limit):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -213,6 +214,8 @@ class Job(Cloudos):
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
             Cromwell server ID.
+        cost_limit : float
+            Job cost limit. -1 means no cost limit.
 
         Returns
         -------
@@ -320,7 +323,7 @@ class Job(Cloudos):
             "executionPlatform": "aws",
             "storageSizeInGb": instance_disk,
             "execution": {
-                "computeCostLimit": -1,
+                "computeCostLimit": cost_limit,
                 "optim": "test"
             },
             "lusterFsxStorageSizeInGb": lustre_size,
@@ -351,7 +354,8 @@ class Job(Cloudos):
                  storage_mode='regular',
                  lustre_size=1200,
                  workflow_type='nextflow',
-                 cromwell_id=None):
+                 cromwell_id=None,
+                 cost_limit=-1):
         """Send a job to CloudOS.
 
         Parameters
@@ -389,6 +393,8 @@ class Job(Cloudos):
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
             Cromwell server ID.
+        cost_limit : float
+            Job cost limit. -1 means no cost limit.
 
         Returns
         -------
@@ -420,7 +426,8 @@ class Job(Cloudos):
                                                storage_mode,
                                                lustre_size,
                                                workflow_type,
-                                               cromwell_id)
+                                               cromwell_id,
+                                               cost_limit)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                           data=json.dumps(params), headers=headers)
