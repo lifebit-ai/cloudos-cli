@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 0.1.4 - 2022-07-27
+- Unittests added for method `load` and `create` from class `Cloudos`
+
 ### 0.1.3 - 2022-07-26
 - Adds `--cost-limit <float>` to `cloudos job run` command. It is
 used to indicate the job cost limit, in $.
