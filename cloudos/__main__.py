@@ -66,9 +66,10 @@ def cromwell():
 @click.option('-p',
               '--parameter',
               multiple=True,
-              help=('A parameter to pass to the job call. It should be in the ' +
+              help=('A single parameter to pass to the job call. It should be in the ' +
                     'following form: parameter_name=parameter_value. E.g.: ' +
-                    '-p input=s3://path_to_my_file'))
+                    '-p input=s3://path_to_my_file. You can use this option as many ' +
+                    'times as parameters you want to include.'))
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
