@@ -64,9 +64,11 @@ def cromwell():
               help=('A config file similar to a nextflow.config file, ' +
                     'but only with the parameters to use with your job.'))
 @click.option('-p',
-              '--parameters',
+              '--parameter',
               multiple=True,
-              help='Parameters to pass to the job call.')
+              help=('A parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p input=s3://path_to_my_file'))
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
@@ -138,7 +140,7 @@ def run(apikey,
         project_name,
         workflow_name,
         job_config,
-        parameters,
+        parameter,
         git_commit,
         git_tag,
         job_name,
@@ -210,7 +212,7 @@ def run(apikey,
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
     j_id = j.send_job(job_config,
-                      parameters,
+                      parameter,
                       git_commit,
                       git_tag,
                       job_name,

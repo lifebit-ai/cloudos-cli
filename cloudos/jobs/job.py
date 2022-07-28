@@ -159,7 +159,7 @@ class Job(Cloudos):
 
     def convert_nextflow_to_json(self,
                                  job_config,
-                                 parameters,
+                                 parameter,
                                  git_commit,
                                  git_tag,
                                  project_id,
@@ -182,7 +182,7 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
-        parameters : list
+        parameter : list
             List of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ['param1=param1val', 'param2=param2val', ...]
         git_commit : string
@@ -232,11 +232,11 @@ class Job(Cloudos):
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
-        if nextflow_profile is None and job_config is None and parameters is None:
-            raise ValueError('No --job-config, --nextflow_profile or --parameters were specified,' +
+        if nextflow_profile is None and job_config is None and parameter is None:
+            raise ValueError('No --job-config, --nextflow_profile or --parameter were specified,' +
                              '  please use at least one of these options.')
-        if workflow_type == 'wdl' and job_config is None and parameters is None:
-            raise ValueError('No --job-config or --parameters were provided. At least one of ' +
+        if workflow_type == 'wdl' and job_config is None and parameter is None:
+            raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
@@ -281,11 +281,11 @@ class Job(Cloudos):
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')
-        if parameters is not None:
-            for p in parameters:
+        if parameter is not None:
+            for p in parameter:
                 p_split = p.split('=')
                 if len(p_split) != 2:
-                    raise ValueError('Please, specify -p / --parameters using a single \'=\' ' +
+                    raise ValueError('Please, specify -p / --parameter using a single \'=\' ' +
                                      'as spacer. E.g: input=value')
                 p_name = p_split[0]
                 p_value = p_split[1]
@@ -302,7 +302,7 @@ class Job(Cloudos):
                              "textValue": p_value}
                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f'The provided parameters are not valid: {parameters}')
+                raise ValueError(f'The provided parameters are not valid: {parameter}')
         if spot:
             instance_type_block = {
                 "instanceType": instance_type,
@@ -370,7 +370,7 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config=None,
-                 parameters=None,
+                 parameter=None,
                  git_commit=None,
                  git_tag=None,
                  job_name='new_job',
@@ -391,7 +391,7 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
-        parameters : list
+        parameter : list
             List of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ['param1=param1val', 'param2=param2val', ...]
         git_commit : string
@@ -444,7 +444,7 @@ class Job(Cloudos):
             "apikey": apikey
         }
         params = self.convert_nextflow_to_json(job_config,
-                                               parameters,
+                                               parameter,
                                                git_commit,
                                                git_tag,
                                                project_id,
