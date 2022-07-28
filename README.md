@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-26\
-__Version:__ 0.1.4
+__Date:__ 2022-07-2\
+__Version:__ 0.2.0
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v0.1.4
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v0.2.0
 ```
 
 ### From Github
@@ -77,7 +77,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -152,7 +152,7 @@ WORKFLOW_NAME="rnatoy"
 JOB_PARAMS="cloudos/examples/rnatoy.config"
 ```
 
-As you can see, a file with the job parameters is required to configure the
+As you can see, a file with the job parameters is used to configure the
 job. This file could be a regular `nextflow.config` file or any file with the
 following structure:
 
@@ -178,12 +178,32 @@ cloudos job run \
     --spot
 ```
 
+In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance,
+the previous command is equivalent to:
+
+```bash
+cloudos job run \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
+    --parameter reads=s3://lifebit-featured-datasets/pipelines/rnatoy-data \
+    --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa \
+    --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff \
+    --resumable \
+    --spot
+```
+
+> NOTE: options `--job-config` and `--parameter` are completely compatible and complementary, so you can use a
+`--job-config` and adding additional parameters using `--parameter` in the same call.
+
 If everything went well, you should see something like:
 
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -224,7 +244,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -253,7 +273,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -288,7 +308,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -311,7 +331,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -344,7 +364,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -366,7 +386,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -396,7 +416,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -415,7 +435,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -436,7 +456,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -446,17 +466,17 @@ Stopping Cromwell server...
 
 #### Running WDL workflows
 
-To run WDL workflows, `cloudos job run` command can be used normally, but adding two extra
+To run WDL workflows, `cloudos job run` command can be used normally, but adding three extra
 parameters:
 
 - `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
 - `--wdl-importsfile`: name of the worfklow imported file (importsFile, *.zip).
-- `--cromwell-token`: specific token for Cromwell server, different from the presonal API token.
+- `--cromwell-token`: specific token for Cromwell server, different from the personal API token.
 
 All the rest of the `cloudos job run` functionality is available.
 
 > NOTE: WDL does not support `profiles` and therefore, `--nextflow-profile` option is not
-available. Instead, only `--job-config` could be used. The format of the job config file is
+available. Instead, use `--job-config` and/or `--parameter`. The format of the job config file is
 expected to be the same as for nextflow pipelines.
 
 Example of job config file for WDL workflows:
@@ -502,7 +522,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 0.1.4
+Version: 0.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
