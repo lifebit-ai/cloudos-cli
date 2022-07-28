@@ -182,9 +182,9 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
-        parameter : list
-            List of strings indicating the parameters to pass to the pipeline call.
-            They are in the following form: ['param1=param1val', 'param2=param2val', ...]
+        parameter : tuple
+            Tuple of strings indicating the parameters to pass to the pipeline call.
+            They are in the following form: ('param1=param1val', 'param2=param2val', ...)
         git_commit : string
             The exact commit of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
@@ -232,10 +232,10 @@ class Job(Cloudos):
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
-        if nextflow_profile is None and job_config is None and parameter is None:
+        if nextflow_profile is None and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config, --nextflow_profile or --parameter were specified,' +
                              '  please use at least one of these options.')
-        if workflow_type == 'wdl' and job_config is None and parameter is None:
+        if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
         if job_config is not None:
@@ -281,7 +281,7 @@ class Job(Cloudos):
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')
-        if parameter is not None:
+        if len(parameter) > 0:
             for p in parameter:
                 p_split = p.split('=')
                 if len(p_split) != 2:
@@ -370,7 +370,7 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config=None,
-                 parameter=None,
+                 parameter=(),
                  git_commit=None,
                  git_tag=None,
                  job_name='new_job',
@@ -391,9 +391,9 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
-        parameter : list
-            List of strings indicating the parameters to pass to the pipeline call.
-            They are in the following form: ['param1=param1val', 'param2=param2val', ...]
+        parameter : tuple
+            Tuple of strings indicating the parameters to pass to the pipeline call.
+            They are in the following form: ('param1=param1val', 'param2=param2val', ...)
         git_commit : string
             The exact commit of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
