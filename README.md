@@ -493,6 +493,9 @@ params {
 }
 ```
 
+> NOTE: when using `--parameter` option, if the value needs quotes (`"`) you will need to scape them.
+E.g.: `--parameter test.arrayTest=[\"lala\"]`
+
 ```bash
 # Configure variables
 MY_API_KEY="xxxxx"
