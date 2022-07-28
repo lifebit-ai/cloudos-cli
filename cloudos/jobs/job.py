@@ -233,7 +233,7 @@ class Job(Cloudos):
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
         if nextflow_profile is None and job_config is None and parameters is None:
-            raise ValueError('No --job-config, --nextflow_profile or --parameters were specified,'+
+            raise ValueError('No --job-config, --nextflow_profile or --parameters were specified,' +
                              '  please use at least one of these options.')
         if workflow_type == 'wdl' and job_config is None and parameters is None:
             raise ValueError('No --job-config or --parameters were provided. At least one of ' +
@@ -287,8 +287,8 @@ class Job(Cloudos):
                 if len(p_split) != 2:
                     raise ValueError('Please, specify -p / --parameters using a single \'=\' ' +
                                      'as spacer. E.g: input=value')
-                p_name = p.split[0]
-                p_value = p.split[1]
+                p_name = p_split[0]
+                p_value = p_split[1]
                 if workflow_type == 'wdl':
                     param = {"prefix": "",
                              "name": p_name,
