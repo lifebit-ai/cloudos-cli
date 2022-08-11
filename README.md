@@ -499,7 +499,7 @@ params {
 }
 ```
 
-> NOTE: when using `--parameter` option, if the value needs quotes (`"`) you will need to scape them.
+> NOTE: when using `--parameter` option, if the value needs quotes (`"`) you will need to escape them.
 E.g.: `--parameter test.arrayTest=[\"lala\"]`
 
 ```bash
