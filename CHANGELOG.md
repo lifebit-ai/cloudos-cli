@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-### 0.2.0 - 2022-07-28
+### 1.0.0 - 2022-07-28
 - Adds `--parameter / -p` new argument to allow to specify the job
 parameters using the command-line. 
 
