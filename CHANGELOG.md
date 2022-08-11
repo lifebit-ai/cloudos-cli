@@ -2,8 +2,10 @@
 
 ### 1.0.0 - 2022-07-28
 - Adds `--parameter / -p` new argument to allow to specify the job
-parameters using the command-line. 
-
+parameters using the command-line.
+This version introduces a backwards incompatible change
+The -p flag is now used for parameters and not for the nextflow profile.
+Commands that utilised -p for denoting a profile will break with this release.
 ### 0.1.4 - 2022-07-27
 - Unittests added for method `load` and `create` from class `Cloudos`
 
