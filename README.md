@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-28\
-__Version:__ 1.0.0
+__Date:__ 2022-09-15\
+__Version:__ 1.0.1
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.0.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.0.1
 ```
 
 ### From Github
