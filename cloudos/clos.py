@@ -125,7 +125,7 @@ class Cloudos:
                                                            workspace_id),
                          params=data)
         if r.status_code >= 400:
-            raise BadRequestException()
+            raise BadRequestException(r)
         return r
 
     @staticmethod
@@ -200,7 +200,7 @@ class Cloudos:
                                                                 workspace_id),
                          params=data)
         if r.status_code >= 400:
-            raise BadRequestException()
+            raise BadRequestException(r)
         return r
 
     @staticmethod
