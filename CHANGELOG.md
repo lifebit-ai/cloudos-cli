@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.0.0 - 2022-09-15
+- Patch to fix some incorrect error messages using `BadRequestException`.
+
 ### 1.0.0 - 2022-07-28
 - Adds `--parameter / -p` new argument to allow to specify the job
 parameters using the command-line.
