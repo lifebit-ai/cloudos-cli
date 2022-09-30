@@ -12,7 +12,7 @@ from ._version import __version__
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
-
+REQUEST_INTERVAL_CROMWELL = 30
 
 @click.group()
 @click.version_option(__version__)
@@ -502,18 +502,11 @@ def cromwell_status(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-@click.option('--request-interval',
-              help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' +
-                    'make fewer requests so that is not considered spamming by the API. ' +
-                    'Default=30.'),
-              default=30)
 def cromwell_restart(cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
-                     verbose,
-                     request_interval):
+                     verbose):
     """Restart Cromwell server in CloudOS."""
     action = 'restart'
     print('Starting Cromwell server...')
@@ -531,8 +524,8 @@ def cromwell_restart(cromwell_token,
     elapsed = 0
     while elapsed < wait_time and c_status_h != 'Running':
         c_status_old = c_status_h
-        time.sleep(request_interval)
-        elapsed += request_interval
+        time.sleep(REQUEST_INTERVAL_CROMWELL)
+        elapsed += REQUEST_INTERVAL_CROMWELL
         c_status = cl.get_cromwell_status(workspace_id)
         c_status_h = json.loads(c_status.content)["status"]
         if c_status_h != c_status_old:
