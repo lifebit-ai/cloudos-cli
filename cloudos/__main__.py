@@ -241,6 +241,8 @@ def run(apikey,
               f'{wait_time} seconds is reached.')
         elapsed = 0
         j_status_h_old = ''
+        # make sure user doesn't surpass the wait time
+        if request_interval > wait_time: request_interval = wait_time
         while elapsed < wait_time:
             j_status = j.get_job_status(j_id)
             j_status_h = json.loads(j_status.content)["status"]
