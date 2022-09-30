@@ -249,6 +249,8 @@ cloudos job run \
     --wait-completion
 ```
 
+When setting this parameter, you can also set `--request-interval` to a bigger number (default is 30s) if the job is quite large. This will ensure that the status requests are not sent too close from each other and recognized as spam by the API.
+
 If the job takes less than `--wait-time` (3600 seconds by default), the
 previous command should have an output similar to:
 

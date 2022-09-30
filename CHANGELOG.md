@@ -5,6 +5,8 @@
 for job status request. This will be useful for big jobs, to specify a bigger
 interval since a smaller one is causing the API to consider it as spam or simply
 to crash.
+- Changes `REQUEST_INTERVAL` for `REQUEST_INTERVAL_CROMWELL`. This is only used in the
+`cromwell` workflows.
 
 ### 1.0.0 - 2022-07-28
 - Adds `--parameter / -p` new argument to allow to specify the job
