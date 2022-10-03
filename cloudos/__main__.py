@@ -190,8 +190,8 @@ def run(apikey,
             elapsed = 0
             while elapsed < 300 and c_status_h != 'Running':
                 c_status_old = c_status_h
-                time.sleep(request_interval)
-                elapsed += request_interval
+                time.sleep(REQUEST_INTERVAL_CROMWELL)
+                elapsed += REQUEST_INTERVAL_CROMWELL
                 c_status = cl.get_cromwell_status(workspace_id)
                 c_status_h = json.loads(c_status.content)["status"]
                 if c_status_h != c_status_old:
