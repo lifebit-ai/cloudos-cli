@@ -136,7 +136,7 @@ def cromwell():
               is_flag=True)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' + 
+                    'For large jobs is important to use a high number to ' +
                     'make fewer requests so that is not considered spamming by the API. ' +
                     'Default=30.'),
               default=30)
@@ -177,8 +177,6 @@ def run(apikey,
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        if wdl_importsfile is None:
-            raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
         if cromwell_token is None:
             raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
         c_status = cl.get_cromwell_status(workspace_id)
