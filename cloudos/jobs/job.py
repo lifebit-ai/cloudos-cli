@@ -138,26 +138,21 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
-            if resource == 'workflows':
-                if (element["name"] == name and element["repository"]["platform"] == repository_platform):
-                    if mainfile is None:
-                        return element["_id"]
-                    if element["mainFile"] == mainfile:
-                        if importsfile is None and "importsFile" not in element.keys():
-                            return element["_id"]
-                        elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
-                            return element["_id"]
-            elif resource == 'projects':
-                if element["name"] == name:
+            name_found = element["name"]
+            repo_found = element["repository"]["platform"]
+            if (resource == 'workflows' and name_found == name and repo_found == repository_platform):
+                if mainfile is None:
                     return element["_id"]
+                if element["mainFile"] == mainfile:
+                    if importsfile is None and "importsFile" not in element.keys():
+                        return element["_id"]
+                    elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
+                        return element["_id"]
+            elif resource == 'projects' and name_found == name:
+                return element["_id"]
         if mainfile is not None:
-            if importsfile is not None:
-                raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
-                                 f' and an importsFile \'{importsfile}\' was not found')
-            else:
-                raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
-                                 ' and without importsFile was not found. If you are looking for a' +
-                                 ' WDL workflow, consider using --wdl-importsfile option.')
+            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+                             f' and an importsFile \'{importsfile}\' was not found')
         else:
             raise ValueError(f'[ERROR] No {name} element in {resource} was found')
 
