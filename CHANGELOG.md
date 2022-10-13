@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.2.0 - 2022-10-13
+- Changes `--wdl-importsfile` parameter to be optional even if running a
+WDL pipeline as `importsFiles` are not always present in WDL pipelines.
+- Fixes some incomplete error messages.
+
 ### 1.1.0 - 2022-09-29
 - Adds `--request-interval` new parameter to allow the custom time specification
 for job status request. This will be useful for big jobs, to specify a bigger
