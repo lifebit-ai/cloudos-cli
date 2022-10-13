@@ -140,11 +140,9 @@ class Job(Cloudos):
         for element in json.loads(r.content):
             if resource == 'workflows':
                 if (element["name"] == name and element["repository"]["platform"] == repository_platform):
-                    # For GitHub repos always select the first workflow available
                     if mainfile is None:
                         return element["_id"]
                     if element["mainFile"] == mainfile:
-                        # WDL workflows do not have importsFile field when not used.
                         if importsfile is None and "importsFile" not in element.keys():
                             return element["_id"]
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
