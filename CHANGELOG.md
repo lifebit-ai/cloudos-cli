@@ -1,7 +1,7 @@
 ## lifebit-ai/cloudos-cli: changelog
 
 ### 1.2.0 - 2022-10-13
-- Changes `--wdl-importsfile` parameter to be optional even if running a
+- Changes `--wdl-importsfile` parameter to be optional even when running a
 WDL pipeline as `importsFiles` are not always present in WDL pipelines.
 - Fixes some incomplete error messages.
 
