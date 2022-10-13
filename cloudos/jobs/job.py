@@ -140,10 +140,10 @@ class Job(Cloudos):
         for element in json.loads(r.content):
             name_found = element["name"]
             repo_found = element["repository"]["platform"]
-            if (resource == 'workflows' and name_found == name and repo_found == repository_platform):
+            if resource == 'workflows' and name_found == name and repo_found == repository_platform:
                 if mainfile is None:
                     return element["_id"]
-                if element["mainFile"] == mainfile:
+                elif element["mainFile"] == mainfile:
                     if importsfile is None and "importsFile" not in element.keys():
                         return element["_id"]
                     elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
