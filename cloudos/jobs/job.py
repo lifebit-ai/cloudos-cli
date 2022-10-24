@@ -384,7 +384,7 @@ class Job(Cloudos):
                  lustre_size=1200,
                  workflow_type='nextflow',
                  cromwell_id=None,
-                 cost_limit=-1):
+                 cost_limit=30.0):
         """Send a job to CloudOS.
 
         Parameters
