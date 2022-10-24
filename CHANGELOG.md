@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.1.1 - 2022-10-24
+- Modifies default `--cost-limit` from infinite (`-1`) to `30.0`. This will prevent wasting resources without a purpose of running a pipeline.
+
 ### 1.1.0 - 2022-09-29
 - Adds `--request-interval` new parameter to allow the custom time specification
 for job status request. This will be useful for big jobs, to specify a bigger
