@@ -143,7 +143,7 @@ Options:
                               Only required for WDL jobs.
   --repository-platform TEXT  Name of the repository platform of the workflow.
                               Default=github.
-  --cost-limit FLOAT          Add a cost limit to your job. Default=-1 (no
+  --cost-limit FLOAT          Add a cost limit to your job. Default=30.0 ( -1 for no
                               cost limit).
   --verbose                   Whether to print information messages or not.
   --help                      Show this message and exit.
