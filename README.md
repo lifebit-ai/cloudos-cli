@@ -1,7 +1,7 @@
 # cloudos
 
 __Date:__ 2022-07-28\
-__Version:__ 1.1.0
+__Version:__ 1.1.1
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.1.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.1.1
 ```
 
 ### From Github
@@ -77,7 +77,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -214,7 +214,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -257,7 +257,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -286,7 +286,8 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
+
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -321,7 +322,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -344,7 +345,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -377,7 +378,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -399,7 +400,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -429,7 +430,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -448,7 +449,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -469,7 +470,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -538,7 +539,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.1.0
+Version: 1.1.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
