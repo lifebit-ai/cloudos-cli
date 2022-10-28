@@ -15,8 +15,8 @@ JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 REQUEST_INTERVAL_CROMWELL = 30
 
-requests.session()
-requests.cert('/etc/ssl/certs/ca-bundle.crt')
+s = requests.Session()
+s.verify = '/etc/ssl/certs/ca-bundle.crt'
 
 
 @click.group()
