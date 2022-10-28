@@ -9,9 +9,6 @@ from cloudos.utils.errors import BadRequestException
 import pandas as pd
 
 
-VERIFY = '/etc/ssl/certs/ca-bundle.crt'
-
-
 @dataclass
 class Cloudos:
     """A simple class to contain the required connection information.
@@ -29,13 +26,17 @@ class Cloudos:
     apikey: str
     cromwell_token: str
 
-    def get_job_status(self, j_id):
+    def get_job_status(self, j_id, verify=True):
         """Get job status from CloudOS.
 
         Parameters
         ----------
         j_id : string
             The CloudOS job id of the job just launched.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -50,18 +51,22 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/jobs/{}".format(cloudos_url,
                                                     j_id),
-                         headers=headers, verify=VERIFY)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def get_cromwell_status(self, workspace_id):
+    def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to check the Cromwell status.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -76,12 +81,12 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
-                         headers=headers, verify=VERIFY)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def cromwell_switch(self, workspace_id, action):
+    def cromwell_switch(self, workspace_id, action, verify=True):
         """Restart Cromwell server.
 
         Parameters
@@ -90,6 +95,10 @@ class Cloudos:
             The CloudOS workspace id in which restart/stop Cromwell status.
         action : string [restart|stop]
             The action to perform.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -105,18 +114,22 @@ class Cloudos:
         r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
                                                                   action,
                                                                   workspace_id),
-                         headers=headers, verify=VERIFY)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id):
+    def get_job_list(self, workspace_id, verify=True):
         """Get all the jobs from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -126,7 +139,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/jobs?teamId={}".format(self.cloudos_url,
                                                            workspace_id),
-                         params=data, verify=VERIFY)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException()
         return r
@@ -185,13 +198,17 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def get_workflow_list(self, workspace_id):
+    def get_workflow_list(self, workspace_id, verify=True):
         """Get all the workflows from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -201,7 +218,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                 workspace_id),
-                         params=data, verify=VERIFY)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException()
         return r

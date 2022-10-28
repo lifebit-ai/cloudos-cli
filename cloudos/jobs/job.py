@@ -9,9 +9,6 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 
 
-VERIFY = '/etc/ssl/certs/ca-bundle.crt'
-
-
 @dataclass
 class Job(Cloudos):
     """Class to store and operate jobs.
@@ -99,7 +96,8 @@ class Job(Cloudos):
                          name,
                          mainfile=None,
                          importsfile=None,
-                         repository_platform='github'):
+                         repository_platform='github',
+                         verify=True):
         """Fetch the cloudos id for a given name.
 
         Paramters
@@ -123,6 +121,10 @@ class Job(Cloudos):
             importsFiles could be loaded for a single pipeline.
         repository_platform : string
             The name of the repository platform of the workflow resides.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -137,7 +139,7 @@ class Job(Cloudos):
         r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
                                                          workspace_id),
-                         params=data, verify=VERIFY)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
@@ -387,7 +389,8 @@ class Job(Cloudos):
                  lustre_size=1200,
                  workflow_type='nextflow',
                  cromwell_id=None,
-                 cost_limit=-1):
+                 cost_limit=-1,
+                 verify=True):
         """Send a job to CloudOS.
 
         Parameters
@@ -430,6 +433,10 @@ class Job(Cloudos):
             Cromwell server ID.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -466,7 +473,7 @@ class Job(Cloudos):
                                                cost_limit)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
-                          data=json.dumps(params), headers=headers, verify=VERIFY)
+                          data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
