@@ -68,7 +68,7 @@ class Job(Cloudos):
                 'projects',
                 self.workspace_id,
                 self.project_name,
-                self.verify)
+                verify=self.verify)
         else:
             # Let the user define the value.
             self._project_id = v
