@@ -6,6 +6,7 @@ from cloudos.clos import Cloudos
 import json
 import time
 import sys
+import requests
 from ._version import __version__
 
 # GLOBAL VARS
@@ -13,6 +14,10 @@ JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 REQUEST_INTERVAL_CROMWELL = 30
+
+requests.session()
+requests.cert('/etc/ssl/certs/ca-bundle.crt')
+
 
 @click.group()
 @click.version_option(__version__)
@@ -136,7 +141,7 @@ def cromwell():
               is_flag=True)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' + 
+                    'For large jobs is important to use a high number to ' +
                     'make fewer requests so that is not considered spamming by the API. ' +
                     'Default=30.'),
               default=30)
