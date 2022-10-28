@@ -3,6 +3,7 @@ This is the main class to create jobs.
 """
 
 from dataclasses import dataclass
+from typing import Union
 import requests
 import json
 from cloudos.clos import Cloudos
@@ -27,6 +28,10 @@ class Job(Cloudos):
         The name of a CloudOS project.
     workflow_name : string
         The name of a CloudOS workflow or pipeline.
+    verify: [bool|string]
+        Whether to use SSL verification or not. Alternatively, if
+        a string is passed, it will be interpreted as the path to
+        the SSL certificate file.
     mainfile : string
         The name of the mainFile used by the workflow. Required for WDL pipelines as different
         mainFiles could be loaded for a single pipeline.
@@ -39,20 +44,16 @@ class Job(Cloudos):
         The CloudOS project id for a given project name.
     workflow_id : string
         The CloudOS workflow id for a given workflow_name.
-    verify: [bool|string]
-        Whether to use SSL verification or not. Alternatively, if
-        a string is passed, it will be interpreted as the path to
-        the SSL certificate file.
     """
     workspace_id: str
     project_name: str
     workflow_name: str
+    verify: Union[bool, str] = True
     mainfile: str = None
     importsfile: str = None
     repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
-    verify: bool = True
 
     @property
     def project_id(self) -> str:
