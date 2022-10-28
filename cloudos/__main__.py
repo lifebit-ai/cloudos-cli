@@ -6,7 +6,6 @@ from cloudos.clos import Cloudos
 import json
 import time
 import sys
-import requests
 from ._version import __version__
 
 # GLOBAL VARS
@@ -14,9 +13,6 @@ JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 REQUEST_INTERVAL_CROMWELL = 30
-
-s = requests.Session()
-s.verify = '/etc/ssl/certs/ca-bundle.crt'
 
 
 @click.group()

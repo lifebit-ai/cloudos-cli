@@ -9,6 +9,9 @@ from cloudos.utils.errors import BadRequestException
 import pandas as pd
 
 
+VERIFY = '/etc/ssl/certs/ca-bundle.crt'
+
+
 @dataclass
 class Cloudos:
     """A simple class to contain the required connection information.
@@ -47,7 +50,7 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/jobs/{}".format(cloudos_url,
                                                     j_id),
-                         headers=headers)
+                         headers=headers, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -73,7 +76,7 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
-                         headers=headers)
+                         headers=headers, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -102,7 +105,7 @@ class Cloudos:
         r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
                                                                   action,
                                                                   workspace_id),
-                         headers=headers)
+                         headers=headers, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -123,7 +126,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/jobs?teamId={}".format(self.cloudos_url,
                                                            workspace_id),
-                         params=data)
+                         params=data, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException()
         return r
@@ -198,7 +201,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                 workspace_id),
-                         params=data)
+                         params=data, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException()
         return r

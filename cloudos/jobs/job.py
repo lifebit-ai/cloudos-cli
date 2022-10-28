@@ -9,6 +9,9 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 
 
+VERIFY = '/etc/ssl/certs/ca-bundle.crt'
+
+
 @dataclass
 class Job(Cloudos):
     """Class to store and operate jobs.
@@ -134,7 +137,7 @@ class Job(Cloudos):
         r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
                                                          workspace_id),
-                         params=data)
+                         params=data, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
@@ -463,7 +466,7 @@ class Job(Cloudos):
                                                cost_limit)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
-                          data=json.dumps(params), headers=headers)
+                          data=json.dumps(params), headers=headers, verify=VERIFY)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
