@@ -40,13 +40,14 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
         verify_ssl = False
         print('[WARNING] Disabling SSL verification')
         urllib3.disable_warnings()
-    elif ssl_cert in None:
+    elif ssl_cert is None:
         verify_ssl = True
     elif os.path.isfile(ssl_cert):
         verify_ssl = ssl_cert
     else:
         raise FileNotFoundError(f"The specified file '{ssl_cert}' was not found")
     return verify_ssl
+
 
 @click.group()
 @click.version_option(__version__)
