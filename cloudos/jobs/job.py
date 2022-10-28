@@ -39,6 +39,10 @@ class Job(Cloudos):
         The CloudOS project id for a given project name.
     workflow_id : string
         The CloudOS workflow id for a given workflow_name.
+    verify: [bool|string]
+        Whether to use SSL verification or not. Alternatively, if
+        a string is passed, it will be interpreted as the path to
+        the SSL certificate file.
     """
     workspace_id: str
     project_name: str
@@ -48,6 +52,7 @@ class Job(Cloudos):
     repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
+    verify: bool = True
 
     @property
     def project_id(self) -> str:
@@ -62,7 +67,8 @@ class Job(Cloudos):
                 self.cloudos_url,
                 'projects',
                 self.workspace_id,
-                self.project_name)
+                self.project_name,
+                self.verify)
         else:
             # Let the user define the value.
             self._project_id = v
@@ -83,7 +89,8 @@ class Job(Cloudos):
                 self.workflow_name,
                 self.mainfile,
                 self.importsfile,
-                self.repository_platform)
+                self.repository_platform,
+                self.verify)
         else:
             # Let the user define the value.
             self._workflow_id = v

@@ -259,7 +259,7 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def detect_workflow(self, workflow_name, workspace_id):
+    def detect_workflow(self, workflow_name, workspace_id, verify=True):
         """Detects workflow type: nextflow or wdl.
 
         Parameters
@@ -268,13 +268,17 @@ class Cloudos:
             Name of the workflow.
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
         wt : string ['nextflow'|'wdl']
             The workflow type detected
         """
-        my_workflows_r = self.get_workflow_list(workspace_id)
+        my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
         wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
         if len(wt_all) == 0:

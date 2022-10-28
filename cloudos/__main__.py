@@ -257,7 +257,7 @@ def run(apikey,
         print('\t...Preparing objects')
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=wdl_mainfile, importsfile=wdl_importsfile,
-               repository_platform=repository_platform)
+               repository_platform=repository_platform, verify=verify_ssl)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
