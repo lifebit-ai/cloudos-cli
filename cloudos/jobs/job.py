@@ -3,6 +3,7 @@ This is the main class to create jobs.
 """
 
 from dataclasses import dataclass
+from typing import Union
 import requests
 import json
 from cloudos.clos import Cloudos
@@ -27,6 +28,10 @@ class Job(Cloudos):
         The name of a CloudOS project.
     workflow_name : string
         The name of a CloudOS workflow or pipeline.
+    verify: [bool|string]
+        Whether to use SSL verification or not. Alternatively, if
+        a string is passed, it will be interpreted as the path to
+        the SSL certificate file.
     mainfile : string
         The name of the mainFile used by the workflow. Required for WDL pipelines as different
         mainFiles could be loaded for a single pipeline.
@@ -43,6 +48,7 @@ class Job(Cloudos):
     workspace_id: str
     project_name: str
     workflow_name: str
+    verify: Union[bool, str] = True
     mainfile: str = None
     importsfile: str = None
     repository_platform: str = 'github'
@@ -62,7 +68,8 @@ class Job(Cloudos):
                 self.cloudos_url,
                 'projects',
                 self.workspace_id,
-                self.project_name)
+                self.project_name,
+                verify=self.verify)
         else:
             # Let the user define the value.
             self._project_id = v
@@ -83,7 +90,8 @@ class Job(Cloudos):
                 self.workflow_name,
                 self.mainfile,
                 self.importsfile,
-                self.repository_platform)
+                self.repository_platform,
+                self.verify)
         else:
             # Let the user define the value.
             self._workflow_id = v
@@ -96,7 +104,8 @@ class Job(Cloudos):
                          name,
                          mainfile=None,
                          importsfile=None,
-                         repository_platform='github'):
+                         repository_platform='github',
+                         verify=True):
         """Fetch the cloudos id for a given name.
 
         Paramters
@@ -120,6 +129,10 @@ class Job(Cloudos):
             importsFiles could be loaded for a single pipeline.
         repository_platform : string
             The name of the repository platform of the workflow resides.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -134,7 +147,7 @@ class Job(Cloudos):
         r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
                                                          workspace_id),
-                         params=data)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         for element in json.loads(r.content):
@@ -384,7 +397,8 @@ class Job(Cloudos):
                  lustre_size=1200,
                  workflow_type='nextflow',
                  cromwell_id=None,
-                 cost_limit=-1):
+                 cost_limit=-1,
+                 verify=True):
         """Send a job to CloudOS.
 
         Parameters
@@ -427,6 +441,10 @@ class Job(Cloudos):
             Cromwell server ID.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -463,7 +481,7 @@ class Job(Cloudos):
                                                cost_limit)
         r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
-                          data=json.dumps(params), headers=headers)
+                          data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]

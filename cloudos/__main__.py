@@ -6,6 +6,8 @@ from cloudos.clos import Cloudos
 import json
 import time
 import sys
+import os
+import urllib3
 from ._version import __version__
 
 # GLOBAL VARS
@@ -13,6 +15,39 @@ JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 REQUEST_INTERVAL_CROMWELL = 30
+
+
+def ssl_selector(disable_ssl_verification, ssl_cert):
+    """Verify value selector.
+
+    This function stablish the value that will be passed to requests.verify
+    variable.
+
+    Parameters
+    ----------
+    disable_ssl_verification : bool
+        Whether to disable SSL verification.
+    ssl_cert : string
+        String indicating the path to the SSL certificate file to use.
+
+    Returns
+    -------
+    verify_ssl : [bool | string]
+        Either a bool or a path string to be passed to requests.verify to control
+        SSL verification.
+    """
+    if disable_ssl_verification:
+        verify_ssl = False
+        print('[WARNING] Disabling SSL verification')
+        urllib3.disable_warnings()
+    elif ssl_cert is None:
+        verify_ssl = True
+    elif os.path.isfile(ssl_cert):
+        verify_ssl = ssl_cert
+    else:
+        raise FileNotFoundError(f"The specified file '{ssl_cert}' was not found")
+    return verify_ssl
+
 
 @click.group()
 @click.version_option(__version__)
@@ -136,10 +171,16 @@ def cromwell():
               is_flag=True)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' + 
+                    'For large jobs is important to use a high number to ' +
                     'make fewer requests so that is not considered spamming by the API. ' +
                     'Default=30.'),
               default=30)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def run(apikey,
         cloudos_url,
         workspace_id,
@@ -166,13 +207,16 @@ def run(apikey,
         repository_platform,
         cost_limit,
         verbose,
-        request_interval):
+        request_interval,
+        disable_ssl_verification,
+        ssl_cert):
     """Submit a job to CloudOS."""
     print('Executing run...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
-    workflow_type = cl.detect_workflow(workflow_name, workspace_id)
+    workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
     if workflow_type == 'wdl':
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
@@ -181,18 +225,18 @@ def run(apikey,
             raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
         if cromwell_token is None:
             raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
-        c_status = cl.get_cromwell_status(workspace_id)
+        c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
         c_status_h = json.loads(c_status.content)["status"]
         print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
         if c_status_h == 'Stopped':
             print('\tStarting Cromwell server...\n')
-            cl.cromwell_switch(workspace_id, 'restart')
+            cl.cromwell_switch(workspace_id, 'restart', verify_ssl)
             elapsed = 0
             while elapsed < 300 and c_status_h != 'Running':
                 c_status_old = c_status_h
                 time.sleep(REQUEST_INTERVAL_CROMWELL)
                 elapsed += REQUEST_INTERVAL_CROMWELL
-                c_status = cl.get_cromwell_status(workspace_id)
+                c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
                 c_status_h = json.loads(c_status.content)["status"]
                 if c_status_h != c_status_old:
                     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
@@ -213,7 +257,7 @@ def run(apikey,
         print('\t...Preparing objects')
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=wdl_mainfile, importsfile=wdl_importsfile,
-               repository_platform=repository_platform)
+               repository_platform=repository_platform, verify=verify_ssl)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -233,7 +277,8 @@ def run(apikey,
                       lustre_size,
                       workflow_type,
                       cromwell_id,
-                      cost_limit)
+                      cost_limit,
+                      verify_ssl)
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
@@ -244,7 +289,7 @@ def run(apikey,
         # make sure user doesn't surpass the wait time
         if request_interval > wait_time: request_interval = wait_time
         while elapsed < wait_time:
-            j_status = j.get_job_status(j_id)
+            j_status = j.get_job_status(j_id, verify_ssl)
             j_status_h = json.loads(j_status.content)["status"]
             if j_status_h == JOB_COMPLETED:
                 print(f'\tYour job took {elapsed} seconds to complete ' +
@@ -262,7 +307,7 @@ def run(apikey,
                     print(f'\tYour current job status is: {j_status_h}.')
                     j_status_h_old = j_status_h
                 time.sleep(request_interval)
-        j_status = j.get_job_status(j_id)
+        j_status = j.get_job_status(j_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         if j_status_h != JOB_COMPLETED:
             print(f'\tYour current job status is: {j_status_h}. The ' +
@@ -276,7 +321,7 @@ def run(apikey,
                   f'\t\t--job-id {j_id}\n')
             sys.exit(1)
     else:
-        j_status = j.get_job_status(j_id)
+        j_status = j.get_job_status(j_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +
@@ -303,12 +348,21 @@ def run(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def job_status(apikey,
                cloudos_url,
                job_id,
-               verbose):
+               verbose,
+               disable_ssl_verification,
+               ssl_cert):
     """Check job status in CloudOS."""
     print('Executing status...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, None)
@@ -316,7 +370,7 @@ def job_status(apikey,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    j_status = cl.get_job_status(job_id)
+    j_status = cl.get_job_status(job_id, verify_ssl)
     j_status_h = json.loads(j_status.content)["status"]
     print(f'\tYour current job status is: {j_status_h}\n')
     j_url = f'{cloudos_url}/app/jobs/{job_id}'
@@ -354,14 +408,23 @@ def job_status(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def list_jobs(apikey,
               cloudos_url,
               workspace_id,
               output_basename,
               output_format,
               all_fields,
-              verbose):
+              verbose,
+              disable_ssl_verification,
+              ssl_cert):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
@@ -372,7 +435,7 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
-    my_jobs_r = cl.get_job_list(workspace_id)
+    my_jobs_r = cl.get_job_list(workspace_id, verify_ssl)
     if output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
@@ -416,14 +479,23 @@ def list_jobs(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def list_workflows(apikey,
                    cloudos_url,
                    workspace_id,
                    output_basename,
                    output_format,
                    all_fields,
-                   verbose):
+                   verbose,
+                   disable_ssl_verification,
+                   ssl_cert):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
@@ -434,7 +506,7 @@ def list_workflows(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
-    my_workflows_r = cl.get_workflow_list(workspace_id)
+    my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
     if output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
@@ -465,12 +537,21 @@ def list_workflows(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def cromwell_status(cromwell_token,
                     cloudos_url,
                     workspace_id,
-                    verbose):
+                    verbose,
+                    disable_ssl_verification,
+                    ssl_cert):
     """Check Cromwell server status in CloudOS."""
     print('Executing status...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, None, cromwell_token)
@@ -478,7 +559,7 @@ def cromwell_status(cromwell_token,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tChecking Cromwell status in {workspace_id} workspace')
-    c_status = cl.get_cromwell_status(workspace_id)
+    c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 
@@ -504,12 +585,21 @@ def cromwell_status(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def cromwell_restart(cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
-                     verbose):
+                     verbose,
+                     disable_ssl_verification,
+                     ssl_cert):
     """Restart Cromwell server in CloudOS."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     action = 'restart'
     print('Starting Cromwell server...')
     if verbose:
@@ -519,8 +609,8 @@ def cromwell_restart(cromwell_token,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tStarting Cromwell server in {workspace_id} workspace')
-    cl.cromwell_switch(workspace_id, action)
-    c_status = cl.get_cromwell_status(workspace_id)
+    cl.cromwell_switch(workspace_id, action, verify_ssl)
+    c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
     elapsed = 0
@@ -528,7 +618,7 @@ def cromwell_restart(cromwell_token,
         c_status_old = c_status_h
         time.sleep(REQUEST_INTERVAL_CROMWELL)
         elapsed += REQUEST_INTERVAL_CROMWELL
-        c_status = cl.get_cromwell_status(workspace_id)
+        c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
         c_status_h = json.loads(c_status.content)["status"]
         if c_status_h != c_status_old:
             print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
@@ -562,11 +652,20 @@ def cromwell_restart(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
 def cromwell_stop(cromwell_token,
                   cloudos_url,
                   workspace_id,
-                  verbose):
+                  verbose,
+                  disable_ssl_verification,
+                  ssl_cert):
     """Stop Cromwell server in CloudOS."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     action = 'stop'
     print('Stopping Cromwell server...')
     if verbose:
@@ -575,9 +674,9 @@ def cromwell_stop(cromwell_token,
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
-        print(f'\tRestarting Cromwell server in {workspace_id} workspace')
-    cl.cromwell_switch(workspace_id, action)
-    c_status = cl.get_cromwell_status(workspace_id)
+        print(f'\tStopping Cromwell server in {workspace_id} workspace')
+    cl.cromwell_switch(workspace_id, action, verify_ssl)
+    c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
 

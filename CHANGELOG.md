@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.2.0 - 2022-10-28
+- Adds `--disable-ssl-verification` new flag to be able to disable SSL certificate
+verification when required. It also disables `urllib3` associated warning messages.
+- Adds `--ssl-cert` new option to specify the path to the corresponding SSL certificate
+file.
+
 ### 1.1.0 - 2022-09-29
 - Adds `--request-interval` new parameter to allow the custom time specification
 for job status request. This will be useful for big jobs, to specify a bigger
