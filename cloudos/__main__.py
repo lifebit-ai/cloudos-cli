@@ -124,7 +124,8 @@ def cromwell():
               help='For WDL workflows, which importsFile (.zip) is configured to use.',)
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token. Only required for WDL jobs.')
+              help=('Specific Cromwell server authentication token. Currently, not necessary ' +
+                    'as apikey can be used instead, but maintained for backwards compatibility.'))
 @click.option('--repository-platform',
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
@@ -452,7 +453,8 @@ def list_workflows(apikey,
               help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.')
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -492,7 +494,8 @@ def cromwell_status(apikey,
               help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.')
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -559,7 +562,8 @@ def cromwell_restart(apikey,
               help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.')
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +

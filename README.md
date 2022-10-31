@@ -130,22 +130,23 @@ Options:
                               final job status.
   --wait-time INTEGER         Max time to wait (in seconds) to job completion.
                               Default=3600.
-  --request-interval INTEGER  Time interval to request (in seconds) the job status.
-                              For large jobs is important to use a high number to
-                              make fewer requests so that is not considered spamming
-                              by the API.
-                              Default=30.
   --wdl-mainfile TEXT         For WDL workflows, which mainFile (.wdl) is
                               configured to use.
   --wdl-importsfile TEXT      For WDL workflows, which importsFile (.zip) is
                               configured to use.
   -t, --cromwell-token TEXT   Specific Cromwell server authentication token.
-                              Only required for WDL jobs.
+                              Currently, not necessary as apikey can be used
+                              instead, but maintained for backwards
+                              compatibility.
   --repository-platform TEXT  Name of the repository platform of the workflow.
                               Default=github.
   --cost-limit FLOAT          Add a cost limit to your job. Default=-1 (no
                               cost limit).
   --verbose                   Whether to print information messages or not.
+  --request-interval INTEGER  Time interval to request (in seconds) the job
+                              status. For large jobs is important to use a
+                              high number to make fewer requests so that is
+                              not considered spamming by the API. Default=30.
   --help                      Show this message and exit.
 ```
 
