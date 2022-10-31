@@ -14,6 +14,7 @@ JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 REQUEST_INTERVAL_CROMWELL = 30
 
+
 @click.group()
 @click.version_option(__version__)
 def run_cloudos_cli():
@@ -177,8 +178,6 @@ def run(apikey,
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        if cromwell_token is None:
-            raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
         c_status = cl.get_cromwell_status(workspace_id)
         c_status_h = json.loads(c_status.content)["status"]
         print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
@@ -448,10 +447,12 @@ def list_workflows(apikey,
 
 @cromwell.command('status')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help='Specific Cromwell server authentication token.')
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -463,15 +464,18 @@ def list_workflows(apikey,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def cromwell_status(cromwell_token,
+def cromwell_status(apikey,
+                    cromwell_token,
                     cloudos_url,
                     workspace_id,
                     verbose):
     """Check Cromwell server status in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -483,10 +487,12 @@ def cromwell_status(cromwell_token,
 
 @cromwell.command('start')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help='Specific Cromwell server authentication token.')
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -502,17 +508,20 @@ def cromwell_status(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def cromwell_restart(cromwell_token,
+def cromwell_restart(apikey,
+                     cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
                      verbose):
     """Restart Cromwell server in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     action = 'restart'
     print('Starting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -545,10 +554,12 @@ def cromwell_restart(cromwell_token,
 
 @cromwell.command('stop')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help='Specific Cromwell server authentication token.')
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -560,16 +571,19 @@ def cromwell_restart(cromwell_token,
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
-def cromwell_stop(cromwell_token,
+def cromwell_stop(apikey,
+                  cromwell_token,
                   cloudos_url,
                   workspace_id,
                   verbose):
     """Stop Cromwell server in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     action = 'stop'
     print('Stopping Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
