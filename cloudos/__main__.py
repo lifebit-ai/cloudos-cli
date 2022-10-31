@@ -449,7 +449,7 @@ def list_workflows(apikey,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key')
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help='Specific Cromwell server authentication token.')
@@ -489,7 +489,7 @@ def cromwell_status(apikey,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key')
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help='Specific Cromwell server authentication token.')
@@ -556,7 +556,7 @@ def cromwell_restart(apikey,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key')
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help='Specific Cromwell server authentication token.')
