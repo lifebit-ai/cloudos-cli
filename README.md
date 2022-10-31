@@ -41,6 +41,7 @@ pip install -r requirements.txt
 pip install .
 ```
 
+> NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/aboslut/path/to/cloudos-cli:$PATH"`.
 ## Usage
 
 The package is meant to be used both as a CLI tool and as a regular package to
@@ -81,7 +82,7 @@ Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
-Usage: python -m cloudos job run [OPTIONS]
+Usage: cloudos job run [OPTIONS]
 
   Submit a job to CloudOS.
 
