@@ -1,11 +1,26 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.2.0 - 2022-10-28
+- Adds `--disable-ssl-verification` new flag to be able to disable SSL certificate
+verification when required. It also disables `urllib3` associated warning messages.
+- Adds `--ssl-cert` new option to specify the path to the corresponding SSL certificate
+file.
+
+### 1.1.0 - 2022-09-29
+- Adds `--request-interval` new parameter to allow the custom time specification
+for job status request. This will be useful for big jobs, to specify a bigger
+interval since a smaller one is causing the API to consider it as spam or simply
+to crash.
+- Changes `REQUEST_INTERVAL` for `REQUEST_INTERVAL_CROMWELL`. This is only used in the
+`cromwell` workflows.
+
 ### 1.0.0 - 2022-07-28
 - Adds `--parameter / -p` new argument to allow to specify the job
 parameters using the command-line.
 This version introduces a backwards incompatible change
 The -p flag is now used for parameters and not for the nextflow profile.
 Commands that utilised -p for denoting a profile will break with this release.
+
 ### 0.1.4 - 2022-07-27
 - Unittests added for method `load` and `create` from class `Cloudos`
 

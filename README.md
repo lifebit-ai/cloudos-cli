@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-07-28\
-__Version:__ 1.0.0
+__Date:__ 2022-10-28\
+__Version:__ 1.2.0
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.0.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.2.0
 ```
 
 ### From Github
@@ -41,6 +41,7 @@ pip install -r requirements.txt
 pip install .
 ```
 
+> NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/absolute/path/to/cloudos-cli:$PATH"`.
 ## Usage
 
 The package is meant to be used both as a CLI tool and as a regular package to
@@ -77,7 +78,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -141,6 +142,14 @@ Options:
   --cost-limit FLOAT          Add a cost limit to your job. Default=-1 (no
                               cost limit).
   --verbose                   Whether to print information messages or not.
+  --request-interval INTEGER  Time interval to request (in seconds) the job
+                              status. For large jobs is important to use a
+                              high number to make fewer requests so that is
+                              not considered spamming by the API. Default=30.
+  --disable-ssl-verification  Disable SSL certificate verification. Please,
+                              remember that this option is not generally
+                              recommended for security reasons.
+  --ssl-cert TEXT             Path to your SSL certificate file.
   --help                      Show this message and exit.
 ```
 
@@ -209,7 +218,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -244,13 +253,15 @@ cloudos job run \
     --wait-completion
 ```
 
+When setting this parameter, you can also set `--request-interval` to a bigger number (default is 30s) if the job is quite large. This will ensure that the status requests are not sent too close from each other and recognized as spam by the API.
+
 If the job takes less than `--wait-time` (3600 seconds by default), the
 previous command should have an output similar to:
 
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -279,7 +290,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -314,7 +325,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -337,7 +348,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -370,7 +381,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -392,7 +403,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -422,7 +433,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -441,7 +452,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -462,7 +473,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -531,7 +542,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.0.0
+Version: 1.2.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
