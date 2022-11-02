@@ -1,6 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-### 1.2.0 - 2022-10-13
+### 1.2.0 - 2022-10-28
+- Adds `--disable-ssl-verification` new flag to be able to disable SSL certificate
+verification when required. It also disables `urllib3` associated warning messages.
+- Adds `--ssl-cert` new option to specify the path to the corresponding SSL certificate
+file.
 - Changes `--wdl-importsfile` parameter to be optional even when running a
 WDL pipeline as `importsFiles` are not always present in WDL pipelines.
 - Fixes some incomplete error messages.

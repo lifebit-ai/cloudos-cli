@@ -26,13 +26,17 @@ class Cloudos:
     apikey: str
     cromwell_token: str
 
-    def get_job_status(self, j_id):
+    def get_job_status(self, j_id, verify=True):
         """Get job status from CloudOS.
 
         Parameters
         ----------
         j_id : string
             The CloudOS job id of the job just launched.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -47,18 +51,22 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/jobs/{}".format(cloudos_url,
                                                     j_id),
-                         headers=headers)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def get_cromwell_status(self, workspace_id):
+    def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to check the Cromwell status.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -73,12 +81,12 @@ class Cloudos:
         }
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
-                         headers=headers)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def cromwell_switch(self, workspace_id, action):
+    def cromwell_switch(self, workspace_id, action, verify=True):
         """Restart Cromwell server.
 
         Parameters
@@ -87,6 +95,10 @@ class Cloudos:
             The CloudOS workspace id in which restart/stop Cromwell status.
         action : string [restart|stop]
             The action to perform.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -102,18 +114,22 @@ class Cloudos:
         r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
                                                                   action,
                                                                   workspace_id),
-                         headers=headers)
+                         headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id):
+    def get_job_list(self, workspace_id, verify=True):
         """Get all the jobs from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -123,7 +139,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/jobs?teamId={}".format(self.cloudos_url,
                                                            workspace_id),
-                         params=data)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -182,13 +198,17 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def get_workflow_list(self, workspace_id):
+    def get_workflow_list(self, workspace_id, verify=True):
         """Get all the workflows from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
@@ -198,7 +218,7 @@ class Cloudos:
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                 workspace_id),
-                         params=data)
+                         params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -239,7 +259,7 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def detect_workflow(self, workflow_name, workspace_id):
+    def detect_workflow(self, workflow_name, workspace_id, verify=True):
         """Detects workflow type: nextflow or wdl.
 
         Parameters
@@ -248,13 +268,17 @@ class Cloudos:
             Name of the workflow.
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
 
         Returns
         -------
         wt : string ['nextflow'|'wdl']
             The workflow type detected
         """
-        my_workflows_r = self.get_workflow_list(workspace_id)
+        my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
         wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
         if len(wt_all) == 0:

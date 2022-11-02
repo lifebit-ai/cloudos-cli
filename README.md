@@ -1,6 +1,6 @@
 # cloudos
 
-__Date:__ 2022-10-13\
+__Date:__ 2022-10-28\
 __Version:__ 1.2.0
 
 
@@ -41,6 +41,7 @@ pip install -r requirements.txt
 pip install .
 ```
 
+> NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/aboslut/path/to/cloudos-cli:$PATH"`.
 ## Usage
 
 The package is meant to be used both as a CLI tool and as a regular package to
@@ -130,11 +131,6 @@ Options:
                               final job status.
   --wait-time INTEGER         Max time to wait (in seconds) to job completion.
                               Default=3600.
-  --request-interval INTEGER  Time interval to request (in seconds) the job status.
-                              For large jobs is important to use a high number to
-                              make fewer requests so that is not considered spamming
-                              by the API.
-                              Default=30.
   --wdl-mainfile TEXT         For WDL workflows, which mainFile (.wdl) is
                               configured to use.
   --wdl-importsfile TEXT      For WDL workflows, which importsFile (.zip) is
@@ -146,6 +142,14 @@ Options:
   --cost-limit FLOAT          Add a cost limit to your job. Default=-1 (no
                               cost limit).
   --verbose                   Whether to print information messages or not.
+  --request-interval INTEGER  Time interval to request (in seconds) the job
+                              status. For large jobs is important to use a
+                              high number to make fewer requests so that is
+                              not considered spamming by the API. Default=30.
+  --disable-ssl-verification  Disable SSL certificate verification. Please,
+                              remember that this option is not generally
+                              recommended for security reasons.
+  --ssl-cert TEXT             Path to your SSL certificate file.
   --help                      Show this message and exit.
 ```
 
