@@ -1,6 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-### 1.1.1 - 2022-10-24
+### 1.2.0 - 2022-10-28
+- Adds `--disable-ssl-verification` new flag to be able to disable SSL certificate
+verification when required. It also disables `urllib3` associated warning messages.
+- Adds `--ssl-cert` new option to specify the path to the corresponding SSL certificate
+file.
 - Modifies default `--cost-limit` from infinite (`-1`) to `30.0`. This will prevent wasting resources without a purpose of running a pipeline.
 
 ### 1.1.0 - 2022-09-29
