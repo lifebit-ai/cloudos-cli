@@ -1,6 +1,6 @@
 # cloudos
 
-__Date:__ 2022-07-28\
+__Date:__ 2022-10-28\
 __Version:__ 1.2.0
 
 
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 pip install .
 ```
 
-> NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/aboslut/path/to/cloudos-cli:$PATH"`.
+> NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/absolute/path/to/cloudos-cli:$PATH"`.
 ## Usage
 
 The package is meant to be used both as a CLI tool and as a regular package to
