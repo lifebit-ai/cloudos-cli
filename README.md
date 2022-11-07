@@ -586,7 +586,6 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = None
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'API jobs'
@@ -597,7 +596,7 @@ job_config = 'cloudos/examples/rnatoy.config'
 First, create the `Job` object:
 
 ```python
-j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name)
+j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name)
 print(j)
 ```
 
@@ -648,7 +647,6 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = None
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'wdl-test'
@@ -658,7 +656,7 @@ importsfile = 'imports_7mb.zip'
 job_config = 'cloudos/examples/wdl.config'
 
 # First create cloudos object
-cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
+cl = cl.Cloudos(cloudos_url, apikey, None)
 
 # Then, check Cromwell status
 c_status = cl.get_cromwell_status(workspace_id)
@@ -674,7 +672,7 @@ c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
 
 # Send a job (wait until job has status: 'Completed')
-j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name, mainfile,
+j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name, mainfile,
            importsfile)
 j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
 j_status = j.get_job_status(j_id)
