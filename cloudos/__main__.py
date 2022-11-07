@@ -221,8 +221,6 @@ def run(apikey,
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        if wdl_importsfile is None:
-            raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
         if cromwell_token is None:
             raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
         c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
