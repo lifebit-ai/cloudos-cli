@@ -136,7 +136,9 @@ Options:
   --wdl-importsfile TEXT      For WDL workflows, which importsFile (.zip) is
                               configured to use.
   -t, --cromwell-token TEXT   Specific Cromwell server authentication token.
-                              Only required for WDL jobs.
+                              Currently, not necessary as apikey can be used
+                              instead, but maintained for backwards
+                              compatibility.
   --repository-platform TEXT  Name of the repository platform of the workflow.
                               Default=github.
   --cost-limit FLOAT          Add a cost limit to your job. Default=30.0 (For
@@ -420,13 +422,10 @@ In order to run WDL pipelines, a Cromwell server in CloudOS should be running. T
 be accessed to check its status, restart it or stop it, using the following commands:
 
 ```bash
-# Cromwell server requires its particular token
-CROMWELL_TOKEN="xxxx"
-
 # Check Cromwell status
 cloudos cromwell status \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
@@ -444,8 +443,8 @@ Executing status...
 ```bash    
 # Cromwell start
 cloudos cromwell start \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
@@ -465,8 +464,8 @@ Starting Cromwell server...
 ```bash
 # Cromwell stop
 cloudos cromwell stop \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
@@ -483,12 +482,11 @@ Stopping Cromwell server...
 
 #### Running WDL workflows
 
-To run WDL workflows, `cloudos job run` command can be used normally, but adding three extra
+To run WDL workflows, `cloudos job run` command can be used normally, but adding two extra
 parameters:
 
 - `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
-- `--wdl-importsfile`: name of the worfklow imported file (importsFile, *.zip).
-- `--cromwell-token`: specific token for Cromwell server, different from the personal API token.
+- `--wdl-importsfile` [Optional]: name of the worfklow imported file (importsFile, *.zip).
 
 All the rest of the `cloudos job run` functionality is available.
 
@@ -516,7 +514,6 @@ E.g.: `--parameter test.arrayTest=[\"lala\"]`
 ```bash
 # Configure variables
 MY_API_KEY="xxxxx"
-CROMWELL_TOKEN="xxxx"
 CLOUDOS="https://cloudos.lifebit.ai"
 WORKSPACE_ID="xxxxx"
 PROJECT_NAME="wdl-test"
@@ -534,7 +531,6 @@ cloudos job run \
   --workflow-name "$WORKFLOW_NAME" \
   --wdl-mainfile $MAINFILE \
   --wdl-importsfile $IMPORTSFILE \
-  --cromwell-token $CROMWELL_TOKEN \
   --job-config $JOB_PARAMS \
   --wait-completion
 ```
@@ -590,7 +586,7 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = 'xxxx'
+cromwell_token = None
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'API jobs'
@@ -652,7 +648,7 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = 'xxxx'
+cromwell_token = None
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'wdl-test'

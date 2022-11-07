@@ -20,7 +20,7 @@ class Cloudos:
     apikey : string
         Your CloudOS API key.
     cromwell_token : string
-        Cromwell server token.
+        Cromwell server token. If None, apikey will be used instead.
     """
     cloudos_url: str
     apikey: str
@@ -56,6 +56,30 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def _create_cromwell_header(self):
+        """Generates cromwell header.
+
+        This methods is responsible for using personal API key instead of
+        specific Cromwell API when the later is not provided.
+
+        Returns
+        -------
+        headers : dict
+            The correct headers based on using cromwell specific token or
+            personal API key.
+        """
+        if self.cromwell_token is None:
+            headers = {
+                "Accept": "application/json",
+                "apikey": self.apikey
+            }
+        else:
+            headers = {
+                "Accept": "application/json",
+                "Authorization": f'Bearer {self.cromwell_token}'
+            }
+        return headers
+
     def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
 
@@ -74,11 +98,7 @@ class Cloudos:
             The server response
         """
         cloudos_url = self.cloudos_url
-        token = f'Bearer {self.cromwell_token}'
-        headers = {
-            "Accept": "application/json",
-            "Authorization": token
-        }
+        headers = self._create_cromwell_header()
         r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
                          headers=headers, verify=verify)
@@ -106,11 +126,7 @@ class Cloudos:
             The server response
         """
         cloudos_url = self.cloudos_url
-        token = f'Bearer {self.cromwell_token}'
-        headers = {
-            "Accept": "application/json",
-            "Authorization": token
-        }
+        headers = self._create_cromwell_header()
         r = requests.put("{}/api/v1/cromwell/{}?teamId={}".format(cloudos_url,
                                                                   action,
                                                                   workspace_id),
