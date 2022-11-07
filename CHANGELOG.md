@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 1.3.0 - 2022-11-07
+- Changes `--wdl-importsfile` parameter to be optional even when running a
+WDL pipeline as `importsFiles` are not always present in WDL pipelines.
+- Fixes some incomplete error messages.
+
 ### 1.2.1 - 2022-11-03
 - Modifies default `--cost-limit` from infinite (`-1`) to `30.0`. This will prevent
 wasting resources without a purpose of running a pipeline.
@@ -9,9 +14,6 @@ wasting resources without a purpose of running a pipeline.
 verification when required. It also disables `urllib3` associated warning messages.
 - Adds `--ssl-cert` new option to specify the path to the corresponding SSL certificate
 file.
-- Changes `--wdl-importsfile` parameter to be optional even when running a
-WDL pipeline as `importsFiles` are not always present in WDL pipelines.
-- Fixes some incomplete error messages.
 
 ### 1.1.0 - 2022-09-29
 - Adds `--request-interval` new parameter to allow the custom time specification
