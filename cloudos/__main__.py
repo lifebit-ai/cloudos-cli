@@ -163,9 +163,9 @@ def cromwell():
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--cost-limit',
-              help='Add a cost limit to your job. Default=-1 (no cost limit).',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
-              default=-1)
+              default=30.0)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
