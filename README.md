@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2022-11-03\
-__Version:__ 1.2.1
+__Date:__ 2022-11-07\
+__Version:__ 1.3.0
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.2.1
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v1.3.0
 ```
 
 ### From Github
@@ -78,7 +78,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -136,7 +136,9 @@ Options:
   --wdl-importsfile TEXT      For WDL workflows, which importsFile (.zip) is
                               configured to use.
   -t, --cromwell-token TEXT   Specific Cromwell server authentication token.
-                              Only required for WDL jobs.
+                              Currently, not necessary as apikey can be used
+                              instead, but maintained for backwards
+                              compatibility.
   --repository-platform TEXT  Name of the repository platform of the workflow.
                               Default=github.
   --cost-limit FLOAT          Add a cost limit to your job. Default=30.0 (For
@@ -218,7 +220,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -261,7 +263,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -290,7 +292,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -325,7 +327,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -348,7 +350,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -381,7 +383,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -403,7 +405,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -420,20 +422,17 @@ In order to run WDL pipelines, a Cromwell server in CloudOS should be running. T
 be accessed to check its status, restart it or stop it, using the following commands:
 
 ```bash
-# Cromwell server requires its particular token
-CROMWELL_TOKEN="xxxx"
-
 # Check Cromwell status
 cloudos cromwell status \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -444,15 +443,15 @@ Executing status...
 ```bash    
 # Cromwell start
 cloudos cromwell start \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -465,15 +464,15 @@ Starting Cromwell server...
 ```bash
 # Cromwell stop
 cloudos cromwell stop \
-    -c $CLOUDOS \
-    -t $CROMWELL_TOKEN \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID
 ```
 
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -483,12 +482,11 @@ Stopping Cromwell server...
 
 #### Running WDL workflows
 
-To run WDL workflows, `cloudos job run` command can be used normally, but adding three extra
+To run WDL workflows, `cloudos job run` command can be used normally, but adding two extra
 parameters:
 
 - `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
-- `--wdl-importsfile`: name of the worfklow imported file (importsFile, *.zip).
-- `--cromwell-token`: specific token for Cromwell server, different from the personal API token.
+- `--wdl-importsfile` [Optional]: name of the worfklow imported file (importsFile, *.zip).
 
 All the rest of the `cloudos job run` functionality is available.
 
@@ -516,7 +514,6 @@ E.g.: `--parameter test.arrayTest=[\"lala\"]`
 ```bash
 # Configure variables
 MY_API_KEY="xxxxx"
-CROMWELL_TOKEN="xxxx"
 CLOUDOS="https://cloudos.lifebit.ai"
 WORKSPACE_ID="xxxxx"
 PROJECT_NAME="wdl-test"
@@ -534,7 +531,6 @@ cloudos job run \
   --workflow-name "$WORKFLOW_NAME" \
   --wdl-mainfile $MAINFILE \
   --wdl-importsfile $IMPORTSFILE \
-  --cromwell-token $CROMWELL_TOKEN \
   --job-config $JOB_PARAMS \
   --wait-completion
 ```
@@ -542,7 +538,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 1.2.1
+Version: 1.3.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -590,7 +586,6 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'API jobs'
@@ -601,7 +596,7 @@ job_config = 'cloudos/examples/rnatoy.config'
 First, create the `Job` object:
 
 ```python
-j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name)
+j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name)
 print(j)
 ```
 
@@ -652,7 +647,6 @@ import json
 
 # GLOBAL VARS.
 apikey = 'xxxxx'
-cromwell_token = 'xxxx'
 cloudos_url = 'https://cloudos.lifebit.ai'
 workspace_id = 'xxxxx'
 project_name = 'wdl-test'
@@ -662,7 +656,7 @@ importsfile = 'imports_7mb.zip'
 job_config = 'cloudos/examples/wdl.config'
 
 # First create cloudos object
-cl = cl.Cloudos(cloudos_url, apikey, cromwell_token)
+cl = cl.Cloudos(cloudos_url, apikey, None)
 
 # Then, check Cromwell status
 c_status = cl.get_cromwell_status(workspace_id)
@@ -678,7 +672,7 @@ c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
 
 # Send a job (wait until job has status: 'Completed')
-j = jb.Job(cloudos_url, apikey, cromwell_token, workspace_id, project_name, workflow_name, mainfile,
+j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name, mainfile,
            importsfile)
 j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
 j_status = j.get_job_status(j_id)

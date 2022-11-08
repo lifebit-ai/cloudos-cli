@@ -158,7 +158,8 @@ def cromwell():
               help='For WDL workflows, which importsFile (.zip) is configured to use.',)
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token. Only required for WDL jobs.')
+              help=('Specific Cromwell server authentication token. Currently, not necessary ' +
+                    'as apikey can be used instead, but maintained for backwards compatibility.'))
 @click.option('--repository-platform',
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
@@ -221,10 +222,6 @@ def run(apikey,
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        if wdl_importsfile is None:
-            raise ValueError('Please, specify WDL importsFile using --wdl-importsfile <importsFile>.')
-        if cromwell_token is None:
-            raise ValueError('Please, specify a valid Cromwell token using --cromwell-token <xxx>.')
         c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
         c_status_h = json.loads(c_status.content)["status"]
         print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
@@ -522,10 +519,13 @@ def list_workflows(apikey,
 
 @cromwell.command('status')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -543,18 +543,21 @@ def list_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_status(cromwell_token,
+def cromwell_status(apikey,
+                    cromwell_token,
                     cloudos_url,
                     workspace_id,
                     verbose,
                     disable_ssl_verification,
                     ssl_cert):
     """Check Cromwell server status in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -566,10 +569,13 @@ def cromwell_status(cromwell_token,
 
 @cromwell.command('start')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -591,7 +597,8 @@ def cromwell_status(cromwell_token,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_restart(cromwell_token,
+def cromwell_restart(apikey,
+                     cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
@@ -599,12 +606,14 @@ def cromwell_restart(cromwell_token,
                      disable_ssl_verification,
                      ssl_cert):
     """Restart Cromwell server in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     action = 'restart'
     print('Starting Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -637,10 +646,13 @@ def cromwell_restart(cromwell_token,
 
 @cromwell.command('stop')
 @click.version_option()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
-              help='Specific Cromwell server authentication token.',
-              required=True)
+              help=('Specific Cromwell server authentication token. You can use it instead of ' +
+                    'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
@@ -658,19 +670,22 @@ def cromwell_restart(cromwell_token,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_stop(cromwell_token,
+def cromwell_stop(apikey,
+                  cromwell_token,
                   cloudos_url,
                   workspace_id,
                   verbose,
                   disable_ssl_verification,
                   ssl_cert):
     """Stop Cromwell server in CloudOS."""
+    if apikey is None and cromwell_token is None:
+        raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     action = 'stop'
     print('Stopping Cromwell server...')
     if verbose:
         print('\t...Preparing objects')
-    cl = Cloudos(cloudos_url, None, cromwell_token)
+    cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')

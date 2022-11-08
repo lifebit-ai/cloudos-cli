@@ -36,8 +36,8 @@ class Job(Cloudos):
         The name of the mainFile used by the workflow. Required for WDL pipelines as different
         mainFiles could be loaded for a single pipeline.
     importsfile : string
-        The name of the importsFile used by the workflow. Required for WDL pipelines as different
-        importsFiles could be loaded for a single pipeline.
+        The name of the importsFile used by the workflow. Optional and only used for WDL pipelines
+        as different importsFiles could be loaded for a single pipeline.
     repository_platform : string
         The name of the repository platform of the workflow.
     project_id : string
@@ -125,8 +125,8 @@ class Job(Cloudos):
             Required for WDL pipelines as different mainFiles could be loaded for a single
             pipeline.
         importsfile : string
-            The name of the importsFile used by the workflow. Required for WDL pipelines as different
-            importsFiles could be loaded for a single pipeline.
+            The name of the importsFile used by the workflow. Optional and only used for WDL pipelines
+            as different importsFiles could be loaded for a single pipeline.
         repository_platform : string
             The name of the repository platform of the workflow resides.
         verify: [bool|string]
@@ -152,18 +152,16 @@ class Job(Cloudos):
             raise BadRequestException(r)
         for element in json.loads(r.content):
             if resource == 'workflows':
-                if (element["name"] == name and element["repository"]["platform"] == repository_platform):
+                if element["name"] == name and element["repository"]["platform"] == repository_platform:
                     if mainfile is None:
                         return element["_id"]
-                    elif importsfile is None:
-                        raise ValueError('Please, indicate importsfile when mainfile is used')
-                    # Not all the wdl pipelines have importsFile field
-                    elif "importsFile" in element.keys():
-                        if element["mainFile"] == mainfile and element["importsFile"] == importsfile:
+                    elif element["mainFile"] == mainfile:
+                        if importsfile is None and "importsFile" not in element.keys():
                             return element["_id"]
-            elif resource == 'projects':
-                if element["name"] == name:
-                    return element["_id"]
+                        elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
+                            return element["_id"]
+            elif resource == 'projects' and element["name"] == name:
+                return element["_id"]
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
