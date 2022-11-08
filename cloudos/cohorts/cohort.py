@@ -5,6 +5,7 @@ This is the main class for interacting with cohort browser cohorts.
 from enum import unique
 import requests
 import pandas as pd
+import numpy as np
 from cloudos.utils.errors import BadRequestException
 from .query import Query
 from sys import stderr
@@ -470,7 +471,7 @@ class Cohort(object):
 
         self.update()
 
-    def get_phenotype_statistics(self, pheno_id, page_number='all', page_size=1000):
+    def get_phenotype_statistics(self, pheno_id, page_number='all', page_size=1000, max_depth=np.Inf):
         """Get statistics on a phenotype of interest.
 
         Parameters
@@ -496,10 +497,16 @@ class Cohort(object):
             res_data = self.__fetch_stats_table(r_body, pheno_id, iter_all=True)
         else:
             res_data = self.__fetch_stats_table(r_body, pheno_id, iter_all=False)
-        res_df = pd.DataFrame(res_data)
-        res_df.drop(['total'], axis=1, inplace=True)
-        res_df.rename(columns={'_id': 'value', 'number': 'count'}, inplace=True)
-        res_df['value'] = res_df['value'].astype('object')
+        try:
+            if res_data[0]["children"] is not None:
+                flat = self.flatten_nested_phenotype(res_data, max_depth=max_depth, path=[])
+                res_df = pd.DataFrame(flat)
+                res_df = res_df[["value", "count", "id", "full_path"]]
+        except KeyError:
+            res_df = pd.DataFrame(res_data)
+            res_df.drop(['total'], axis=1, inplace=True)
+            res_df.rename(columns={'_id': 'value', 'number': 'count'}, inplace=True)
+            res_df['value'] = res_df['value'].astype('object')
 
         return res_df
 
@@ -550,3 +557,35 @@ class Cohort(object):
                 r_json = r.json()
                 res_data.extend(r_json["data"])
         return res_data
+
+    def flatten_nested_phenotype(self, items, max_depth=np.Inf, path=[]):
+        """Turns a nested JSON of phenotype statistics into a flat dictionary.
+
+        Parameters
+        ----------
+        item: dict
+            The nested JSON of phenotype statistics.
+        max_depth: int
+            The depth of the nested JSON to go to. (Default: 'np.Inf').
+        path: list
+            The path in the nested JSON from the parent term. (Default: []).
+
+        Returns
+        -------
+        Dict
+        """
+        flat_list = []
+        for i in items:
+            full_path = []
+            full_path.extend(path)
+            full_path.append(i["coding"])
+            depth = len(full_path)
+            item_l = {"full_path": full_path,
+                      "id": i["coding"],
+                      "value": i["label"],
+                      "count": i["count"]}
+            flat_list.append(item_l)
+            if len(i["children"]) > 0 and depth < max_depth:
+                l = self.flatten_nested_phenotype(i["children"], max_depth=max_depth, path=full_path)
+                flat_list.extend(l)
+        return flat_list
