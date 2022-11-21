@@ -1,5 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 2.0.0 - 2022-11-21
+- Remove all cohort browser functionality and move it to `https://github.com/lifebit-ai/cohort-browser-cli`.
+
 ### 1.3.0 - 2022-11-07
 - All Cromwell functionality works now with personal API key. The
 `--cromwell-token` argument is maintained for backwards compatibility, but can
