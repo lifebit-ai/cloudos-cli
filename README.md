@@ -704,14 +704,4 @@ Currently the Clos class function process_job_list and the Job class convert_nex
 python -m pytest -s -v
 ``` 
 
-from the cloudos-py main folder and 7 tests should pass. 
-
-## CohortBrowser worked example
-
-### Load the library
-
-Navigate to the root folder of the cloudos-py package and run cloudos-py from here. Initially, we will be importing the two main classes. These are Cohort (used to manage cohorts) and CohortBrowser (used to analyse a cohort). There are two other classes (Query and PhenoFilter) which are used for making a query of phenotypes in CloudOs and we will introduce them later.
-
-``` python
-from cloudos.cohorts import Cohort, CohortBrowser
-```
+from the cloudos-cli main folder and 7 tests should pass.
