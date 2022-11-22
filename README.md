@@ -11,9 +11,9 @@ Python package for interacting with CloudOS
 The package requires Python >= 3.8 and the following python packages:
 
 ```
-click
-requests
-pandas
+click>=8.0.1
+pandas>=1.3.4
+requests>=2.26.0
 ```
 
 ## Installation
@@ -693,9 +693,10 @@ print(c_status_h)
 Unit tests require 3 additional packages:
 
 ```
-requests-mock
-pandas
-pytest
+pytest>=6.2.5
+requests-mock>=1.9.3
+responses>=0.21.0
+mock>=3.0.5
 ```
 
 Currently the Clos class function process_job_list and the Job class convert_nextflow_to_json are tested. To run untests run 
