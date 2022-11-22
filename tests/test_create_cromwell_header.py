@@ -1,4 +1,3 @@
-import pytest
 from cloudos.clos import Cloudos
 
 TOKEN = "lifebit_test_token"
