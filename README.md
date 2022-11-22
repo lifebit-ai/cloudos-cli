@@ -672,7 +672,7 @@ c_status_h = json.loads(c_status.content)["status"]
 print(c_status_h)
 
 # Send a job (wait until job has status: 'Completed')
-j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name, mainfile,
+j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name, True, mainfile,
            importsfile)
 j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
 j_status = j.get_job_status(j_id)
