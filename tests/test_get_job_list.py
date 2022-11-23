@@ -41,6 +41,7 @@ def test_get_job_list_correct_response():
     # get mock response
     response = clos.get_job_list(WORKSPACE_ID)
     # check the response
+    assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
 
 @mock.patch('cloudos.clos', mock.MagicMock())
