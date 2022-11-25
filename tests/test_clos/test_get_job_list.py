@@ -69,7 +69,7 @@ def test_get_job_list_incorrect_response():
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=400)
-    # raise 400 error
+    # raise 400 error
     with pytest.raises(BadRequestException) as error:
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
