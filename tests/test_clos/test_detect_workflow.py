@@ -9,6 +9,8 @@ APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 
+EXPECTED_WORKFLOWS_LIST = ["nextflow" , "docker" , "wdl"]
+
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
 def test_detect_workflow():
@@ -38,7 +40,5 @@ def test_detect_workflow():
     # start cloudOS service 
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response_2 = clos.detect_workflow(workspace_id=WORKSPACE_ID, workflow_name="nf-core-deepvariant")
-    print("------")
-
-    print(response_2)
+    response = clos.detect_workflow(workspace_id=WORKSPACE_ID, workflow_name="picard")
+    assert response in EXPECTED_WORKFLOWS_LIST
