@@ -11,7 +11,7 @@ INPUT_WORKFLOW = "tests/test_data/workflows.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
-PROJECT_NAME = "anastasios-testing"
+PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
 
 @mock.patch('cloudos.clos', mock.MagicMock())
