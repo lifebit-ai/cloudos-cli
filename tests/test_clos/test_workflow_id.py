@@ -54,4 +54,4 @@ def test_workflow_id():
     # get mock response
     wf_id = job.workflow_id
     # check the response
-    assert isinstance(wf_id, str) and len(wf_id) > 0
+    assert wf_id == "111XXX111"
