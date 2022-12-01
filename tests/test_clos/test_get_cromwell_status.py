@@ -1,5 +1,6 @@
-import mock
+"""Pytests for function get_cromwell_Status"""
 import json
+import mock
 import pytest
 import requests
 import responses
@@ -27,7 +28,6 @@ def test_get_cromwell_status_correct_response():
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8"
     }
-    
     search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
