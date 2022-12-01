@@ -3,6 +3,7 @@ import json
 import responses
 from responses import matchers
 from cloudos.clos import Cloudos
+from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/process_workflow_list_initial_request.json"
 APIKEY = 'vnoiweur89u2ongs'
