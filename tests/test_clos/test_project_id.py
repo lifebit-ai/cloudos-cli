@@ -18,7 +18,7 @@ WORKFLOW_NAME = "nf-core-deepvariant"
 @responses.activate
 def test_project_id():
     """
-    Test 'workflow_id' to work as intended
+    Test 'project_id' to work as intended
     API request is mocked and replicated with json files
     """
     create_json_project = load_json_file(INPUT_PROJECT)
