@@ -1,5 +1,5 @@
+"""Pytest for fucntion detect_workflow"""
 import mock
-import json
 import responses
 from responses import matchers
 from cloudos.clos import Cloudos
