@@ -9,8 +9,6 @@ APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 
-EXPECTED_WORKFLOWS_LIST = ["nextflow", "docker", "wdl"]
-
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
