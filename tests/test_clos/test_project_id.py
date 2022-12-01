@@ -1,6 +1,4 @@
 import mock
-import json
-import requests
 import responses
 from responses import matchers
 from cloudos.jobs import Job
@@ -13,6 +11,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
+
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
@@ -46,12 +45,12 @@ def test_project_id():
             status=201)
     # start cloudOS service
     job = Job(apikey=APIKEY,
-        cloudos_url=CLOUDOS_URL,
-        workspace_id=WORKSPACE_ID,
-        cromwell_token=None,
-        project_name=PROJECT_NAME,
-        workflow_name=WORKFLOW_NAME)
+              cloudos_url=CLOUDOS_URL,
+              workspace_id=WORKSPACE_ID,
+              cromwell_token=None,
+              project_name=PROJECT_NAME,
+              workflow_name=WORKFLOW_NAME)
     # get mock response
     project_id = job.project_id
     # check the response
-    assert isinstance(project_id, str) and len(project_id) > 0
+    assert project_id == '1234bc123125'
