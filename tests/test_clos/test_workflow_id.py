@@ -1,6 +1,5 @@
+"""pytest is added for checking workflow_id"""
 import mock
-import json
-import requests
 import responses
 from responses import matchers
 from cloudos.jobs import Job
