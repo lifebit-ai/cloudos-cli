@@ -35,3 +35,9 @@ def test_ssl_selector_with_ssl_cert():
     """testing with ssl certification"""
     result = ssl_selector(disable_ssl_verification=False, ssl_cert=DUMMY_SSL_CERT_FILE)
     assert isinstance(result, str) and len(result) > 0
+
+def test_ssl_selector_no_ssl_cert():
+    """testing if ssl certification is a file"""
+    result = ssl_selector(disable_ssl_verification=False, ssl_cert=DUMMY_SSL_CERT_FILE)
+    assert os.path.isfile(result)
+    
