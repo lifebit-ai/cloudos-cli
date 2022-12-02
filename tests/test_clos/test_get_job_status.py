@@ -44,7 +44,7 @@ def test_get_job_status_correct_response():
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_list_incorrect_response():
+def test_get_job_status_incorrect_response():
     """
     Test 'get_job_list' to fail with '400' response
     """
