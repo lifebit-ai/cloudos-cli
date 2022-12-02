@@ -16,7 +16,7 @@ REASON="OK"
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_list_correct_response():
+def test_bad_request_exception():
     """
     Test 'get_job_list' to work as intended
     API request is mocked and replicated with json files
