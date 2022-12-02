@@ -18,7 +18,7 @@ REASON="OK"
 @responses.activate
 def test_time_out_exception():
     """
-    Test 'get_job_list' to work as intended
+    Test 'TimeOutException' to work as intended
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
@@ -43,4 +43,3 @@ def test_time_out_exception():
 
     assert timeout_ex.rv.status_code == STATUS_CODE
     assert timeout_ex.rv.reason == REASON
-    
