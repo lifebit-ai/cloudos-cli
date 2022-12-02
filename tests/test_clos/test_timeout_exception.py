@@ -1,4 +1,4 @@
-"""pytest added for function BadRequestException"""
+"""pytest added for function TimeOutException"""
 import mock
 import responses
 from responses import matchers
