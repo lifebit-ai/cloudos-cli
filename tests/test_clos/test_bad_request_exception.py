@@ -10,8 +10,7 @@ INPUT = "tests/test_data/process_job_list_initial_json.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
-STATUS_CODE=200
-REASON="OK"
+STATUS_CODE=400
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -37,9 +36,8 @@ def test_bad_request_exception():
             match=[matchers.query_param_matcher(params)],
             status=STATUS_CODE)
     # start cloudOS service
-    clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    response = clos.get_job_list(workspace_id=WORKSPACE_ID)
-    bad_re = BadRequestException(response)
+    with pytest.raises(BadRequestException) as error:
+        clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
+        response = clos.get_job_list(workspace_id=WORKSPACE_ID)
 
-    assert bad_re.rv.status_code == STATUS_CODE
-    assert bad_re.rv.reason == REASON
+    assert "Server returned status 400." in (str(error))
