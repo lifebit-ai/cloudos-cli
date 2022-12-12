@@ -3,7 +3,6 @@ import json
 import pytest
 import requests
 import responses
-import requests_mock
 from responses import matchers
 from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
@@ -13,6 +12,7 @@ INPUT = "tests/test_data/process_job_list_initial_json.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
+
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
@@ -36,13 +36,14 @@ def test_get_workflow_list_correct_response():
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=200)
-    # start cloudOS service 
+    # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
     response = clos.get_workflow_list(WORKSPACE_ID)
     # check the response
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
+
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
@@ -72,5 +73,5 @@ def test_get_workflow_list_incorrect_response():
     with pytest.raises(BadRequestException) as error:
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        response = clos.get_workflow_list(WORKSPACE_ID)
+        clos.get_workflow_list(WORKSPACE_ID)
     assert "Bad Request." in (str(error))
