@@ -1,4 +1,4 @@
-"""Pytest for fucntion detect_workflow"""
+"""Pytest for method Cloudos.detect_workflow"""
 import mock
 import responses
 from responses import matchers
