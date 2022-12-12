@@ -34,4 +34,3 @@ def test_process_workflow_list_all_fields_true(mocked_requests_get):
     """Test function parameter 'all_fields=True'"""
     df_ = Cloudos.process_workflow_list(mocked_requests_get, all_fields=True)
     assert (df_.columns == output_df_full.columns).any()
-    
