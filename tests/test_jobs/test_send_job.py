@@ -17,24 +17,7 @@ INPUT_PROJECT = "tests/test_data/projects.json"
 INPUT_WORKFLOW = "tests/test_data/workflows.json"
 
 param_dict = {
-    "config": "cloudos/examples/rnatoy.config",
-    "parameter": (),
-    "git_commit": None,
-    "git_tag": None,
-    "project_id": "6054754029b82f0112762b9c",
-    "workflow_id": "60b0ca54303ee601a69b42d1",
-    "job_name": "new_job",
-    "resumable": True,
-    "batch": False,
-    "nextflow_profile": None,
-    "instance_type": "c5.xlarge",
-    "instance_disk": 500,
-    "spot": True,
-    "storage_mode": 'regular',
-    "lustre_size": 1200,
-    "workflow_type": 'nextflow',
-    "cromwell_id": None,
-    "cost_limit": -1
+    "config": "cloudos/examples/rnatoy.config"
     }
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -49,10 +32,6 @@ def test_send_job():
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
     params_pro_wf = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
-    # header = {
-    #     "Accept": "application/json, text/plain, */*",
-    #     "Content-Type": "application/json;charset=UTF-8"
-    # }
     header = {
             "Content-type": "application/json",
             "apikey": APIKEY
@@ -95,3 +74,4 @@ def test_send_job():
 
     assert isinstance(job_json, str)
     assert "Job successfully launched to CloudOS, please check the following link:" in result_string
+    
