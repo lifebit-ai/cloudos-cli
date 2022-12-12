@@ -1,4 +1,4 @@
-"""pytest for fucntion process_workflow_list"""
+"""pytest for method Cloudos.process_workflow_list"""
 import json
 import requests
 from cloudos.clos import Cloudos
