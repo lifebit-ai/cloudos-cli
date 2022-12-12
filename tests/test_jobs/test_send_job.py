@@ -20,6 +20,7 @@ param_dict = {
     "config": "cloudos/examples/rnatoy.config"
     }
 
+
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
 def test_send_job():
@@ -74,4 +75,3 @@ def test_send_job():
 
     assert isinstance(job_json, str)
     assert "Job successfully launched to CloudOS, please check the following link:" in result_string
-    
