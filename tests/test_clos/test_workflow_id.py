@@ -1,4 +1,4 @@
-"""pytest is added for checking workflow_id"""
+"""pytest is added for checking Job.workflow_id"""
 import mock
 import responses
 from responses import matchers
@@ -12,6 +12,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
+
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
@@ -45,11 +46,11 @@ def test_workflow_id():
             status=201)
     # start cloudOS service
     job = Job(apikey=APIKEY,
-        cloudos_url=CLOUDOS_URL,
-        workspace_id=WORKSPACE_ID,
-        cromwell_token=None,
-        project_name=PROJECT_NAME,
-        workflow_name=WORKFLOW_NAME)
+              cloudos_url=CLOUDOS_URL,
+              workspace_id=WORKSPACE_ID,
+              cromwell_token=None,
+              project_name=PROJECT_NAME,
+              workflow_name=WORKFLOW_NAME)
     # get mock response
     wf_id = job.workflow_id
     # check the response
