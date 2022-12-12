@@ -1,4 +1,4 @@
-"""Pytests for function get_cromwell_Status"""
+"""Pytests for function Cloudos.get_cromwell_status"""
 import json
 import mock
 import pytest
