@@ -8,7 +8,6 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
-#INPUT = "tests/test_data/process_job_list_initial_json.json"
 INPUT = "tests/test_data/workflows/workflows.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
