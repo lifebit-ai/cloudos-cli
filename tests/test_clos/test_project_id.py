@@ -1,4 +1,4 @@
-"""Pytest added for checking project_id"""
+"""Pytest added for checking Job.project_id"""
 import mock
 import responses
 from responses import matchers
