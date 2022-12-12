@@ -8,7 +8,8 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
-INPUT = "tests/test_data/process_job_list_initial_json.json"
+#INPUT = "tests/test_data/process_job_list_initial_json.json"
+INPUT = "tests/test_data/workflows/workflows.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
@@ -74,4 +75,4 @@ def test_get_workflow_list_incorrect_response():
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
         clos.get_workflow_list(WORKSPACE_ID)
-    assert "Bad Request." in (str(error))
+    assert "Server returned status 400." in (str(error))
