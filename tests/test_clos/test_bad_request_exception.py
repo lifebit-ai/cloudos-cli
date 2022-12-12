@@ -1,6 +1,7 @@
 """pytest added for function BadRequestException"""
 import mock
 import responses
+import pytest
 from responses import matchers
 from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
