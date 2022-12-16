@@ -1,0 +1,115 @@
+[
+    {
+        "_id": "111XXX111",
+        "owner": {
+            "id": "XXX",
+            "name": "XXX",
+            "surname": "XXX",
+            "email": "XXX@lifebit.ai",
+            "picture": "https://gravatar.com/avatar/196f939714b85342e80af0134f3f0b19?d=identicon",
+            "completedMilestones": {
+                "hasDoneTutorial": true,
+                "hasSeenWelcomeMessage": true
+            },
+            "isPredefined": false,
+            "isSuspended": false,
+            "favoritedPublicBuckets": [
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-sars-cov-2"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-sars-cov-2"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "my-first-deploit-bucket"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "ngi-igenomes"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-public"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "rosalind-test-data"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "lifebit-featured-datasets"
+                },
+                {
+                    "_id": "XXX",
+                    "name": "deepvariant-data"
+                }
+            ],
+            "favoritedPublicAzureContainers": [],
+            "adGroups": [],
+            "isApproved": true,
+            "isReviewed": true,
+            "isVerified": true,
+            "isAllowedToCreateWorkspace": true,
+            "totalCreditsInCents": 0,
+            "dockerRegistriesCredentials": []
+        },
+        "name": "nf-core-deepvariant",
+        "defaultContainer": null,
+        "isPredefined": false,
+        "isCurated": false,
+        "isFeatured": false,
+        "isModule": false,
+        "isPublic": false,
+        "priceAmount": 0,
+        "priceUnit": "PER_SAMPLE",
+        "tags": [],
+        "overview": "",
+        "createdAt": "2019-03-01T11:36:13.758Z",
+        "updatedAt": "2019-03-01T11:36:13.758Z",
+        "imageUrl": null,
+        "parametersInfo": [],
+        "archived": {
+            "status": false,
+            "archivalTimestamp": null
+        },
+        "workflowType": "nextflow",
+        "repository": {
+            "owner": {
+                "login": "nf-core",
+                "id": "35520196"
+            },
+            "platform": "github",
+            "repositoryId": "XXX",
+            "name": "deepvariant",
+            "isPrivate": false,
+            "url": "https://github.com/nf-core/deepvariant",
+            "commit": "",
+            "branch": ""
+        },
+        "mainFile": "main.nf",
+        "processes": []
+    }
+]
