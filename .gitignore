@@ -142,3 +142,9 @@ old_scripts/
 
 # pychache
 __pycache__
+
+# .DS_Store
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
