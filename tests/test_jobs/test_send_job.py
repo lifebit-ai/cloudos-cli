@@ -53,14 +53,14 @@ def test_send_job():
             body=create_json_project,
             headers=header,
             match=[matchers.query_param_matcher(params_pro_wf)],
-            status=201)
+            status=200)
     responses.add(
             responses.GET,
             url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str_pro_wf}",
             body=create_json_workflow,
             headers=header,
             match=[matchers.query_param_matcher(params_pro_wf)],
-            status=202)
+            status=200)
     # start cloudOS service
     job = Job(apikey=APIKEY,
               cloudos_url=CLOUDOS_URL,
