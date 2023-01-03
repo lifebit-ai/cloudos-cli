@@ -53,8 +53,7 @@ def test_get_cromwell_incorrect_response():
     Test 'get_cromwell_status' to fail with '400' response
     """
     # prepare error message
-    error_message = {"statusCode": 400, "code": "BadRequest",
-                     "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
+    error_message = {"statusCode": 400, "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
     params = {"teamId": WORKSPACE_ID}
     header = {
@@ -75,4 +74,4 @@ def test_get_cromwell_incorrect_response():
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
         clos.get_cromwell_status(WORKSPACE_ID)
-    assert "Bad Request." in (str(error))
+    assert "Server returned status 400." in (str(error))
