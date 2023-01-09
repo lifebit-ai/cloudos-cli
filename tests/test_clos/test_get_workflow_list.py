@@ -8,7 +8,7 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
-INPUT = "tests/test_data/process_job_list_initial_json.json"
+INPUT = "tests/test_data/workflows/workflows.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
@@ -16,9 +16,9 @@ WORKSPACE_ID = 'lv89ufc838sdig'
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_list_correct_response():
+def test_get_workflow_list_correct_response():
     """
-    Test 'get_job_list' to work as intended
+    Test 'get_workflow_list' to work as intended
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
@@ -31,7 +31,7 @@ def test_get_job_list_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],
@@ -39,7 +39,7 @@ def test_get_job_list_correct_response():
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_list(WORKSPACE_ID)
+    response = clos.get_workflow_list(WORKSPACE_ID)
     # check the response
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
@@ -47,9 +47,9 @@ def test_get_job_list_correct_response():
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_list_incorrect_response():
+def test_get_workflow_list_incorrect_response():
     """
-    Test 'get_job_list' to fail with '400' response
+    Test 'get_workflow_list' to fail with '400' response
     """
     # prepare error message
     error_message = {"statusCode": 400, "code": "BadRequest",
@@ -64,7 +64,7 @@ def test_get_job_list_incorrect_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
             body=error_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],
@@ -73,5 +73,5 @@ def test_get_job_list_incorrect_response():
     with pytest.raises(BadRequestException) as error:
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        clos.get_job_list(WORKSPACE_ID)
-    assert "Bad Request" in (str(error))
+        clos.get_workflow_list(WORKSPACE_ID)
+    assert "Server returned status 400." in (str(error))

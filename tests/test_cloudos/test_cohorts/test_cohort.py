@@ -82,7 +82,7 @@ def test_load_errors_with_fake_cohort():
             status=500)
     with pytest.raises(BadRequestException) as excinfo:
         my_old_cohort = Cohort.load(apikey, cloudos_url, workspace_id,cohort_id)
-    assert "Internal server error." in (str(excinfo))
+    assert "Internal Server Error" in (str(excinfo))
 
 @mock.patch('cloudos.cohorts', mock.MagicMock())
 @responses.activate
