@@ -68,4 +68,4 @@ def test_get_job_status_incorrect_response():
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
         clos.get_job_status(JOB_ID)
-    assert "Bad Request." in (str(error))
+    assert "Bad Request" in (str(error))
