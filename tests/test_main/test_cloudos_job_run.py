@@ -47,13 +47,13 @@ def test_cloudos_job_run():
     params_job = {"teamId": WORKSPACE_ID}
     send_job_search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
-    # responses.add(
-    #         responses.GET,
-    #         url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
-    #         body=json_data_detect_workflow,
-    #         headers=header,
-    #         match=[matchers.query_param_matcher(params)],
-    #         status=200)
+    responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
+            body=json_data_detect_workflow,
+            headers=header,
+            match=[matchers.query_param_matcher(params)],
+            status=200)
     responses.add(
             responses.GET,
             url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
@@ -61,13 +61,13 @@ def test_cloudos_job_run():
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=201)
-    responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
-            body=create_json_workflow,
-            headers=header,
-            match=[matchers.query_param_matcher(params)],
-            status=202)
+#     responses.add(
+#             responses.GET,
+#             url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
+#             body=create_json_workflow,
+#             headers=header,
+#             match=[matchers.query_param_matcher(params)],
+#             status=202)
     responses.add(
             responses.POST,
             url=f"{CLOUDOS_URL}/api/v1/jobs?{send_job_search_str}",
@@ -75,14 +75,16 @@ def test_cloudos_job_run():
             headers=header_api,
             match=[matchers.query_param_matcher(params_job)],
             status=203)
-    # runner = CliRunner()
-    command_to_run = f"""cloudos job run --apikey {APIKEY} --cloudos-url "{CLOUDOS_URL}" --workspace-id "{WORKSPACE_ID}" --project-name "{PROJECT_NAME}" --workflow-name {WORKFLOW_NAME}"""
-    # result = runner.invoke(command_to_run)
-    try:
-        result = subprocess.run(["cloudos job run", "--apikey", APIKEY], check=True, capture_output=True, text=True)
-        print("----")
-    except subprocess.CalledProcessError as error:
-        print(error.stdout)
-        print(error.stderr)
-        raise error
-
+    runner = CliRunner()
+    result = runner.invoke(run, ["--apikey", APIKEY,
+                                    "--cloudos-url", CLOUDOS_URL, 
+                                    "--workspace-id", WORKSPACE_ID,
+                                    "--project-name", PROJECT_NAME,
+                                    "--workflow-name", WORKFLOW_NAME,
+                                    "--job-config", "cloudos/examples/rnatoy.config"])
+    print(result.exc_info)
+    print(result.exit_code)
+    print(result.exception)
+    print(result.stdout)
+    
+    # f"Hello, \"{name}\""
