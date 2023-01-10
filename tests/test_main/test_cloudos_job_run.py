@@ -11,8 +11,9 @@ from click.testing import CliRunner
 import traceback
 
 
-INPUT_SEND_JOB = "tests/test_data/send_job.json"
 INPUT_DETECT_WORKFLOW = "tests/test_data/process_workflow_list_initial_request.json"
+INPUT_SEND_JOB = "tests/test_data/send_job.json"
+INPUT_GET_JOB_STATUS = "tests/test_data/get_job_status.json"
 INPUT_PROJECT = "tests/test_data/projects.json"
 INPUT_WORKFLOW = "tests/test_data/workflows.json"
 
