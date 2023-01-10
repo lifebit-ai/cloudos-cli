@@ -38,7 +38,6 @@ def test_get_job_status_correct_response():
     # get mock response
     response = clos.get_job_status(j_id=JOB_ID)
     # check the response
-    print(response.content)
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
 
