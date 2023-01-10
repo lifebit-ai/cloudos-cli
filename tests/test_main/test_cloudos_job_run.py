@@ -24,7 +24,7 @@ PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos.__main__', mock.MagicMock())
 @responses.activate
 def test_cloudos_job_run():
     """
