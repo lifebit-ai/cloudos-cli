@@ -11,7 +11,6 @@ from tests.functions_for_pytest import load_json_file
 INPUT = "tests/test_data/process_job_list_initial_json.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
-WORKSPACE_ID = 'lv89ufc838sdig'
 JOB_ID = "616ee9681b866a01d69fa1cd"
 
 
@@ -42,11 +41,12 @@ def test_get_job_status_correct_response():
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
 
+
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_status_incorrect_response():
     """
-    Test 'get_job_list' to fail with '400' response
+    Test 'get_job_status' to fail with '400' response
     """
     # prepare error message
     error_message = {"statusCode": 400, "code": "BadRequest",
