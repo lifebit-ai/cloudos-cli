@@ -8,7 +8,7 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
-INPUT = "tests/test_data/process_job_list_initial_json.json"
+INPUT = "tests/test_data/get_job_status.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 JOB_ID = "616ee9681b866a01d69fa1cd"
@@ -38,6 +38,7 @@ def test_get_job_status_correct_response():
     # get mock response
     response = clos.get_job_status(j_id=JOB_ID)
     # check the response
+    print(response.content)
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
 
