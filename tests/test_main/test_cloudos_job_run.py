@@ -33,8 +33,8 @@ def test_cloudos_job_run():
     """
     json_data_detect_workflow = load_json_file(INPUT_DETECT_WORKFLOW)
     json_send_job = load_json_file(INPUT_SEND_JOB)
-    create_json_project = load_json_file(INPUT_PROJECT)
-    create_json_workflow = load_json_file(INPUT_WORKFLOW)
+    json_project = load_json_file(INPUT_PROJECT)
+    json_workflow = load_json_file(INPUT_WORKFLOW)
     params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
     header = {
         "Accept": "application/json, text/plain, */*",
@@ -47,7 +47,7 @@ def test_cloudos_job_run():
     search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
     params_job = {"teamId": WORKSPACE_ID}
     send_job_search_str = f"teamId={WORKSPACE_ID}"
-    # mock GET method with the .json
+    # mock detect_workflow
     responses.add(
             responses.GET,
             url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
@@ -55,6 +55,8 @@ def test_cloudos_job_run():
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=200)
+    # mock send_job
+    # mock projects
     responses.add(
             responses.GET,
             url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
@@ -62,6 +64,7 @@ def test_cloudos_job_run():
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=201)
+    # mock workflows
 #     responses.add(
 #             responses.GET,
 #             url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
@@ -69,6 +72,7 @@ def test_cloudos_job_run():
 #             headers=header,
 #             match=[matchers.query_param_matcher(params)],
 #             status=202)
+    # mock send_job
     responses.add(
             responses.POST,
             url=f"{CLOUDOS_URL}/api/v1/jobs?{send_job_search_str}",
@@ -76,6 +80,7 @@ def test_cloudos_job_run():
             headers=header_api,
             match=[matchers.query_param_matcher(params_job)],
             status=203)
+    # mock get_job_status
     runner = CliRunner()
     result = runner.invoke(run, ["--apikey", APIKEY,
                                     "--cloudos-url", CLOUDOS_URL, 
