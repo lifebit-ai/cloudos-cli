@@ -12,7 +12,7 @@ INPUT = "tests/test_data/get_job_status.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 JOB_ID = "616ee9681b866a01d69fa1cd"
-
+JOB_STATUS = "running"
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
@@ -38,6 +38,9 @@ def test_get_job_status_correct_response():
     # get mock response
     response = clos.get_job_status(j_id=JOB_ID)
     # check the response
+    result_string = response.content.decode("utf-8")
+    result_json = json.loads(result_string)
+    assert result_json["status"] == JOB_STATUS
     assert response.status_code == 200
     assert isinstance(response, requests.models.Response)
 
