@@ -9,7 +9,6 @@ from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
-INPUT = "tests/test_data/process_job_list_initial_json.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
@@ -23,7 +22,7 @@ def test_cromwell_switch():
     Test 'get_cromwell_switch' to work as intended
     API request is mocked and replicated with json files
     """
-    create_json = load_json_file(INPUT)
+    create_json = json.dumps({"mock": "response"})
     params = {"teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
