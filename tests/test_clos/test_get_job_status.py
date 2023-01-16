@@ -14,6 +14,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 JOB_ID = "616ee9681b866a01d69fa1cd"
 JOB_STATUS = "running"
 
+
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_status_correct_response():
