@@ -150,8 +150,9 @@ class Job(Cloudos):
                          params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        for element in json.loads(r.content):
-            if resource == 'workflows':
+        content = json.loads(r.content)
+        if resource == 'workflows':
+            for element in content:
                 if element["name"] == name and element["repository"]["platform"] == repository_platform:
                     if mainfile is None:
                         return element["_id"]
@@ -160,8 +161,17 @@ class Job(Cloudos):
                             return element["_id"]
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
-            elif resource == 'projects' and element["name"] == name:
-                return element["_id"]
+        elif resource == 'projects':
+            # New API projects endpoint spec
+            if type(content) is dict:
+                for element in content["projects"]:
+                    if element["name"] == name:
+                        return element["_id"]
+            # Old API projects endpoint spec added for backwards compatibility
+            elif type(content) is list:
+                for element in content:
+                    if element["name"] == name:
+                        return element["_id"]
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
