@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 2.0.0 - 2023-02-20
+- Remove all cohort browser functionality that will be maintained in a separated
+repository.
+
 ### 1.3.2 - 2023-02-08
 - Patch: fixes problems with CloudOS environments using the new API specification for
 `projects` endpoint while maintaining backwards compatibility.

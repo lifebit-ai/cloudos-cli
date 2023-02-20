@@ -12,7 +12,7 @@ setuptools.setup(
     description="Python package for interacting with CloudOS",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/lifebit-ai/cloudos-py/cloudos",
+    url="https://github.com/lifebit-ai/cloudos-cli",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
