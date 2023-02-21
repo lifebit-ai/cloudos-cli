@@ -1,5 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 2.0.0 - 2023-02-20
+- Remove all cohort browser functionality that will be maintained in a separated
+repository.
+
+### 1.3.2 - 2023-02-08
+- Patch: fixes problems with CloudOS environments using the new API specification for
+`projects` endpoint while maintaining backwards compatibility.
+
+### 1.3.1 - 2022-12-01
+- Patch: fixes `BarRequestException` and `TimeOutException` messages when the response from
+the API server is empty.
+
 ### 1.3.0 - 2022-11-07
 - All Cromwell functionality works now with personal API key. The
 `--cromwell-token` argument is maintained for backwards compatibility, but can
