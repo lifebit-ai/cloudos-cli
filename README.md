@@ -1,7 +1,7 @@
 # cloudos
 
 __Date:__ 2023-02-20\
-__Version:__ 2.0.0
+__Version:__ 2.0.1
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.0.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.0.1
 ```
 
 ### From Github
@@ -78,7 +78,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -176,8 +176,8 @@ following structure:
 ```
 params {
     reads   = s3://lifebit-featured-datasets/pipelines/rnatoy-data
-    genome  = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa
-    annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
+    genome  = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.Ggal71.500bpflank.fa
+    annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.bed.gff
 }
 ```
 
@@ -206,8 +206,8 @@ cloudos job run \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
     --parameter reads=s3://lifebit-featured-datasets/pipelines/rnatoy-data \
-    --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa \
-    --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff \
+    --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.Ggal71.500bpflank.fa \
+    --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.bed.gff \
     --resumable \
     --spot
 ```
@@ -220,7 +220,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -263,7 +263,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -292,7 +292,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -327,7 +327,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -350,7 +350,7 @@ cloudos job list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -383,7 +383,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -405,7 +405,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -432,7 +432,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -451,7 +451,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -472,7 +472,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 Cromwell server functionality: check status, start and stop.
 
@@ -538,7 +538,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.0
+Version: 2.0.1
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
