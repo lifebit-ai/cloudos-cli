@@ -176,8 +176,8 @@ following structure:
 ```
 params {
     reads   = s3://lifebit-featured-datasets/pipelines/rnatoy-data
-    genome  = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.Ggal71.500bpflank.fa
-    annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.bed.gff
+    genome  = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa
+    annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
 }
 ```
 
@@ -206,8 +206,8 @@ cloudos job run \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
     --parameter reads=s3://lifebit-featured-datasets/pipelines/rnatoy-data \
-    --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.Ggal71.500bpflank.fa \
-    --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_4902.0.1.bed.gff \
+    --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa \
+    --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff \
     --resumable \
     --spot
 ```
