@@ -47,11 +47,11 @@ def test_process_job_list_df_values_equal(mocked_requests_get,):
     df = Cloudos.process_job_list(mocked_requests_get)
     columns_to_compare = ['_id', 'team', 'name', 'status',
                           'startTime', 'endTime', 'createdAt', 'updatedAt',
-                          'computeCostSpent',     'resumeWorkDir', 'user.id',
+                          'computeCostSpent', 'user.id',
                           'workflow._id', 'workflow.name', 'workflow.createdAt',
                           'workflow.updatedAt', 'workflow.workflowType',
-                          'project._id', 'project.name', 'project.user',
-                          'project.team', 'project.createdAt', 'project.updatedAt',
+                          'project._id', 'project.name',
+                          'project.createdAt', 'project.updatedAt',
                           'masterInstance.usedInstance.type',
                           'spotInstances.usedInstance.asSpot']
     assert np.all(df[columns_to_compare] == output_df[columns_to_compare])

@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+### 2.0.1 - 2023-03-07
+- Removes some default fields returned from `cloudos job list` command in preparation for
+its deprecation from the CloudOS API. In particular, the following fields were removed:
+    * `resumeWorkDir`
+    * `project.user`
+    * `project.team`
+
 ### 2.0.0 - 2023-02-20
 - Remove all cohort browser functionality that will be maintained in a separated
 repository.
