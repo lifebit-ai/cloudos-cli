@@ -33,7 +33,7 @@ jobs:
     - name: Run tests
       run: |
         pytest
-  Pytest:
+  cloudos_cli_tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
