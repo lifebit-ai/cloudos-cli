@@ -24,7 +24,7 @@ setuptools.setup(
     ]},
     install_requires=["click", "pandas", "requests"],
     extras_require={
-        "test": ["pytest", "mock", "responses"]
+        "test": ["pytest", "mock", "responses", "requests_mock"]
     },
     include_package_data=True
 )
