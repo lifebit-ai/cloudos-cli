@@ -76,4 +76,6 @@ jobs:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
       run: |
-        cloudos job run --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "API jobs" --workflow-name rnatoy --job-config "cloudos/examples/rnatoy.config" --instance-type "c5.large" --spot --wait-completion
+        cloudos job run --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "API jobs" --workflow-name rnatoy --job-config "cloudos/examples/rnatoy.config" --instance-type "c5.large" --spot 2>&1 | tee out.txt
+        JOB_ID=$(grep -q -e "Your assigned job id is:" | rev | cut -f1 -d " " | rev)
+        cloudos job status --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
