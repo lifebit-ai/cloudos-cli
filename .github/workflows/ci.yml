@@ -33,7 +33,7 @@ jobs:
     - name: Run tests
       run: |
         pytest
-  cloudos_cli_tests:
+  job_list:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -55,3 +55,25 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
       run: |
         cloudos job list --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  job_run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+      run: |
+        cloudos job run --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "API jobs" --workflow-name rnatoy --job-config "cloudos/examples/rnatoy.config" --instance-type "c5.large" --spot --wait-completion
