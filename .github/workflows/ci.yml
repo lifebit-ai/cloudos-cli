@@ -77,7 +77,7 @@ jobs:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://staging.lifebit.ai"
-        PROJECT_NAME: "cloudos-cli-tests"
+        PROJECT_NAME: "ci-testing"
         WORKFLOW: "rnatoy"
         JOB_CONFIG: "cloudos/examples/rnatoy.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test"
