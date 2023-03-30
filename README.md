@@ -1,7 +1,7 @@
 # cloudos
 
-__Date:__ 2023-03-07\
-__Version:__ 2.0.1
+__Date:__ 2023-03-30\
+__Version:__ 2.1.0
 
 
 Python package for interacting with CloudOS
@@ -25,7 +25,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.0.1
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.1.0
 ```
 
 ### From Github
@@ -78,7 +78,7 @@ cloudos job run --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -220,7 +220,7 @@ If everything went well, you should see something like:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -263,7 +263,7 @@ previous command should have an output similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -292,7 +292,7 @@ The expected output should be something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -304,7 +304,8 @@ Executing status...
 
 #### Get a list of your jobs from a CloudOS workspace
 
-You can get a summary of your last 30 submitted jobs in two different formats:
+You can get a summary of your last 30 submitted jobs (or all your jobs using `--get-all-jobs` flag)
+in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
@@ -327,7 +328,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
@@ -338,24 +339,25 @@ Executing list...
 
 In addition, a file named `joblist.csv` is created.
 
-To get the same information, but in JSON format, use the following command:
+To get the same information, but for all yourjobs and in JSON format, use the following command:
 
 ```bash
 cloudos job list \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
+    --get-all-jobs \
     --output-format json
 ```
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 
 Executing list...
-	Job list collected with a total of 30 jobs.
+	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
 ```
 
@@ -383,7 +385,7 @@ The expected output is something similar to:
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -405,7 +407,7 @@ cloudos workflow list \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS workflow functionality: list workflows in CloudOS.
 
@@ -432,7 +434,7 @@ cloudos cromwell status \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -451,7 +453,7 @@ cloudos cromwell start \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -472,7 +474,7 @@ cloudos cromwell stop \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 Cromwell server functionality: check status, start and stop.
 
@@ -538,7 +540,7 @@ cloudos job run \
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.0.1
+Version: 2.1.0
 
 CloudOS job functionality: run and check jobs in CloudOS.
 

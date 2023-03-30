@@ -135,13 +135,17 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, verify=True):
-        """Get all the jobs from a CloudOS workspace.
+    def get_job_list(self, workspace_id, get_all_jobs=False, page=1, verify=True):
+        """Get jobs from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
+        get_all_jobs : bool
+            Whether to get all results or just the specified page.
+        page : int
+            Response page to get.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -149,26 +153,35 @@ class Cloudos:
 
         Returns
         -------
-        r : requests.models.Response
-            The server response
+        r : list
+            A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
         data = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/jobs?teamId={}".format(self.cloudos_url,
-                                                           workspace_id),
+        r = requests.get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
+                                                                   workspace_id, page),
                          params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return r
+        if get_all_jobs:
+            content = json.loads(r.content)
+            page_limit = content['paginationMetadata']['Pagination-Limit']
+            jobs_seen = len(content['jobs'])
+            if page_limit > jobs_seen:
+                return content['jobs']
+            else:
+                return content['jobs'] + self.get_job_list(workspace_id, get_all_jobs=True,
+                                                           page=page+1,  verify=verify)
+        else:
+            return json.loads(r.content)['jobs']
 
     @staticmethod
     def process_job_list(r, all_fields=False):
-        """Process a server response from a self.get_job_list call.
+        """Process a job list from a self.get_job_list call.
 
         Parameters
         ----------
-        r : requests.models.Response
-            The server response. It should contain a field named 'jobs' and
-            the required columns (hard-coded in the function).
+        r : list
+            A list of dicts, each corresponding to a jobs from the user and the workspace.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
@@ -203,8 +216,7 @@ class Cloudos:
                    'masterInstance.usedInstance.type',
                    'spotInstances.usedInstance.asSpot'
                    ]
-        my_jobs = json.loads(r.content)
-        df_full = pd.json_normalize(my_jobs['jobs'])
+        df_full = pd.json_normalize(r)
         if all_fields:
             df = df_full
         else:
