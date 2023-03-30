@@ -170,7 +170,7 @@ class Cloudos:
                 return content['jobs']
             else:
                 return content['jobs'] + self.get_job_list(workspace_id, get_all_jobs=True,
-                                                           page=page+1,  verify=verify)
+                                                           page=page+1, verify=verify)
         else:
             return json.loads(r.content)['jobs']
 
