@@ -339,7 +339,7 @@ Executing list...
 
 In addition, a file named `joblist.csv` is created.
 
-To get the same information, but for all yourjobs and in JSON format, use the following command:
+To get the same information, but for all your jobs and in JSON format, use the following command:
 
 ```bash
 cloudos job list \

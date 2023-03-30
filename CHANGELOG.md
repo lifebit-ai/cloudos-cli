@@ -1,8 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
 ### 2.1.0 - 2023-03-30
-- Feature: now `cloudos job list` has the new flag `--get-all-jobs`, if used, all
-user jobs will be collected, not just the ones from the first response page (first 30).
+- Feature: `cloudos job list` has the new flag `--get-all-jobs`, if used, all
+user's jobs will be collected, not just the ones from the first response page (first 30).
 
 ### 2.0.1 - 2023-03-07
 - Removes some default fields returned from `cloudos job list` command in preparation for
