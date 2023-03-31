@@ -1,7 +1,6 @@
 import mock
 import json
 import pytest
-import requests
 import responses
 from responses import matchers
 from cloudos.clos import Cloudos
@@ -39,7 +38,7 @@ def test_get_job_list_correct_response():
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_list(WORKSPACE_ID)
+    response = clos.get_job_list(WORKSPACE_ID, last_n_jobs=1)
     # check the response
     assert isinstance(response, list)
 
