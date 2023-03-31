@@ -283,8 +283,9 @@ def run(apikey,
               f'{wait_time} seconds is reached.')
         elapsed = 0
         j_status_h_old = ''
-        # make sure user doesn't surpass the wait time
-        if request_interval > wait_time: request_interval = wait_time
+        # make sure user doesn't surpass the wait time
+        if request_interval > wait_time:
+            request_interval = wait_time
         while elapsed < wait_time:
             j_status = j.get_job_status(j_id, verify_ssl)
             j_status_h = json.loads(j_status.content)["status"]
@@ -394,7 +395,7 @@ def job_status(apikey,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output.',
+              help='The desired file format (file extension) for the output. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
@@ -402,6 +403,15 @@ def job_status(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--last-n-jobs',
+              help=("The number of last user's jobs to retrieve. You can use 'all' to " +
+                    "retrieve all user's jobs. Default=30."),
+              default='30')
+@click.option('--page',
+              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
+                    'value corresponds to the first page to retrieve. Default=1.'),
+              type=int,
+              default=1)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -417,6 +427,8 @@ def list_jobs(apikey,
               output_basename,
               output_format,
               all_fields,
+              last_n_jobs,
+              page,
               verbose,
               disable_ssl_verification,
               ssl_cert):
@@ -432,7 +444,13 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
-    my_jobs_r = cl.get_job_list(workspace_id, verify_ssl)
+    if last_n_jobs != 'all':
+        try:
+            last_n_jobs = int(last_n_jobs)
+        except ValueError:
+            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
+            raise
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, verify_ssl)
     if output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
@@ -465,7 +483,7 @@ def list_jobs(apikey,
               default='workflow_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output.',
+              help='The desired file format (file extension) for the output. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',

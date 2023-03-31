@@ -1,7 +1,6 @@
 import mock
 import json
 import pytest
-import requests
 import responses
 from responses import matchers
 from cloudos.clos import Cloudos
@@ -22,12 +21,12 @@ def test_get_job_list_correct_response():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID, "page": 1, "apikey": APIKEY}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8"
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}&page=1&apikey={APIKEY}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -39,10 +38,9 @@ def test_get_job_list_correct_response():
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_list(WORKSPACE_ID)
+    response = clos.get_job_list(WORKSPACE_ID, last_n_jobs=1)
     # check the response
-    assert response.status_code == 200
-    assert isinstance(response, requests.models.Response)
+    assert isinstance(response, list)
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -55,12 +53,12 @@ def test_get_job_list_incorrect_response():
     error_message = {"statusCode": 400, "code": "BadRequest",
                      "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID, "page": 1, "apikey": APIKEY}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8"
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}&page=1&apikey={APIKEY}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
