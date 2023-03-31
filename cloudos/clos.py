@@ -135,15 +135,16 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, get_all_jobs=False, page=1, verify=True):
+    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, verify=True):
         """Get jobs from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
-        get_all_jobs : bool
-            Whether to get all results or just the specified page.
+        last_n_jobs : [int | 'all']
+            How many of the last jobs from the user to retrieve. You can specify a
+            very large int or 'all' to get all user's jobs.
         page : int
             Response page to get.
         verify: [bool|string]
@@ -162,17 +163,25 @@ class Cloudos:
                          params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        if get_all_jobs:
-            content = json.loads(r.content)
-            page_limit = content['paginationMetadata']['Pagination-Limit']
-            jobs_seen = len(content['jobs'])
-            if page_limit > jobs_seen:
-                return content['jobs']
-            else:
-                return content['jobs'] + self.get_job_list(workspace_id, get_all_jobs=True,
-                                                           page=page+1, verify=verify)
+        content = json.loads(r.content)
+        n_jobs = len(content['jobs'])
+        if last_n_jobs == 'all':
+            jobs_to_get = n_jobs
+        elif last_n_jobs > 0:
+            jobs_to_get = last_n_jobs - n_jobs
         else:
-            return json.loads(r.content)['jobs']
+            raise TypeError("[ERROR] Please select an int > 0 or 'all' for 'last_n_jobs'")
+        if jobs_to_get == 0 or n_jobs == 0:
+            return content['jobs']
+        if jobs_to_get > 0:
+            if last_n_jobs == 'all':
+                next_to_get = 'all'
+            else:
+                next_to_get = jobs_to_get
+            return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
+                                                       page=page+1, verify=verify)
+        if jobs_to_get < 0:
+            return content['jobs'][:jobs_to_get]
 
     @staticmethod
     def process_job_list(r, all_fields=False):
@@ -181,7 +190,7 @@ class Cloudos:
         Parameters
         ----------
         r : list
-            A list of dicts, each corresponding to a jobs from the user and the workspace.
+            A list of dicts, each corresponding to a job from the user and the workspace.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.

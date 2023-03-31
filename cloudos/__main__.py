@@ -403,12 +403,12 @@ def job_status(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
-@click.option('--get-all-jobs',
-              help=('Whether to collect all available jobs or ' +
-                    'just the specified response page.'),
-              is_flag=True)
+@click.option('--last-n-jobs',
+              help=("The number of last user's jobs to retrieve. You can use 'all' to " +
+                    "retrieve all user's jobs. Default=30."),
+              default='30')
 @click.option('--page',
-              help=('Response page to retrieve. If --get-all-jobs is set, then --page ' +
+              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
                     'value corresponds to the first page to retrieve. Default=1.'),
               type=int,
               default=1)
@@ -427,7 +427,7 @@ def list_jobs(apikey,
               output_basename,
               output_format,
               all_fields,
-              get_all_jobs,
+              last_n_jobs,
               page,
               verbose,
               disable_ssl_verification,
@@ -444,7 +444,13 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
-    my_jobs_r = cl.get_job_list(workspace_id, get_all_jobs, page, verify_ssl)
+    if last_n_jobs != 'all':
+        try:
+            last_n_jobs = int(last_n_jobs)
+        except ValueError:
+            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
+            raise
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, verify_ssl)
     if output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)

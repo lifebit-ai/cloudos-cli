@@ -304,8 +304,8 @@ Executing status...
 
 #### Get a list of your jobs from a CloudOS workspace
 
-You can get a summary of your last 30 submitted jobs (or all your jobs using `--get-all-jobs` flag)
-in two different formats:
+You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
+parameter) in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
@@ -346,7 +346,7 @@ cloudos job list \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
-    --get-all-jobs \
+    --last-n-jobs all \
     --output-format json
 ```
 ```console
