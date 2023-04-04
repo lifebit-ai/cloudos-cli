@@ -1,9 +1,5 @@
 # cloudos
 
-__Date:__ 2023-03-30\
-__Version:__ 2.1.0
-
-
 Python package for interacting with CloudOS
 
 ## Requirements
@@ -25,7 +21,7 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.1.0
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 ```
 
 ### From Github
@@ -76,16 +72,6 @@ own subcommands with its own `--help`:
 cloudos job run --help
 ```
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
-Usage: cloudos job run [OPTIONS]
-
-  Submit a job to CloudOS.
-
 Options:
   -k, --apikey TEXT           Your CloudOS API key  [required]
   -c, --cloudos-url TEXT      The CloudOS url you are trying to access to.
@@ -218,12 +204,6 @@ cloudos job run \
 If everything went well, you should see something like:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
 	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355
 	Your assigned job id is: 62c83a1191fe06013b7ef355
@@ -261,12 +241,6 @@ If the job takes less than `--wait-time` (3600 seconds by default), the
 previous command should have an output similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
 	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a6191fe06013b7ef363
 	Your assigned job id is: 62c83a6191fe06013b7ef363
@@ -290,12 +264,6 @@ cloudos job status \
 The expected output should be something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing status...
 	Your current job status is: completed
 
@@ -326,12 +294,6 @@ cloudos job list \
 The expected output is something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing list...
 	Job list collected with a total of 30 jobs.
 	Job list saved to joblist.csv
@@ -350,12 +312,6 @@ cloudos job list \
     --output-format json
 ```
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing list...
 	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
@@ -383,12 +339,6 @@ cloudos workflow list \
 The expected output is something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS workflow functionality: list workflows in CloudOS.
-
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.csv
@@ -405,12 +355,6 @@ cloudos workflow list \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS workflow functionality: list workflows in CloudOS.
-
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.json
@@ -432,12 +376,6 @@ cloudos cromwell status \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-Cromwell server functionality: check status, start and stop.
-
 Executing status...
 	Current Cromwell server status is: Stopped
 ```
@@ -451,12 +389,6 @@ cloudos cromwell start \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-Cromwell server functionality: check status, start and stop.
-
 Starting Cromwell server...
 	Current Cromwell server status is: Initializing
 
@@ -472,12 +404,6 @@ cloudos cromwell stop \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-Cromwell server functionality: check status, start and stop.
-
 Stopping Cromwell server...
 	Current Cromwell server status is: Stopped
 ```
@@ -538,12 +464,6 @@ cloudos job run \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.1.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
     WDL workflow detected
 
