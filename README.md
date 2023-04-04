@@ -62,6 +62,7 @@ Options:
 Commands:
   cromwell  Cromwell server functionality: check status, start and stop.
   job       CloudOS job functionality: run and check jobs in CloudOS.
+  project   CloudOS project functionality: list projects in CloudOS.
   workflow  CloudOS workflow functionality: list workflows in CloudOS.
 ``` 
 
@@ -360,6 +361,34 @@ Executing list...
 	Workflow list saved to workflow_list.json
 ```
 
+#### Get a list of all available projects from a CloudOS workspace
+
+Similarly to the `workflows` functionality, you can get a summary of all the available workspace
+projects in two different formats:
+- CSV: this is a table with a minimum predefined set of columns by default, or all the
+available columns using the `--all-fields` parameter.
+- JSON: all the available information from workflows, in JSON format.
+
+To get a CSV table with all the available workflows for a given workspace, use
+the following command:
+
+```bash
+cloudos project list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --output-format csv \
+    --all-fields
+```
+
+The expected output is something similar to:
+
+```console
+Executing list...
+	Workflow list collected with a total of 320 projects.
+	Workflow list saved to project_list.csv
+```
+
 ### WDL pipeline support
 
 #### Cromwell server managing
@@ -555,6 +584,15 @@ following command.
 my_workflows_r = j.get_workflow_list(workspace_id)
 my_workflows = j.process_workflow_list(my_workflows_r)
 print(my_workflows)
+```
+
+Similarly, you can inspect all the available projects for a given workspace using the
+following command.
+
+```python
+my_projects_r = j.get_project_list(workspace_id)
+my_projects = j.process_project_list(my_projects_r)
+print(my_projects)
 ```
 
 #### Running WDL pipelines using your own scripts
