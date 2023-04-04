@@ -1,10 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## Unreleased
+## v2.2.0 (2023-04-04)
 
 ### Documentation
 
 - add commitizen support
+
+### Feature
+
+- add project list
 
 ### 2.1.0 - 2023-03-30
 - Feature: `cloudos job list` has the new parameter `--last-n-jobs n`, if used, the last
