@@ -367,9 +367,9 @@ Similarly to the `workflows` functionality, you can get a summary of all the ava
 projects in two different formats:
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` parameter.
-- JSON: all the available information from workflows, in JSON format.
+- JSON: all the available information from projects, in JSON format.
 
-To get a CSV table with all the available workflows for a given workspace, use
+To get a CSV table with all the available projects for a given workspace, use
 the following command:
 
 ```bash
