@@ -555,8 +555,8 @@ def list_workflows(apikey,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--output-basename',
-              help=('Output file base name to save workflow list. ' +
-                    'Default=workflow_list'),
+              help=('Output file base name to save project list. ' +
+                    'Default=project_list'),
               default='project_list',
               required=False)
 @click.option('--output-format',
@@ -564,7 +564,7 @@ def list_workflows(apikey,
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
-              help=('Whether to collect all available fields from workflows or ' +
+              help=('Whether to collect all available fields from projects or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)

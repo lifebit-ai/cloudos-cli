@@ -328,7 +328,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
+            The CloudOS workspace id from to collect the projects.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
