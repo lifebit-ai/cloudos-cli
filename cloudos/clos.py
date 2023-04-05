@@ -377,6 +377,8 @@ class Cloudos:
                    'notebookSessionCount'
                    ]
         my_projects = json.loads(r.content)
+        if 'projects' in my_projects:
+            my_projects = my_projects['projects']
         df_full = pd.json_normalize(my_projects)
         if all_fields:
             df = df_full

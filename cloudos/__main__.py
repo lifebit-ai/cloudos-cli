@@ -606,8 +606,13 @@ def list_projects(apikey,
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(my_projects_r.text)
+        content = json.loads(my_projects_r.content)
+        if 'projects' in content:
+            content_l = len(content['projects'])
+        else:
+            content_l = len(content)
         print('\tProject list collected with a total of ' +
-              f'{len(json.loads(my_projects_r.content))} projects.')
+              f'{content_l} projects.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')
