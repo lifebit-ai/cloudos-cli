@@ -353,8 +353,10 @@ class Cloudos:
         Parameters
         ----------
         r : requests.models.Response
-            The server response. It should contain a list of dicts, one for each project, and
-            the required columns (hard-coded in the function).
+        The server response. There are two types of responses:
+            - A list with 2 elements: 'total' and 'projects', being 'projects' a list of dicts,
+              one for each project.
+            - A list of dicts, one for each project.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
