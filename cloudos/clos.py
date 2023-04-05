@@ -362,7 +362,7 @@ class Cloudos:
         Returns
         -------
         df : pandas.DataFrame
-            A DataFrame with the requested columns from the workflows.
+            A DataFrame with the requested columns from the projects.
         """
         COLUMNS = ['_id',
                    'name',
@@ -376,8 +376,8 @@ class Cloudos:
                    'jobCount',
                    'notebookSessionCount'
                    ]
-        my_workflows = json.loads(r.content)
-        df_full = pd.json_normalize(my_workflows)
+        my_projects = json.loads(r.content)
+        df_full = pd.json_normalize(my_projects)
         if all_fields:
             df = df_full
         else:
