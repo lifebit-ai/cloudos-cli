@@ -321,3 +321,69 @@ class Cloudos:
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
         return str(wt[0])
+
+    def get_project_list(self, workspace_id, verify=True):
+        """Get all the project from a CloudOS workspace.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id from to collect the projects.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        data = {"apikey": self.apikey}
+        r = requests.get("{}/api/v1/projects?teamId={}".format(self.cloudos_url, workspace_id),
+                         params=data, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
+    @staticmethod
+    def process_project_list(r, all_fields=False):
+        """Process a server response from a self.get_project_list call.
+
+        Parameters
+        ----------
+        r : requests.models.Response
+        The server response. There are two types of responses:
+            - A list with 2 elements: 'total' and 'projects', being 'projects' a list of dicts,
+              one for each project.
+            - A list of dicts, one for each project.
+        all_fields : bool. Default=False
+            Whether to return a reduced version of the DataFrame containing
+            only the selected columns or the full DataFrame.
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            A DataFrame with the requested columns from the projects.
+        """
+        COLUMNS = ['_id',
+                   'name',
+                   'user.id',
+                   'user.name',
+                   'user.surname',
+                   'user.email',
+                   'createdAt',
+                   'updatedAt',
+                   'workflowCount',
+                   'jobCount',
+                   'notebookSessionCount'
+                   ]
+        my_projects = json.loads(r.content)
+        if 'projects' in my_projects:
+            my_projects = my_projects['projects']
+        df_full = pd.json_normalize(my_projects)
+        if all_fields:
+            df = df_full
+        else:
+            df = df_full.loc[:, COLUMNS]
+        return df

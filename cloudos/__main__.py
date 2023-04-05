@@ -70,6 +70,12 @@ def workflow():
 
 
 @run_cloudos_cli.group()
+def project():
+    """CloudOS project functionality: list projects in CloudOS."""
+    print(project.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
 def cromwell():
     """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
@@ -533,6 +539,83 @@ def list_workflows(apikey,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tWorkflow list saved to {outfile}')
+
+
+@project.command('list')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--output-basename',
+              help=('Output file base name to save project list. ' +
+                    'Default=project_list'),
+              default='project_list',
+              required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output. Default=csv.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from projects or ' +
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def list_projects(apikey,
+                  cloudos_url,
+                  workspace_id,
+                  output_basename,
+                  output_format,
+                  all_fields,
+                  verbose,
+                  disable_ssl_verification,
+                  ssl_cert):
+    """Collect all projects from a CloudOS workspace in CSV format."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    outfile = output_basename + '.' + output_format
+    print('Executing list...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tSearching for projects in the following workspace: ' +
+              f'{workspace_id}')
+    my_projects_r = cl.get_project_list(workspace_id, verify_ssl)
+    if output_format == 'csv':
+        my_projects = cl.process_project_list(my_projects_r, all_fields)
+        my_projects.to_csv(outfile, index=False)
+        print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(my_projects_r.text)
+        content = json.loads(my_projects_r.content)
+        if 'projects' in content:
+            content_l = len(content['projects'])
+        else:
+            content_l = len(content)
+        print('\tProject list collected with a total of ' +
+              f'{content_l} projects.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tProject list saved to {outfile}')
 
 
 @cromwell.command('status')
