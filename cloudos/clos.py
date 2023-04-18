@@ -232,6 +232,72 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
+    def get_curated_workflow_list(self, workspace_id, get_all=True, page=1, verify=True):
+        """Get all the curated workflows from a CloudOS workspace.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id from to collect the workflows.
+        get_all : bool
+            Whether to get all available curated workflows or just the indicated page.
+        page : int
+            The page number to retrieve, from the paginated response.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : list
+            A list of dicts, each corresponding to a workflow.
+        """
+        data = {"apikey": self.apikey,
+                "search": "",
+                "page": page,
+                "filters": [
+                    [
+                        {
+                            "isPredefined": True,
+                            "isCurated": True,
+                            "isFeatured": False,
+                            "isModule": False
+                        },
+                        {
+                            "isPredefined": True,
+                            "isCurated": False,
+                            "isFeatured": False,
+                            "isModule": False
+                        },
+                        {
+                            "isPredefined": True,
+                            "isCurated": True,
+                            "isFeatured": True,
+                            "isModule": False
+                        }
+                    ]
+                 ]
+                }
+        r = requests.post("{}/api/v1/workflows/getByType?teamId={}".format(self.cloudos_url,
+                                                                           workspace_id),
+                          json=data, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        content = json.loads(r.content)
+        if get_all:
+            workflows_collected = len(content['pipelines'])
+            workflows_to_get = content['total']
+            if workflows_to_get <= workflows_collected or workflows_collected == 0:
+                return content['pipelines']
+            if workflows_to_get > workflows_collected:
+                return content['pipelines'] + self.get_curated_workflow_list(workspace_id,
+                                                                             get_all=True,
+                                                                             page=page+1,
+                                                                             verify=verify)
+        else:
+            return content['pipelines']
+
     def get_workflow_list(self, workspace_id, verify=True):
         """Get all the workflows from a CloudOS workspace.
 
@@ -246,8 +312,8 @@ class Cloudos:
 
         Returns
         -------
-        r : requests.models.Response
-            The server response
+        r : list
+            A list of dicts, each corresponding to a workflow.
         """
         data = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
@@ -255,7 +321,7 @@ class Cloudos:
                          params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return r
+        return json.loads(r.content)
 
     @staticmethod
     def process_workflow_list(r, all_fields=False):
@@ -285,8 +351,7 @@ class Cloudos:
                    'repository.url',
                    'repository.isPrivate'
                    ]
-        my_workflows = json.loads(r.content)
-        df_full = pd.json_normalize(my_workflows)
+        df_full = pd.json_normalize(r)
         if all_fields:
             df = df_full
         else:
