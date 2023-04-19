@@ -361,8 +361,8 @@ Executing list...
 	Workflow list saved to workflow_list.json
 ```
 
-Normally, collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOs.
-By using `--curated` flag, the collected workflows will only include "CURATED PIPELINES & TOOLS".
+Normally, collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOS.
+By using `--curated` flag, the collected workflows will instead include "CURATED PIPELINES & TOOLS" only.
 
 ```bash
 cloudos workflow list \
