@@ -346,6 +346,7 @@ class Cloudos:
                    'archived.status',
                    'mainFile',
                    'workflowType',
+                   'parameters',
                    'repository.name',
                    'repository.platform',
                    'repository.url',
@@ -355,7 +356,11 @@ class Cloudos:
         if all_fields:
             df = df_full
         else:
-            df = df_full.loc[:, COLUMNS]
+            present_columns = []
+            for column in COLUMNS:
+                if column in df_full.columns:
+                    present_columns.append(column)
+            df = df_full.loc[:, present_columns]
         return df
 
     def detect_workflow(self, workflow_name, workspace_id, verify=True):
