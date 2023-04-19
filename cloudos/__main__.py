@@ -500,9 +500,6 @@ def list_jobs(apikey,
 @click.option('--curated',
               help='Whether to collect curated workflows only.',
               is_flag=True)
-@click.option('--curated-with-defaults',
-              help='Whether to collect curated workflows with available default parameters only.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -519,7 +516,6 @@ def list_workflows(apikey,
                    output_format,
                    all_fields,
                    curated,
-                   curated_with_defaults,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert):
@@ -535,7 +531,7 @@ def list_workflows(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
-    if curated or curated_with_defaults:
+    if curated:
         my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify_ssl)
     else:
         my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
