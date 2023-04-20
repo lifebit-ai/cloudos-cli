@@ -329,9 +329,8 @@ class Cloudos:
 
         Parameters
         ----------
-        r : requests.models.Response
-            The server response. It should contain a field named 'workflows' and
-            the required columns (hard-coded in the function).
+        r : list
+            A list of dicts, each corresponding to a workflow.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
