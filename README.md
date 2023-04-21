@@ -361,6 +361,23 @@ Executing list...
 	Workflow list saved to workflow_list.json
 ```
 
+Normally, collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOS.
+By using `--curated` flag, the collected workflows will instead include "CURATED PIPELINES & TOOLS" only.
+
+```bash
+cloudos workflow list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --curated
+```
+```console
+Executing list...
+	Workflow list collected with a total of 73 workflows.
+	Workflow list saved to workflow_list.csv
+```
+
+
 #### Get a list of all available projects from a CloudOS workspace
 
 Similarly to the `workflows` functionality, you can get a summary of all the available workspace

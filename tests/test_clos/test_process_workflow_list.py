@@ -21,7 +21,7 @@ def fixture_mocked_requests_get():
         mock.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}",
                  json=data_d)
         r_get = requests.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}")
-    return r_get
+    return json.loads(r_get.content)
 
 
 def test_process_workflow_list_all_fields_false(mocked_requests_get):

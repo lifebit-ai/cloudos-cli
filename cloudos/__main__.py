@@ -463,8 +463,8 @@ def list_jobs(apikey,
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_jobs_r.text)
-        print(f'\tJob list collected with a total of {len(json.loads(my_jobs_r.content)["jobs"])} jobs.')
+            o.write(json.dumps(my_jobs_r))
+        print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tJob list saved to {outfile}')
@@ -497,6 +497,9 @@ def list_jobs(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--curated',
+              help='Whether to collect curated workflows only.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -512,6 +515,7 @@ def list_workflows(apikey,
                    output_basename,
                    output_format,
                    all_fields,
+                   curated,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert):
@@ -527,15 +531,18 @@ def list_workflows(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
-    my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
+    if curated:
+        my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify_ssl)
+    else:
+        my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
     if output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
         print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_workflows_r.text)
-        print(f'\tWorkflow list collected with a total of {len(json.loads(my_workflows_r.content))} workflows.')
+            o.write(json.dumps(my_workflows_r))
+        print(f'\tWorkflow list collected with a total of {len(my_workflows_r)} workflows.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tWorkflow list saved to {outfile}')
