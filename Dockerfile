@@ -25,6 +25,11 @@ RUN mamba env export --name ${ENV_NAME} > ${ENV_NAME}_exported.yml
 RUN apt-get update \
   && apt-get install procps -y
 
+# Install aws-cli and jq tools to support aws ssm parameters fetching
+
+RUN apt-get update \
+  && apt-get install jq awscli -y
+
 # Copy local package files to be able to install
 COPY . /
 # Add the created folder to PATH so that tools are accessible
