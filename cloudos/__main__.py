@@ -336,6 +336,103 @@ def run(apikey,
               f'\t\t--job-id {j_id}\n')
 
 
+@job.command('run-curated-examples')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=True)
+@click.option('--resumable',
+              help='Whether to make the job able to be resumed or not.',
+              is_flag=True)
+@click.option('--batch',
+              help='Whether to make use the batch executor instead of the default ignite.',
+              is_flag=True)
+@click.option('--instance-type',
+              help='The type of AMI to use. Default=c5.xlarge.',
+              default='c5.xlarge')
+@click.option('--instance-disk',
+              help='The amount of disk storage to configure. Default=500.',
+              type=int,
+              default=500)
+@click.option('--spot',
+              help='Whether to make a spot instance.',
+              is_flag=True)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float,
+              default=30.0)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def run_curated_examples(apikey,
+                         cloudos_url,
+                         workspace_id,
+                         project_name,
+                         resumable,
+                         batch,
+                         instance_type,
+                         instance_disk,
+                         spot,
+                         storage_mode,
+                         lustre_size,
+                         cost_limit,
+                         disable_ssl_verification,
+                         ssl_cert):
+    """Run all the curated workflows with example parameters.
+
+    NOTE that currently, only Nextflow workflows are supported.
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    cl = Cloudos(cloudos_url, apikey, None)
+    curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
+    n_jobs = 0
+    for workflow in curated_workflows:
+        nextflow_workflow = workflow['workflowType'] == 'nextflow'
+        example_params = len(workflow['parameters']) > 0
+        if nextflow_workflow and example_params:
+            workflow_name = workflow['name']
+            j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+                       repository_platform=workflow['repository']['platform'], verify=verify_ssl)
+            j_id = j.send_job(example_parameters=workflow['parameters'],
+                              job_name=f"{workflow['name']}_curated_pipeline_example_run",
+                              resumable=resumable,
+                              batch=batch,
+                              instance_type=instance_type,
+                              instance_disk=instance_disk,
+                              spot=spot,
+                              storage_mode=storage_mode,
+                              lustre_size=lustre_size,
+                              workflow_type='nextflow',
+                              cost_limit=cost_limit,
+                              verify=verify_ssl)
+            print(f'Job sent {j_id}')
+            n_jobs += 1
+    print(f'Number of curated jobs launched: {n_jobs}')
+
+
 @job.command('status')
 @click.option('-k',
               '--apikey',
@@ -532,9 +629,9 @@ def list_workflows(apikey,
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
     if curated:
-        my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify_ssl)
+        my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
     else:
-        my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
+        my_workflows_r = cl.get_workflow_list(workspace_id, verify=verify_ssl)
     if output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
