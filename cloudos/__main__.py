@@ -9,6 +9,7 @@ import sys
 import os
 import urllib3
 from ._version import __version__
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -285,44 +286,16 @@ def run(apikey,
     print(f'\tYour assigned job id is: {j_id}')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
-        print('\tPlease, wait until job completion or max wait time of ' +
-              f'{wait_time} seconds is reached.')
-        elapsed = 0
-        j_status_h_old = ''
-        # make sure user doesn't surpass the wait time
-        if request_interval > wait_time:
-            request_interval = wait_time
-        while elapsed < wait_time:
-            j_status = j.get_job_status(j_id, verify_ssl)
-            j_status_h = json.loads(j_status.content)["status"]
-            if j_status_h == JOB_COMPLETED:
-                print(f'\tYour job took {elapsed} seconds to complete ' +
-                      'successfully.')
-                sys.exit(0)
-            elif j_status_h == JOB_FAILED:
-                print(f'\tYour job took {elapsed} seconds to fail.')
-                sys.exit(1)
-            elif j_status_h == JOB_ABORTED:
-                print(f'\tYour job took {elapsed} seconds to abort.')
-                sys.exit(1)
-            else:
-                elapsed += request_interval
-                if j_status_h != j_status_h_old:
-                    print(f'\tYour current job status is: {j_status_h}.')
-                    j_status_h_old = j_status_h
-                time.sleep(request_interval)
-        j_status = j.get_job_status(j_id, verify_ssl)
-        j_status_h = json.loads(j_status.content)["status"]
-        if j_status_h != JOB_COMPLETED:
-            print(f'\tYour current job status is: {j_status_h}. The ' +
-                  f'selected wait-time of {wait_time} was exceeded. Please, ' +
-                  'consider to set a longer wait-time.')
-            print('\tTo further check your job status you can either go to ' +
-                  f'{j_url} or use the following command:\n' +
-                  '\tcloudos job status \\\n' +
-                  '\t\t--apikey $MY_API_KEY \\\n' +
-                  f'\t\t--cloudos-url {cloudos_url} \\\n' +
-                  f'\t\t--job-id {j_id}\n')
+        print('\tPlease, wait until job completion (max wait time of ' +
+              f'{wait_time} seconds).')
+        j_status = j.wait_job_completion(job_id=j_id,
+                                         wait_time=wait_time,
+                                         request_interval=request_interval,
+                                         verbose=verbose,
+                                         verify=verify_ssl)
+        if j_status == JOB_COMPLETED:
+            sys.exit(0)
+        else:
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id, verify_ssl)
@@ -381,6 +354,23 @@ def run(apikey,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -399,6 +389,10 @@ def run_curated_examples(apikey,
                          storage_mode,
                          lustre_size,
                          cost_limit,
+                         wait_completion,
+                         wait_time,
+                         request_interval,
+                         verbose,
                          disable_ssl_verification,
                          ssl_cert):
     """Run all the curated workflows with example parameters.
@@ -408,29 +402,48 @@ def run_curated_examples(apikey,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
-    n_jobs = 0
-    for workflow in curated_workflows:
-        nextflow_workflow = workflow['workflowType'] == 'nextflow'
-        example_params = len(workflow['parameters']) > 0
-        if nextflow_workflow and example_params:
-            workflow_name = workflow['name']
-            j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
-                       repository_platform=workflow['repository']['platform'], verify=verify_ssl)
-            j_id = j.send_job(example_parameters=workflow['parameters'],
-                              job_name=f"{workflow['name']}_curated_pipeline_example_run",
-                              resumable=resumable,
-                              batch=batch,
-                              instance_type=instance_type,
-                              instance_disk=instance_disk,
-                              spot=spot,
-                              storage_mode=storage_mode,
-                              lustre_size=lustre_size,
-                              workflow_type='nextflow',
-                              cost_limit=cost_limit,
-                              verify=verify_ssl)
-            print(f'Job sent {j_id}')
-            n_jobs += 1
-    print(f'Number of curated jobs launched: {n_jobs}')
+    job_id_list = []
+    runnable_curated_workflows = [
+        w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
+    ]
+    for workflow in runnable_curated_workflows:
+        workflow_name = workflow['name']
+        j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+                   repository_platform=workflow['repository']['platform'], verify=verify_ssl)
+        j_id = j.send_job(example_parameters=workflow['parameters'],
+                          job_name=f"{workflow['name']}_curated_pipeline_example_run",
+                          resumable=resumable,
+                          batch=batch,
+                          instance_type=instance_type,
+                          instance_disk=instance_disk,
+                          spot=spot,
+                          storage_mode=storage_mode,
+                          lustre_size=lustre_size,
+                          workflow_type='nextflow',
+                          cost_limit=cost_limit,
+                          verify=verify_ssl)
+        print(f'Job sent {j_id}')
+        job_id_list.append(j_id)
+    print(f'\tAll {len(runnable_curated_workflows)} curated job launched successfully!')
+    if wait_completion:
+        print('\tPlease, wait until jobs completion (max wait time of ' +
+              f'{wait_time} seconds).')
+        # Multi-threaded api requests, max_workers is hard-coded to not allow for
+        # big numbers that can collapse API server.
+        threads = []
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            for j in job_id_list:
+                threads.append(executor.submit(cl.wait_job_completion,
+                                               job_id=j,
+                                               wait_time=wait_time,
+                                               request_interval=request_interval,
+                                               verbose=verbose,
+                                               verify=verify_ssl)
+                               )
+        j_status_all = [task.result() for task in as_completed(threads)]
+        # Summary of job status
+        for j_s in j_status_all:
+            print(f'Job status for {j_s}')
 
 
 @job.command('status')
