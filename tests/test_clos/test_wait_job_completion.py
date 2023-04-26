@@ -12,7 +12,7 @@ JOB_ID = '63bd590f72c38201551c3824'
 
 @mock.patch('cloudos.clos', mock.MagicMock())
 @responses.activate
-def test_detect_workflow():
+def test_wait_job_completion():
     """
     Test 'wait_job_completion' to work as intended
     API request is mocked and replicated with json files
