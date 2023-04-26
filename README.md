@@ -437,6 +437,8 @@ cloudos job run-curated-examples \
     --wait-completion
 ```
 
+>NOTE: currently, this command only runs Nextflow curated workflows.
+
 ### WDL pipeline support
 
 #### Cromwell server managing
