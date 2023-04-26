@@ -293,9 +293,13 @@ def run(apikey,
                                          request_interval=request_interval,
                                          verbose=verbose,
                                          verify=verify_ssl)
-        if j_status == JOB_COMPLETED:
+        j_name = j_status['name']
+        j_final_s = j_status['status']
+        if j_final_s == JOB_COMPLETED:
+            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(0)
         else:
+            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id, verify_ssl)
@@ -442,8 +446,12 @@ def run_curated_examples(apikey,
                                )
         j_status_all = [task.result() for task in as_completed(threads)]
         # Summary of job status
+        print("Summary of Curated pipelines example runs:")
         for j_s in j_status_all:
-            print(f'Job status for {j_s}')
+            j_name = j_s['name']
+            j_id = j_s['id']
+            j_status = j_s['status']
+            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_status}')
 
 
 @job.command('status')

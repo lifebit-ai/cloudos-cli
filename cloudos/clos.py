@@ -83,8 +83,8 @@ class Cloudos:
 
         Returns
         -------
-        j_status_h : string
-            One of the strings to report the job status.
+        : dict
+            A dict with three elements collected from the job status: 'name', 'id', 'status'.
         """
         j_url = f'{self.cloudos_url}/app/jobs/{job_id}'
         elapsed = 0
@@ -94,31 +94,35 @@ class Cloudos:
             request_interval = wait_time
         while elapsed < wait_time:
             j_status = self.get_job_status(job_id, verify)
-            j_status_h = json.loads(j_status.content)["status"]
+            j_status_content = json.loads(j_status.content)
+            j_status_h = j_status_content["status"]
+            j_name = j_status_content["name"]
             if j_status_h == JOB_COMPLETED:
                 if verbose:
-                    print(f'\tYour job took {elapsed} seconds to complete ' +
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to complete ' +
                           'successfully.')
-                return j_status_h
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
             elif j_status_h == JOB_FAILED:
                 if verbose:
-                    print(f'\tYour job took {elapsed} seconds to fail.')
-                return j_status_h
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to fail.')
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
             elif j_status_h == JOB_ABORTED:
                 if verbose:
-                    print(f'\tYour job took {elapsed} seconds to abort.')
-                return j_status_h
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to abort.')
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
             else:
                 elapsed += request_interval
                 if j_status_h != j_status_h_old:
                     if verbose:
-                        print(f'\tYour current job status is: {j_status_h}.')
+                        print(f'\tYour current job "{j_name}" (ID: {job_id}) status is: {j_status_h}.')
                     j_status_h_old = j_status_h
                 time.sleep(request_interval)
         j_status = self.get_job_status(job_id, verify)
-        j_status_h = json.loads(j_status.content)["status"]
+        j_status_content = json.loads(j_status.content)
+        j_status_h = j_status_content["status"]
+        j_name = j_status_content["name"]
         if j_status_h != JOB_COMPLETED and verbose:
-            print(f'\tYour current job status is: {j_status_h}. The ' +
+            print(f'\tYour current job "{j_name}" (ID: {job_id}) status is: {j_status_h}. The ' +
                   f'selected wait-time of {wait_time} was exceeded. Please, ' +
                   'consider to set a longer wait-time.')
             print('\tTo further check your job status you can either go to ' +
@@ -127,7 +131,7 @@ class Cloudos:
                   '\t\t--apikey $MY_API_KEY \\\n' +
                   f'\t\t--cloudos-url {self.cloudos_url} \\\n' +
                   f'\t\t--job-id {job_id}\n')
-        return j_status_h
+        return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
     def _create_cromwell_header(self):
         """Generates cromwell header.
