@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
+JOB_RUNNING = 'running'
 REQUEST_INTERVAL_CROMWELL = 30
 
 
@@ -266,28 +267,28 @@ def run(apikey,
         print('\tThe following Job object was created:')
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
-    j_id = j.send_job(job_config,
-                      parameter,
-                      git_commit,
-                      git_tag,
-                      job_name,
-                      resumable,
-                      batch,
-                      nextflow_profile,
-                      instance_type,
-                      instance_disk,
-                      spot,
-                      storage_mode,
-                      lustre_size,
-                      workflow_type,
-                      cromwell_id,
-                      cost_limit,
-                      verify_ssl)
-    print(f'\tYour assigned job id is: {j_id}')
+    j_id = j.send_job(job_config=job_config,
+                      parameter=parameter,
+                      git_commit=git_commit,
+                      git_tag=git_tag,
+                      job_name=job_name,
+                      resumable=resumable,
+                      batch=batch,
+                      nextflow_profile=nextflow_profile,
+                      instance_type=instance_type,
+                      instance_disk=instance_disk,
+                      spot=spot,
+                      storage_mode=storage_mode,
+                      lustre_size=lustre_size,
+                      workflow_type=workflow_type,
+                      cromwell_id=cromwell_id,
+                      cost_limit=cost_limit,
+                      verify=verify_ssl)
+    print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
         print('\tPlease, wait until job completion (max wait time of ' +
-              f'{wait_time} seconds).')
+              f'{wait_time} seconds).\n')
         j_status = j.wait_job_completion(job_id=j_id,
                                          wait_time=wait_time,
                                          request_interval=request_interval,
@@ -296,10 +297,10 @@ def run(apikey,
         j_name = j_status['name']
         j_final_s = j_status['status']
         if j_final_s == JOB_COMPLETED:
-            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_final_s}')
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(0)
         else:
-            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_final_s}')
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id, verify_ssl)
@@ -415,7 +416,7 @@ def run_curated_examples(apikey,
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                    repository_platform=workflow['repository']['platform'], verify=verify_ssl)
         j_id = j.send_job(example_parameters=workflow['parameters'],
-                          job_name=f"{workflow['name']}_curated_pipeline_example_run",
+                          job_name=f"{workflow['name']}|Example_Run",
                           resumable=resumable,
                           batch=batch,
                           instance_type=instance_type,
@@ -426,12 +427,12 @@ def run_curated_examples(apikey,
                           workflow_type='nextflow',
                           cost_limit=cost_limit,
                           verify=verify_ssl)
-        print(f'Job sent {j_id}')
+        print(f'\tYour assigned job id is: {j_id}\n')
         job_id_list.append(j_id)
-    print(f'\tAll {len(runnable_curated_workflows)} curated job launched successfully!')
+    print(f'\n\tAll {len(runnable_curated_workflows)} curated job launched successfully!\n')
     if wait_completion:
         print('\tPlease, wait until jobs completion (max wait time of ' +
-              f'{wait_time} seconds).')
+              f'{wait_time} seconds).\n')
         # Multi-threaded api requests, max_workers is hard-coded to not allow for
         # big numbers that can collapse API server.
         threads = []
@@ -446,12 +447,23 @@ def run_curated_examples(apikey,
                                )
         j_status_all = [task.result() for task in as_completed(threads)]
         # Summary of job status
-        print("Summary of Curated pipelines example runs:")
+        print("\n\tCurated example runs final status:\n")
         for j_s in j_status_all:
             j_name = j_s['name']
             j_id = j_s['id']
             j_status = j_s['status']
-            print(f'Job status for job "{j_name}" (ID: {j_id}): {j_status}')
+            print(f'\t\tJob status for job "{j_name}" (ID: {j_id}): {j_status}')
+        successful_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_COMPLETED]
+        failed_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_FAILED]
+        aborted_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_ABORTED]
+        running_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_RUNNING]
+        print(f"""\n\tJob summary:
+              Successful jobs.....:  {len(successful_jobs)}
+              Failed jobs.........:  {len(failed_jobs)}
+              Jobs still running..:  {len(running_jobs)}
+              Aborted jobs........:  {len(aborted_jobs)}
+            -------------------------------
+              Total jobs..........:  {len(j_status_all)}""")
 
 
 @job.command('status')
