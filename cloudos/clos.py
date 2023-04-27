@@ -72,7 +72,7 @@ class Cloudos:
             The CloudOS job id of the job just launched.
         wait_time : int
             Max time to wait (in seconds) to job completion.
-        request_interva : int
+        request_interval : int
             Time interval (in seconds) to request job status.
         verbose : bool
             Whether to output status on every request or not.
