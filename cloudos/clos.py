@@ -3,10 +3,16 @@ This is the main class of the package.
 """
 
 import requests
+import time
 import json
 from dataclasses import dataclass
 from cloudos.utils.errors import BadRequestException
 import pandas as pd
+
+# GLOBAL VARS
+JOB_COMPLETED = 'completed'
+JOB_FAILED = 'failed'
+JOB_ABORTED = 'aborted'
 
 
 @dataclass
@@ -55,6 +61,77 @@ class Cloudos:
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
+
+    def wait_job_completion(self, job_id, wait_time=3600, request_interval=30, verbose=False,
+                            verify=True):
+        """Checks job status from CloudOS and wait for its complation.
+
+        Parameters
+        ----------
+        j_id : string
+            The CloudOS job id of the job just launched.
+        wait_time : int
+            Max time to wait (in seconds) to job completion.
+        request_interval : int
+            Time interval (in seconds) to request job status.
+        verbose : bool
+            Whether to output status on every request or not.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        : dict
+            A dict with three elements collected from the job status: 'name', 'id', 'status'.
+        """
+        j_url = f'{self.cloudos_url}/app/jobs/{job_id}'
+        elapsed = 0
+        j_status_h_old = ''
+        # make sure user doesn't surpass the wait time
+        if request_interval > wait_time:
+            request_interval = wait_time
+        while elapsed < wait_time:
+            j_status = self.get_job_status(job_id, verify)
+            j_status_content = json.loads(j_status.content)
+            j_status_h = j_status_content["status"]
+            j_name = j_status_content["name"]
+            if j_status_h == JOB_COMPLETED:
+                if verbose:
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to complete ' +
+                          'successfully.')
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
+            elif j_status_h == JOB_FAILED:
+                if verbose:
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to fail.')
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
+            elif j_status_h == JOB_ABORTED:
+                if verbose:
+                    print(f'\tYour job "{j_name}" (ID: {job_id}) took {elapsed} seconds to abort.')
+                return {'name': j_name, 'id': job_id, 'status': j_status_h}
+            else:
+                elapsed += request_interval
+                if j_status_h != j_status_h_old:
+                    if verbose:
+                        print(f'\tYour current job "{j_name}" (ID: {job_id}) status is: {j_status_h}.')
+                    j_status_h_old = j_status_h
+                time.sleep(request_interval)
+        j_status = self.get_job_status(job_id, verify)
+        j_status_content = json.loads(j_status.content)
+        j_status_h = j_status_content["status"]
+        j_name = j_status_content["name"]
+        if j_status_h != JOB_COMPLETED and verbose:
+            print(f'\tYour current job "{j_name}" (ID: {job_id}) status is: {j_status_h}. The ' +
+                  f'selected wait-time of {wait_time} was exceeded. Please, ' +
+                  'consider to set a longer wait-time.')
+            print('\tTo further check your job status you can either go to ' +
+                  f'{j_url} or use the following command:\n' +
+                  '\tcloudos job status \\\n' +
+                  '\t\t--apikey $MY_API_KEY \\\n' +
+                  f'\t\t--cloudos-url {self.cloudos_url} \\\n' +
+                  f'\t\t--job-id {job_id}\n')
+        return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
     def _create_cromwell_header(self):
         """Generates cromwell header.

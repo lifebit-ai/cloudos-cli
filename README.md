@@ -406,6 +406,39 @@ Executing list...
 	Workflow list saved to project_list.csv
 ```
 
+#### Run all Curated Workflows with example parameters
+
+In "Pipelines" section in CloudOS, there is a special type of workflows called "CURATED PIPELINES & TOOLS". These workflows are
+curated and maintained by our team. Some of them also offer the possibility of testing them using example parameters. We have
+added the following CLI functionality to be able to run all of these curated workflows with example parameters.
+
+The following example will launch all the workspace curated workflows with example parameters:
+
+```bash
+cloudos job run-curated-examples \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME"
+```
+
+```console
+    All 39 curated job launched successfully!
+```
+
+You can also wait for all jobs completion and get a final summary of their status using the `--wait-completion` flag:
+
+```bash
+cloudos job run-curated-examples \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --wait-completion
+```
+
+>NOTE: currently, this command only runs Nextflow curated workflows.
+
 ### WDL pipeline support
 
 #### Cromwell server managing

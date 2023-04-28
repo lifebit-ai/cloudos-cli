@@ -181,6 +181,7 @@ class Job(Cloudos):
     def convert_nextflow_to_json(self,
                                  job_config,
                                  parameter,
+                                 example_parameters,
                                  git_commit,
                                  git_tag,
                                  project_id,
@@ -206,6 +207,10 @@ class Job(Cloudos):
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        example_parameters : list
+            A list of dicts, with the parameters required for the API request in JSON format.
+            It is typically used to run curated pipelines using the already available
+            example parameters.
         git_commit : string
             The exact commit of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
@@ -253,8 +258,14 @@ class Job(Cloudos):
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
-        if nextflow_profile is None and job_config is None and len(parameter) == 0:
-            raise ValueError('No --job-config, --nextflow_profile or --parameter were specified,' +
+        if (
+            nextflow_profile is None and
+            job_config is None and
+            len(parameter) == 0 and
+            len(example_parameters) == 0
+        ):
+            raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
+                             '--example_parameters were specified,' +
                              '  please use at least one of these options.')
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
@@ -324,6 +335,9 @@ class Job(Cloudos):
                     workflow_params.append(param)
             if len(workflow_params) == 0:
                 raise ValueError(f'The provided parameters are not valid: {parameter}')
+        if len(example_parameters) > 0:
+            for example_param in example_parameters:
+                workflow_params.append(example_param)
         if spot:
             instance_type_block = {
                 "instanceType": instance_type,
@@ -392,6 +406,7 @@ class Job(Cloudos):
     def send_job(self,
                  job_config=None,
                  parameter=(),
+                 example_parameters=[],
                  git_commit=None,
                  git_tag=None,
                  job_name='new_job',
@@ -416,6 +431,10 @@ class Job(Cloudos):
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        example_parameters : list
+            A list of dicts, with the parameters required for the API request in JSON format.
+            It is typically used to run curated pipelines using the already available
+            example parameters.
         git_commit : string
             The exact commit of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
@@ -471,6 +490,7 @@ class Job(Cloudos):
         }
         params = self.convert_nextflow_to_json(job_config,
                                                parameter,
+                                               example_parameters,
                                                git_commit,
                                                git_tag,
                                                project_id,

@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.3.0 (2023-04-26)
+
+### Feature
+
+- add run-curated-examples command
+
 ## v2.2.0 (2023-04-19)
 
 ### Documentation
