@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.4.0 (2023-04-28)
+
+### Feature
+
+- add queue list command
+
 ## v2.3.0 (2023-04-26)
 
 ### Feature
