@@ -998,7 +998,7 @@ def list_queues(apikey,
         print(f'\tJob queue list collected with a total of {len(my_queues)} queues.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tJob queues list saved to {outfile}')
+    print(f'\tJob queue list saved to {outfile}')
 
 
 if __name__ == "__main__":
