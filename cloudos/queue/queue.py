@@ -119,12 +119,12 @@ class Queue(Cloudos):
         default_queue_id = available_queues[-1]['id']
         default_queue_name = available_queues[-1]['label']
         if job_queue is None:
-            print('No job_queue was specified, using the most recent suitable one: ' +
+            print('\tNo job_queue was specified, using the most recent suitable one: ' +
                   f'{default_queue_name}.')
             return default_queue_id
         selected_queue = [q for q in available_queues if q['label'] == job_queue]
         if len(selected_queue) == 0:
-            print(f'Queue \'{job_queue}\' you specified was not found, using the most recent ' +
+            print(f'\tQueue \'{job_queue}\' you specified was not found, using the most recent ' +
                   f'suitable one instead: {default_queue_name}.')
             return default_queue_id
         return selected_queue[0]['id']
