@@ -41,10 +41,10 @@ class Queue(Cloudos):
         r : list
             A list of dicts, each corresponding to a job queue.
         """
-        data = {"apikey": self.apikey}
+        headers = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
                                                                               self.workspace_id),
-                         params=data, verify=self.verify)
+                         headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
