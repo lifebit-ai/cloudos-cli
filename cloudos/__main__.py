@@ -987,7 +987,7 @@ def list_queues(apikey,
     outfile = output_basename + '.' + output_format
     print('Executing list...')
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
-    my_queues = j_queue.get_queue_list()
+    my_queues = j_queue.get_job_queues()
     if output_format == 'csv':
         queues_processed = j_queue.process_queue_list(my_queues, all_fields)
         queues_processed.to_csv(outfile, index=False)
