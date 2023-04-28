@@ -189,6 +189,7 @@ class Job(Cloudos):
                                  job_name,
                                  resumable,
                                  batch,
+                                 job_queue_id,
                                  nextflow_profile,
                                  instance_type,
                                  instance_disk,
@@ -228,6 +229,8 @@ class Job(Cloudos):
             Whether to create a resumable job or not.
         batch: bool
             Whether to create a batch job instead of the default ignite.
+        job_queue_id : string
+            Job queue Id to use in the batch job.
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         instance_type : string
@@ -380,7 +383,9 @@ class Job(Cloudos):
             "name": job_name,
             "resumable": resumable,
             "batch": {
-                "enabled": batch
+                "dockerLogin": False,
+                "enabled": batch,
+                "jobQueue": job_queue_id
             },
             "cromwellCloudResources": cromwell_id,
             "executionPlatform": "aws",
@@ -412,6 +417,7 @@ class Job(Cloudos):
                  job_name='new_job',
                  resumable=False,
                  batch=False,
+                 job_queue_id=None,
                  nextflow_profile=None,
                  instance_type='c5.xlarge',
                  instance_disk=500,
@@ -448,6 +454,8 @@ class Job(Cloudos):
             Whether to create a resumable job or not.
         batch: bool
             Whether to create a batch job instead of the default ignite.
+        job_queue_id : string
+            Job queue Id to use in the batch job.
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         instance_type : string
@@ -498,6 +506,7 @@ class Job(Cloudos):
                                                job_name,
                                                resumable,
                                                batch,
+                                               job_queue_id,
                                                nextflow_profile,
                                                instance_type,
                                                instance_disk,
