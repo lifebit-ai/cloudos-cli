@@ -260,7 +260,7 @@ When using `cloudos job run` command, the default executor will be ignite.
 To choose AWS batch, you can use the flag `--batch`. In addition, you can specify the AWS batch queue to
 use, from the ones available in your workspace (see [here](#get-a-list-of-the-available-job-queues))
 by specifying its name with the `--job-queue` parameter.
-If none is specified, the last suitable queue in your workspace will be selected by default.
+If none is specified, the most recent suitable queue in your workspace will be selected by default.
 Example command:
 
 ```bash
