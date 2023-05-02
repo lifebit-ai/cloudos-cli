@@ -84,9 +84,9 @@ class Queue(Cloudos):
     def fetch_job_queue_id(self, workflow_type, batch=False, job_queue=None):
         """Fetches CloudOS ID for a given job queue.
 
-        When batch=True and isinstance(job_queue_name, str) this method will try to find the
-        corresponding CloudOS ID for the job_queue_name in a given workspace. If
-        job_queue_name=None, this method will select the newest "ready" job queue
+        When batch=True and isinstance(job_queue, str) this method will try to find the
+        corresponding CloudOS ID for the job_queue in a given workspace. If
+        job_queue=None, this method will select the newest "ready" job queue
         for the selected workflow type.
 
         Parameters
