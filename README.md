@@ -104,6 +104,7 @@ Options:
                               not.
   --batch                     Whether to make use the batch executor instead
                               of the default ignite.
+  --job-queue TEXT            Name of the job queue to use with a batch job.
   --instance-type TEXT        The type of AMI to use. Default=c5.xlarge.
   --instance-disk INTEGER     The amount of disk storage to configure.
                               Default=500.
@@ -250,6 +251,31 @@ Executing run...
 	Your current job status is: running.
 	Your job took 420 seconds to complete successfully.
 ```
+
+#### Executor support
+
+CloudOS supports Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite) and
+[AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executors.
+When using `cloudos job run` command, the default executor will be ignite.
+To choose AWS batch, you can use the flag `--batch`. In addition, you can specify the AWS batch queue to
+use, from the ones available in your workspace (see [here](#get-a-list-of-available-job-queues))
+by specifying its name with the `--job-queue` parameter.
+If none is specified, the last suitable queue in your workspace will be selected by default.
+Example command:
+
+```bash
+cloudos job run \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
+    --job-config $JOB_PARAMS \
+    --resumable \
+    --spot \
+    --batch
+```
+
 
 #### Check job status
 
