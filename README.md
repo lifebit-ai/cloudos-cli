@@ -491,6 +491,9 @@ Executing list...
 	Job queue list saved to available_queues.json
 ```
 
+> NOTE: the job name that is visible in CloudOS and has to be used in combination with `--job-queue` parameter is
+the one in `label` field.
+
 ### WDL pipeline support
 
 #### Cromwell server managing
