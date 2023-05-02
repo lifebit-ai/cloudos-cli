@@ -439,6 +439,32 @@ cloudos job run-curated-examples \
 
 >NOTE: currently, this command only runs Nextflow curated workflows.
 
+#### Get a list of the available job queues
+
+Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are
+listed in the "Compute Resources" section in "Settings".
+You can get a summary of all the available workspace job queues in two formats:
+- CSV: this is a table with a selection of the available job queue information. Alternatively, you can
+get all the information using the `--all-fields` flag.
+- JSON: all the available information from job queues, in JSON format.
+
+Example command: getting all available job queues in JSON format.
+
+```bash
+cloudos queue list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --output-format json \
+    --output-basename "available_queues"
+```
+
+```
+Executing list...
+	Job queue list collected with a total of 5 queues.
+	Job queue list saved to available_queues.json
+```
+
 ### WDL pipeline support
 
 #### Cromwell server managing

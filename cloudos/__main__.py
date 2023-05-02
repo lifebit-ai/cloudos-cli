@@ -3,6 +3,7 @@
 import click
 import cloudos.jobs.job as jb
 from cloudos.clos import Cloudos
+from cloudos.queue.queue import Queue
 import json
 import time
 import sys
@@ -81,6 +82,12 @@ def project():
 def cromwell():
     """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
+def queue():
+    """CloudOS job queue functionality."""
+    print(queue.__doc__ + '\n')
 
 
 @job.command('run')
@@ -932,6 +939,66 @@ def cromwell_stop(apikey,
     c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+
+
+@queue.command('list')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--output-basename',
+              help=('Output file base name to save job queue list. ' +
+                    'Default=job_queue_list'),
+              default='job_queue_list',
+              required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output. Default=csv.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from workflows or ' +
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def list_queues(apikey,
+                cloudos_url,
+                workspace_id,
+                output_basename,
+                output_format,
+                all_fields,
+                disable_ssl_verification,
+                ssl_cert):
+    """Collect all available job queues from a CloudOS workspace."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    outfile = output_basename + '.' + output_format
+    print('Executing list...')
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+    my_queues = j_queue.get_job_queues()
+    if output_format == 'csv':
+        queues_processed = j_queue.process_queue_list(my_queues, all_fields)
+        queues_processed.to_csv(outfile, index=False)
+        print(f'\tJob queue list collected with a total of {queues_processed.shape[0]} queues.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(json.dumps(my_queues))
+        print(f'\tJob queue list collected with a total of {len(my_queues)} queues.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tJob queue list saved to {outfile}')
 
 
 if __name__ == "__main__":
