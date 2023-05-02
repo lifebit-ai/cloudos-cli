@@ -258,7 +258,7 @@ CloudOS supports Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html
 [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executors.
 When using `cloudos job run` command, the default executor will be ignite.
 To choose AWS batch, you can use the flag `--batch`. In addition, you can specify the AWS batch queue to
-use, from the ones available in your workspace (see [here](#get-a-list-of-available-job-queues))
+use, from the ones available in your workspace (see [here](#get-a-list-of-the-available-job-queues))
 by specifying its name with the `--job-queue` parameter.
 If none is specified, the last suitable queue in your workspace will be selected by default.
 Example command:
