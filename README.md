@@ -272,7 +272,6 @@ cloudos job run \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
     --resumable \
-    --spot \
     --batch
 ```
 
