@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.5.0 (2023-05-02)
+
+### Feature
+
+- adds job queue support to batch runs
+
 ## v2.4.0 (2023-04-28)
 
 ### Feature
