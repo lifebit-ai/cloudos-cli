@@ -28,7 +28,7 @@ RUN apt-get update \
 # Install aws-cli and jq tools to support aws ssm parameters fetching
 
 RUN apt-get update \
-  && apt-get install jq awscli -y
+  && apt-get install jq awscli curl -y
 
 # Copy local package files to be able to install
 COPY . /
