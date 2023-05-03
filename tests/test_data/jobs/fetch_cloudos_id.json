@@ -1,0 +1,54 @@
+[{
+    "_id": "1234",
+    "name": "pipeline1",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": ""
+},
+{
+    "_id": "5678",
+    "name": "pipeline2",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": "main.nf"
+},
+{
+    "_id": "8910",
+    "name": "pipeline3",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": "main.nf",
+    "importsFile": "importsfile.txt"
+},
+{
+    "_id": "8911",
+    "name": "pipeline4",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": "main.nf",
+    "importsFile": ""
+},
+{
+    "_id": "8912",
+    "name": "pipeline5",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": "main.nf",
+    "importsFile": ""
+},
+{
+    "_id": "8913",
+    "name": "pipeline6",
+    "repository": {
+        "platform": "github"
+    },
+    "mainFile": "main.nf",
+    "importsFile": ""
+}
+
+]
