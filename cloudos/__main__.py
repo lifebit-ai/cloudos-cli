@@ -140,6 +140,8 @@ def queue():
 @click.option('--batch',
               help='Whether to make use the batch executor instead of the default ignite.',
               is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
               help='The type of AMI to use. Default=c5.xlarge.',
               default='c5.xlarge')
@@ -209,6 +211,7 @@ def run(apikey,
         job_name,
         resumable,
         batch,
+        job_queue,
         nextflow_profile,
         instance_type,
         instance_disk,
@@ -274,6 +277,10 @@ def run(apikey,
         print('\tThe following Job object was created:')
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
+    queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
+                  workspace_id=workspace_id, verify=verify_ssl)
+    job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
+                                            job_queue=job_queue)
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
                       git_commit=git_commit,
@@ -281,6 +288,7 @@ def run(apikey,
                       job_name=job_name,
                       resumable=resumable,
                       batch=batch,
+                      job_queue_id=job_queue_id,
                       nextflow_profile=nextflow_profile,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
