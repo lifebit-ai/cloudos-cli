@@ -1,0 +1,52 @@
+[tool.commitizen]
+name = "cz_customize"
+version = "2.5.0"
+tag_format = "v$major.$minor.$patch"
+
+[tool.commitizen.customize]
+message_template = "{{change_type}}{% if scope %}({{scope}}){% endif %}: {{message}}"
+example = "feat: this feature enable customize through config file"
+schema = "<type>(<scope>): <subject>"
+schema_pattern = "(break|feat|fix|docs|style|refactor|perf|test|build|ci|revert):(\\s.*)"
+bump_pattern = "^(BREAKING[\\-\\ ]CHANGE|break|feat|fix|refactor|perf)(\\(.+\\))?(!)?"
+bump_map = { "break" = "MAJOR", "feat" = "MINOR", "fix" = "PATCH", "hotfix" = "PATCH" }
+change_type_order = ["BREAKING CHANGE", "break", "feat", "fix", "refactor", "perf"]
+info_path = "cz_customize_info.txt"
+info = """
+This is customized info
+"""
+# add here all types that you want to be displayed in the CHANGELOG
+commit_parser = "^(?P<change_type>break|feat|fix|docs|style|refactor|perf|test|config|build|ci)(?:\\((?P<scope>[^()\\r\\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
+changelog_pattern = "^(break|feat|fix|docs)?(!)?"
+# the title in the section in chengelog is defined here
+change_type_map = {"break" = "Breaking Change","feat" = "Feature","fix" = "Bugfix / Hotfix / Patch","docs" = "Documentation","style" = "Style","refactor" = "Refactor","perf" = "Performance","test" = "Test","config" = "Configuration","build" = "Build","ci" = "CI" }
+
+[[tool.commitizen.customize.questions]]
+type = "list"
+name = "change_type"
+choices = [
+    {value = "break", name = "break: A backwards-incompatible change. Correlates with MAJOR in SemVer"},
+    {value = "feat", name = "feat: A new feature. Correlates with MINOR in SemVer"},
+    {value = "fix", name = "fix: A bug fix. Correlates with PATCH in SemVer"},
+    {value = "docs", name = "docs: Documentation only changes"},
+    {value = "style", name = "style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)"},
+    {value = "refactor", name = "refactor: A code change that neither fixes a bug nor adds a feature"},
+    {value = "perf", name = "perf: A code change that improves performance"},
+    {value = "test", name = "test: Adding missing or correcting existing tests"},
+    {value = "config", name = "config: Changes that affect the configuration-related files (for example in the 'conf' folder)"},
+    {value = "build", name = "build: Changes that affect the build system or external dependencies (example scopes: pip, docker, npm)"},
+    {value = "ci", name = "ci: Changes to our CI configuration files and scripts (example scopes: GitLabCI)"},
+]
+
+# first message
+message = "Select the type of change you are committing\n"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "scope"
+message = "What is the scope of this change? (class or file name): (press [enter] to skip)\n"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "message"
+message = "Write a short summary of the code changes: (lower case and no period)\n"
