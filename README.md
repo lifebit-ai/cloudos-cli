@@ -4,7 +4,7 @@ Python package for interacting with CloudOS
 
 ## Requirements
 
-The package requires Python >= 3.8 and the following python packages:
+The package requires Python >= 3.7 and the following python packages:
 
 ```
 click>=8.0.1
@@ -26,7 +26,7 @@ docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 
 ### From Github
 
-You will need Python >= 3.8 and pip installed.
+You will need Python >= 3.7 and pip installed.
 
 Clone the repo and install it using pip:
 
