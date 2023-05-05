@@ -11,7 +11,7 @@ INPUT = "tests/test_data/process_job_list_initial_json.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
-STATUS_CODE=400
+STATUS_CODE = 400
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -22,12 +22,12 @@ def test_bad_request_exception():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID, "page": 1, "apikey": APIKEY}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8"
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}&page=1&apikey={APIKEY}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -39,6 +39,6 @@ def test_bad_request_exception():
     # start cloudOS service
     with pytest.raises(BadRequestException) as error:
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        response = clos.get_job_list(workspace_id=WORKSPACE_ID)
+        clos.get_job_list(workspace_id=WORKSPACE_ID)
 
     assert "Server returned status 400." in (str(error))

@@ -1,5 +1,38 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.5.0 (2023-05-02)
+
+### Feature
+
+- adds job queue support to batch runs
+
+## v2.4.0 (2023-04-28)
+
+### Feature
+
+- add queue list command
+
+## v2.3.0 (2023-04-26)
+
+### Feature
+
+- add run-curated-examples command
+
+## v2.2.0 (2023-04-19)
+
+### Documentation
+
+- add commitizen support
+
+### Feature
+
+- add project list
+- add workflows list --curated option
+
+### 2.1.0 - 2023-03-30
+- Feature: `cloudos job list` has the new parameter `--last-n-jobs n`, if used, the last
+`n` jobs from the user will be collected. Default is last 30, which was the previous behaviour.
+
 ### 2.0.1 - 2023-03-07
 - Removes some default fields returned from `cloudos job list` command in preparation for
 its deprecation from the CloudOS API. In particular, the following fields were removed:
