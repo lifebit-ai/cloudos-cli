@@ -1,7 +1,6 @@
 import mock
 import json
 import pytest
-import requests
 import responses
 from responses import matchers
 from cloudos.clos import Cloudos
@@ -41,8 +40,8 @@ def test_get_workflow_list_correct_response():
     # get mock response
     response = clos.get_workflow_list(WORKSPACE_ID)
     # check the response
-    assert response.status_code == 200
-    assert isinstance(response, requests.models.Response)
+    assert isinstance(response, list)
+    assert len(response) == 1
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())

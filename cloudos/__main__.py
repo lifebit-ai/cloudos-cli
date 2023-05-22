@@ -3,17 +3,20 @@
 import click
 import cloudos.jobs.job as jb
 from cloudos.clos import Cloudos
+from cloudos.queue.queue import Queue
 import json
 import time
 import sys
 import os
 import urllib3
 from ._version import __version__
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
+JOB_RUNNING = 'running'
 REQUEST_INTERVAL_CROMWELL = 30
 
 
@@ -70,9 +73,21 @@ def workflow():
 
 
 @run_cloudos_cli.group()
+def project():
+    """CloudOS project functionality: list projects in CloudOS."""
+    print(project.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
 def cromwell():
     """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
+def queue():
+    """CloudOS job queue functionality."""
+    print(queue.__doc__ + '\n')
 
 
 @job.command('run')
@@ -125,6 +140,8 @@ def cromwell():
 @click.option('--batch',
               help='Whether to make use the batch executor instead of the default ignite.',
               is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
               help='The type of AMI to use. Default=c5.xlarge.',
               default='c5.xlarge')
@@ -194,6 +211,7 @@ def run(apikey,
         job_name,
         resumable,
         batch,
+        job_queue,
         nextflow_profile,
         instance_type,
         instance_disk,
@@ -259,63 +277,45 @@ def run(apikey,
         print('\tThe following Job object was created:')
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
-    j_id = j.send_job(job_config,
-                      parameter,
-                      git_commit,
-                      git_tag,
-                      job_name,
-                      resumable,
-                      batch,
-                      nextflow_profile,
-                      instance_type,
-                      instance_disk,
-                      spot,
-                      storage_mode,
-                      lustre_size,
-                      workflow_type,
-                      cromwell_id,
-                      cost_limit,
-                      verify_ssl)
-    print(f'\tYour assigned job id is: {j_id}')
+    queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
+                  workspace_id=workspace_id, verify=verify_ssl)
+    job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
+                                            job_queue=job_queue)
+    j_id = j.send_job(job_config=job_config,
+                      parameter=parameter,
+                      git_commit=git_commit,
+                      git_tag=git_tag,
+                      job_name=job_name,
+                      resumable=resumable,
+                      batch=batch,
+                      job_queue_id=job_queue_id,
+                      nextflow_profile=nextflow_profile,
+                      instance_type=instance_type,
+                      instance_disk=instance_disk,
+                      spot=spot,
+                      storage_mode=storage_mode,
+                      lustre_size=lustre_size,
+                      workflow_type=workflow_type,
+                      cromwell_id=cromwell_id,
+                      cost_limit=cost_limit,
+                      verify=verify_ssl)
+    print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
-        print('\tPlease, wait until job completion or max wait time of ' +
-              f'{wait_time} seconds is reached.')
-        elapsed = 0
-        j_status_h_old = ''
-        # make sure user doesn't surpass the wait time
-        if request_interval > wait_time: request_interval = wait_time
-        while elapsed < wait_time:
-            j_status = j.get_job_status(j_id, verify_ssl)
-            j_status_h = json.loads(j_status.content)["status"]
-            if j_status_h == JOB_COMPLETED:
-                print(f'\tYour job took {elapsed} seconds to complete ' +
-                      'successfully.')
-                sys.exit(0)
-            elif j_status_h == JOB_FAILED:
-                print(f'\tYour job took {elapsed} seconds to fail.')
-                sys.exit(1)
-            elif j_status_h == JOB_ABORTED:
-                print(f'\tYour job took {elapsed} seconds to abort.')
-                sys.exit(1)
-            else:
-                elapsed += request_interval
-                if j_status_h != j_status_h_old:
-                    print(f'\tYour current job status is: {j_status_h}.')
-                    j_status_h_old = j_status_h
-                time.sleep(request_interval)
-        j_status = j.get_job_status(j_id, verify_ssl)
-        j_status_h = json.loads(j_status.content)["status"]
-        if j_status_h != JOB_COMPLETED:
-            print(f'\tYour current job status is: {j_status_h}. The ' +
-                  f'selected wait-time of {wait_time} was exceeded. Please, ' +
-                  'consider to set a longer wait-time.')
-            print('\tTo further check your job status you can either go to ' +
-                  f'{j_url} or use the following command:\n' +
-                  '\tcloudos job status \\\n' +
-                  '\t\t--apikey $MY_API_KEY \\\n' +
-                  f'\t\t--cloudos-url {cloudos_url} \\\n' +
-                  f'\t\t--job-id {j_id}\n')
+        print('\tPlease, wait until job completion (max wait time of ' +
+              f'{wait_time} seconds).\n')
+        j_status = j.wait_job_completion(job_id=j_id,
+                                         wait_time=wait_time,
+                                         request_interval=request_interval,
+                                         verbose=verbose,
+                                         verify=verify_ssl)
+        j_name = j_status['name']
+        j_final_s = j_status['status']
+        if j_final_s == JOB_COMPLETED:
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
+            sys.exit(0)
+        else:
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
         j_status = j.get_job_status(j_id, verify_ssl)
@@ -327,6 +327,158 @@ def run(apikey,
               '\t\t--apikey $MY_API_KEY \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--job-id {j_id}\n')
+
+
+@job.command('run-curated-examples')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=True)
+@click.option('--resumable',
+              help='Whether to make the job able to be resumed or not.',
+              is_flag=True)
+@click.option('--batch',
+              help='Whether to make use the batch executor instead of the default ignite.',
+              is_flag=True)
+@click.option('--instance-type',
+              help='The type of AMI to use. Default=c5.xlarge.',
+              default='c5.xlarge')
+@click.option('--instance-disk',
+              help='The amount of disk storage to configure. Default=500.',
+              type=int,
+              default=500)
+@click.option('--spot',
+              help='Whether to make a spot instance.',
+              is_flag=True)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float,
+              default=30.0)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def run_curated_examples(apikey,
+                         cloudos_url,
+                         workspace_id,
+                         project_name,
+                         resumable,
+                         batch,
+                         instance_type,
+                         instance_disk,
+                         spot,
+                         storage_mode,
+                         lustre_size,
+                         cost_limit,
+                         wait_completion,
+                         wait_time,
+                         request_interval,
+                         verbose,
+                         disable_ssl_verification,
+                         ssl_cert):
+    """Run all the curated workflows with example parameters.
+
+    NOTE that currently, only Nextflow workflows are supported.
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    cl = Cloudos(cloudos_url, apikey, None)
+    curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
+    job_id_list = []
+    runnable_curated_workflows = [
+        w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
+    ]
+    for workflow in runnable_curated_workflows:
+        workflow_name = workflow['name']
+        j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+                   repository_platform=workflow['repository']['platform'], verify=verify_ssl)
+        j_id = j.send_job(example_parameters=workflow['parameters'],
+                          job_name=f"{workflow['name']}|Example_Run",
+                          resumable=resumable,
+                          batch=batch,
+                          instance_type=instance_type,
+                          instance_disk=instance_disk,
+                          spot=spot,
+                          storage_mode=storage_mode,
+                          lustre_size=lustre_size,
+                          workflow_type='nextflow',
+                          cost_limit=cost_limit,
+                          verify=verify_ssl)
+        print(f'\tYour assigned job id is: {j_id}\n')
+        job_id_list.append(j_id)
+    print(f'\n\tAll {len(runnable_curated_workflows)} curated job launched successfully!\n')
+    if wait_completion:
+        print('\tPlease, wait until jobs completion (max wait time of ' +
+              f'{wait_time} seconds).\n')
+        # Multi-threaded api requests, max_workers is hard-coded to not allow for
+        # big numbers that can collapse API server.
+        threads = []
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            for j in job_id_list:
+                threads.append(executor.submit(cl.wait_job_completion,
+                                               job_id=j,
+                                               wait_time=wait_time,
+                                               request_interval=request_interval,
+                                               verbose=verbose,
+                                               verify=verify_ssl)
+                               )
+        j_status_all = [task.result() for task in as_completed(threads)]
+        # Summary of job status
+        print("\n\tCurated example runs final status:\n")
+        for j_s in j_status_all:
+            j_name = j_s['name']
+            j_id = j_s['id']
+            j_status = j_s['status']
+            print(f'\t\tJob status for job "{j_name}" (ID: {j_id}): {j_status}')
+        successful_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_COMPLETED]
+        failed_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_FAILED]
+        aborted_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_ABORTED]
+        running_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_RUNNING]
+        print(f"""\n\tJob summary:
+              Successful jobs.....:  {len(successful_jobs)}
+              Failed jobs.........:  {len(failed_jobs)}
+              Jobs still running..:  {len(running_jobs)}
+              Aborted jobs........:  {len(aborted_jobs)}
+            -------------------------------
+              Total jobs..........:  {len(j_status_all)}""")
 
 
 @job.command('status')
@@ -394,7 +546,7 @@ def job_status(apikey,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output.',
+              help='The desired file format (file extension) for the output. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
@@ -402,6 +554,15 @@ def job_status(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--last-n-jobs',
+              help=("The number of last user's jobs to retrieve. You can use 'all' to " +
+                    "retrieve all user's jobs. Default=30."),
+              default='30')
+@click.option('--page',
+              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
+                    'value corresponds to the first page to retrieve. Default=1.'),
+              type=int,
+              default=1)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -417,6 +578,8 @@ def list_jobs(apikey,
               output_basename,
               output_format,
               all_fields,
+              last_n_jobs,
+              page,
               verbose,
               disable_ssl_verification,
               ssl_cert):
@@ -432,15 +595,21 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
-    my_jobs_r = cl.get_job_list(workspace_id, verify_ssl)
+    if last_n_jobs != 'all':
+        try:
+            last_n_jobs = int(last_n_jobs)
+        except ValueError:
+            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
+            raise
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, verify_ssl)
     if output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_jobs_r.text)
-        print(f'\tJob list collected with a total of {len(json.loads(my_jobs_r.content)["jobs"])} jobs.')
+            o.write(json.dumps(my_jobs_r))
+        print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tJob list saved to {outfile}')
@@ -465,13 +634,16 @@ def list_jobs(apikey,
               default='workflow_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output.',
+              help='The desired file format (file extension) for the output. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from workflows or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
+              is_flag=True)
+@click.option('--curated',
+              help='Whether to collect curated workflows only.',
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -488,6 +660,7 @@ def list_workflows(apikey,
                    output_basename,
                    output_format,
                    all_fields,
+                   curated,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert):
@@ -503,18 +676,98 @@ def list_workflows(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
-    my_workflows_r = cl.get_workflow_list(workspace_id, verify_ssl)
+    if curated:
+        my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
+    else:
+        my_workflows_r = cl.get_workflow_list(workspace_id, verify=verify_ssl)
     if output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
         print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_workflows_r.text)
-        print(f'\tWorkflow list collected with a total of {len(json.loads(my_workflows_r.content))} workflows.')
+            o.write(json.dumps(my_workflows_r))
+        print(f'\tWorkflow list collected with a total of {len(my_workflows_r)} workflows.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tWorkflow list saved to {outfile}')
+
+
+@project.command('list')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--output-basename',
+              help=('Output file base name to save project list. ' +
+                    'Default=project_list'),
+              default='project_list',
+              required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output. Default=csv.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from projects or ' +
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def list_projects(apikey,
+                  cloudos_url,
+                  workspace_id,
+                  output_basename,
+                  output_format,
+                  all_fields,
+                  verbose,
+                  disable_ssl_verification,
+                  ssl_cert):
+    """Collect all projects from a CloudOS workspace in CSV format."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    outfile = output_basename + '.' + output_format
+    print('Executing list...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tSearching for projects in the following workspace: ' +
+              f'{workspace_id}')
+    my_projects_r = cl.get_project_list(workspace_id, verify_ssl)
+    if output_format == 'csv':
+        my_projects = cl.process_project_list(my_projects_r, all_fields)
+        my_projects.to_csv(outfile, index=False)
+        print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(my_projects_r.text)
+        content = json.loads(my_projects_r.content)
+        if 'projects' in content:
+            content_l = len(content['projects'])
+        else:
+            content_l = len(content)
+        print('\tProject list collected with a total of ' +
+              f'{content_l} projects.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tProject list saved to {outfile}')
 
 
 @cromwell.command('status')
@@ -694,6 +947,66 @@ def cromwell_stop(apikey,
     c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
     c_status_h = json.loads(c_status.content)["status"]
     print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
+
+
+@queue.command('list')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--output-basename',
+              help=('Output file base name to save job queue list. ' +
+                    'Default=job_queue_list'),
+              default='job_queue_list',
+              required=False)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output. Default=csv.',
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
+              default='csv')
+@click.option('--all-fields',
+              help=('Whether to collect all available fields from workflows or ' +
+                    'just the preconfigured selected fields. Only applicable ' +
+                    'when --output-format=csv'),
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def list_queues(apikey,
+                cloudos_url,
+                workspace_id,
+                output_basename,
+                output_format,
+                all_fields,
+                disable_ssl_verification,
+                ssl_cert):
+    """Collect all available job queues from a CloudOS workspace."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    outfile = output_basename + '.' + output_format
+    print('Executing list...')
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+    my_queues = j_queue.get_job_queues()
+    if output_format == 'csv':
+        queues_processed = j_queue.process_queue_list(my_queues, all_fields)
+        queues_processed.to_csv(outfile, index=False)
+        print(f'\tJob queue list collected with a total of {queues_processed.shape[0]} queues.')
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(json.dumps(my_queues))
+        print(f'\tJob queue list collected with a total of {len(my_queues)} queues.')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+    print(f'\tJob queue list saved to {outfile}')
 
 
 if __name__ == "__main__":

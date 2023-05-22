@@ -1,0 +1,2 @@
+id,name,label,description,resourceType,executor,status
+xxxxx,test_queue,test_queue_label,,,nextflow,Ready

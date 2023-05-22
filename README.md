@@ -1,14 +1,10 @@
 # cloudos
 
-__Date:__ 2023-03-07\
-__Version:__ 2.0.1
-
-
 Python package for interacting with CloudOS
 
 ## Requirements
 
-The package requires Python >= 3.8 and the following python packages:
+The package requires Python >= 3.7 and the following python packages:
 
 ```
 click>=8.0.1
@@ -25,12 +21,12 @@ and the `environment.yml` files provided.
 To run the existing docker image at `quay.io`:
 
 ```bash
-docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:v2.0.1
+docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 ```
 
 ### From Github
 
-You will need Python >= 3.8 and pip installed.
+You will need Python >= 3.7 and pip installed.
 
 Clone the repo and install it using pip:
 
@@ -66,6 +62,7 @@ Options:
 Commands:
   cromwell  Cromwell server functionality: check status, start and stop.
   job       CloudOS job functionality: run and check jobs in CloudOS.
+  project   CloudOS project functionality: list projects in CloudOS.
   workflow  CloudOS workflow functionality: list workflows in CloudOS.
 ``` 
 
@@ -76,16 +73,6 @@ own subcommands with its own `--help`:
 cloudos job run --help
 ```
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
-Usage: cloudos job run [OPTIONS]
-
-  Submit a job to CloudOS.
-
 Options:
   -k, --apikey TEXT           Your CloudOS API key  [required]
   -c, --cloudos-url TEXT      The CloudOS url you are trying to access to.
@@ -117,6 +104,7 @@ Options:
                               not.
   --batch                     Whether to make use the batch executor instead
                               of the default ignite.
+  --job-queue TEXT            Name of the job queue to use with a batch job.
   --instance-type TEXT        The type of AMI to use. Default=c5.xlarge.
   --instance-disk INTEGER     The amount of disk storage to configure.
                               Default=500.
@@ -218,12 +206,6 @@ cloudos job run \
 If everything went well, you should see something like:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
 	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355
 	Your assigned job id is: 62c83a1191fe06013b7ef355
@@ -261,12 +243,6 @@ If the job takes less than `--wait-time` (3600 seconds by default), the
 previous command should have an output similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
 	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a6191fe06013b7ef363
 	Your assigned job id is: 62c83a6191fe06013b7ef363
@@ -275,6 +251,30 @@ Executing run...
 	Your current job status is: running.
 	Your job took 420 seconds to complete successfully.
 ```
+
+#### Executor support
+
+CloudOS supports Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite) and
+[AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executors.
+When using `cloudos job run` command, the default executor will be ignite.
+To choose AWS batch, you can use the flag `--batch`. In addition, you can specify the AWS batch queue to
+use, from the ones available in your workspace (see [here](#get-a-list-of-the-available-job-queues))
+by specifying its name with the `--job-queue` parameter.
+If none is specified, the most recent suitable queue in your workspace will be selected by default.
+Example command:
+
+```bash
+cloudos job run \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
+    --job-config $JOB_PARAMS \
+    --resumable \
+    --batch
+```
+
 
 #### Check job status
 
@@ -290,12 +290,6 @@ cloudos job status \
 The expected output should be something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing status...
 	Your current job status is: completed
 
@@ -304,7 +298,8 @@ Executing status...
 
 #### Get a list of your jobs from a CloudOS workspace
 
-You can get a summary of your last 30 submitted jobs in two different formats:
+You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
+parameter) in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
@@ -325,12 +320,6 @@ cloudos job list \
 The expected output is something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing list...
 	Job list collected with a total of 30 jobs.
 	Job list saved to joblist.csv
@@ -338,24 +327,19 @@ Executing list...
 
 In addition, a file named `joblist.csv` is created.
 
-To get the same information, but in JSON format, use the following command:
+To get the same information, but for all your jobs and in JSON format, use the following command:
 
 ```bash
 cloudos job list \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
+    --last-n-jobs all \
     --output-format json
 ```
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing list...
-	Job list collected with a total of 30 jobs.
+	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
 ```
 
@@ -381,12 +365,6 @@ cloudos workflow list \
 The expected output is something similar to:
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS workflow functionality: list workflows in CloudOS.
-
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.csv
@@ -403,16 +381,117 @@ cloudos workflow list \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS workflow functionality: list workflows in CloudOS.
-
 Executing list...
 	Workflow list collected with a total of 609 workflows.
 	Workflow list saved to workflow_list.json
 ```
+
+Normally, collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOS.
+By using `--curated` flag, the collected workflows will instead include "CURATED PIPELINES & TOOLS" only.
+
+```bash
+cloudos workflow list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --curated
+```
+```console
+Executing list...
+	Workflow list collected with a total of 73 workflows.
+	Workflow list saved to workflow_list.csv
+```
+
+
+#### Get a list of all available projects from a CloudOS workspace
+
+Similarly to the `workflows` functionality, you can get a summary of all the available workspace
+projects in two different formats:
+- CSV: this is a table with a minimum predefined set of columns by default, or all the
+available columns using the `--all-fields` parameter.
+- JSON: all the available information from projects, in JSON format.
+
+To get a CSV table with all the available projects for a given workspace, use
+the following command:
+
+```bash
+cloudos project list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --output-format csv \
+    --all-fields
+```
+
+The expected output is something similar to:
+
+```console
+Executing list...
+	Workflow list collected with a total of 320 projects.
+	Workflow list saved to project_list.csv
+```
+
+#### Run all Curated Workflows with example parameters
+
+In "Pipelines" section in CloudOS, there is a special type of workflows called "CURATED PIPELINES & TOOLS". These workflows are
+curated and maintained by our team. Some of them also offer the possibility of testing them using example parameters. We have
+added the following CLI functionality to be able to run all of these curated workflows with example parameters.
+
+The following example will launch all the workspace curated workflows with example parameters:
+
+```bash
+cloudos job run-curated-examples \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME"
+```
+
+```console
+    All 39 curated job launched successfully!
+```
+
+You can also wait for all jobs completion and get a final summary of their status using the `--wait-completion` flag:
+
+```bash
+cloudos job run-curated-examples \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --wait-completion
+```
+
+>NOTE: currently, this command only runs Nextflow curated workflows.
+
+#### Get a list of the available job queues
+
+Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are
+listed in the "Compute Resources" section in "Settings".
+You can get a summary of all the available workspace job queues in two formats:
+- CSV: this is a table with a selection of the available job queue information. Alternatively, you can
+get all the information using the `--all-fields` flag.
+- JSON: all the available information from job queues, in JSON format.
+
+Example command: getting all available job queues in JSON format.
+
+```bash
+cloudos queue list \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --output-format json \
+    --output-basename "available_queues"
+```
+
+```
+Executing list...
+	Job queue list collected with a total of 5 queues.
+	Job queue list saved to available_queues.json
+```
+
+> NOTE: the job name that is visible in CloudOS and has to be used in combination with `--job-queue` parameter is
+the one in `label` field.
 
 ### WDL pipeline support
 
@@ -430,12 +509,6 @@ cloudos cromwell status \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-Cromwell server functionality: check status, start and stop.
-
 Executing status...
 	Current Cromwell server status is: Stopped
 ```
@@ -449,12 +522,6 @@ cloudos cromwell start \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-Cromwell server functionality: check status, start and stop.
-
 Starting Cromwell server...
 	Current Cromwell server status is: Initializing
 
@@ -470,12 +537,6 @@ cloudos cromwell stop \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-Cromwell server functionality: check status, start and stop.
-
 Stopping Cromwell server...
 	Current Cromwell server status is: Stopped
 ```
@@ -536,12 +597,6 @@ cloudos job run \
 ```
 
 ```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.0.1
-
-CloudOS job functionality: run and check jobs in CloudOS.
-
 Executing run...
     WDL workflow detected
 
@@ -633,6 +688,15 @@ following command.
 my_workflows_r = j.get_workflow_list(workspace_id)
 my_workflows = j.process_workflow_list(my_workflows_r)
 print(my_workflows)
+```
+
+Similarly, you can inspect all the available projects for a given workspace using the
+following command.
+
+```python
+my_projects_r = j.get_project_list(workspace_id)
+my_projects = j.process_project_list(my_projects_r)
+print(my_projects)
 ```
 
 #### Running WDL pipelines using your own scripts

@@ -19,10 +19,10 @@ def mocked_requests_get():
     with open(input_json) as json_data:
         d = json.load(json_data)
     with requests_mock.Mocker() as mock:
-        mock.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}",
+        mock.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}&page=1",
                  json=d)
-        r = requests.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}")
-    return r
+        r = requests.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}&page=1")
+    return json.loads(r.content)['jobs']
 
 
 def test_process_job_list_output_correct_shape(mocked_requests_get,):
@@ -68,9 +68,9 @@ def test_process_job_list_empty_json():
     test_workspace_id = 1
     empty_json = {"a": {"b": ""}}
     with requests_mock.Mocker() as mock:
-        mock.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}",
+        mock.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}&page=1",
                  json=empty_json)
-        r = requests.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}")
+        r = requests.get(f"http://test_cloud_os/api/v1/jobs?teamId={test_workspace_id}&page=1")
     with pytest.raises(KeyError) as excinfo:
-        df = Cloudos.process_job_list(r)
+        Cloudos.process_job_list(json.loads(r.content)['jobs'])
     assert "jobs" in str(excinfo.value)

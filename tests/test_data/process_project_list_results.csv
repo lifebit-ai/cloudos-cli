@@ -1,0 +1,2 @@
+_id,name,user.id,user.name,user.surname,user.email,createdAt,updatedAt,workflowCount,jobCount,notebookSessionCount
+1234bc123125,lifebit-testing,XXX,XXX,XXX,XXX@lifebit.ai,2022-10-05T11:35:17.349Z,2022-11-30T12:17:48.934Z,3,109,1
