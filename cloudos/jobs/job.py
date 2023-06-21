@@ -196,6 +196,7 @@ class Job(Cloudos):
                                  spot,
                                  storage_mode,
                                  lustre_size,
+                                 execution_platform,
                                  workflow_type,
                                  cromwell_id,
                                  cost_limit):
