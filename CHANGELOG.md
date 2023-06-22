@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.6.0 (2023-06-22)
+
+### Feature
+
+- adds Azure support
+
 ## v2.5.0 (2023-05-02)
 
 ### Feature
