@@ -364,8 +364,9 @@ def run(apikey,
               help='Whether to make use the batch executor instead of the default ignite.',
               is_flag=True)
 @click.option('--instance-type',
-              help='The type of AMI to use. Default=c5.xlarge.',
-              default='c5.xlarge')
+              help=('The type of execution platform compute instance to use. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
 @click.option('--instance-disk',
               help='The amount of disk storage to configure. Default=500.',
               type=int,
@@ -382,6 +383,10 @@ def run(apikey,
                     'be 1200 or a multiple of it. Default=1200.'),
               type=int,
               default=1200)
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              type=click.Choice(['aws', 'azure']),
+              default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -420,6 +425,7 @@ def run_curated_examples(apikey,
                          spot,
                          storage_mode,
                          lustre_size,
+                         execution_platform,
                          cost_limit,
                          wait_completion,
                          wait_time,
@@ -438,6 +444,11 @@ def run_curated_examples(apikey,
     runnable_curated_workflows = [
         w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
     ]
+    if instance_type == 'NONE_SELECTED':
+        if execution_platform == 'aws':
+            instance_type = 'c5.xlarge'
+        if execution_platform == 'azure':
+            instance_type = 'Standard_D4as_v4'
     for workflow in runnable_curated_workflows:
         workflow_name = workflow['name']
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
@@ -451,6 +462,7 @@ def run_curated_examples(apikey,
                           spot=spot,
                           storage_mode=storage_mode,
                           lustre_size=lustre_size,
+                          execution_platform=execution_platform,
                           workflow_type='nextflow',
                           cost_limit=cost_limit,
                           verify=verify_ssl)
