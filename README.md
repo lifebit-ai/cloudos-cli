@@ -290,7 +290,7 @@ CloudOS can be configured to use AWS (Amazon Web Services) or Microsoft Azure co
 By default `cloudos-cli` is configured to use AWS execution platform. If your CloudOS is configured to
 use Azure, you will need to take into consideration the following:
 
-- When sending jobs to CloudOS using `cloudos job run` command, please use the option `--execution-platform azure`.
+- When sending jobs to CloudOS using `cloudos job run` or `cloudos job run-curated-examples` commands, please use the option `--execution-platform azure`.
 - Do not use `cloudos job run --batch` option, as there will be no AWS batch instances to select.
 - `cloudos queue list` command is not working for the same reason.
 
