@@ -23,6 +23,7 @@ param_dict = {
     "spot": True,
     "storage_mode": 'regular',
     "lustre_size": 1200,
+    "execution_platform": "aws",
     "workflow_type": 'nextflow',
     "cromwell_id": None,
     "cost_limit": -1
@@ -48,6 +49,7 @@ def test_convert_nextflow_to_json_output_correct():
         spot=param_dict["spot"],
         storage_mode=param_dict["storage_mode"],
         lustre_size=param_dict["lustre_size"],
+        execution_platform=param_dict["execution_platform"],
         workflow_type=param_dict["workflow_type"],
         cromwell_id=param_dict["cromwell_id"],
         cost_limit=param_dict["cost_limit"]
@@ -78,6 +80,7 @@ def test_convert_nextflow_to_json_badly_formed_config():
             spot=param_dict["spot"],
             storage_mode=param_dict["storage_mode"],
             lustre_size=param_dict["lustre_size"],
+            execution_platform=param_dict["execution_platform"],
             workflow_type=param_dict["workflow_type"],
             cromwell_id=param_dict["cromwell_id"],
             cost_limit=param_dict["cost_limit"]

@@ -143,8 +143,9 @@ def queue():
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
-              help='The type of AMI to use. Default=c5.xlarge.',
-              default='c5.xlarge')
+              help=('The type of execution platform compute instance to use. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
 @click.option('--instance-disk',
               help='The amount of disk storage to configure. Default=500.',
               type=int,
@@ -180,6 +181,10 @@ def queue():
 @click.option('--repository-platform',
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              type=click.Choice(['aws', 'azure']),
+              default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -224,6 +229,7 @@ def run(apikey,
         wdl_importsfile,
         cromwell_token,
         repository_platform,
+        execution_platform,
         cost_limit,
         verbose,
         request_interval,
@@ -232,6 +238,14 @@ def run(apikey,
     """Submit a job to CloudOS."""
     print('Executing run...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if instance_type == 'NONE_SELECTED':
+        if execution_platform == 'aws':
+            instance_type = 'c5.xlarge'
+        if execution_platform == 'azure':
+            instance_type = 'Standard_D4as_v4'
+    if execution_platform == 'azure':
+        batch = None
+        spot = None
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -295,6 +309,7 @@ def run(apikey,
                       spot=spot,
                       storage_mode=storage_mode,
                       lustre_size=lustre_size,
+                      execution_platform=execution_platform,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
                       cost_limit=cost_limit,
@@ -352,8 +367,9 @@ def run(apikey,
               help='Whether to make use the batch executor instead of the default ignite.',
               is_flag=True)
 @click.option('--instance-type',
-              help='The type of AMI to use. Default=c5.xlarge.',
-              default='c5.xlarge')
+              help=('The type of execution platform compute instance to use. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
 @click.option('--instance-disk',
               help='The amount of disk storage to configure. Default=500.',
               type=int,
@@ -370,6 +386,10 @@ def run(apikey,
                     'be 1200 or a multiple of it. Default=1200.'),
               type=int,
               default=1200)
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              type=click.Choice(['aws', 'azure']),
+              default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -408,6 +428,7 @@ def run_curated_examples(apikey,
                          spot,
                          storage_mode,
                          lustre_size,
+                         execution_platform,
                          cost_limit,
                          wait_completion,
                          wait_time,
@@ -426,6 +447,14 @@ def run_curated_examples(apikey,
     runnable_curated_workflows = [
         w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
     ]
+    if instance_type == 'NONE_SELECTED':
+        if execution_platform == 'aws':
+            instance_type = 'c5.xlarge'
+        if execution_platform == 'azure':
+            instance_type = 'Standard_D4as_v4'
+    if execution_platform == 'azure':
+        batch = None
+        spot = None
     for workflow in runnable_curated_workflows:
         workflow_name = workflow['name']
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
@@ -439,6 +468,7 @@ def run_curated_examples(apikey,
                           spot=spot,
                           storage_mode=storage_mode,
                           lustre_size=lustre_size,
+                          execution_platform=execution_platform,
                           workflow_type='nextflow',
                           cost_limit=cost_limit,
                           verify=verify_ssl)
@@ -996,6 +1026,8 @@ def list_queues(apikey,
     print('Executing list...')
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
     my_queues = j_queue.get_job_queues()
+    if len(my_queues) == 0:
+        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS bath queues')
     if output_format == 'csv':
         queues_processed = j_queue.process_queue_list(my_queues, all_fields)
         queues_processed.to_csv(outfile, index=False)
