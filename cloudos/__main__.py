@@ -243,8 +243,9 @@ def run(apikey,
             instance_type = 'c5.xlarge'
         if execution_platform == 'azure':
             instance_type = 'Standard_D4as_v4'
-            batch = None
-            spot = None
+    if execution_platform == 'azure':
+        batch = None
+        spot = None
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -451,8 +452,9 @@ def run_curated_examples(apikey,
             instance_type = 'c5.xlarge'
         if execution_platform == 'azure':
             instance_type = 'Standard_D4as_v4'
-            batch = None
-            spot = None
+    if execution_platform == 'azure':
+        batch = None
+        spot = None
     for workflow in runnable_curated_workflows:
         workflow_name = workflow['name']
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
