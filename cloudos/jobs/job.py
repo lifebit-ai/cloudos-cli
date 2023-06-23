@@ -196,6 +196,7 @@ class Job(Cloudos):
                                  spot,
                                  storage_mode,
                                  lustre_size,
+                                 execution_platform,
                                  workflow_type,
                                  cromwell_id,
                                  cost_limit):
@@ -245,6 +246,8 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        execution_platform : string ['aws'|'azure']
+            The execution platform implemented in your CloudOS.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
@@ -388,7 +391,7 @@ class Job(Cloudos):
                 "jobQueue": job_queue_id
             },
             "cromwellCloudResources": cromwell_id,
-            "executionPlatform": "aws",
+            "executionPlatform": execution_platform,
             "storageSizeInGb": instance_disk,
             "execution": {
                 "computeCostLimit": cost_limit,
@@ -424,6 +427,7 @@ class Job(Cloudos):
                  spot=False,
                  storage_mode='regular',
                  lustre_size=1200,
+                 execution_platform='aws',
                  workflow_type='nextflow',
                  cromwell_id=None,
                  cost_limit=30.0,
@@ -470,6 +474,8 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
+        execution_platform : string ['aws'|'azure']
+            The execution platform implemented in your CloudOS.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
@@ -513,6 +519,7 @@ class Job(Cloudos):
                                                spot,
                                                storage_mode,
                                                lustre_size,
+                                               execution_platform,
                                                workflow_type,
                                                cromwell_id,
                                                cost_limit)

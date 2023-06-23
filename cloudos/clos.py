@@ -298,9 +298,7 @@ class Cloudos:
                    'project._id',
                    'project.name',
                    'project.createdAt',
-                   'project.updatedAt',
-                   'masterInstance.usedInstance.type',
-                   'spotInstances.usedInstance.asSpot'
+                   'project.updatedAt'
                    ]
         df_full = pd.json_normalize(r)
         if all_fields:
