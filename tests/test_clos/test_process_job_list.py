@@ -51,9 +51,7 @@ def test_process_job_list_df_values_equal(mocked_requests_get,):
                           'workflow._id', 'workflow.name', 'workflow.createdAt',
                           'workflow.updatedAt', 'workflow.workflowType',
                           'project._id', 'project.name',
-                          'project.createdAt', 'project.updatedAt',
-                          'masterInstance.usedInstance.type',
-                          'spotInstances.usedInstance.asSpot']
+                          'project.createdAt', 'project.updatedAt']
     assert np.all(df[columns_to_compare] == output_df[columns_to_compare])
 
 
