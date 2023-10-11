@@ -298,14 +298,14 @@ class Job(Cloudos):
                                 reading = False
                             else:
                                 p_list = p_l_strip.split('=')
+                                p_name = p_list[0]
+                                p_value = '='.join(p_list[1:])
                                 if len(p_list) < 2:
                                     raise ValueError('Please, specify your ' +
                                                      'parameters in ' +
                                                      f'{job_config} using ' +
                                                      'the \'=\' as spacer. ' +
                                                      'E.g: name = my_name')
-                                p_name = p_list[0]
-                                p_value = '='.join(p_list[1:])
                                 elif workflow_type == 'wdl':
                                     param = {"prefix": "",
                                              "name": p_name,
