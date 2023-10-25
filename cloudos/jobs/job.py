@@ -298,7 +298,9 @@ class Job(Cloudos):
                                 reading = False
                             else:
                                 p_list = p_l_strip.split('=')
-                                if len(p_list) != 2:
+                                p_name = p_list[0]
+                                p_value = '='.join(p_list[1:])
+                                if len(p_list) < 2:
                                     raise ValueError('Please, specify your ' +
                                                      'parameters in ' +
                                                      f'{job_config} using ' +
@@ -306,15 +308,15 @@ class Job(Cloudos):
                                                      'E.g: name = my_name')
                                 elif workflow_type == 'wdl':
                                     param = {"prefix": "",
-                                             "name": p_list[0],
+                                             "name": p_name,
                                              "parameterKind": "textValue",
-                                             "textValue": p_list[1]}
+                                             "textValue": p_value}
                                     workflow_params.append(param)
                                 else:
                                     param = {"prefix": "--",
-                                             "name": p_list[0],
+                                             "name": p_name,
                                              "parameterKind": "textValue",
-                                             "textValue": p_list[1]}
+                                             "textValue": p_value}
                                     workflow_params.append(param)
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
@@ -322,11 +324,11 @@ class Job(Cloudos):
         if len(parameter) > 0:
             for p in parameter:
                 p_split = p.split('=')
-                if len(p_split) != 2:
+                if len(p_split) < 2:
                     raise ValueError('Please, specify -p / --parameter using a single \'=\' ' +
                                      'as spacer. E.g: input=value')
                 p_name = p_split[0]
-                p_value = p_split[1]
+                p_value = '='.join(p_split[1:])
                 if workflow_type == 'wdl':
                     param = {"prefix": "",
                              "name": p_name,

@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.6.1 (2023-10-11)
+
+### Fix
+
+- Improve parsing of parameters added with `-p`. Now they can include internal `=` symbols.
+
 ## v2.6.0 (2023-06-22)
 
 ### Feature
