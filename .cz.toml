@@ -1,6 +1,6 @@
 [tool.commitizen]
 name = "cz_customize"
-version = "2.7.0"
+version = "2.6.2"
 tag_format = "v$major.$minor.$patch"
 
 [tool.commitizen.customize]
