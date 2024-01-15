@@ -26,7 +26,6 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
     """
     retry_strategy = Retry(
         total=total,
-        backoff_factor=2,
         status_forcelist=status_forcelist
     )
     # Create an HTTP adapter with the retry strategy and mount it to session
@@ -61,7 +60,6 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
     """
     retry_strategy = Retry(
         total=total,
-        backoff_factor=2,
         status_forcelist=status_forcelist
     )
     # Create an HTTP adapter with the retry strategy and mount it to session
