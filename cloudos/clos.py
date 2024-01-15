@@ -7,6 +7,7 @@ import time
 import json
 from dataclasses import dataclass
 from cloudos.utils.errors import BadRequestException
+from cloudos.utils.requests import retry_requests_get, retry_requests_post
 import pandas as pd
 
 # GLOBAL VARS
@@ -55,9 +56,9 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = requests.get("{}/api/v1/jobs/{}".format(cloudos_url,
+        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
                                                     j_id),
-                         headers=headers, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -176,9 +177,9 @@ class Cloudos:
         """
         cloudos_url = self.cloudos_url
         headers = self._create_cromwell_header()
-        r = requests.get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
+        r = retry_requests_get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
                                                                workspace_id),
-                         headers=headers, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -235,9 +236,9 @@ class Cloudos:
             A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
         data = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
+        r = retry_requests_get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
                                                                    workspace_id, page),
-                         params=data, verify=verify)
+                               params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -354,9 +355,9 @@ class Cloudos:
                     ]
                  ]
                 }
-        r = requests.post("{}/api/v1/workflows/getByType?teamId={}".format(self.cloudos_url,
+        r = retry_requests_post("{}/api/v1/workflows/getByType?teamId={}".format(self.cloudos_url,
                                                                            workspace_id),
-                          json=data, verify=verify)
+                                json=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -391,9 +392,9 @@ class Cloudos:
             A list of dicts, each corresponding to a workflow.
         """
         data = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
+        r = retry_requests_get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                 workspace_id),
-                         params=data, verify=verify)
+                               params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
@@ -484,8 +485,8 @@ class Cloudos:
             The server response
         """
         data = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/projects?teamId={}".format(self.cloudos_url, workspace_id),
-                         params=data, verify=verify)
+        r = retry_requests_get("{}/api/v1/projects?teamId={}".format(self.cloudos_url, workspace_id),
+                               params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
