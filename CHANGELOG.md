@@ -4,7 +4,7 @@
 
 ### Fix
 
-- Adds an error strategy to retry GET requests on time-out errors.
+- Adds an error strategy to retry GET/POST requests on time-out errors.
 
 ## v2.6.1 (2023-10-11)
 
