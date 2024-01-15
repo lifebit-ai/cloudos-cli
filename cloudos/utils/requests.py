@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 
-def retry_requests_get(url, total=4, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
     """Wrap normal requests get with an error strategy.
 
     Parameters
@@ -26,6 +26,7 @@ def retry_requests_get(url, total=4, status_forcelist=[429, 500, 502, 503, 504],
     """
     retry_strategy = Retry(
         total=total,
+        backoff_factor=2,
         status_forcelist=status_forcelist
     )
     # Create an HTTP adapter with the retry strategy and mount it to session
@@ -41,7 +42,7 @@ def retry_requests_get(url, total=4, status_forcelist=[429, 500, 502, 503, 504],
     return response
 
 
-def retry_requests_post(url, total=4, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
     """Wrap normal requests post with an error strategy.
 
     Parameters
@@ -60,6 +61,7 @@ def retry_requests_post(url, total=4, status_forcelist=[429, 500, 502, 503, 504]
     """
     retry_strategy = Retry(
         total=total,
+        backoff_factor=2,
         status_forcelist=status_forcelist
     )
     # Create an HTTP adapter with the retry strategy and mount it to session
