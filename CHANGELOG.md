@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.6.2 (2024-01-12)
+
+### Fix
+
+- Adds an error strategy to retry GET/POST requests on time-out errors.
+
 ## v2.6.1 (2023-10-11)
 
 ### Fix

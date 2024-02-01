@@ -4,10 +4,10 @@ This is the main class to create jobs.
 
 from dataclasses import dataclass
 from typing import Union
-import requests
 import json
 from cloudos.clos import Cloudos
 from cloudos.utils.errors import BadRequestException
+from cloudos.utils.requests import retry_requests_get, retry_requests_post
 
 
 @dataclass
@@ -144,10 +144,10 @@ class Job(Cloudos):
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
         data = {"apikey": apikey}
-        r = requests.get("{}/api/v1/{}?teamId={}".format(cloudos_url,
+        r = retry_requests_get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
                                                          workspace_id),
-                         params=data, verify=verify)
+                               params=data, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -525,9 +525,9 @@ class Job(Cloudos):
                                                workflow_type,
                                                cromwell_id,
                                                cost_limit)
-        r = requests.post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
+        r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
-                          data=json.dumps(params), headers=headers, verify=verify)
+                                data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
