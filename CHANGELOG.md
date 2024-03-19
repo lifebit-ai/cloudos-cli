@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.7.0 (2024-03-19)
+
+### Feature
+
+- Changes the default Nextflow executor to be AWSbatch. Now, the `--batch` flag is no longer necessary (although it's maintained for backwards compatibility) and a new `--ignite` flag is created.
+
+
 ## v2.6.2 (2024-01-12)
 
 ### Fix
