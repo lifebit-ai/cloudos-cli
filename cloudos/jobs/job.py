@@ -155,7 +155,7 @@ class Job(Cloudos):
             for element in content:
                 if (element["name"] == name and
                     element["repository"]["platform"] == repository_platform and
-                    element["archived"]["status"] == "FALSE"):
+                    not element["archived"]["status"]):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
