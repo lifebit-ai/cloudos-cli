@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.6.3 (2024-03-19)
+
+### Fix
+
+- Discards archived worflows from the executable ones, as they will always produce an error.
+
 ## v2.6.2 (2024-01-12)
 
 ### Fix

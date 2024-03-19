@@ -153,7 +153,9 @@ class Job(Cloudos):
         content = json.loads(r.content)
         if resource == 'workflows':
             for element in content:
-                if element["name"] == name and element["repository"]["platform"] == repository_platform:
+                if (element["name"] == name and
+                    element["repository"]["platform"] == repository_platform and
+                    element["archived"]["status"] == "FALSE"):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
