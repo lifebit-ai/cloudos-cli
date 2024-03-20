@@ -9,7 +9,6 @@ import time
 import sys
 import os
 import urllib3
-import warnings
 from ._version import __version__
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -257,9 +256,9 @@ def run(apikey,
         spot = None
     elif ignite:
         batch = None
-        warnings.warn('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
-                      'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
-                      'CloudOS', DeprecationWarning)
+        print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
+              'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
+              'CloudOS\n')
     else:
         batch = True
     if verbose:
@@ -481,9 +480,9 @@ def run_curated_examples(apikey,
         spot = None
     elif ignite:
         batch = None
-        warnings.warn('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
-                      'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
-                      'CloudOS', DeprecationWarning)
+        print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
+              'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
+              'CloudOS\n')
     else:
         batch = True
     for workflow in runnable_curated_workflows:
