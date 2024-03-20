@@ -1,6 +1,6 @@
 # cloudos-cli
 
-[![Tests](https://github.com/lifebit-ai/cloudos-cli/workflows/CI\ tests/badge.svg)](https://github.com/lifebit-ai/cloudos-cli/actions?query=workflow%3ACI\ tests)
+[![Tests](https://github.com/lifebit-ai/cloudos-cli/workflows/CI%3Atests/badge.svg)](https://github.com/lifebit-ai/cloudos-cli/actions?query=workflow%3ACI%3Atests)
 
 Python package for interacting with CloudOS
 
