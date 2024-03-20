@@ -9,6 +9,7 @@ import time
 import sys
 import os
 import urllib3
+import warnings
 from ._version import __version__
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -138,7 +139,14 @@ def queue():
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
 @click.option('--batch',
-              help='Whether to make use the batch executor instead of the default ignite.',
+              help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
+                    'so there is no need to use this flag. It is maintained for ' +
+                    'backwards compatibility.'),
+              is_flag=True)
+@click.option('--ignite',
+              help=('This flag allows running ignite executor if available. Please, note ' +
+                    'that ignite executor is being deprecated and may not be available in your ' +
+                    'CloudOS'),
               is_flag=True)
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
@@ -216,6 +224,7 @@ def run(apikey,
         job_name,
         resumable,
         batch,
+        ignite,
         job_queue,
         nextflow_profile,
         instance_type,
@@ -246,6 +255,13 @@ def run(apikey,
     if execution_platform == 'azure':
         batch = None
         spot = None
+    elif ignite:
+        batch = None
+        warnings.warn('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
+                      'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
+                      'CloudOS', DeprecationWarning)
+    else:
+        batch = True
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -364,7 +380,14 @@ def run(apikey,
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
 @click.option('--batch',
-              help='Whether to make use the batch executor instead of the default ignite.',
+              help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
+                    'so there is no need to use this flag. It is maintained for ' +
+                    'backwards compatibility.'),
+              is_flag=True)
+@click.option('--ignite',
+              help=('This flag allows running ignite executor if available. Please, note ' +
+                    'that ignite executor is being deprecated and may not be available in your ' +
+                    'CloudOS'),
               is_flag=True)
 @click.option('--instance-type',
               help=('The type of execution platform compute instance to use. ' +
@@ -423,6 +446,7 @@ def run_curated_examples(apikey,
                          project_name,
                          resumable,
                          batch,
+                         ignite,
                          instance_type,
                          instance_disk,
                          spot,
@@ -455,6 +479,13 @@ def run_curated_examples(apikey,
     if execution_platform == 'azure':
         batch = None
         spot = None
+    elif ignite:
+        batch = None
+        warnings.warn('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
+                      'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
+                      'CloudOS', DeprecationWarning)
+    else:
+        batch = True
     for workflow in runnable_curated_workflows:
         workflow_name = workflow['name']
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
