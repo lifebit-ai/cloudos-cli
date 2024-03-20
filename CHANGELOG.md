@@ -5,7 +5,7 @@
 ### Feature
 
 - Changes the default Nextflow executor to be AWSbatch. Now, the `--batch` flag is no longer necessary (although it's maintained for backwards compatibility) and a new `--ignite` flag is created to support ignite if available.
-- If no valid job queue is provided by the user, cloudos-cli now selects the CloudOS default queue.
+- Selects the CloudOS workspace default queue, when no valid `--job-queue` is provided.
 
 ## v2.6.3 (2024-03-19)
 
