@@ -116,15 +116,22 @@ class Queue(Cloudos):
         if len(available_queues) == 0:
             raise Exception(f'[ERROR] There are no available job queues for {workflow_type} ' +
                             'workflows. Consider creating one using CloudOS UI.')
-        default_queue_id = available_queues[-1]['id']
-        default_queue_name = available_queues[-1]['label']
+        default_queue = [q for q in available_queues if q['isDefault'] == 'TRUE']
+        if len(default_queue) > 0:
+            default_queue_id = default_queue[0]['id']
+            default_queue_name = default_queue[0]['label']
+            queue_as_default = 'CloudOS default'
+        else:
+            default_queue_id = available_queues[-1]['id']
+            default_queue_name = available_queues[-1]['label']
+            queue_as_default = 'most recent suitable'
         if job_queue is None:
-            print('\tNo job_queue was specified, using the most recent suitable one: ' +
+            print('\tNo job_queue was specified, using the {queue_as_default} queue: ' +
                   f'{default_queue_name}.')
             return default_queue_id
         selected_queue = [q for q in available_queues if q['label'] == job_queue]
         if len(selected_queue) == 0:
-            print(f'\tQueue \'{job_queue}\' you specified was not found, using the most recent ' +
-                  f'suitable one instead: {default_queue_name}.')
+            print(f'\tQueue \'{job_queue}\' you specified was not found, using the {queue_as_default} ' +
+                  f'queue instead: {default_queue_name}.')
             return default_queue_id
         return selected_queue[0]['id']
