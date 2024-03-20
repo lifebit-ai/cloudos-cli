@@ -32,7 +32,7 @@ jobs:
         pip install -e '.[test]'
     - name: Run tests
       run: |
-        pytestxxxxx
+        pytest
   job_list:
     runs-on: ubuntu-latest
     strategy:
