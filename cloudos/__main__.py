@@ -146,7 +146,7 @@ def queue():
 @click.option('--ignite',
               help=('This flag allows running ignite executor if available. Please, note ' +
                     'that ignite executor is being deprecated and may not be available in your ' +
-                    'CloudOS'),
+                    'CloudOS.'),
               is_flag=True)
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
@@ -387,7 +387,7 @@ def run(apikey,
 @click.option('--ignite',
               help=('This flag allows running ignite executor if available. Please, note ' +
                     'that ignite executor is being deprecated and may not be available in your ' +
-                    'CloudOS'),
+                    'CloudOS.'),
               is_flag=True)
 @click.option('--instance-type',
               help=('The type of execution platform compute instance to use. ' +

@@ -103,8 +103,14 @@ Options:
   --job-name TEXT                 The name of the job. Default=new_job.
   --resumable                     Whether to make the job able to be resumed
                                   or not.
-  --batch                         Whether to make use the batch executor
-                                  instead of the default ignite.
+  --batch                         [Deprecated in 2.7.0] Since v2.7.0, the
+                                  default executor is AWSbatch so there is no
+                                  need to use this flag. It is maintained for
+                                  backwards compatibility.
+  --ignite                        This flag allows running ignite executor if
+                                  available. Please, note that ignite executor
+                                  is being deprecated and may not be available
+                                  in your CloudOS.
   --job-queue TEXT                Name of the job queue to use with a batch
                                   job.
   --instance-type TEXT            The type of execution platform compute
@@ -263,10 +269,8 @@ Executing run...
 
 #### Executor support
 
-CloudOS supports Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite) and
-[AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executors.
-When using `cloudos job run` command, the default executor will be ignite.
-To choose AWS batch, you can use the flag `--batch`. In addition, you can specify the AWS batch queue to
+CloudOS supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.
+You can specify the AWS batch queue to
 use, from the ones available in your workspace (see [here](#get-a-list-of-the-available-job-queues))
 by specifying its name with the `--job-queue` parameter.
 If none is specified, the most recent suitable queue in your workspace will be selected by default.
@@ -280,18 +284,22 @@ cloudos job run \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
-    --resumable \
-    --batch
+    --resumable
 ```
 
-#### Execution platform support
+> Note: from cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite)
+> executor is being removed progressively from CloudOS, so most likely will not be available in your CloudOS. Cloudos-cli is still supporting ignite during this
+> period, by adding the `--ignite` flag to the `cloudos job run` command. Please, note that if you use `--ignite` flag in a CloudOS without ignite support,
+> the command fail.
 
-CloudOS can be configured to use AWS (Amazon Web Services) or Microsoft Azure compute platforms.
-By default `cloudos-cli` is configured to use AWS execution platform. If your CloudOS is configured to
+#### Azure execution platform support
+
+CloudOS can also be configured to use Microsoft Azure compute platforms.
+If your CloudOS is configured to
 use Azure, you will need to take into consideration the following:
 
 - When sending jobs to CloudOS using `cloudos job run` or `cloudos job run-curated-examples` commands, please use the option `--execution-platform azure`.
-- Options `--batch` and `--spot` are not taking effect when using Azure execution platform.
+- Option `--spot` is not taking effect when using Azure execution platform.
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working.
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:
