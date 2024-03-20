@@ -70,6 +70,7 @@ class Queue(Cloudos):
                    'name',
                    'label',
                    'description',
+                   'isDefault',
                    'resourceType',
                    'executor',
                    'status'
@@ -81,20 +82,21 @@ class Queue(Cloudos):
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def fetch_job_queue_id(self, workflow_type, batch=False, job_queue=None):
+    def fetch_job_queue_id(self, workflow_type, batch=True, job_queue=None):
         """Fetches CloudOS ID for a given job queue.
 
-        When batch=True and isinstance(job_queue, str) this method will try to find the
+        This method will try to find the
         corresponding CloudOS ID for the job_queue in a given workspace. If
-        job_queue=None, this method will select the newest "ready" job queue
-        for the selected workflow type.
+        job_queue=None, this method will select the available default queue in
+        the workspace, or the newest "ready" job queue if no default queues are
+        available.
 
         Parameters
         ----------
         workflow_type : str ['wdl'|'cromwell'|'nextflow']
             The type of workflow to run.
         batch: bool
-            Whether to create a batch job instead of the default ignite.
+            Whether to create a batch job or an ignite one.
         job_queue : str or None
             The name of the job queue to search. If None, a default one will be selected.
 

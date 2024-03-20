@@ -231,7 +231,7 @@ class Job(Cloudos):
         resumable: bool
             Whether to create a resumable job or not.
         batch: bool
-            Whether to create a batch job instead of the default ignite.
+            Whether to create a batch job or an ignite one.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string
@@ -423,7 +423,7 @@ class Job(Cloudos):
                  git_tag=None,
                  job_name='new_job',
                  resumable=False,
-                 batch=False,
+                 batch=True,
                  job_queue_id=None,
                  nextflow_profile=None,
                  instance_type='c5.xlarge',
@@ -461,7 +461,7 @@ class Job(Cloudos):
         resumable: bool
             Whether to create a resumable job or not.
         batch: bool
-            Whether to create a batch job instead of the default ignite.
+            Whether to create a batch job or an ignite one.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string
