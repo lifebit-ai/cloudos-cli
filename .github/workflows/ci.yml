@@ -1,4 +1,4 @@
-name: CI tests
+name: CI_tests
 
 on:
   pull_request:
@@ -86,7 +86,7 @@ jobs:
         INSTANCE_TYPE: "c5.large"
       run: |
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
-        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE --spot --batch 2>&1 | tee out.txt
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE --spot 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         cloudos job status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   workflow_list:

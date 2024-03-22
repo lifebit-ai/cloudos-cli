@@ -70,6 +70,7 @@ class Queue(Cloudos):
                    'name',
                    'label',
                    'description',
+                   'isDefault',
                    'resourceType',
                    'executor',
                    'status'
@@ -81,20 +82,21 @@ class Queue(Cloudos):
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def fetch_job_queue_id(self, workflow_type, batch=False, job_queue=None):
+    def fetch_job_queue_id(self, workflow_type, batch=True, job_queue=None):
         """Fetches CloudOS ID for a given job queue.
 
-        When batch=True and isinstance(job_queue, str) this method will try to find the
+        This method will try to find the
         corresponding CloudOS ID for the job_queue in a given workspace. If
-        job_queue=None, this method will select the newest "ready" job queue
-        for the selected workflow type.
+        job_queue=None, this method will select the available default queue in
+        the workspace, or the newest "ready" job queue if no default queues are
+        available.
 
         Parameters
         ----------
         workflow_type : str ['wdl'|'cromwell'|'nextflow']
             The type of workflow to run.
         batch: bool
-            Whether to create a batch job instead of the default ignite.
+            Whether to create a batch job or an ignite one.
         job_queue : str or None
             The name of the job queue to search. If None, a default one will be selected.
 
@@ -116,15 +118,22 @@ class Queue(Cloudos):
         if len(available_queues) == 0:
             raise Exception(f'[ERROR] There are no available job queues for {workflow_type} ' +
                             'workflows. Consider creating one using CloudOS UI.')
-        default_queue_id = available_queues[-1]['id']
-        default_queue_name = available_queues[-1]['label']
+        default_queue = [q for q in available_queues if q['isDefault']]
+        if len(default_queue) > 0:
+            default_queue_id = default_queue[0]['id']
+            default_queue_name = default_queue[0]['label']
+            queue_as_default = 'CloudOS default'
+        else:
+            default_queue_id = available_queues[-1]['id']
+            default_queue_name = available_queues[-1]['label']
+            queue_as_default = 'most recent suitable'
         if job_queue is None:
-            print('\tNo job_queue was specified, using the most recent suitable one: ' +
+            print(f'\tNo job_queue was specified, using the {queue_as_default} queue: ' +
                   f'{default_queue_name}.')
             return default_queue_id
         selected_queue = [q for q in available_queues if q['label'] == job_queue]
         if len(selected_queue) == 0:
-            print(f'\tQueue \'{job_queue}\' you specified was not found, using the most recent ' +
-                  f'suitable one instead: {default_queue_name}.')
+            print(f'\tQueue \'{job_queue}\' you specified was not found, using the {queue_as_default} ' +
+                  f'queue instead: {default_queue_name}.')
             return default_queue_id
         return selected_queue[0]['id']
