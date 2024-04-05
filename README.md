@@ -326,7 +326,7 @@ cloudos job run \
 CloudOS is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using `cloudos job run` command:
 
 - Use the following parameter: `--execution-platform hpc`.
-- Indicate the HPC ID in your CloudOS using: `--hpc-id XXXX`.
+- Indicate the HPC ID using: `--hpc-id XXXX`.
 
 Example command:
 
