@@ -193,7 +193,7 @@ def queue():
               type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
 @click.option('--hpc-id',
-              help=('ID of your HPC, only applicable when execution-platform=hpc. ' +
+              help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
                     'Default=660fae20f93358ad61e0104b'),
               default='660fae20f93358ad61e0104b')
 @click.option('--cost-limit',

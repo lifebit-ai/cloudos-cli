@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.8.0 (2024-0405)
+## v2.8.0 (2024-04-05)
 
 - Adds support for using CloudOS HPC executor.
 

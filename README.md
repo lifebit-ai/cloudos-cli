@@ -145,7 +145,7 @@ Options:
                                   Name of the execution platform implemented
                                   in your CloudOS. Default=aws.
   --hpc-id TEXT                   ID of your HPC, only applicable when
-                                  execution-platform=hpc.
+                                  --execution-platform=hpc.
                                   Default=660fae20f93358ad61e0104b
   --cost-limit FLOAT              Add a cost limit to your job. Default=30.0
                                   (For no cost limit please use -1).
