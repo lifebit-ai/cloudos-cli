@@ -199,6 +199,7 @@ class Job(Cloudos):
                                  storage_mode,
                                  lustre_size,
                                  execution_platform,
+                                 hpc_id,
                                  workflow_type,
                                  cromwell_id,
                                  cost_limit):
@@ -248,8 +249,10 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
-        execution_platform : string ['aws'|'azure']
+        execution_platform : string ['aws'|'azure'|'hpc']
             The execution platform implemented in your CloudOS.
+        hpc_id : string
+            The ID of your HPC in CloudOS.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
@@ -382,12 +385,6 @@ class Job(Cloudos):
         if storage_mode not in ['lustre', 'regular']:
             raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
                              f'{storage_mode} is not allowed')
-        if execution_platform == 'hpc':
-            hpc_id = '660fae20f93358ad61e0104b'
-            resumable = False
-            cost_limit = -1
-        else:
-            hpc_id = None
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -439,6 +436,7 @@ class Job(Cloudos):
                  storage_mode='regular',
                  lustre_size=1200,
                  execution_platform='aws',
+                 hpc_id=None,
                  workflow_type='nextflow',
                  cromwell_id=None,
                  cost_limit=30.0,
@@ -485,8 +483,10 @@ class Job(Cloudos):
         lustre_size : int
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
-        execution_platform : string ['aws'|'azure']
+        execution_platform : string ['aws'|'azure'|'hpc']
             The execution platform implemented in your CloudOS.
+        hpc_id : string
+            The ID of your HPC in CloudOS.
         workflow_type : str
             The type of workflow to run. Either 'nextflow' or 'wdl'.
         cromwell_id : str
@@ -531,6 +531,7 @@ class Job(Cloudos):
                                                storage_mode,
                                                lustre_size,
                                                execution_platform,
+                                               hpc_id,
                                                workflow_type,
                                                cromwell_id,
                                                cost_limit)

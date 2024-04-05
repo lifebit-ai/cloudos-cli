@@ -192,6 +192,10 @@ def queue():
               help='Name of the execution platform implemented in your CloudOS. Default=aws.',
               type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
+@click.option('--hpc-id',
+              help=('ID of your HPC, only applicable when execution-platform=hpc. ' +
+                    'Default=660fae20f93358ad61e0104b'),
+              default='660fae20f93358ad61e0104b')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -238,6 +242,7 @@ def run(apikey,
         cromwell_token,
         repository_platform,
         execution_platform,
+        hpc_id,
         cost_limit,
         verbose,
         request_interval,
@@ -265,6 +270,8 @@ def run(apikey,
         batch = True
     if execution_platform == 'hpc':
         print('\nHPC execution platform selected')
+        if hpc_id is None:
+            raise ValueError('Please, specify your HPC ID using --hpc parameter')
         print('[Message] Please, take into account that HPC execution do not support ' +
               'the following parameters and all of them will be ignored:\n' +
               '\t--resumable\n' +
@@ -339,6 +346,7 @@ def run(apikey,
                       storage_mode=storage_mode,
                       lustre_size=lustre_size,
                       execution_platform=execution_platform,
+                      hpc_id=hpc_id,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
                       cost_limit=cost_limit,
