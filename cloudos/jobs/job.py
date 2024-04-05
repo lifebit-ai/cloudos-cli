@@ -382,7 +382,10 @@ class Job(Cloudos):
         if storage_mode not in ['lustre', 'regular']:
             raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
                              f'{storage_mode} is not allowed')
-
+        if execution_platform == 'hpc':
+            hpc_id = '660fae20f93358ad61e0104b'
+        else:
+            hpc_id = None
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -396,6 +399,7 @@ class Job(Cloudos):
             },
             "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
+            "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
             "execution": {
                 "computeCostLimit": cost_limit,
