@@ -384,6 +384,8 @@ class Job(Cloudos):
                              f'{storage_mode} is not allowed')
         if execution_platform == 'hpc':
             hpc_id = '660fae20f93358ad61e0104b'
+            resumable = False
+            cost_limit = -1
         else:
             hpc_id = None
         params = {
@@ -409,14 +411,15 @@ class Job(Cloudos):
             "storageMode": storage_mode,
             "revision": revision_block,
             "profile": nextflow_profile,
-            instance: instance_type_block,
-            "masterInstance": {
+            instance: instance_type_block
+        }
+        if execution_platform != 'hpc':
+            params['masterInstance'] = {
                 "requestedInstance": {
                     "type": instance_type,
                     "asSpot": False
                 }
             }
-        }
         return params
 
     def send_job(self,
