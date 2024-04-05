@@ -339,7 +339,7 @@ cloudos job run \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
     --execution-platform hpc \
-    --hpc_id $YOUR_HPC_ID
+    --hpc-id $YOUR_HPC_ID
 ```
 
 Please, note that HPC execution do not support the following parameters and all of them will be ignored:
