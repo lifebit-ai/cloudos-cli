@@ -279,6 +279,8 @@ def run(apikey,
               '\t--instance-type | --instance-disk | --spot | --cost-limit\n' +
               '\t--storage-mode | --lustre-size\n' +
               '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
+        wdl_mainfile = None
+        wdl_importsfile = None
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
