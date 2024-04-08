@@ -141,9 +141,12 @@ Options:
                                   backwards compatibility.
   --repository-platform TEXT      Name of the repository platform of the
                                   workflow. Default=github.
-  --execution-platform [aws|azure]
+  --execution-platform [aws|azure|hpc]
                                   Name of the execution platform implemented
                                   in your CloudOS. Default=aws.
+  --hpc-id TEXT                   ID of your HPC, only applicable when
+                                  --execution-platform=hpc.
+                                  Default=660fae20f93358ad61e0104b
   --cost-limit FLOAT              Add a cost limit to your job. Default=30.0
                                   (For no cost limit please use -1).
   --verbose                       Whether to print information messages or
@@ -317,6 +320,35 @@ cloudos job run \
     --resumable \
     --execution-platform azure
 ```
+
+#### HPC execution support
+
+CloudOS is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using `cloudos job run` command:
+
+- Use the following parameter: `--execution-platform hpc`.
+- Indicate the HPC ID using: `--hpc-id XXXX`.
+
+Example command:
+
+```bash
+cloudos job run \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
+    --job-config $JOB_PARAMS \
+    --execution-platform hpc \
+    --hpc-id $YOUR_HPC_ID
+```
+
+Please, note that HPC execution do not support the following parameters and all of them will be ignored:
+
+- `--resumable`
+- `--job-queue`
+- `--instance-type` | `--instance-disk` | `--spot` | `--cost-limit`
+- `--storage-mode` | `--lustre-size`
+- `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 
 #### Check job status
 

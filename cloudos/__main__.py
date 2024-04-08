@@ -190,8 +190,12 @@ def queue():
               default='github')
 @click.option('--execution-platform',
               help='Name of the execution platform implemented in your CloudOS. Default=aws.',
-              type=click.Choice(['aws', 'azure']),
+              type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
+@click.option('--hpc-id',
+              help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
+                    'Default=660fae20f93358ad61e0104b'),
+              default='660fae20f93358ad61e0104b')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -238,6 +242,7 @@ def run(apikey,
         cromwell_token,
         repository_platform,
         execution_platform,
+        hpc_id,
         cost_limit,
         verbose,
         request_interval,
@@ -249,9 +254,11 @@ def run(apikey,
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
             instance_type = 'c5.xlarge'
-        if execution_platform == 'azure':
+        elif execution_platform == 'azure':
             instance_type = 'Standard_D4as_v4'
-    if execution_platform == 'azure':
+        else:
+            instance_type = None
+    if execution_platform == 'azure' or execution_platform == 'hpc':
         batch = None
         spot = None
     elif ignite:
@@ -261,10 +268,27 @@ def run(apikey,
               'CloudOS\n')
     else:
         batch = True
+    if execution_platform == 'hpc':
+        print('\nHPC execution platform selected')
+        if hpc_id is None:
+            raise ValueError('Please, specify your HPC ID using --hpc parameter')
+        print('[Message] Please, take into account that HPC execution do not support ' +
+              'the following parameters and all of them will be ignored:\n' +
+              '\t--resumable\n' +
+              '\t--job-queue\n' +
+              '\t--instance-type | --instance-disk | --spot | --cost-limit\n' +
+              '\t--storage-mode | --lustre-size\n' +
+              '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
+        wdl_mainfile = None
+        wdl_importsfile = None
+        storage_mode = 'regular'
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
+    if execution_platform == 'hpc' and workflow_type == 'wdl':
+        raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
+                         'WDL is not supported on HPC execution platform.')
     if workflow_type == 'wdl':
         print('\tWDL workflow detected\n')
         if wdl_mainfile is None:
@@ -325,6 +349,7 @@ def run(apikey,
                       storage_mode=storage_mode,
                       lustre_size=lustre_size,
                       execution_platform=execution_platform,
+                      hpc_id=hpc_id,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
                       cost_limit=cost_limit,
