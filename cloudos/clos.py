@@ -603,8 +603,8 @@ class Cloudos:
                                                                        workspace_id),
                                 json=data, verify=verify)
         if r.status_code == 401:
-            print('[ERROR] Your API key is not authorised. Please check if your workspace ' +
-                  'has support for importing workflows using cloudos-cli')
+            raise ValueError('[ERROR] Your API key is not authorised. Please check if ' +
+                             'your workspace has support for importing workflows using cloudos-cli')
         elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
