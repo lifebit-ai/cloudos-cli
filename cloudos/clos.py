@@ -602,9 +602,10 @@ class Cloudos:
         r = retry_requests_post("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                        workspace_id),
                                 json=data, verify=verify)
-        if r.status_code >= 400:
-            print('[ERROR] Your request was not correctly processed. Please check if your workspace ' +
+        if r.status_code == 401:
+            print('[ERROR] Your API key is not authorised. Please check if your workspace ' +
                   'has support for importing workflows using cloudos-cli')
+        elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
         return content['_id']
