@@ -68,7 +68,7 @@ def job():
 
 @run_cloudos_cli.group()
 def workflow():
-    """CloudOS workflow functionality: list workflows in CloudOS."""
+    """CloudOS workflow functionality: list and import workflows."""
     print(workflow.__doc__ + '\n')
 
 
@@ -797,11 +797,11 @@ def list_workflows(apikey,
 @click.option('--workflow-name',
               help="The name that the workflow will have in CloudOS",
               required=True)
-@click.option('--repository_project_id',
+@click.option('--repository-project-id',
               type=int,
               help="The ID of your repository project",
               required=True)
-@click.option('--repository_id',
+@click.option('--repository-id',
               type=int,
               help="The ID of your repository. Only required for GitHub repositories")
 @click.option('--disable-ssl-verification',
@@ -821,7 +821,8 @@ def import_workflows(apikey,
                      ssl_cert):
     """Imports workflows to CloudOS."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    print('Executing workflow import...')
+    print('Executing workflow import...\n')
+    print('\t[Message] Only Nextflow workflows are currently supported.\n')
     cl = Cloudos(cloudos_url, apikey, None)
     workflow_id = cl.workflow_import(workspace_id,
                                      workflow_url,
