@@ -532,3 +532,79 @@ class Cloudos:
         else:
             df = df_full.loc[:, COLUMNS]
         return df
+
+    def workflow_import(self, workspace_id, workflow_url, workflow_name,
+                        repository_project_id, repository_id=None, verify=True):
+        """Imports workflows to CloudOS.
+
+        Parameters
+        ----------
+        workspace_id : string
+            The CloudOS workspace id from to collect the projects.
+        workflow_url : string
+            The URL of the workflow. Only Github or Bitbucket are allowed.
+        workflow_name : string
+            A name for the imported pipeline in CloudOS.
+        repository_project_id : int
+            The repository project ID.
+        repository_id : int
+            The repository ID. Only required for GitHub repositories.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        returns
+        -------
+        workflow_id : string
+            The newly imported worflow ID.
+        """
+        platform_url = workflow_url.split('/')[2].split('.')[0]
+        repository_name = workflow_url.split('/')[-1]
+        if platform_url == 'github':
+            platform = 'github'
+            repository_project = workflow_url.split('/')[3]
+            if repository_id is None:
+                raise ValueError('Please, specify --repository-id when importing a GitHub repository')
+        elif platform_url == 'bitbucket':
+            platform = 'bitbucketServer'
+            repository_project = workflow_url.split('/')[4]
+            repository_id = repository_name
+        else:
+            raise ValueError(f'Your repository platform is not supported: {platform_url}. ' +
+                             'Please use either GitHub or BitbucketServer.')
+        repository_name = workflow_url.split('/')[-1]
+
+        data = {
+            "apikey": self.apikey,
+            "workflowType": "nextflow",
+            "repository": {
+                "platform": platform,
+                "repositoryId": repository_id,
+                "name": repository_name,
+                "owner": {
+                    "login": repository_project,
+                    "id": repository_project_id},
+                "isPrivate": True,
+                "url": workflow_url,
+                "commit": "",
+                "branch": ""
+            },
+            "name": workflow_name,
+            "description": "",
+            "isPublic": False,
+            "mainFile": "main.nf",
+            "defaultContainer": None,
+            "processes": [],
+            "docsLink": "",
+            "team": workspace_id
+        }
+        r = retry_requests_post("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
+                                                                       workspace_id),
+                                json=data, verify=verify)
+        if r.status_code >= 400:
+            print('[ERROR] Your request was not correctly processed. Please check if your workspace ' +
+                  'has support for importing workflows using cloudos-cli')
+            raise BadRequestException(r)
+        content = json.loads(r.content)
+        return content['_id']

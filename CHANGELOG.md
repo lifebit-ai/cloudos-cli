@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.9.0 (2024-04-09)
+
+- Adds `workflow import` command, allowing user to import Nextflow workflows to CloudOS.
+
 ## v2.8.0 (2024-04-05)
 
 - Adds support for using CloudOS HPC executor.

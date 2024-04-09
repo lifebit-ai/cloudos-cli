@@ -778,6 +778,61 @@ def list_workflows(apikey,
     print(f'\tWorkflow list saved to {outfile}')
 
 
+@workflow.command('import')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--workflow-url',
+              help='URL of the workflow to import',
+              required=True)
+@click.option('--workflow-name',
+              help="The name that the workflow will have in CloudOS",
+              required=True)
+@click.option('--repository_project_id',
+              type=int,
+              help="The ID of your repository project",
+              required=True)
+@click.option('--repository_id',
+              type=int,
+              help="The ID of your repository. Only required for GitHub repositories")
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def import_workflows(apikey,
+                     cloudos_url,
+                     workspace_id,
+                     workflow_url,
+                     workflow_name,
+                     repository_project_id,
+                     repository_id,
+                     disable_ssl_verification,
+                     ssl_cert):
+    """Imports workflows to CloudOS."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print('Executing workflow import...')
+    cl = Cloudos(cloudos_url, apikey, None)
+    workflow_id = cl.workflow_import(workspace_id,
+                                     workflow_url,
+                                     workflow_name,
+                                     repository_project_id,
+                                     repository_id,
+                                     verify=verify_ssl)
+    print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
+          f'following ID: {workflow_id}')
+
+
 @project.command('list')
 @click.option('-k',
               '--apikey',
