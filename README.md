@@ -543,6 +543,8 @@ Original URL: https://bitbucket.com/projects/MYPROJECT/repos/my-repo
 REST API URL: https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo
 ```
 
+> IMPORTANT NOTE: Please, as your repository original URL, do not use the "clone" URL provided by Bitbucket (the one with `.git` extension), use the actual browser URL, removing the terminal `/browse`.
+
 2. Use the REST API URL in a browser and it will generate a JSON output.
 
 3. Your `repository_project_id` is the value of the `project.id` field.
