@@ -485,7 +485,7 @@ You can import new workflows to your CloudOS workspaces. The only requirements a
 - If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
 - You have got the `repository_id` and the `repository_project_id`.
 
-##### How to get `repository_id` and `repository_project_id` from a GitHub repository.
+**How to get `repository_id` and `repository_project_id` from a GitHub repository.**
 
 **Option 1: searching in the page source code**
 
@@ -530,7 +530,7 @@ echo $repository_id
 122059362
 ```
 
-##### How to get `repository_project_id` from a Bitbucket server repository.
+**How to get `repository_project_id` from a Bitbucket server repository.**
 
 For Bitbucket server repositories, only `repository_project_id` is required. To collect it:
 
