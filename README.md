@@ -595,7 +595,6 @@ The expected output will be:
 To import bitbucket server workflows, `--repository-id` parameter is not required:
 
 ```bash
-# Example workflow to import: https://github.com/lifebit-ai/DeepVariant
 WORKFLOW_URL="https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo"
 
 # You will need only the `repository_project_id`
