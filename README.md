@@ -573,11 +573,11 @@ To import GitHub workflows to CloudOS, you can use the following command:
 # Example workflow to import: https://github.com/lifebit-ai/DeepVariant
 WORKFLOW_URL="https://github.com/lifebit-ai/DeepVariant"
 
-# You will need the `repository_project_id` and `repository_id` values explained above
+# You will need the repository_project_id and repository_id values explained above
 REPOSITORY_PROJECT_ID=30871219
 REPOSITORY_ID=122059362
 
-cloudos workflow import 
+cloudos workflow import \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
@@ -590,6 +590,13 @@ cloudos workflow import
 The expected output will be:
 
 ```console
+CloudOS workflow functionality: list and import workflows.
+
+Executing workflow import...
+
+	[Message] Only Nextflow workflows are currently supported.
+
+	Workflow test_import_github_3 was imported successfully with the following ID: 6616a8cb454b09bbb3d9dc20
 ```
 
 To import bitbucket server workflows, `--repository-id` parameter is not required:
@@ -597,10 +604,10 @@ To import bitbucket server workflows, `--repository-id` parameter is not require
 ```bash
 WORKFLOW_URL="https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo"
 
-# You will need only the `repository_project_id`
+# You will need only the repository_project_id
 REPOSITORY_PROJECT_ID=1234
 
-cloudos workflow import 
+cloudos workflow import \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
