@@ -536,16 +536,16 @@ For Bitbucket server repositories, only `repository_project_id` is required. To 
 
 **Option 1: using the REST API from your browser**
 
-1. Create a REST API UL from your repo URL:, by adding `/rest/api/latest` to the UR: 
+1. Create a REST API URL from your repo URL by adding `/rest/api/latest` to the URL: 
 
 ```
 Original URL: https://bitbucket.com/projects/MYPROJECT/repos/my-repo
 REST API URL: https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo
 ```
 
-2. Use the REST API URL in a browser and it willgeneratee a JSON output.
+2. Use the REST API URL in a browser and it will generate a JSON output.
 
-3. Your `repository_project_id` is the value of `project.id` field.
+3. Your `repository_project_id` is the value of the `project.id` field.
 
 ![bitbucket project id](docs/bitbucket_project_id.png)
 
