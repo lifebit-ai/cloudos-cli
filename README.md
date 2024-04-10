@@ -476,7 +476,7 @@ Executing list...
 	Workflow list saved to workflow_list.csv
 ```
 
-#### Import a Nextflow worfkflow to a CloudOS workspace
+#### Import a Nextflow workflow to a CloudOS workspace
 
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
