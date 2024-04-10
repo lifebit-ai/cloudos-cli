@@ -792,7 +792,9 @@ def list_workflows(apikey,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--workflow-url',
-              help='URL of the workflow to import',
+              help=('URL of the workflow to import. Please, note that it should ' +
+                    'be the URL shown in the browser, and it should come without ' +
+                    'any of the .git or /browse extensions.'),
               required=True)
 @click.option('--workflow-name',
               help="The name that the workflow will have in CloudOS",
