@@ -489,19 +489,15 @@ You can import new workflows to your CloudOS workspaces. The only requirements a
 
 **Option 1: searching in the page source code**
 
-1. Go to the repository URL.
-
-![Github Repo URL](docs/github_repo.png)
-
-2. Click on the right button of your mouse to get the following menu and click on "View Page Source".
+1. Go to the repository URL. Click on the right button of your mouse to get the following menu and click on "View Page Source".
 
 ![Github Repo right click](docs/github_right_click.png)
 
-3. For collecting the `repository_project_id`, search for `octolytics-dimension-user_id` string in the source code. The `content` value is your `repository_project_id` (`30871219` in the example image).
+2. For collecting the `repository_project_id`, search for `octolytics-dimension-user_id` string in the source code. The `content` value is your `repository_project_id` (`30871219` in the example image).
 
 ![Github Repo owner id](docs/github_user_id.png)
 
-4. For collecting the `repository_id`, search for `octolytics-dimension-repository_id` string in the source code. The `ontent` value is your `repository_id` (`122059362` in the example image).
+3. For collecting the `repository_id`, search for `octolytics-dimension-repository_id` string in the source code. The `ontent` value is your `repository_id` (`122059362` in the example image).
 
 ![Github Repo id](docs/github_repository_id.png)
 
