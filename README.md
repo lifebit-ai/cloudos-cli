@@ -602,7 +602,7 @@ Executing workflow import...
 To import bitbucket server workflows, `--repository-id` parameter is not required:
 
 ```bash
-WORKFLOW_URL="https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo"
+WORKFLOW_URL="https://bitbucket.com/projects/MYPROJECT/repos/my-repo"
 
 # You will need only the repository_project_id
 REPOSITORY_PROJECT_ID=1234
