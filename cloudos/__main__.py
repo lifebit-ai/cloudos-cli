@@ -799,6 +799,9 @@ def list_workflows(apikey,
 @click.option('--workflow-name',
               help="The name that the workflow will have in CloudOS",
               required=True)
+@click.option('--workflow-docs-link',
+              help="Workflow documentation URL.",
+              default='')
 @click.option('--repository-project-id',
               type=int,
               help="The ID of your repository project",
@@ -818,6 +821,7 @@ def import_workflows(apikey,
                      workflow_url,
                      workflow_name,
                      repository_project_id,
+                     workflow_docs_link,
                      repository_id,
                      disable_ssl_verification,
                      ssl_cert):
@@ -830,6 +834,7 @@ def import_workflows(apikey,
                                      workflow_url,
                                      workflow_name,
                                      repository_project_id,
+                                     workflow_docs_link,
                                      repository_id,
                                      verify=verify_ssl)
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +

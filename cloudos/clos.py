@@ -534,7 +534,8 @@ class Cloudos:
         return df
 
     def workflow_import(self, workspace_id, workflow_url, workflow_name,
-                        repository_project_id, repository_id=None, verify=True):
+                        repository_project_id, workflow_docs_link='',
+                        repository_id=None, verify=True):
         """Imports workflows to CloudOS.
 
         Parameters
@@ -547,6 +548,8 @@ class Cloudos:
             A name for the imported pipeline in CloudOS.
         repository_project_id : int
             The repository project ID.
+        workflow_docs_link : string
+            Link to the documentation URL.
         repository_id : int
             The repository ID. Only required for GitHub repositories.
         verify: [bool|string]
@@ -596,7 +599,7 @@ class Cloudos:
             "mainFile": "main.nf",
             "defaultContainer": None,
             "processes": [],
-            "docsLink": "",
+            "docsLink": workflow_docs_link,
             "team": workspace_id
         }
         r = retry_requests_post("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,

@@ -12,6 +12,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 WORKFLOW_URL = 'https://github.com/lifebit-ai/repo'
 WORKFLOW_NAME = 'test-repo'
+WORKFLOW_DOCS_LINK = ''
 REPOSITORY_PROJECT_ID = 1234
 REPOSITORY_ID = 567
 
@@ -38,6 +39,7 @@ def test_workflow_import_correct():
                                        WORKFLOW_URL,
                                        WORKFLOW_NAME,
                                        REPOSITORY_PROJECT_ID,
+                                       WORKFLOW_DOCS_LINK,
                                        REPOSITORY_ID)
     # check the response
     assert isinstance(workflow_id, str)
@@ -70,5 +72,6 @@ def test_workflow_import_incorrect():
                              WORKFLOW_URL,
                              WORKFLOW_NAME,
                              REPOSITORY_PROJECT_ID,
+                             WORKFLOW_DOCS_LINK,
                              REPOSITORY_ID)
     assert "Server returned status 400." in (str(error))
