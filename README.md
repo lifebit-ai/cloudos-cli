@@ -601,6 +601,20 @@ Executing workflow import...
 	Workflow test_import_github_3 was imported successfully with the following ID: 6616a8cb454b09bbb3d9dc20
 ```
 
+Optionally, you can add a link to your workflow documentation by providing the URL using the parameter `--workflow-docs-link`. E.g.:
+
+```bash
+cloudos workflow import \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --workflow-url $WORKFLOW_URL \
+    --workflow-name "new_name_for_the_github_workflow" \
+    --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
+    --repository-project-id $REPOSITORY_PROJECT_ID \
+    --repository-id $REPOSITORY_ID
+```
+
 To import bitbucket server workflows, `--repository-id` parameter is not required:
 
 ```bash

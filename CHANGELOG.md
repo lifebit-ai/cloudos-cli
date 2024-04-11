@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.10.0 (2024-04-11)
+
+- Adds the new parameter `--workflow-docs-link` to add a documentation link to the imported workflow.
+
 ## v2.9.0 (2024-04-09)
 
 - Adds `workflow import` command, allowing user to import Nextflow workflows to CloudOS.
