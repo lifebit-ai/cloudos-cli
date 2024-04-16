@@ -105,7 +105,12 @@ Options:
   --job-name TEXT                 The name of the job. Default=new_job.
   --resumable                     Whether to make the job able to be resumed
                                   or not.
-  --save-logs                     Whether to save job logs or not.
+  --do-not-save-logs              Avoids process log saving. If you select
+                                  this option, your job logs will not be
+                                  stored.
+  --spot                          [Deprecated in 2.11.0] This option has been
+                                  deprecated and has no effect. Spot instances
+                                  are no longer available in CloudOS.
   --batch                         [Deprecated in 2.7.0] Since v2.7.0, the
                                   default executor is AWSbatch so there is no
                                   need to use this flag. It is maintained for

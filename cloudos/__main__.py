@@ -137,8 +137,13 @@ def queue():
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
-@click.option('--save-logs',
-              help='Whether to save job logs or not.',
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job logs will ' +
+                    'not be stored.'),
+              is_flag=True)
+@click.option('--spot',
+              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
+                    'Spot instances are no longer available in CloudOS.'),
               is_flag=True)
 @click.option('--batch',
               help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
@@ -226,7 +231,8 @@ def run(apikey,
         git_tag,
         job_name,
         resumable,
-        save_logs,
+        do_not_save_logs,
+        spot,
         batch,
         ignite,
         job_queue,
@@ -251,6 +257,13 @@ def run(apikey,
     """Submit a job to CloudOS."""
     print('Executing run...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if spot:
+        print('\n[Message] You have specified spot instances but they are no longer available ' +
+              'in CloudOS. Option ignored.\n')
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
             instance_type = 'c5.xlarge'
@@ -274,7 +287,7 @@ def run(apikey,
         print('[Message] Please, take into account that HPC execution do not support ' +
               'the following parameters and all of them will be ignored:\n' +
               '\t--job-queue\n' +
-              '\t--resumable | --save-logs\n' +
+              '\t--resumable | --do-not-save-logs\n' +
               '\t--instance-type | --instance-disk | --cost-limit\n' +
               '\t--storage-mode | --lustre-size\n' +
               '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
@@ -403,8 +416,13 @@ def run(apikey,
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
-@click.option('--save-logs',
-              help='Whether to save job logs or not.',
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job logs will ' +
+                    'not be stored.'),
+              is_flag=True)
+@click.option('--spot',
+              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
+                    'Spot instances are no longer available in CloudOS.'),
               is_flag=True)
 @click.option('--batch',
               help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
@@ -469,7 +487,8 @@ def run_curated_examples(apikey,
                          workspace_id,
                          project_name,
                          resumable,
-                         save_logs,
+                         do_not_save_logs,
+                         spot,
                          batch,
                          ignite,
                          instance_type,
@@ -495,6 +514,13 @@ def run_curated_examples(apikey,
     runnable_curated_workflows = [
         w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
     ]
+    if spot:
+        print('\n[Message] You have specified spot instances but they are no longer available ' +
+              'in CloudOS. Option ignored.\n')
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
             instance_type = 'c5.xlarge'
