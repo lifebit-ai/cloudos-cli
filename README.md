@@ -346,7 +346,7 @@ cloudos job run \
 Please, note that HPC execution do not support the following parameters and all of them will be ignored:
 
 - `--job-queue`
-- `--resumable | --save-logs`
+- `--resumable | --do-not-save-logs`
 - `--instance-type` | `--instance-disk` | `--cost-limit`
 - `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
