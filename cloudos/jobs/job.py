@@ -190,12 +190,12 @@ class Job(Cloudos):
                                  workflow_id,
                                  job_name,
                                  resumable,
+                                 save_logs,
                                  batch,
                                  job_queue_id,
                                  nextflow_profile,
                                  instance_type,
                                  instance_disk,
-                                 spot,
                                  storage_mode,
                                  lustre_size,
                                  execution_platform,
@@ -231,6 +231,8 @@ class Job(Cloudos):
             The name to assign to the job.
         resumable: bool
             Whether to create a resumable job or not.
+        save_logs : bool
+            Whether to save job logs or not.
         batch: bool
             Whether to create a batch job or an ignite one.
         job_queue_id : string
@@ -241,8 +243,6 @@ class Job(Cloudos):
             Name of the AMI to choose.
         instance_disk : int
             The disk space of the instance, in GB.
-        spot : bool
-            Whether to create a spot instance or not.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
@@ -351,16 +351,6 @@ class Job(Cloudos):
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
-        if spot:
-            instance_type_block = {
-                "instanceType": instance_type,
-                "onDemandFallbackInstanceType": instance_type
-            }
-            instance = "spotInstances"
-        else:
-            instance_type_block = instance_type
-            instance = "instanceType"
-
         if git_tag is not None and git_commit is not None:
             raise ValueError('Please, specify none or only one of --git-tag' +
                              ' or --git-commit options but not both.')
@@ -391,6 +381,7 @@ class Job(Cloudos):
             "workflow": workflow_id,
             "name": job_name,
             "resumable": resumable,
+            "saveProcessLogs": save_logs,
             "batch": {
                 "dockerLogin": False,
                 "enabled": batch,
@@ -408,7 +399,7 @@ class Job(Cloudos):
             "storageMode": storage_mode,
             "revision": revision_block,
             "profile": nextflow_profile,
-            instance: instance_type_block
+            "instanceType": instance_type
         }
         if execution_platform != 'hpc':
             params['masterInstance'] = {
@@ -427,12 +418,12 @@ class Job(Cloudos):
                  git_tag=None,
                  job_name='new_job',
                  resumable=False,
+                 save_logs=True,
                  batch=True,
                  job_queue_id=None,
                  nextflow_profile=None,
                  instance_type='c5.xlarge',
                  instance_disk=500,
-                 spot=False,
                  storage_mode='regular',
                  lustre_size=1200,
                  execution_platform='aws',
@@ -463,8 +454,10 @@ class Job(Cloudos):
             commit of the default branch will be used.
         job_name : string
             The name to assign to the job.
-        resumable: bool
+        resumable : bool
             Whether to create a resumable job or not.
+        save_logs : bool
+            Whether to save job logs or not.
         batch: bool
             Whether to create a batch job or an ignite one.
         job_queue_id : string
@@ -475,8 +468,6 @@ class Job(Cloudos):
             Type of the AMI to choose.
         instance_disk : int
             The disk space of the instance, in GB.
-        spot : bool
-            Whether to create a spot instance or not.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
@@ -522,12 +513,12 @@ class Job(Cloudos):
                                                workflow_id,
                                                job_name,
                                                resumable,
+                                               save_logs,
                                                batch,
                                                job_queue_id,
                                                nextflow_profile,
                                                instance_type,
                                                instance_disk,
-                                               spot,
                                                storage_mode,
                                                lustre_size,
                                                execution_platform,

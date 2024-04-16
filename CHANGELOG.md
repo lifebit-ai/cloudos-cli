@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.11.0 (2024-04-16)
+
+- Adds `--save-logs` option to `cloudos job run` command to allow saving job logs.
+- Removes unsupported `--spot` option from `cloudos job run`.
+
 ## v2.10.0 (2024-04-11)
 
 - Adds the new parameter `--workflow-docs-link` to add a documentation link to the imported workflow.
