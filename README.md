@@ -105,6 +105,12 @@ Options:
   --job-name TEXT                 The name of the job. Default=new_job.
   --resumable                     Whether to make the job able to be resumed
                                   or not.
+  --do-not-save-logs              Avoids process log saving. If you select
+                                  this option, your job process logs will not
+                                  be stored.
+  --spot                          [Deprecated in 2.11.0] This option has been
+                                  deprecated and has no effect. Spot instances
+                                  are no longer available in CloudOS.
   --batch                         [Deprecated in 2.7.0] Since v2.7.0, the
                                   default executor is AWSbatch so there is no
                                   need to use this flag. It is maintained for
@@ -120,7 +126,6 @@ Options:
                                   dard_D4as_v4(azure).
   --instance-disk INTEGER         The amount of disk storage to configure.
                                   Default=500.
-  --spot                          Whether to make a spot instance.
   --storage-mode TEXT             Either 'lustre' or 'regular'. Indicates if
                                   the user wants to select regular or lustre
                                   storage. Default=regular.
@@ -199,8 +204,7 @@ cloudos job run \
     --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
-    --resumable \
-    --spot
+    --resumable
 ```
 
 In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance,
@@ -216,8 +220,7 @@ cloudos job run \
     --parameter reads=s3://lifebit-featured-datasets/pipelines/rnatoy-data \
     --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa \
     --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff \
-    --resumable \
-    --spot
+    --resumable
 ```
 
 > NOTE: options `--job-config` and `--parameter` are completely compatible and complementary, so you can use a
@@ -253,7 +256,6 @@ cloudos job run \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
     --resumable \
-    --spot \
     --wait-completion
 ```
 
@@ -304,7 +306,6 @@ If your CloudOS is configured to
 use Azure, you will need to take into consideration the following:
 
 - When sending jobs to CloudOS using `cloudos job run` or `cloudos job run-curated-examples` commands, please use the option `--execution-platform azure`.
-- Option `--spot` is not taking effect when using Azure execution platform.
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working.
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:
@@ -344,9 +345,9 @@ cloudos job run \
 
 Please, note that HPC execution do not support the following parameters and all of them will be ignored:
 
-- `--resumable`
 - `--job-queue`
-- `--instance-type` | `--instance-disk` | `--spot` | `--cost-limit`
+- `--resumable | --do-not-save-logs`
+- `--instance-type` | `--instance-disk` | `--cost-limit`
 - `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 

@@ -137,6 +137,14 @@ def queue():
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--spot',
+              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
+                    'Spot instances are no longer available in CloudOS.'),
+              is_flag=True)
 @click.option('--batch',
               help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
                     'so there is no need to use this flag. It is maintained for ' +
@@ -157,9 +165,6 @@ def queue():
               help='The amount of disk storage to configure. Default=500.',
               type=int,
               default=500)
-@click.option('--spot',
-              help='Whether to make a spot instance.',
-              is_flag=True)
 @click.option('--storage-mode',
               help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
                     'regular or lustre storage. Default=regular.'),
@@ -226,13 +231,14 @@ def run(apikey,
         git_tag,
         job_name,
         resumable,
+        do_not_save_logs,
+        spot,
         batch,
         ignite,
         job_queue,
         nextflow_profile,
         instance_type,
         instance_disk,
-        spot,
         storage_mode,
         lustre_size,
         wait_completion,
@@ -251,6 +257,13 @@ def run(apikey,
     """Submit a job to CloudOS."""
     print('Executing run...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if spot:
+        print('\n[Message] You have specified spot instances but they are no longer available ' +
+              'in CloudOS. Option ignored.\n')
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
             instance_type = 'c5.xlarge'
@@ -260,7 +273,6 @@ def run(apikey,
             instance_type = None
     if execution_platform == 'azure' or execution_platform == 'hpc':
         batch = None
-        spot = None
     elif ignite:
         batch = None
         print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
@@ -274,14 +286,15 @@ def run(apikey,
             raise ValueError('Please, specify your HPC ID using --hpc parameter')
         print('[Message] Please, take into account that HPC execution do not support ' +
               'the following parameters and all of them will be ignored:\n' +
-              '\t--resumable\n' +
               '\t--job-queue\n' +
-              '\t--instance-type | --instance-disk | --spot | --cost-limit\n' +
+              '\t--resumable | --do-not-save-logs\n' +
+              '\t--instance-type | --instance-disk | --cost-limit\n' +
               '\t--storage-mode | --lustre-size\n' +
               '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
         wdl_mainfile = None
         wdl_importsfile = None
         storage_mode = 'regular'
+        save_logs = False
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -340,12 +353,12 @@ def run(apikey,
                       git_tag=git_tag,
                       job_name=job_name,
                       resumable=resumable,
+                      save_logs=save_logs,
                       batch=batch,
                       job_queue_id=job_queue_id,
                       nextflow_profile=nextflow_profile,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
-                      spot=spot,
                       storage_mode=storage_mode,
                       lustre_size=lustre_size,
                       execution_platform=execution_platform,
@@ -403,6 +416,14 @@ def run(apikey,
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--spot',
+              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
+                    'Spot instances are no longer available in CloudOS.'),
+              is_flag=True)
 @click.option('--batch',
               help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
                     'so there is no need to use this flag. It is maintained for ' +
@@ -421,9 +442,6 @@ def run(apikey,
               help='The amount of disk storage to configure. Default=500.',
               type=int,
               default=500)
-@click.option('--spot',
-              help='Whether to make a spot instance.',
-              is_flag=True)
 @click.option('--storage-mode',
               help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
                     'regular or lustre storage. Default=regular.'),
@@ -469,11 +487,12 @@ def run_curated_examples(apikey,
                          workspace_id,
                          project_name,
                          resumable,
+                         do_not_save_logs,
+                         spot,
                          batch,
                          ignite,
                          instance_type,
                          instance_disk,
-                         spot,
                          storage_mode,
                          lustre_size,
                          execution_platform,
@@ -495,6 +514,13 @@ def run_curated_examples(apikey,
     runnable_curated_workflows = [
         w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
     ]
+    if spot:
+        print('\n[Message] You have specified spot instances but they are no longer available ' +
+              'in CloudOS. Option ignored.\n')
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
             instance_type = 'c5.xlarge'
@@ -502,7 +528,6 @@ def run_curated_examples(apikey,
             instance_type = 'Standard_D4as_v4'
     if execution_platform == 'azure':
         batch = None
-        spot = None
     elif ignite:
         batch = None
         print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
@@ -517,10 +542,10 @@ def run_curated_examples(apikey,
         j_id = j.send_job(example_parameters=workflow['parameters'],
                           job_name=f"{workflow['name']}|Example_Run",
                           resumable=resumable,
+                          save_logs=save_logs,
                           batch=batch,
                           instance_type=instance_type,
                           instance_disk=instance_disk,
-                          spot=spot,
                           storage_mode=storage_mode,
                           lustre_size=lustre_size,
                           execution_platform=execution_platform,
