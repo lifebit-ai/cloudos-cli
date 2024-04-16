@@ -138,8 +138,8 @@ def queue():
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
 @click.option('--do-not-save-logs',
-              help=('Avoids process log saving. If you select this option, your job logs will ' +
-                    'not be stored.'),
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
               is_flag=True)
 @click.option('--spot',
               help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
@@ -417,8 +417,8 @@ def run(apikey,
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
 @click.option('--do-not-save-logs',
-              help=('Avoids process log saving. If you select this option, your job logs will ' +
-                    'not be stored.'),
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
               is_flag=True)
 @click.option('--spot',
               help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +

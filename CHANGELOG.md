@@ -2,7 +2,7 @@
 
 ## v2.11.0 (2024-04-16)
 
-- Now, the default `cloudos job run` command will save job logs. To prevent saving logs, you can use the new flag `--do-not-save-logs`.
+- Now, the default `cloudos job run` command will save job process logs. To prevent saving process logs, you can use the new flag `--do-not-save-logs`.
 - Removes unsupported `--spot` option from `cloudos job run`.
 
 ## v2.10.0 (2024-04-11)

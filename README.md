@@ -106,8 +106,8 @@ Options:
   --resumable                     Whether to make the job able to be resumed
                                   or not.
   --do-not-save-logs              Avoids process log saving. If you select
-                                  this option, your job logs will not be
-                                  stored.
+                                  this option, your job process logs will not
+                                  be stored.
   --spot                          [Deprecated in 2.11.0] This option has been
                                   deprecated and has no effect. Spot instances
                                   are no longer available in CloudOS.
