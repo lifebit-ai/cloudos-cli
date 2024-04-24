@@ -8,3 +8,6 @@ dependencies:
     - requests
     - click
     - pandas
+    - bash
+    - gcc
+    - procps-ng

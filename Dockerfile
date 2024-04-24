@@ -1,6 +1,6 @@
 # Full contents of Dockerfile
 
-FROM continuumio/miniconda3:4.10.3	
+FROM  quay.io/lifebitaiorg/conda-fips:24.1
 LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
       description="The cloudos-py docker container" \
       maintainer="David Pineyro <davidp@lifebit.ai>"
@@ -9,10 +9,13 @@ LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
 ARG ENV_NAME="base"
 
 # Install mamba for faster installation in the subsequent step
-RUN conda install -c conda-forge mamba -y
+RUN conda init && \
+    conda install -c conda-forge mamba -y
 
 # Install the conda environment
 COPY environment.yml /
+ENV PATH /root/conda/bin:$PATH
+
 RUN mamba env update --quiet --name ${ENV_NAME} --file /environment.yml && conda clean -a
 
 # Add conda installation dir to PATH (instead of doing 'conda activate')
@@ -22,8 +25,6 @@ ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
 RUN mamba env export --name ${ENV_NAME} > ${ENV_NAME}_exported.yml
 
 # Install ps to avoid Nextflow problems in cloudOS
-RUN apt-get update \
-  && apt-get install procps -y
 
 # Copy local package files to be able to install
 COPY . /
@@ -35,3 +36,5 @@ RUN pip install -e /
 RUN chmod ugo+x /cloudos/*py
 RUN chmod ugo+x /cloudos/jobs/*py
 RUN chmod ugo+x /cloudos/utils/*py
+
+ENTRYPOINT [""] 

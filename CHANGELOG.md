@@ -1,5 +1,9 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.7.0 (20204-04-24)
+
+Add hardened container.
+
 ## v2.6.1 (2023-10-11)
 
 ### Fix
