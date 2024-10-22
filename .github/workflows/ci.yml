@@ -112,7 +112,6 @@ jobs:
         CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
       run: |
         cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
-        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --curated
   project_list:
     runs-on: ubuntu-latest
     strategy:
