@@ -722,8 +722,14 @@ Executing list...
 	Job queue list saved to available_queues.json
 ```
 
-> NOTE: the job name that is visible in CloudOS and has to be used in combination with `--job-queue` parameter is
+> NOTE: the queue name that is visible in CloudOS and has to be used in combination with `--job-queue` parameter is
 the one in `label` field.
+
+##### Job queues for platform workflows
+
+Platform workflows, i.e., those provided by CloudOS in your workspace as modules, run on separated and specific AWS batch queues.
+Therefore, CloudOS will automatically assign the valid queue and the user should not specify any queue using the `--job-queue` paramater.
+Any attempt of using this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
 
 ### WDL pipeline support
 
