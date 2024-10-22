@@ -418,6 +418,7 @@ class Cloudos:
         """
         COLUMNS = ['_id',
                    'name',
+                   'isModule',
                    'archived.status',
                    'mainFile',
                    'workflowType',
@@ -495,8 +496,8 @@ class Cloudos:
         if len(is_module) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         if len(is_module) > 1:
-            raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
-        return is_module.values[0].upper() == 'TRUE'
+            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+        return is_module.values[0]
 
     def get_project_list(self, workspace_id, verify=True):
         """Get all the project from a CloudOS workspace.

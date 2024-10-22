@@ -345,7 +345,7 @@ def run(apikey,
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
     if is_module:
-        if job_queue != None:
+        if job_queue is not None:
             print(f'\t\t[Message] Job queue "{job_queue}" was specified but a the ' +
                   'workflow is a platform workflow that uses a fixed queue provided ' +
                   f'by CloudOS. Ignoring job queue "{job_queue}" and using the ' +
