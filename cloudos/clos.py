@@ -460,7 +460,9 @@ class Cloudos:
         """
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
-        wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
+        wt_all = my_workflows.loc[
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            'workflowType']
         if len(wt_all) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         wt = wt_all.unique()
@@ -492,7 +494,9 @@ class Cloudos:
         """
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
-        is_module = my_workflows.loc[my_workflows['name'] == workflow_name, 'isModule']
+        is_module = my_workflows.loc[
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            'isModule']
         if len(is_module) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         if len(is_module) > 1:
