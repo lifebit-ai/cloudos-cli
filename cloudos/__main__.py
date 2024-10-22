@@ -346,9 +346,9 @@ def run(apikey,
         print('\t...Sending job to CloudOS\n')
     if is_module:
         if job_queue is not None:
-            print(f'\t\t[Message] Job queue "{job_queue}" for the Platform ' +
-                  f'Workflow "{workflow_name}". Ignoring job queue "{job_queue}" ' +
-                  'as Platform Workflows use their own fixed queues.')
+            print(f'\t\t[Message] Ignoring job queue "{job_queue}" for ' +
+                  f'Platform Workflow {workflow_name}. Platform Workflows ' +
+                  'use their own fixed queues.')
         job_queue_id = None
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
