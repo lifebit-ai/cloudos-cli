@@ -1,8 +1,8 @@
 # Full contents of Dockerfile
 
-FROM continuumio/miniconda3:23.10.0-1
+FROM continuumio/miniconda3:24.7.1-0
 LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
-      description="The cloudos-py docker container" \
+      description="The cloudos-cli docker container" \
       maintainer="David Pineyro <davidp@lifebit.ai>"
 
 # Use the base conda env to not be reliant on conda activate when using pip

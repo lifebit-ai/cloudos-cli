@@ -292,7 +292,7 @@
         "isPredefined": false,
         "isCurated": false,
         "isFeatured": false,
-        "isModule": false,
+        "isModule": true,
         "isPublic": false,
         "priceAmount": 0,
         "priceUnit": "PER_SAMPLE",

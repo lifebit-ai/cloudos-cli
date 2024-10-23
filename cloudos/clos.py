@@ -418,6 +418,7 @@ class Cloudos:
         """
         COLUMNS = ['_id',
                    'name',
+                   'isModule',
                    'archived.status',
                    'mainFile',
                    'workflowType',
@@ -459,13 +460,48 @@ class Cloudos:
         """
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
-        wt_all = my_workflows.loc[my_workflows['name'] == workflow_name, 'workflowType']
+        wt_all = my_workflows.loc[
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            'workflowType']
         if len(wt_all) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         wt = wt_all.unique()
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
         return str(wt[0])
+
+    def is_module(self, workflow_name, workspace_id, verify=True):
+        """Detects whether the workflow is a system module or not.
+
+        System modules use fixed queues, so this check is important to
+        properly manage queue selection.
+
+        Parameters
+        ----------
+        workflow_name : string
+            Name of the workflow.
+        workspace_id : string
+            The CloudOS workspace id from to collect the workflows.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        bool
+            True, if the workflow is a system module, false otherwise.
+        """
+        my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
+        my_workflows = self.process_workflow_list(my_workflows_r)
+        is_module = my_workflows.loc[
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            'isModule']
+        if len(is_module) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
+        if len(is_module) > 1:
+            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+        return is_module.values[0]
 
     def get_project_list(self, workspace_id, verify=True):
         """Get all the project from a CloudOS workspace.

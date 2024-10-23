@@ -299,6 +299,7 @@ def run(apikey,
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
+    is_module = cl.is_module(workflow_name, workspace_id, verify_ssl)
     if execution_platform == 'hpc' and workflow_type == 'wdl':
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
@@ -343,10 +344,17 @@ def run(apikey,
         print('\tThe following Job object was created:')
         print('\t' + str(j))
         print('\t...Sending job to CloudOS\n')
-    queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
-                  workspace_id=workspace_id, verify=verify_ssl)
-    job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
-                                            job_queue=job_queue)
+    if is_module:
+        if job_queue is not None:
+            print(f'\tIgnoring job queue "{job_queue}" for ' +
+                  f'Platform Workflow "{workflow_name}". Platform Workflows ' +
+                  'use their own predetermined queues.')
+        job_queue_id = None
+    else:
+        queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
+                      workspace_id=workspace_id, verify=verify_ssl)
+        job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
+                                                job_queue=job_queue)
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
                       git_commit=git_commit,

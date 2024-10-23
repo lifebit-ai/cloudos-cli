@@ -1,4 +1,4 @@
-_id,name,archived.status,mainFile,workflowType,repository.name,repository.platform,repository.url,repository.isPrivate
-XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX
-XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX
-XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX
+_id,name,isModule,archived.status,mainFile,workflowType,repository.name,repository.platform,repository.url,repository.isPrivate
+XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX
+XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX
+XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX,XXX

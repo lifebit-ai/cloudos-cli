@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.11.1 (2024-10-22)
+
+### Fix
+
+- Updates queue support to disallow queue selection on fixed-queue workflows.
+
 ## v2.11.0 (2024-04-16)
 
 - Now, the default `cloudos job run` command will save job process logs. To prevent saving process logs, you can use the new flag `--do-not-save-logs`.
