@@ -348,7 +348,7 @@ def run(apikey,
         if job_queue is not None:
             print(f'\tIgnoring job queue "{job_queue}" for ' +
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
-                  'use their own predetermined queues.\n')
+                  'use their own predetermined queues.')
         job_queue_id = None
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
