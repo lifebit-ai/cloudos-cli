@@ -21,12 +21,13 @@ def test_get_workflow_list_correct_response():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=UTF-8"
+        "Content-Type": "application/json;charset=UTF-8",
+        "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -54,12 +55,13 @@ def test_get_workflow_list_incorrect_response():
     error_message = {"statusCode": 400, "code": "BadRequest",
                      "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=UTF-8"
+        "Content-Type": "application/json;charset=UTF-8",
+        "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,

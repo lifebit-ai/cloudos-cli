@@ -32,13 +32,11 @@ def test_send_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
-    params_pro_wf = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
     header = {
             "Content-type": "application/json",
             "apikey": APIKEY
         }
     search_str = f"teamId={WORKSPACE_ID}"
-    search_str_pro_wf = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
     # mock GET method with the .json
     responses.add(
             responses.POST,
@@ -49,17 +47,17 @@ def test_send_job():
             status=200)
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str_pro_wf}",
+            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
             body=create_json_project,
             headers=header,
-            match=[matchers.query_param_matcher(params_pro_wf)],
+            match=[matchers.query_param_matcher(params_job)],
             status=200)
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str_pro_wf}",
+            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
             body=create_json_workflow,
             headers=header,
-            match=[matchers.query_param_matcher(params_pro_wf)],
+            match=[matchers.query_param_matcher(params_job)],
             status=200)
     # start cloudOS service
     job = Job(apikey=APIKEY,

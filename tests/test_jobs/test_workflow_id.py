@@ -23,12 +23,13 @@ def test_workflow_id():
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=UTF-8"
+        "Content-Type": "application/json;charset=UTF-8",
+        "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
