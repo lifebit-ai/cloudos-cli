@@ -235,10 +235,13 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
-        data = {"apikey": self.apikey}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
         r = retry_requests_get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
                                                                    workspace_id, page),
-                               params=data, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -329,8 +332,7 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a workflow.
         """
-        data = {"apikey": self.apikey,
-                "search": "",
+        data = {"search": "",
                 "page": page,
                 "filters": [
                     [
@@ -355,9 +357,13 @@ class Cloudos:
                     ]
                  ]
                 }
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
         r = retry_requests_post("{}/api/v1/workflows/getByType?teamId={}".format(self.cloudos_url,
                                                                            workspace_id),
-                                json=data, verify=verify)
+                                json=data, headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -391,10 +397,13 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a workflow.
         """
-        data = {"apikey": self.apikey}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
         r = retry_requests_get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                 workspace_id),
-                               params=data, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
@@ -520,9 +529,12 @@ class Cloudos:
         r : requests.models.Response
             The server response
         """
-        data = {"apikey": self.apikey}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
         r = retry_requests_get("{}/api/v1/projects?teamId={}".format(self.cloudos_url, workspace_id),
-                               params=data, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
@@ -615,7 +627,6 @@ class Cloudos:
         repository_name = workflow_url.split('/')[-1]
 
         data = {
-            "apikey": self.apikey,
             "workflowType": "nextflow",
             "repository": {
                 "platform": platform,
@@ -638,9 +649,13 @@ class Cloudos:
             "docsLink": workflow_docs_link,
             "team": workspace_id
         }
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
         r = retry_requests_post("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
                                                                        workspace_id),
-                                json=data, verify=verify)
+                                json=data, headers=headers, verify=verify)
         if r.status_code == 401:
             raise ValueError('It seems your API key is not authorised. Please check if ' +
                              'your workspace has support for importing workflows using cloudos-cli')

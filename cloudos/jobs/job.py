@@ -143,11 +143,14 @@ class Job(Cloudos):
         if resource not in allowed_resources:
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
-        data = {"apikey": apikey}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
         r = retry_requests_get("{}/api/v1/{}?teamId={}".format(cloudos_url,
                                                          resource,
                                                          workspace_id),
-                               params=data, verify=verify)
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
