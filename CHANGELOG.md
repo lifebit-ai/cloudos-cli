@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.11.2 (2024-11-6)
+
+### Fix
+
+- Updates API requests to only use API key via HTTP header. Done in preparation for the upcoming deprecation of API key via parameters in CloudOS API.
+
 ## v2.11.1 (2024-10-22)
 
 ### Fix

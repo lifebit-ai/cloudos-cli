@@ -19,12 +19,13 @@ def test_is_module():
     API request is mocked and replicated with json files
     """
     json_data = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "apikey": APIKEY}
+    params = {"teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=UTF-8"
+        "Content-Type": "application/json;charset=UTF-8",
+        "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&apikey={APIKEY}"
+    search_str = f"teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
