@@ -96,6 +96,11 @@ Options:
                                   to include.
   --nextflow-profile TEXT         A comma separated string indicating the
                                   nextflow profile/s to use with your job.
+  --nextflow-version [22.10.8|24.04.4|latest]
+                                  Nextflow version to use when executing the
+                                  workflow in CloudOS. Please, note that
+                                  versions above 22.10.8 are only DSL2
+                                  compatible. Default=22.10.8.
   --git-commit TEXT               The exact whole 40 character commit hash to
                                   run for the selected pipeline. If not
                                   specified it defaults to the last commit of
