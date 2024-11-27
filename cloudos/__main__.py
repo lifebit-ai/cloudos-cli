@@ -374,7 +374,7 @@ def run(apikey,
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
               'to be written in DSL2 and does not support DSL1.')
-    print('Executing run...')
+    print('\nExecuting run...')
     print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
