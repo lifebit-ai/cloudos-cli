@@ -262,6 +262,7 @@ def run(apikey,
         disable_ssl_verification,
         ssl_cert):
     """Submit a job to CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
@@ -397,8 +398,7 @@ def run(apikey,
                       cost_limit=cost_limit,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')
-    cloudos_url_rstrip = cloudos_url.rstrip('/')
-    j_url = f'{cloudos_url_rstrip}/app/jobs/{j_id}'
+    j_url = f'{cloudos_url}/app/jobs/{j_id}'
     if wait_completion:
         print('\tPlease, wait until job completion (max wait time of ' +
               f'{wait_time} seconds).\n')
@@ -537,6 +537,7 @@ def run_curated_examples(apikey,
 
     NOTE that currently, only Nextflow workflows are supported.
     """
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -650,6 +651,7 @@ def job_status(apikey,
                disable_ssl_verification,
                ssl_cert):
     """Check job status in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -662,8 +664,7 @@ def job_status(apikey,
     j_status = cl.get_job_status(job_id, verify_ssl)
     j_status_h = json.loads(j_status.content)["status"]
     print(f'\tYour current job status is: {j_status_h}\n')
-    cloudos_url_rstrip = cloudos_url.rstrip('/')
-    j_url = f'{cloudos_url_rstrip}/app/jobs/{job_id}'
+    j_url = f'{cloudos_url}/app/jobs/{job_id}'
     print(f'\tTo further check your job status you can either go to {j_url} ' +
           'or repeat the command you just used.')
 
@@ -725,6 +726,7 @@ def list_jobs(apikey,
               disable_ssl_verification,
               ssl_cert):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -806,6 +808,7 @@ def list_workflows(apikey,
                    disable_ssl_verification,
                    ssl_cert):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -882,6 +885,7 @@ def import_workflows(apikey,
                      disable_ssl_verification,
                      ssl_cert):
     """Imports workflows to CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
     print('\t[Message] Only Nextflow workflows are currently supported.\n')
@@ -943,6 +947,7 @@ def list_projects(apikey,
                   disable_ssl_verification,
                   ssl_cert):
     """Collect all projects from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1008,6 +1013,7 @@ def cromwell_status(apikey,
                     disable_ssl_verification,
                     ssl_cert):
     """Check Cromwell server status in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
@@ -1063,6 +1069,7 @@ def cromwell_restart(apikey,
                      disable_ssl_verification,
                      ssl_cert):
     """Restart Cromwell server in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1135,6 +1142,7 @@ def cromwell_stop(apikey,
                   disable_ssl_verification,
                   ssl_cert):
     """Stop Cromwell server in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1195,6 +1203,7 @@ def list_queues(apikey,
                 disable_ssl_verification,
                 ssl_cert):
     """Collect all available job queues from a CloudOS workspace."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
