@@ -122,6 +122,12 @@ def queue():
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Please, note that versions above 22.10.8 are only DSL2 compatible. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', 'latest']),
+              default='22.10.8')
 @click.option('--git-commit',
               help=('The exact whole 40 character commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -237,6 +243,7 @@ def run(apikey,
         ignite,
         job_queue,
         nextflow_profile,
+        nextflow_version,
         instance_type,
         instance_disk,
         storage_mode,
@@ -260,6 +267,13 @@ def run(apikey,
     if spot:
         print('\n[Message] You have specified spot instances but they are no longer available ' +
               'in CloudOS. Option ignored.\n')
+    if nextflow_version == 'latest':
+        nextflow_version = '24.04.4'
+        print('\n[Message] You have specified Nextflow version \'latest\'. The workflow will use the ' +
+              f'latest version available on CloudOS: {nextflow_version}.\n')
+    if nextflow_version != '22.10.8':
+        print(f'\n[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
+              'to be written in DSL2 and does not support DSL1.\n')
     if do_not_save_logs:
         save_logs = False
     else:
@@ -365,6 +379,7 @@ def run(apikey,
                       batch=batch,
                       job_queue_id=job_queue_id,
                       nextflow_profile=nextflow_profile,
+                      nextflow_version=nextflow_version,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
                       storage_mode=storage_mode,

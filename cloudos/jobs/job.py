@@ -197,6 +197,7 @@ class Job(Cloudos):
                                  batch,
                                  job_queue_id,
                                  nextflow_profile,
+                                 nextflow_version,
                                  instance_type,
                                  instance_disk,
                                  storage_mode,
@@ -242,6 +243,8 @@ class Job(Cloudos):
             Job queue Id to use in the batch job.
         nextflow_profile: string
             A comma separated string with the profiles to be used.
+        nextflow_version: string
+            Nextflow version to use when executing the workflow in CloudOS.
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
@@ -383,6 +386,7 @@ class Job(Cloudos):
             "project": project_id,
             "workflow": workflow_id,
             "name": job_name,
+            "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
             "batch": {
@@ -425,6 +429,7 @@ class Job(Cloudos):
                  batch=True,
                  job_queue_id=None,
                  nextflow_profile=None,
+                 nextflow_version='22.10.8',
                  instance_type='c5.xlarge',
                  instance_disk=500,
                  storage_mode='regular',
@@ -467,6 +472,8 @@ class Job(Cloudos):
             Job queue Id to use in the batch job.
         nextflow_profile: string
             A comma separated string with the profiles to be used.
+        nextflow_version: string
+            Nextflow version to use when executing the workflow in CloudOS.
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
@@ -520,6 +527,7 @@ class Job(Cloudos):
                                                batch,
                                                job_queue_id,
                                                nextflow_profile,
+                                               nextflow_version,
                                                instance_type,
                                                instance_disk,
                                                storage_mode,
