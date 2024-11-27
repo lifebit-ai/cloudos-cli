@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.12.0 (2024-11-27)
+
+### Feature
+
+- Adds the new parameter `--nextflow-version` to select the Nextflow version for job submissions.
+
 ## v2.11.2 (2024-11-6)
 
 ### Fix
