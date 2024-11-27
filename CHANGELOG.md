@@ -5,6 +5,7 @@
 ### Feature
 
 - Adds the new parameter `--nextflow-version` to select the Nextflow version for job submissions.
+- Now `--cloudos-url` can also take URLs with a trailing `/`
 
 ## v2.11.2 (2024-11-6)
 

@@ -397,7 +397,8 @@ def run(apikey,
                       cost_limit=cost_limit,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')
-    j_url = f'{cloudos_url}/app/jobs/{j_id}'
+    cloudos_url_rstrip = cloudos_url.rstrip('/')
+    j_url = f'{cloudos_url_rstrip}/app/jobs/{j_id}'
     if wait_completion:
         print('\tPlease, wait until job completion (max wait time of ' +
               f'{wait_time} seconds).\n')
@@ -661,7 +662,8 @@ def job_status(apikey,
     j_status = cl.get_job_status(job_id, verify_ssl)
     j_status_h = json.loads(j_status.content)["status"]
     print(f'\tYour current job status is: {j_status_h}\n')
-    j_url = f'{cloudos_url}/app/jobs/{job_id}'
+    cloudos_url_rstrip = cloudos_url.rstrip('/')
+    j_url = f'{cloudos_url_rstrip}/app/jobs/{job_id}'
     print(f'\tTo further check your job status you can either go to {j_url} ' +
           'or repeat the command you just used.')
 
