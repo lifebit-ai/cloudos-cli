@@ -24,6 +24,7 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
     response : requests.Response
         The Response object returned by the API server
     """
+    url = url.rstrip('/')
     retry_strategy = Retry(
         total=total,
         status_forcelist=status_forcelist
@@ -58,6 +59,7 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
     response : requests.Response
         The Response object returned by the API server
     """
+    url = url.rstrip('/')
     retry_strategy = Retry(
         total=total,
         status_forcelist=status_forcelist

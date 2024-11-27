@@ -33,14 +33,6 @@ class Cloudos:
     apikey: str
     cromwell_token: str
 
-    @property
-    def cloudos_url(self) -> str:
-        return self._cloudos_url
-
-    @cloudos_url.setter
-    def cloudos_url(self, v) -> None:
-        self._cloudos_url = v.rstrip('/')
-
     def get_job_status(self, j_id, verify=True):
         """Get job status from CloudOS.
 
