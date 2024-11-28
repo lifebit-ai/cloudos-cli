@@ -3,7 +3,6 @@ import pytest
 import requests_mock
 import requests
 import pandas as pd
-import numpy as np
 from cloudos.clos import Cloudos
 
 input_json = "tests/test_data/process_job_list_initial_json.json"
@@ -52,7 +51,7 @@ def test_process_job_list_df_values_equal(mocked_requests_get,):
                           'workflow.updatedAt', 'workflow.workflowType',
                           'project._id', 'project.name',
                           'project.createdAt', 'project.updatedAt']
-    assert np.all(df[columns_to_compare] == output_df[columns_to_compare])
+    pd.testing.assert_frame_equal(df[columns_to_compare], output_df[columns_to_compare])
 
 
 def test_process_job_list_full_has_correct_columns(mocked_requests_get):
