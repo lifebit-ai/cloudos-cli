@@ -11,7 +11,6 @@ The package requires Python >= 3.7 and the following python packages:
 ```
 click>=8.0.1
 pandas>=1.3.4
-numpy==1.26.4
 requests>=2.26.0
 ```
 
