@@ -122,6 +122,12 @@ def queue():
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Please, note that versions above 22.10.8 are only DSL2 compatible. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', 'latest']),
+              default='22.10.8')
 @click.option('--git-commit',
               help=('The exact whole 40 character commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -237,6 +243,7 @@ def run(apikey,
         ignite,
         job_queue,
         nextflow_profile,
+        nextflow_version,
         instance_type,
         instance_disk,
         storage_mode,
@@ -255,11 +262,11 @@ def run(apikey,
         disable_ssl_verification,
         ssl_cert):
     """Submit a job to CloudOS."""
-    print('Executing run...')
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
-        print('\n[Message] You have specified spot instances but they are no longer available ' +
-              'in CloudOS. Option ignored.\n')
+        print('[Message] You have specified spot instances but they are no longer available ' +
+              'in CloudOS. Option ignored.')
     if do_not_save_logs:
         save_logs = False
     else:
@@ -275,13 +282,13 @@ def run(apikey,
         batch = None
     elif ignite:
         batch = None
-        print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
+        print('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
               'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
-              'CloudOS\n')
+              'CloudOS')
     else:
         batch = True
     if execution_platform == 'hpc':
-        print('\nHPC execution platform selected')
+        print('\n[Message] HPC execution platform selected')
         if hpc_id is None:
             raise ValueError('Please, specify your HPC ID using --hpc parameter')
         print('[Message] Please, take into account that HPC execution do not support ' +
@@ -304,7 +311,7 @@ def run(apikey,
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
     if workflow_type == 'wdl':
-        print('\tWDL workflow detected\n')
+        print('[Message] WDL workflow detected')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
         c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
@@ -346,15 +353,29 @@ def run(apikey,
         print('\t...Sending job to CloudOS\n')
     if is_module:
         if job_queue is not None:
-            print(f'\tIgnoring job queue "{job_queue}" for ' +
+            print(f'[Message] Ignoring job queue "{job_queue}" for ' +
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
+        if nextflow_version != '22.10.8':
+            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+                  'is a CloudOS module. CloudOS modules only work with ' +
+                  'Nextflow version 22.10.8. Switching to use 22.10.8')
+        nextflow_version = '22.10.8'
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
                       workspace_id=workspace_id, verify=verify_ssl)
         job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
                                                 job_queue=job_queue)
+    if nextflow_version == 'latest':
+        nextflow_version = '24.04.4'
+        print('[Message] You have specified Nextflow version \'latest\'. The workflow will use the ' +
+              f'latest version available on CloudOS: {nextflow_version}.')
+    if nextflow_version != '22.10.8':
+        print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
+              'to be written in DSL2 and does not support DSL1.')
+    print('\nExecuting run...')
+    print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
                       git_commit=git_commit,
@@ -365,6 +386,7 @@ def run(apikey,
                       batch=batch,
                       job_queue_id=job_queue_id,
                       nextflow_profile=nextflow_profile,
+                      nextflow_version=nextflow_version,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
                       storage_mode=storage_mode,
@@ -515,6 +537,7 @@ def run_curated_examples(apikey,
 
     NOTE that currently, only Nextflow workflows are supported.
     """
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -628,6 +651,7 @@ def job_status(apikey,
                disable_ssl_verification,
                ssl_cert):
     """Check job status in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -702,6 +726,7 @@ def list_jobs(apikey,
               disable_ssl_verification,
               ssl_cert):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -783,6 +808,7 @@ def list_workflows(apikey,
                    disable_ssl_verification,
                    ssl_cert):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -859,6 +885,7 @@ def import_workflows(apikey,
                      disable_ssl_verification,
                      ssl_cert):
     """Imports workflows to CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
     print('\t[Message] Only Nextflow workflows are currently supported.\n')
@@ -920,6 +947,7 @@ def list_projects(apikey,
                   disable_ssl_verification,
                   ssl_cert):
     """Collect all projects from a CloudOS workspace in CSV format."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -985,6 +1013,7 @@ def cromwell_status(apikey,
                     disable_ssl_verification,
                     ssl_cert):
     """Check Cromwell server status in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
@@ -1040,6 +1069,7 @@ def cromwell_restart(apikey,
                      disable_ssl_verification,
                      ssl_cert):
     """Restart Cromwell server in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1112,6 +1142,7 @@ def cromwell_stop(apikey,
                   disable_ssl_verification,
                   ssl_cert):
     """Stop Cromwell server in CloudOS."""
+    cloudos_url = cloudos_url.rstrip('/')
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1172,6 +1203,7 @@ def list_queues(apikey,
                 disable_ssl_verification,
                 ssl_cert):
     """Collect all available job queues from a CloudOS workspace."""
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
