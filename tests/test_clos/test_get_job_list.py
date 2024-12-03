@@ -31,7 +31,7 @@ def test_get_job_list_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],
@@ -64,7 +64,7 @@ def test_get_job_list_incorrect_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=error_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],

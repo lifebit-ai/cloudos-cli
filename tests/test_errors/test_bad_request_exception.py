@@ -32,7 +32,7 @@ def test_bad_request_exception():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],

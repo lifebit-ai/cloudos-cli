@@ -239,7 +239,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
+        r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}".format(self.cloudos_url,
                                                                    workspace_id, page),
                                headers=headers, verify=verify)
         if r.status_code >= 400:

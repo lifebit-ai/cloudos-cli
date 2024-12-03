@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.12.1 (2024-12-03)
+
+### Patch
+
+- Updates GET job list to use API v2 endpoint
+
 ## v2.12.0 (2024-11-27)
 
 ### Feature
