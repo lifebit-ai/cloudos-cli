@@ -51,7 +51,7 @@ class Queue(Cloudos):
 
     @staticmethod
     def process_queue_list(r, all_fields=False):
-        """Process a job list from a self.get_job_list call.
+        """Process a queue list from a self.get_job_queues call.
 
         Parameters
         ----------

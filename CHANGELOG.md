@@ -1,10 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.12.1 (2024-12-03)
+## v2.13.0 (2024-12-03)
+
+### Feature
+
+- Adds new `--archived` flag to `cloudos job list` to allow getting archived jobs list.
 
 ### Patch
 
-- Updates GET job list to use API v2 endpoint
+- Updates GET job list to use API v2 endpoint.
 
 ## v2.12.0 (2024-11-27)
 
