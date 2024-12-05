@@ -21,10 +21,6 @@ ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
 # Dump the details of the installed packages to a file for posterity
 RUN mamba env export --name ${ENV_NAME} > ${ENV_NAME}_exported.yml
 
-# Install ps to avoid Nextflow problems in cloudOS
-RUN apt-get update \
-  && apt-get install procps -y
-
 # Copy local package files to be able to install
 COPY . /
 # Add the created folder to PATH so that tools are accessible
