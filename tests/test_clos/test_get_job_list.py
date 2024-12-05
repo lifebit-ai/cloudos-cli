@@ -21,17 +21,18 @@ def test_get_job_list_correct_response():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "page": 1}
+    params = {"teamId": WORKSPACE_ID, "page": 1,
+              "archived.status": "false"}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1"
+    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],
@@ -54,17 +55,18 @@ def test_get_job_list_incorrect_response():
     error_message = {"statusCode": 400, "code": "BadRequest",
                      "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
-    params = {"teamId": WORKSPACE_ID, "page": 1}
+    params = {"teamId": WORKSPACE_ID, "page": 1,
+              "archived.status": "false"}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1"
+    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=error_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],

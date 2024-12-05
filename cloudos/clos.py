@@ -213,7 +213,8 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, verify=True):
+    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
+                     verify=True):
         """Get jobs from a CloudOS workspace.
 
         Parameters
@@ -225,6 +226,8 @@ class Cloudos:
             very large int or 'all' to get all user's jobs.
         page : int
             Response page to get.
+        archived : bool
+            When True, only the archived jobs are retrieved.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -239,8 +242,12 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs?teamId={}&page={}".format(self.cloudos_url,
-                                                                   workspace_id, page),
+        if archived:
+            archived_status = "true"
+        else:
+            archived_status = "false"
+        r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
+                               self.cloudos_url, workspace_id, page, archived_status),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -260,7 +267,8 @@ class Cloudos:
             else:
                 next_to_get = jobs_to_get
             return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
-                                                       page=page+1, verify=verify)
+                                                       page=page+1, archived=archived,
+                                                       verify=verify)
         if jobs_to_get < 0:
             return content['jobs'][:jobs_to_get]
 

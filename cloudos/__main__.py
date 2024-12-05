@@ -705,6 +705,9 @@ def job_status(apikey,
                     'value corresponds to the first page to retrieve. Default=1.'),
               type=int,
               default=1)
+@click.option('--archived',
+              help=('When this flag is used, only archived jobs list is collected.'),
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -722,6 +725,7 @@ def list_jobs(apikey,
               all_fields,
               last_n_jobs,
               page,
+              archived,
               verbose,
               disable_ssl_verification,
               ssl_cert):
@@ -744,7 +748,7 @@ def list_jobs(apikey,
         except ValueError:
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, verify_ssl)
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
