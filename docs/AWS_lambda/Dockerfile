@@ -12,8 +12,7 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Clone the specific branch of cloudos-cli
 RUN git clone https://github.com/lifebit-ai/cloudos-cli.git cloudos-cli && \
-    cd cloudos-cli && \
-    git checkout remove-numpy
+    cd cloudos-cli
 
 # Install dependencies
 RUN pip install --no-cache-dir \
