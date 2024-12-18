@@ -211,7 +211,7 @@ def queue():
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
-@click.option('--accelerate_file_staging',
+@click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
 @click.option('--verbose',
@@ -510,7 +510,7 @@ def run(apikey,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
-@click.option('--accelerate_file_staging',
+@click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
 @click.option('--wait-completion',

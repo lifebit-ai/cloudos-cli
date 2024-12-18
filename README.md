@@ -160,7 +160,7 @@ Options:
                                   Default=660fae20f93358ad61e0104b
   --cost-limit FLOAT              Add a cost limit to your job. Default=30.0
                                   (For no cost limit please use -1).
-  --accelerate_file_staging       Enables AWS S3 mountpoint for quicker file
+  --accelerate-file-staging       Enables AWS S3 mountpoint for quicker file
                                   staging.
   --verbose                       Whether to print information messages or
                                   not.
