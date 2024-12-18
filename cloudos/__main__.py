@@ -316,9 +316,9 @@ def run(apikey,
             use_mountpoints = True
             print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
                   'Please, take into consideration the following:\n' +
-                  '\t. It significantly reduces runtime and compute costs but may increase network costs.\n' +
-                  '\t. Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t. This is still a CloudOS BETA feature\n')
+                  '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
+                  '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
+                  '\t- This is still a CloudOS BETA feature.\n')
     else:
         use_mountpoints = False
     if verbose:
@@ -601,9 +601,9 @@ def run_curated_examples(apikey,
             use_mountpoints = True
             print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
                   'Please, take into consideration the following:\n' +
-                  '\t. It significantly reduces runtime and compute costs but may increase network costs.\n' +
-                  '\t. Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t. This is still a CloudOS BETA feature\n')
+                  '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
+                  '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
+                  '\t- This is still a CloudOS BETA feature.\n')
     else:
         use_mountpoints = False
     for workflow in runnable_curated_workflows:
