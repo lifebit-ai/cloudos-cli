@@ -211,6 +211,9 @@ def queue():
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
+@click.option('--accelerate_file_staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -257,6 +260,7 @@ def run(apikey,
         execution_platform,
         hpc_id,
         cost_limit,
+        accelerate_file_staging,
         verbose,
         request_interval,
         disable_ssl_verification,
@@ -302,6 +306,21 @@ def run(apikey,
         wdl_importsfile = None
         storage_mode = 'regular'
         save_logs = False
+    if accelerate_file_staging:
+        if execution_platform != 'aws':
+            print('[Message] You have selected accelerate file staging, but this function is ' +
+                  'only available when execution platform is AWS. The accelerate file staging ' +
+                  'will not be applied')
+            use_mountpoints = False
+        else:
+            use_mountpoints = True
+            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
+                  'Please, take into consideration the following:\n' +
+                  '\t. It significantly reduces runtime and compute costs but may increase network costs.\n' +
+                  '\t. Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
+                  '\t. This is still a CloudOS BETA feature\n')
+    else:
+        use_mountpoints = False
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -375,7 +394,8 @@ def run(apikey,
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
               'to be written in DSL2 and does not support DSL1.')
     print('\nExecuting run...')
-    print(f'\tNextflow version: {nextflow_version}')
+    if workflow_type == 'nextflow':
+        print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
                       git_commit=git_commit,
@@ -396,6 +416,7 @@ def run(apikey,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
                       cost_limit=cost_limit,
+                      use_mountpoints=use_mountpoints,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'
@@ -489,6 +510,9 @@ def run(apikey,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
+@click.option('--accelerate_file_staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -527,6 +551,7 @@ def run_curated_examples(apikey,
                          lustre_size,
                          execution_platform,
                          cost_limit,
+                         accelerate_file_staging,
                          wait_completion,
                          wait_time,
                          request_interval,
@@ -566,6 +591,21 @@ def run_curated_examples(apikey,
               'CloudOS\n')
     else:
         batch = True
+    if accelerate_file_staging:
+        if execution_platform != 'aws':
+            print('[Message] You have selected accelerate file staging, but this function is ' +
+                  'only available when execution platform is AWS. The accelerate file staging ' +
+                  'will not be applied')
+            use_mountpoints = False
+        else:
+            use_mountpoints = True
+            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
+                  'Please, take into consideration the following:\n' +
+                  '\t. It significantly reduces runtime and compute costs but may increase network costs.\n' +
+                  '\t. Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
+                  '\t. This is still a CloudOS BETA feature\n')
+    else:
+        use_mountpoints = False
     for workflow in runnable_curated_workflows:
         workflow_name = workflow['name']
         j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
@@ -582,6 +622,7 @@ def run_curated_examples(apikey,
                           execution_platform=execution_platform,
                           workflow_type='nextflow',
                           cost_limit=cost_limit,
+                          use_mountpoints=use_mountpoints,
                           verify=verify_ssl)
         print(f'\tYour assigned job id is: {j_id}\n')
         job_id_list.append(j_id)
