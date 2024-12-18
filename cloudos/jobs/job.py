@@ -206,7 +206,8 @@ class Job(Cloudos):
                                  hpc_id,
                                  workflow_type,
                                  cromwell_id,
-                                 cost_limit):
+                                 cost_limit,
+                                 use_mountpoints):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -265,6 +266,8 @@ class Job(Cloudos):
             Cromwell server ID.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
+        use_mountpoints : bool
+            Whether to use or not AWS S3 mountpoint for quicker file staging.
 
         Returns
         -------
@@ -406,7 +409,8 @@ class Job(Cloudos):
             "storageMode": storage_mode,
             "revision": revision_block,
             "profile": nextflow_profile,
-            "instanceType": instance_type
+            "instanceType": instance_type,
+            "usesFusionFileSystem": use_mountpoints
         }
         if execution_platform != 'hpc':
             params['masterInstance'] = {
@@ -439,6 +443,7 @@ class Job(Cloudos):
                  workflow_type='nextflow',
                  cromwell_id=None,
                  cost_limit=30.0,
+                 use_mountpoints=False,
                  verify=True):
         """Send a job to CloudOS.
 
@@ -494,6 +499,8 @@ class Job(Cloudos):
             Cromwell server ID.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
+        use_mountpoints : bool
+            Whether to use or not AWS S3 mountpoint for quicker file staging.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -536,7 +543,8 @@ class Job(Cloudos):
                                                hpc_id,
                                                workflow_type,
                                                cromwell_id,
-                                               cost_limit)
+                                               cost_limit,
+                                               use_mountpoints)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
