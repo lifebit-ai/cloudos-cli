@@ -144,7 +144,7 @@ class Job(Cloudos):
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
         if resource == 'workflows':
-            content = self.get_workflow_list(workflow_id, verify=verify)
+            content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
                 if (element["name"] == name and
                     element["repository"]["platform"] == repository_platform and
@@ -157,7 +157,8 @@ class Job(Cloudos):
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
         elif resource == 'projects':
-            content = self.get_project_list(workspace_id, verify=verify)
+            r = self.get_project_list(workspace_id, verify=verify)
+            content = json.loads(r.content)
             # New API projects endpoint spec
             if type(content) is dict:
                 for element in content["projects"]:

@@ -9,6 +9,9 @@ INPUT = "tests/test_data/process_workflow_list_initial_request.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
+PAGE_SIZE = 10
+PAGE = 1
+ARCHIVED_STATUS = "false"
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -19,17 +22,20 @@ def test_is_module():
     API request is mocked and replicated with json files
     """
     json_data = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID}
+    params = {"teamId": WORKSPACE_ID,
+              "pageSize": PAGE_SIZE,
+              "page": PAGE,
+              "archived.status": ARCHIVED_STATUS}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}"
+    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str}",
             body=json_data,
             headers=header,
             match=[matchers.query_param_matcher(params)],

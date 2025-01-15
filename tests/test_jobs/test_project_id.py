@@ -12,6 +12,9 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
+PAGE_SIZE = 10
+PAGE = 1
+ARCHIVED_STATUS = "false"
 
 
 @mock.patch('cloudos.clos', mock.MagicMock())
@@ -23,27 +26,33 @@ def test_project_id():
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
-    params = {"teamId": WORKSPACE_ID}
+    params_projects = {"teamId": WORKSPACE_ID}
+    params_workflows = {
+        "teamId": WORKSPACE_ID,
+        "pageSize": PAGE_SIZE,
+        "page": PAGE,
+        "archived.status": ARCHIVED_STATUS}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}"
+    search_str_projects = f"teamId={WORKSPACE_ID}"
+    search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str_projects}",
             body=create_json_project,
             headers=header,
-            match=[matchers.query_param_matcher(params)],
+            match=[matchers.query_param_matcher(params_projects)],
             status=200)
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_workflows}",
             body=create_json_workflow,
             headers=header,
-            match=[matchers.query_param_matcher(params)],
+            match=[matchers.query_param_matcher(params_workflows)],
             status=201)
     # start cloudOS service
     job = Job(apikey=APIKEY,
