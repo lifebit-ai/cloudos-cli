@@ -388,17 +388,30 @@ class Cloudos:
         else:
             return content['pipelines']
 
-    def get_workflow_list(self, workspace_id, verify=True):
+    def get_workflow_list(self, workspace_id, verify=True, get_all=True,
+                          page=1, page_size=10, max_page_size=1000,
+                          archived_status=False):
         """Get all the workflows from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
-        verify: [bool|string]
+        verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        get_all : bool
+            Whether to get all available curated workflows or just the
+            indicated page.
+        page : int
+            The page number to retrieve, from the paginated response.
+        page_size : int
+            The number of workflows by page. From 1 to 1000.
+        max_page_size : int
+            Max page size defined by the API server. It is currently 1000.
+        archived_status : bool
+            Whether to retrieve archived workflows or not.
 
         Returns
         -------
@@ -409,12 +422,40 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
-                                                                workspace_id),
-                               headers=headers, verify=verify)
+        r = retry_requests_get(
+            "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archied.status={}".format(
+                self.cloudos_url, workspace_id, page_size, page, archived_status),
+            headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return json.loads(r.content)
+        content = json.loads(r.content)
+        if get_all:
+            total_workflows = content['paginationMetadata']['Pagination-Count']
+            if total_workflows <= max_page_size:
+                r = retry_requests_get(
+                    "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archied.status={}".format(
+                        self.cloudos_url, workspace_id, total_workflows, 1, archived_status),
+                    headers=headers, verify=verify)
+                if r.status_code >= 400:
+                    raise BadRequestException(r)
+                return json.loads(r.content['workflows'])
+            else:
+                n_pages = (total_workflows // max_page_size) + int((total_workflows % max_page_size) > 0)
+                for p in range(n_pages):
+                    p += 1
+                    r = retry_requests_get(
+                        "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archied.status={}".format(
+                            self.cloudos_url, workspace_id, max_page_size, p, archived_status),
+                        headers=headers, verify=verify)
+                    if r.status_code >= 400:
+                        raise BadRequestException(r)
+                    if p == 1:
+                        all_content = json.loads(r.content['workflows'])
+                    else:
+                        all_content += json.loads(r.content['workflows'])
+                return all_content
+        else:
+            return content['workflows']
 
     @staticmethod
     def process_workflow_list(r, all_fields=False):
