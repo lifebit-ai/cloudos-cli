@@ -348,7 +348,6 @@ class Cloudos:
             "{}/api/v3/workflows?search=&groups[]=curated&page={}&teamId={}".format(
                 self.cloudos_url, page, workspace_id),
             headers=headers, verify=verify)
-        print(page)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
