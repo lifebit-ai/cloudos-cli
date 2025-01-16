@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.15.0 (2025-01-16)
+
+### Feature
+
+- Updates GET workflows endpoint to v3.
+
 ## v2.14.0 (2024-12-18)
 
 - Adds the new `--accelerate-file-staging` parameter to job submission to add support for AWS S3 mountpoint for quicker file staging.
