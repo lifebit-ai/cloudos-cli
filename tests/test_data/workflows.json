@@ -1,4 +1,4 @@
-[
+{"workflows": [
     {
         "_id": "111XXX111",
         "owner": {
@@ -78,11 +78,7 @@
         },
         "name": "nf-core-deepvariant",
         "defaultContainer": null,
-        "isPredefined": false,
-        "isCurated": false,
-        "isFeatured": false,
-        "isModule": false,
-        "isPublic": false,
+        "group": "user",
         "priceAmount": 0,
         "priceUnit": "PER_SAMPLE",
         "tags": [],
@@ -112,4 +108,6 @@
         "mainFile": "main.nf",
         "processes": []
     }
-]
+],
+"paginationMetadata": {"Pagination-Count": 10}
+}

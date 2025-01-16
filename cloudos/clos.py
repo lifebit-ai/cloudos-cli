@@ -340,65 +340,54 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a workflow.
         """
-        data = {"search": "",
-                "page": page,
-                "filters": [
-                    [
-                        {
-                            "isPredefined": True,
-                            "isCurated": True,
-                            "isFeatured": False,
-                            "isModule": False
-                        },
-                        {
-                            "isPredefined": True,
-                            "isCurated": False,
-                            "isFeatured": False,
-                            "isModule": False
-                        },
-                        {
-                            "isPredefined": True,
-                            "isCurated": True,
-                            "isFeatured": True,
-                            "isModule": False
-                        }
-                    ]
-                 ]
-                }
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_post("{}/api/v1/workflows/getByType?teamId={}".format(self.cloudos_url,
-                                                                           workspace_id),
-                                json=data, headers=headers, verify=verify)
+        r = retry_requests_get(
+            "{}/api/v3/workflows?search=&groups[]=curated&groups[]=featured&groups[]=predefined&page={}&teamId={}".format(
+                self.cloudos_url, page, workspace_id),
+            headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
         if get_all:
-            workflows_collected = len(content['pipelines'])
-            workflows_to_get = content['total']
+            workflows_collected = len(content['workflows'])
+            workflows_to_get = content['paginationMetadata']['Pagination-Count']
             if workflows_to_get <= workflows_collected or workflows_collected == 0:
-                return content['pipelines']
+                return content['workflows']
             if workflows_to_get > workflows_collected:
-                return content['pipelines'] + self.get_curated_workflow_list(workspace_id,
+                return content['workflows'] + self.get_curated_workflow_list(workspace_id,
                                                                              get_all=True,
                                                                              page=page+1,
                                                                              verify=verify)
         else:
-            return content['pipelines']
+            return content['workflows']
 
-    def get_workflow_list(self, workspace_id, verify=True):
+    def get_workflow_list(self, workspace_id, verify=True, get_all=True,
+                          page=1, page_size=10, max_page_size=1000,
+                          archived_status=False):
         """Get all the workflows from a CloudOS workspace.
 
         Parameters
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the workflows.
-        verify: [bool|string]
+        verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        get_all : bool
+            Whether to get all available curated workflows or just the
+            indicated page.
+        page : int
+            The page number to retrieve, from the paginated response.
+        page_size : int
+            The number of workflows by page. From 1 to 1000.
+        max_page_size : int
+            Max page size defined by the API server. It is currently 1000.
+        archived_status : bool
+            Whether to retrieve archived workflows or not.
 
         Returns
         -------
@@ -409,12 +398,41 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v1/workflows?teamId={}".format(self.cloudos_url,
-                                                                workspace_id),
-                               headers=headers, verify=verify)
+        archived_status = str(archived_status).lower()
+        r = retry_requests_get(
+            "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archived.status={}".format(
+                self.cloudos_url, workspace_id, page_size, page, archived_status),
+            headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return json.loads(r.content)
+        content = json.loads(r.content)
+        if get_all:
+            total_workflows = content['paginationMetadata']['Pagination-Count']
+            if total_workflows <= max_page_size:
+                r = retry_requests_get(
+                    "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archived.status={}".format(
+                        self.cloudos_url, workspace_id, total_workflows, 1, archived_status),
+                    headers=headers, verify=verify)
+                if r.status_code >= 400:
+                    raise BadRequestException(r)
+                return json.loads(r.content)['workflows']
+            else:
+                n_pages = (total_workflows // max_page_size) + int((total_workflows % max_page_size) > 0)
+                for p in range(n_pages):
+                    p += 1
+                    r = retry_requests_get(
+                        "{}/api/v3/workflows?teamId={}&pageSize={}&page={}&archived.status={}".format(
+                            self.cloudos_url, workspace_id, max_page_size, p, archived_status),
+                        headers=headers, verify=verify)
+                    if r.status_code >= 400:
+                        raise BadRequestException(r)
+                    if p == 1:
+                        all_content = json.loads(r.content)['workflows']
+                    else:
+                        all_content += json.loads(r.content)['workflows']
+                return all_content
+        else:
+            return content['workflows']
 
     @staticmethod
     def process_workflow_list(r, all_fields=False):
@@ -435,11 +453,10 @@ class Cloudos:
         """
         COLUMNS = ['_id',
                    'name',
-                   'isModule',
                    'archived.status',
                    'mainFile',
                    'workflowType',
-                   'parameters',
+                   'group',
                    'repository.name',
                    'repository.platform',
                    'repository.url',
@@ -511,14 +528,25 @@ class Cloudos:
         """
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
-        is_module = my_workflows.loc[
+        group = my_workflows.loc[
             (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
-            'isModule']
-        if len(is_module) == 0:
+            'group']
+        if len(group) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
-        if len(is_module) > 1:
+        if len(group) > 1:
             raise ValueError(f'More than one workflow found with name: {workflow_name}')
-        return is_module.values[0]
+        module_groups = ['system-tools',
+                         'data-factory-data-connection-etl',
+                         'data-factory',
+                         'data-factory-omics-etl',
+                         'drug-discovery',
+                         'data-factory-omics-insights',
+                         'intermediate'
+                         ]
+        if group.values[0] in module_groups:
+            return True
+        else:
+            return False
 
     def get_project_list(self, workspace_id, verify=True):
         """Get all the project from a CloudOS workspace.

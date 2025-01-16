@@ -15,6 +15,9 @@ PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
 INPUT_PROJECT = "tests/test_data/projects.json"
 INPUT_WORKFLOW = "tests/test_data/workflows.json"
+PAGE_SIZE = 10
+PAGE = 1
+ARCHIVED_STATUS = "false"
 
 param_dict = {
     "config": "cloudos/examples/rnatoy.config"
@@ -32,11 +35,17 @@ def test_send_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
+    params_workflows = {
+        "teamId": WORKSPACE_ID,
+        "pageSize": PAGE_SIZE,
+        "page": PAGE,
+        "archived.status": ARCHIVED_STATUS}
     header = {
             "Content-type": "application/json",
             "apikey": APIKEY
         }
     search_str = f"teamId={WORKSPACE_ID}"
+    search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(
             responses.POST,
@@ -54,10 +63,10 @@ def test_send_job():
             status=200)
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/workflows?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_workflows}",
             body=create_json_workflow,
             headers=header,
-            match=[matchers.query_param_matcher(params_job)],
+            match=[matchers.query_param_matcher(params_workflows)],
             status=200)
     # start cloudOS service
     job = Job(apikey=APIKEY,
