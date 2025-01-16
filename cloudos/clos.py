@@ -345,7 +345,7 @@ class Cloudos:
             "apikey": self.apikey
         }
         r = retry_requests_get(
-            "{}/api/v3/workflows?search=&groups[]=curated&page={}&teamId={}".format(
+            "{}/api/v3/workflows?search=&groups[]=curated&groups[]=featured&groups[]=predefined&page={}&teamId={}".format(
                 self.cloudos_url, page, workspace_id),
             headers=headers, verify=verify)
         if r.status_code >= 400:
@@ -540,7 +540,8 @@ class Cloudos:
                          'data-factory',
                          'data-factory-omics-etl',
                          'drug-discovery',
-                         'data-factory-omics-insights'
+                         'data-factory-omics-insights',
+                         'intermediate'
                          ]
         if group.values[0] in module_groups:
             return True

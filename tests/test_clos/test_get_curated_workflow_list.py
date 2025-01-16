@@ -23,13 +23,13 @@ def test_get_curated_workflow_list_correct_response():
     """
     create_json = load_json_file(OUTPUT)
     params = {"teamId": WORKSPACE_ID,
-              "groups[]": "curated",
+              "groups[]": ["curated", "featured", "predefined"],
               "page": PAGE}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY}
-    search_str = f"search=&groups[]=curated&page={PAGE}&teamId={WORKSPACE_ID}"
+    search_str = f"search=&groups[]=curated&groups[]=featured&groups[]=predefined&page={PAGE}&teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -57,7 +57,7 @@ def test_get_curated_workflow_list_incorrect_response():
     error_message = {"statusCode": 400, "code": "BadRequest",
                      "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
-    search_str = f"search=&groups[]=curated&page={PAGE}&teamId={WORKSPACE_ID}"
+    search_str = f"search=&groups[]=curated&groups[]=featured&groups[]=predefined&page={PAGE}&teamId={WORKSPACE_ID}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
