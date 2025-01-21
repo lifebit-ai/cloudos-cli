@@ -199,7 +199,8 @@ class Job(Cloudos):
                                  workflow_type,
                                  cromwell_id,
                                  cost_limit,
-                                 use_mountpoints):
+                                 use_mountpoints,
+                                 docker_login):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -260,6 +261,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        docker_login : bool
+            Whether to use private docker images, provided the users have linked their docker.io accounts.
 
         Returns
         -------
@@ -385,8 +388,9 @@ class Job(Cloudos):
             "resumable": resumable,
             "saveProcessLogs": save_logs,
             "batch": {
-                "dockerLogin": False,
+                "dockerLogin": docker_login,
                 "enabled": batch,
+                "id": job_queue_id,
                 "jobQueue": job_queue_id
             },
             "cromwellCloudResources": cromwell_id,
@@ -436,6 +440,7 @@ class Job(Cloudos):
                  cromwell_id=None,
                  cost_limit=30.0,
                  use_mountpoints=False,
+                 docker_login=False,
                  verify=True):
         """Send a job to CloudOS.
 
@@ -493,6 +498,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        docker_login : bool
+            Whether to use private docker images, provided the users have linked their docker.io accounts.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -536,7 +543,8 @@ class Job(Cloudos):
                                                workflow_type,
                                                cromwell_id,
                                                cost_limit,
-                                               use_mountpoints)
+                                               use_mountpoints,
+                                               docker_login)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)

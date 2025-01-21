@@ -214,6 +214,10 @@ def queue():
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
+@click.option('--use_private_docker_repository',
+              help=('Allows to use private docker repository to run jobs. The docker.io user ' +
+                    'account has to be already linked in the platform.'),
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -261,6 +265,7 @@ def run(apikey,
         hpc_id,
         cost_limit,
         accelerate_file_staging,
+        use_private_docker_repository,
         verbose,
         request_interval,
         disable_ssl_verification,
@@ -386,6 +391,13 @@ def run(apikey,
                       workspace_id=workspace_id, verify=verify_ssl)
         job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
                                                 job_queue=job_queue)
+    if use_private_docker_repository:
+        print('[Message] Use private Docker repository has been selected. A custom job ' +
+              'queue to support private Docker containers and/or Lustre FSx will be created for ' +
+              'your job. The selected job queue will serve as a template.')
+        docker_login = True
+    else:
+        docker_login = False
     if nextflow_version == 'latest':
         nextflow_version = '24.04.4'
         print('[Message] You have specified Nextflow version \'latest\'. The workflow will use the ' +
@@ -417,6 +429,7 @@ def run(apikey,
                       cromwell_id=cromwell_id,
                       cost_limit=cost_limit,
                       use_mountpoints=use_mountpoints,
+                      docker_login=docker_login,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/jobs/{j_id}'

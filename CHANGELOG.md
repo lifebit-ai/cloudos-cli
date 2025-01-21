@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.16.0 (2025-01-21)
+
+### Feature
+
+- Adds the new parameter `--use_private_docker_repository` to launch jobs using private docker images from a linked docker.io account.
+
 ## v2.15.0 (2025-01-16)
 
 ### Feature
