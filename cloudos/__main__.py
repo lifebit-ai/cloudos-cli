@@ -397,7 +397,7 @@ def run(apikey,
             raise Exception('User private Docker repository has been selected but your user ' +
                             'credentials have not been configured yet. Please, link your ' +
                             'Docker account to CloudOS before using ' +
-                            '--use-private-use_private_docker_repository option.')
+                            '--use-private-docker-repository option.')
         print('[Message] Use private Docker repository has been selected. A custom job ' +
               'queue to support private Docker containers and/or Lustre FSx will be created for ' +
               'your job. The selected job queue will serve as a template.')
