@@ -214,7 +214,7 @@ def queue():
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
-@click.option('--use_private_docker_repository',
+@click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository to run jobs. The docker.io user ' +
                     'account has to be already linked in the platform.'),
               is_flag=True)
