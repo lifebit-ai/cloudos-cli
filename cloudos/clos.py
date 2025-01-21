@@ -699,3 +699,28 @@ class Cloudos:
             raise BadRequestException(r)
         content = json.loads(r.content)
         return content['_id']
+
+    def get_user_info(self, verify=True):
+        """Gets user information from users/me endpoint
+
+        Parameters
+        ----------
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response.content
+            The server response content
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        r = retry_requests_get("{}/api/v1/users/me".format(self.cloudos_url),
+                               headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)

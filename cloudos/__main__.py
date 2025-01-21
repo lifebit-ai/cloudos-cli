@@ -392,6 +392,11 @@ def run(apikey,
         job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
                                                 job_queue=job_queue)
     if use_private_docker_repository:
+        me = j.get_user_info(verify=verify_ssl)['dockerRegistriesCredentials']
+        if len(me) == 0:
+            raise Exception('User private Docker repository has been selected but your user ' +
+                            'credentials have not been configured yet. Please, link your ' +
+                            'Docker account to CloudOS first.')
         print('[Message] Use private Docker repository has been selected. A custom job ' +
               'queue to support private Docker containers and/or Lustre FSx will be created for ' +
               'your job. The selected job queue will serve as a template.')
