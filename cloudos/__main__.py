@@ -393,7 +393,7 @@ def run(apikey,
                                                 job_queue=job_queue)
     if use_private_docker_repository:
         if is_module:
-            print(f'[Message] You workflow "{workflow_name}" is a CloudOS module. ' +
+            print(f'[Message] Workflow "{workflow_name}" is a CloudOS module. ' +
                   'Option --use-private-docker-repository will be ignored.')
             docker_login = False
         else:
