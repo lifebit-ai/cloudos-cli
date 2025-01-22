@@ -162,6 +162,10 @@ Options:
                                   (For no cost limit please use -1).
   --accelerate-file-staging       Enables AWS S3 mountpoint for quicker file
                                   staging.
+  --use-private-docker-repository
+                                  Allows to use private docker repository for
+                                  running jobs. The Docker user account has to
+                                  be already linked to CloudOS.
   --verbose                       Whether to print information messages or
                                   not.
   --request-interval INTEGER      Time interval to request (in seconds) the

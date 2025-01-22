@@ -128,7 +128,7 @@ class Queue(Cloudos):
             default_queue_name = available_queues[-1]['label']
             queue_as_default = 'most recent suitable'
         if job_queue is None:
-            print(f'[Message] No job_queue was specified, using the {queue_as_default} queue: ' +
+            print(f'[Message] No job queue was specified, using the {queue_as_default} queue: ' +
                   f'{default_queue_name}.')
             return default_queue_id
         selected_queue = [q for q in available_queues if q['label'] == job_queue]

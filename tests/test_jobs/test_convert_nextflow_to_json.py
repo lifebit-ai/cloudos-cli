@@ -29,7 +29,8 @@ param_dict = {
     "workflow_type": 'nextflow',
     "cromwell_id": None,
     "cost_limit": -1,
-    "use_mountpoints": False
+    "use_mountpoints": False,
+    "docker_login": False
 }
 
 
@@ -58,7 +59,8 @@ def test_convert_nextflow_to_json_output_correct():
         workflow_type=param_dict["workflow_type"],
         cromwell_id=param_dict["cromwell_id"],
         cost_limit=param_dict["cost_limit"],
-        use_mountpoints=param_dict["use_mountpoints"]
+        use_mountpoints=param_dict["use_mountpoints"],
+        docker_login=param_dict["docker_login"]
         )
     with open(actual_json_file) as json_data:
         correct_json = json.load(json_data)
@@ -92,7 +94,8 @@ def test_convert_nextflow_to_json_badly_formed_config():
             workflow_type=param_dict["workflow_type"],
             cromwell_id=param_dict["cromwell_id"],
             cost_limit=param_dict["cost_limit"],
-            use_mountpoints=param_dict["use_mountpoints"]
+            use_mountpoints=param_dict["use_mountpoints"],
+            docker_login=param_dict["docker_login"]
             )
         print(str(excinfo.value))
     assert "Please, specify your parameters in\
