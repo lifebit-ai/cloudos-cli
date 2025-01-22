@@ -406,7 +406,7 @@ def run(apikey,
             print('[Message] Use private Docker repository has been selected. A custom job ' +
                   'queue to support private Docker containers and/or Lustre FSx will be created for ' +
                   'your job. The selected job queue will serve as a template.')
-        docker_login = True
+            docker_login = True
     else:
         docker_login = False
     if nextflow_version == 'latest':
