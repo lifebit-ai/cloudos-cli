@@ -390,7 +390,6 @@ class Job(Cloudos):
             "batch": {
                 "dockerLogin": docker_login,
                 "enabled": batch,
-                "id": job_queue_id,
                 "jobQueue": job_queue_id
             },
             "cromwellCloudResources": cromwell_id,
