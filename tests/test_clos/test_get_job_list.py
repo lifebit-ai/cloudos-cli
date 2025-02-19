@@ -3,8 +3,8 @@ import json
 import pytest
 import responses
 from responses import matchers
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/process_job_list_initial_json.json"
@@ -13,7 +13,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_list_correct_response():
     """
@@ -45,7 +45,7 @@ def test_get_job_list_correct_response():
     assert isinstance(response, list)
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_list_incorrect_response():
     """

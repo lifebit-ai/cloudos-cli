@@ -4,7 +4,7 @@ import requests
 import pytest
 import requests_mock
 import pandas as pd
-from cloudos.queue import Queue
+from cloudos_cli.queue import Queue
 
 INPUT_JSON = "tests/test_data/queue/queues.json"
 output_df = pd.read_csv("tests/test_data/queue/process_queue_list_results.csv")

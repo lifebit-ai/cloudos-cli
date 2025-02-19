@@ -4,8 +4,8 @@ import mock
 import pytest
 import requests
 import responses
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/get_job_status.json"
@@ -15,7 +15,7 @@ JOB_ID = "616ee9681b866a01d69fa1cd"
 JOB_STATUS = "running"
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_status_correct_response():
     """
@@ -46,7 +46,7 @@ def test_get_job_status_correct_response():
     assert isinstance(response, requests.models.Response)
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_job_status_incorrect_response():
     """

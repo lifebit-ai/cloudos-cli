@@ -1,7 +1,7 @@
 """Pytest for method Cloudos.wait_job_completion"""
 import mock
 import responses
-from cloudos.clos import Cloudos
+from cloudos_cli.clos import Cloudos
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/get_job_status.json"
@@ -10,7 +10,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 JOB_ID = '63bd590f72c38201551c3824'
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_wait_job_completion():
     """

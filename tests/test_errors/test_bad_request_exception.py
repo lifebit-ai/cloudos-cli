@@ -3,8 +3,8 @@ import mock
 import responses
 import pytest
 from responses import matchers
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/process_job_list_initial_json.json"
@@ -14,7 +14,7 @@ WORKSPACE_ID = 'lv89ufc838sdig'
 STATUS_CODE = 400
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_bad_request_exception():
     """

@@ -5,9 +5,9 @@ This is the main class to create jobs.
 from dataclasses import dataclass
 from typing import Union
 import json
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
-from cloudos.utils.requests import retry_requests_get, retry_requests_post
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.requests import retry_requests_post
 
 
 @dataclass

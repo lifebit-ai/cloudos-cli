@@ -2,14 +2,14 @@ import mock
 import json
 import pytest
 import responses
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_user_info_correct_response():
     """
@@ -37,7 +37,7 @@ def test_get_user_info_correct_response():
     assert response['dockerRegistriesCredentials'] == []
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_user_info_incorrect_response():
     """

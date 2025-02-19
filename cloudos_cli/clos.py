@@ -6,8 +6,8 @@ import requests
 import time
 import json
 from dataclasses import dataclass
-from cloudos.utils.errors import BadRequestException
-from cloudos.utils.requests import retry_requests_get, retry_requests_post
+from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
 import pandas as pd
 
 # GLOBAL VARS

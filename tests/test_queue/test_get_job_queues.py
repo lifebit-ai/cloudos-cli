@@ -2,8 +2,8 @@ import mock
 import json
 import pytest
 import responses
-from cloudos.queue import Queue
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.queue import Queue
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/queue/queues.json"
@@ -12,7 +12,7 @@ CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_get_job_queues_correct_response():
     """
@@ -42,7 +42,7 @@ def test_get_job_queues_correct_response():
     assert len(response) == 1
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_get_job_queues_incorrect_response():
     """

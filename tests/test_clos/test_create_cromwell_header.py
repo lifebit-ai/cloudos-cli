@@ -1,4 +1,4 @@
-from cloudos.clos import Cloudos
+from cloudos_cli.clos import Cloudos
 
 TOKEN = "lifebit_test_token"
 URL = "lifebit.ai"

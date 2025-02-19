@@ -3,7 +3,7 @@ import os
 import sys
 from io import StringIO
 import warnings
-from cloudos.__main__ import ssl_selector
+from cloudos_cli.__main__ import ssl_selector
 
 DUMMY_SSL_CERT_FILE = "tests/test_data/process_job_list_initial_json.json"
 
