@@ -27,6 +27,13 @@ To run the existing docker image at `quay.io`:
 docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 ```
 
+### From PyPI
+The repository is also available from [PyPI](https://pypi.org/project/cloudos-cli/):
+
+```bash
+pip install cloudos-cli
+```
+
 ### From Github
 
 You will need Python >= 3.7 and pip installed.
@@ -885,7 +892,7 @@ status from inside a python script.
 Again, we will set up the environment to ease the work:
 
 ```python
-import cloudos.jobs.job as jb
+import cloudos_cli.jobs.job as jb
 import json
 
 
@@ -954,8 +961,8 @@ print(my_projects)
 You can even run WDL pipelines. First check the Cromwell server status and restart it if Stopped:
 
 ```python
-import cloudos.clos as cl
-import cloudos.jobs.job as jb
+import cloudos_cli.clos as cl
+import cloudos_cli.jobs.job as jb
 import json
 
 
