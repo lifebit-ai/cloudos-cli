@@ -28,6 +28,6 @@ ENV PATH  /cloudos:$PATH
 # Install from local files, -e / points to where the setup.py file is located
 RUN pip install -e /
 # Make the python files executable from anyone (user, group, owner)
-RUN chmod ugo+x /cloudos/*py
-RUN chmod ugo+x /cloudos/jobs/*py
-RUN chmod ugo+x /cloudos/utils/*py
+RUN chmod ugo+x /cloudos_cli/*py
+RUN chmod ugo+x /cloudos_cli/jobs/*py
+RUN chmod ugo+x /cloudos_cli/utils/*py

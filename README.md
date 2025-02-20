@@ -198,7 +198,7 @@ CLOUDOS="https://cloudos.lifebit.ai"
 WORKSPACE_ID="xxxxx"
 PROJECT_NAME="API jobs"
 WORKFLOW_NAME="rnatoy"
-JOB_PARAMS="cloudos/examples/rnatoy.config"
+JOB_PARAMS="cloudos_cli/examples/rnatoy.config"
 ```
 
 As you can see, a file with the job parameters is used to configure the
