@@ -17,6 +17,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: POSIX :: Linux",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ],
     python_requires='>=3.7',
     entry_points={"console_scripts": [
