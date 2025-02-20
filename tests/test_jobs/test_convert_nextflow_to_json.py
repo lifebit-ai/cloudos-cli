@@ -1,12 +1,12 @@
 import pytest
 import json
 
-from cloudos.jobs.job import Job
+from cloudos_cli.jobs.job import Job
 
 actual_json_file = "tests/test_data/convert_nextflow_to_json_params.json"
 
 param_dict = {
-    "config": "cloudos/examples/rnatoy.config",
+    "config": "cloudos_cli/examples/rnatoy.config",
     "parameter": (),
     "example_parameters": [],
     "git_commit": None,

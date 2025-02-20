@@ -2,8 +2,8 @@ import mock
 import json
 import pytest
 import responses
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 OUTPUT = "tests/test_data/workflows/workflow_import.json"
@@ -17,7 +17,7 @@ REPOSITORY_PROJECT_ID = 1234
 REPOSITORY_ID = 567
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_workflow_import_correct():
     """
@@ -46,7 +46,7 @@ def test_workflow_import_correct():
     assert workflow_id == '66156ba61d5f06a39b1da573'
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_workflow_import_incorrect():
     """

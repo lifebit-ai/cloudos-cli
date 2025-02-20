@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.17.0 (2025-02-20)
+
+### Feature
+
+- Adapts the repository to be uploaded to PyPI. The adaptation required the change of the module name, from `cloudos` to `clouods_cli`.
+
 ## v2.16.0 (2025-01-21)
 
 ### Feature

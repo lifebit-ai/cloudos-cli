@@ -1,7 +1,7 @@
 import mock
 import pytest
 import responses
-from cloudos.queue import Queue
+from cloudos_cli.queue import Queue
 from tests.functions_for_pytest import load_json_file
 
 INPUT = 'tests/test_data/queue/queues.json'
@@ -23,7 +23,7 @@ def test_fetch_job_queue_id_batch_false():
     assert j_queue_id is None
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_fetch_job_queue_id_batch_true_job_queue_none():
     """
@@ -52,7 +52,7 @@ def test_fetch_job_queue_id_batch_true_job_queue_none():
     assert j_queue_id == 'xxxxx'
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_fetch_job_queue_id_batch_true_job_queue_correct():
     """
@@ -80,7 +80,7 @@ def test_fetch_job_queue_id_batch_true_job_queue_correct():
     assert j_queue_id == 'xxxxx'
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_fetch_job_queue_id_batch_true_job_queue_wrong():
     """
@@ -109,7 +109,7 @@ def test_fetch_job_queue_id_batch_true_job_queue_wrong():
     assert j_queue_id == 'xxxxx'
 
 
-@mock.patch('cloudos.queue', mock.MagicMock())
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
 @responses.activate
 def test_fetch_job_queue_id_batch_true_workflow_type_wrong():
     """

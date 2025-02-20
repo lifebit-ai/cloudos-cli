@@ -4,7 +4,7 @@ import sys
 import mock
 import responses
 from responses import matchers
-from cloudos.jobs import Job
+from cloudos_cli.jobs import Job
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/send_job.json"
@@ -20,11 +20,11 @@ PAGE = 1
 ARCHIVED_STATUS = "false"
 
 param_dict = {
-    "config": "cloudos/examples/rnatoy.config"
+    "config": "cloudos_cli/examples/rnatoy.config"
     }
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_send_job():
     """

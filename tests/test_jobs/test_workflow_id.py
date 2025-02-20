@@ -2,7 +2,7 @@
 import mock
 import responses
 from responses import matchers
-from cloudos.jobs import Job
+from cloudos_cli.jobs import Job
 from tests.functions_for_pytest import load_json_file
 
 INPUT_PROJECT = "tests/test_data/projects.json"
@@ -17,7 +17,7 @@ PAGE = 1
 ARCHIVED_STATUS = "false"
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_workflow_id():
     """

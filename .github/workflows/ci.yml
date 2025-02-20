@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.11"]
+        python-version: ["3.9", "3.11"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -79,7 +79,7 @@ jobs:
         CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
-        JOB_CONFIG: "cloudos/examples/rnatoy.config"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
         PR_NUMBER: ${{ github.event.number }}

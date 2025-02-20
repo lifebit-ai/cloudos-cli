@@ -7,8 +7,8 @@ import json
 import pandas as pd
 from dataclasses import dataclass
 from typing import Union
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 
 
 @dataclass

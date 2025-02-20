@@ -4,15 +4,15 @@ import pytest
 import requests
 import responses
 from responses import matchers
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import BadRequestException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_project_list_correct_response():
     """
@@ -41,7 +41,7 @@ def test_get_project_list_correct_response():
     assert isinstance(response, requests.models.Response)
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_get_project_list_incorrect_response():
     """

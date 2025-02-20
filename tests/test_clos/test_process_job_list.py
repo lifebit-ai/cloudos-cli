@@ -4,7 +4,7 @@ import requests_mock
 import requests
 import pandas as pd
 import numpy as np
-from cloudos.clos import Cloudos
+from cloudos_cli.clos import Cloudos
 
 input_json = "tests/test_data/process_job_list_initial_json.json"
 output_df = pd.read_csv("tests/test_data/output_df_of_results.csv",

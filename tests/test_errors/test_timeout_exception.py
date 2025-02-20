@@ -1,8 +1,8 @@
 """pytest added for function TimeOutException"""
 import mock
 import responses
-from cloudos.clos import Cloudos
-from cloudos.utils.errors import TimeOutException
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import TimeOutException
 
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
@@ -12,7 +12,7 @@ REASON = "OK"
 JOB_ID = "fgsdgsdahashgy325cc"
 
 
-@mock.patch('cloudos.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
 def test_time_out_exception():
     """
