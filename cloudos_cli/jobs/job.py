@@ -159,7 +159,7 @@ class Job(Cloudos):
         elif resource == 'projects':
             content = self.get_project_list(workspace_id, verify=verify)
             # New API projects endpoint spec
-            for element in content["projects"]:
+            for element in content:
                 if element["name"] == name:
                     return element["_id"]
         if mainfile is not None:
