@@ -44,7 +44,7 @@ def test_send_job():
             "Content-type": "application/json",
             "apikey": APIKEY
         }
-    search_str = f"teamId={WORKSPACE_ID}"
+    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(

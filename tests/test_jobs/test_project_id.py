@@ -37,7 +37,7 @@ def test_project_id():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str_projects = f"teamId={WORKSPACE_ID}"
+    search_str_projects = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(

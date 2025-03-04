@@ -10,7 +10,8 @@ from cloudos_cli.utils.errors import BadRequestException
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
-
+PAGE_SIZE = 10
+PAGE = 1
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
@@ -24,7 +25,7 @@ def test_get_project_list_correct_response():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}"
+    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -57,7 +58,7 @@ def test_get_project_list_incorrect_response():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}"
+    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
