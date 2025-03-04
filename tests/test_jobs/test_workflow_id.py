@@ -42,7 +42,7 @@ def test_workflow_id():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str}",
             body=create_json_project,
             headers=header,
             match=[matchers.query_param_matcher(params)],

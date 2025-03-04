@@ -18,9 +18,9 @@ def fixture_mocked_requests_get():
     with open(INPUT_JSON, encoding="utf-8") as json_data:
         data_d = json.load(json_data)
     with requests_mock.Mocker() as mock:
-        mock.get(f"http://test_cloud_os/api/v1/projects?teamId={test_workspace_id}",
+        mock.get(f"http://test_cloud_os/api/v2/projects?teamId={test_workspace_id}",
                  json=data_d)
-        r_get = requests.get(f"http://test_cloud_os/api/v1/projects?teamId={test_workspace_id}")
+        r_get = requests.get(f"http://test_cloud_os/api/v2/projects?teamId={test_workspace_id}")
     return r_get
 
 
