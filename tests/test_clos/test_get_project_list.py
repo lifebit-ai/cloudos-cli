@@ -28,7 +28,7 @@ def test_get_project_list_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str}",
             headers=header,
             match=[matchers.query_param_matcher(params)],
             status=200)
@@ -61,7 +61,7 @@ def test_get_project_list_incorrect_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/projects?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str}",
             body=error_json,
             headers=header,
             match=[matchers.query_param_matcher(params)],

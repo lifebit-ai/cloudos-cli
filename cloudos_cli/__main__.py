@@ -997,6 +997,10 @@ def import_workflows(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--page',
+              help=('Response page to retrieve. Default=1.'),
+              type=int,
+              default=1)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1012,6 +1016,7 @@ def list_projects(apikey,
                   output_basename,
                   output_format,
                   all_fields,
+                  page,
                   verbose,
                   disable_ssl_verification,
                   ssl_cert):
@@ -1028,7 +1033,7 @@ def list_projects(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for projects in the following workspace: ' +
               f'{workspace_id}')
-    my_projects_r = cl.get_project_list(workspace_id, verify_ssl)
+    my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page)
     if output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
