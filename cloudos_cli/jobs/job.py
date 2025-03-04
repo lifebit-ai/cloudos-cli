@@ -157,18 +157,11 @@ class Job(Cloudos):
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
         elif resource == 'projects':
-            r = self.get_project_list(workspace_id, verify=verify)
-            content = json.loads(r.content)
+            content = self.get_project_list(workspace_id, verify=verify)
             # New API projects endpoint spec
-            if type(content) is dict:
-                for element in content["projects"]:
-                    if element["name"] == name:
-                        return element["_id"]
-            # Old API projects endpoint spec added for backwards compatibility
-            elif type(content) is list:
-                for element in content:
-                    if element["name"] == name:
-                        return element["_id"]
+            for element in content["projects"]:
+                if element["name"] == name:
+                    return element["_id"]
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
