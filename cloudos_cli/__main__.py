@@ -1033,7 +1033,10 @@ def list_projects(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for projects in the following workspace: ' +
               f'{workspace_id}')
-    my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page)
+    # If page is not 1 (default), then get_all is False
+    if page != 1:
+        get_all = False
+    my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
