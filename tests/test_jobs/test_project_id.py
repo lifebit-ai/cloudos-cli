@@ -26,7 +26,7 @@ def test_project_id():
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
-    params_projects = {"teamId": WORKSPACE_ID}
+    params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,

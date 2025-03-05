@@ -21,12 +21,13 @@ def fixture_mocked_requests_get():
         mock.get(f"http://test_cloud_os/api/v2/projects?teamId={test_workspace_id}",
                  json=data_d)
         r_get = requests.get(f"http://test_cloud_os/api/v2/projects?teamId={test_workspace_id}")
-    return r_get
+    return json.loads(r_get.content)['projects']
 
 
 def test_process_project_list_all_fields_false(mocked_requests_get):
     """Test function parameter 'all_fields=False'"""
     df_ = Cloudos.process_project_list(mocked_requests_get, all_fields=False)
+    print("df_:", df_)
     assert (df_.columns == output_df.columns).any()
 
 

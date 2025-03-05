@@ -35,6 +35,7 @@ def test_send_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
+    params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,
@@ -44,7 +45,8 @@ def test_send_job():
             "Content-type": "application/json",
             "apikey": APIKEY
         }
-    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
+    search_str = f"teamId={WORKSPACE_ID}"
+    search_str_projects = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(
@@ -56,10 +58,10 @@ def test_send_job():
             status=200)
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str_projects}",
             body=create_json_project,
             headers=header,
-            match=[matchers.query_param_matcher(params_job)],
+            match=[matchers.query_param_matcher(params_projects)],
             status=200)
     responses.add(
             responses.GET,

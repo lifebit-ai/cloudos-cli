@@ -617,7 +617,7 @@ class Cloudos:
         Parameters
         ----------
         r : requests.models.Response
-            A list of dicts, each corresponding to a workflow.
+            A list of dicts, each corresponding to a project.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
