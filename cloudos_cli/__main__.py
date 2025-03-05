@@ -1041,7 +1041,7 @@ def list_projects(apikey,
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_projects_r))
-        print(f'\Project list collected with a total of {len(my_projects_r)} projects.')
+        print(f'\tProject list collected with a total of {len(my_projects_r)} projects.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')
