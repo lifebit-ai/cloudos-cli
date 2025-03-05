@@ -1040,14 +1040,8 @@ def list_projects(apikey,
         print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_projects_r.text)
-        content = json.loads(my_projects_r.content)
-        if 'projects' in content:
-            content_l = len(content['projects'])
-        else:
-            content_l = len(content)
-        print('\tProject list collected with a total of ' +
-              f'{content_l} projects.')
+            o.write(json.dumps(my_projects_r))
+        print(f'\Project list collected with a total of {len(my_projects_r)} projects.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')
