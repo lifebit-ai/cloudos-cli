@@ -1036,6 +1036,8 @@ def list_projects(apikey,
     # If page is not 1 (default), then get_all is False
     if page != 1:
         get_all = False
+    else:
+        get_all = True
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
