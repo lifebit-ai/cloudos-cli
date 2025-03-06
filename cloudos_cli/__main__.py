@@ -1033,11 +1033,12 @@ def list_projects(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for projects in the following workspace: ' +
               f'{workspace_id}')
-    # If page is not 1 (default), then get_all is False
-    if page != 1:
-        get_all = False
-    else:
+    # Check if the user provided the --page option
+    ctx = click.get_current_context()
+    if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
         get_all = True
+    else:
+        get_all = False
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
