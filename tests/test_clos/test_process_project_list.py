@@ -27,7 +27,6 @@ def fixture_mocked_requests_get():
 def test_process_project_list_all_fields_false(mocked_requests_get):
     """Test function parameter 'all_fields=False'"""
     df_ = Cloudos.process_project_list(mocked_requests_get, all_fields=False)
-    print("df_:", df_)
     assert (df_.columns == output_df.columns).any()
 
 
