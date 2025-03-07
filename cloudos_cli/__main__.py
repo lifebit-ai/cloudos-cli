@@ -1039,6 +1039,8 @@ def list_projects(apikey,
         get_all = True
     else:
         get_all = False
+        if not isinstance(page, int) or page < 1:
+            raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
