@@ -1,4 +1,4 @@
-[
+{"total":10, "projects": [
     {
         "_id": "1234bc123125",
         "user": {
@@ -505,3 +505,4 @@
         "notebookSessionCount": 1
     }
 ]
+}

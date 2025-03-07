@@ -807,6 +807,10 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
+    # Check if the user provided the --page option
+    ctx = click.get_current_context()
+    if not isinstance(page, int) or page < 1:
+        raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     if last_n_jobs != 'all':
         try:
             last_n_jobs = int(last_n_jobs)
@@ -814,7 +818,12 @@ def list_jobs(apikey,
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
-    if output_format == 'csv':
+    if len(my_jobs_r) == 0:
+        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
+        else:
+            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
+    elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
@@ -997,6 +1006,10 @@ def import_workflows(apikey,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--page',
+              help=('Response page to retrieve. Default=1.'),
+              type=int,
+              default=1)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1012,6 +1025,7 @@ def list_projects(apikey,
                   output_basename,
                   output_format,
                   all_fields,
+                  page,
                   verbose,
                   disable_ssl_verification,
                   ssl_cert):
@@ -1028,21 +1042,28 @@ def list_projects(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for projects in the following workspace: ' +
               f'{workspace_id}')
-    my_projects_r = cl.get_project_list(workspace_id, verify_ssl)
-    if output_format == 'csv':
+    # Check if the user provided the --page option
+    ctx = click.get_current_context()
+    if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+        get_all = True
+    else:
+        get_all = False
+        if not isinstance(page, int) or page < 1:
+            raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
+    my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
+    if len(my_projects_r) == 0:
+        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+        else:
+            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+    elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
         print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(my_projects_r.text)
-        content = json.loads(my_projects_r.content)
-        if 'projects' in content:
-            content_l = len(content['projects'])
-        else:
-            content_l = len(content)
-        print('\tProject list collected with a total of ' +
-              f'{content_l} projects.')
+            o.write(json.dumps(my_projects_r))
+        print(f'\tProject list collected with a total of {len(my_projects_r)} projects.')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')

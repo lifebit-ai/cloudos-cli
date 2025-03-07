@@ -313,6 +313,8 @@ class Cloudos:
                    'project.updatedAt'
                    ]
         df_full = pd.json_normalize(r)
+        if df_full.empty:
+            return df_full
         if all_fields:
             df = df_full
         else:
@@ -548,7 +550,8 @@ class Cloudos:
         else:
             return False
 
-    def get_project_list(self, workspace_id, verify=True):
+    def get_project_list(self, workspace_id, verify=True, get_all=True,
+                        page=1, page_size=10, max_page_size=1000):
         """Get all the project from a CloudOS workspace.
 
         Parameters
@@ -559,6 +562,15 @@ class Cloudos:
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        get_all : bool
+            Whether to get all available curated workflows or just the
+            indicated page.
+        page : int
+            The page number to retrieve, from the paginated response.
+        page_size : int
+            The number of workflows by page. From 1 to 1000.
+        max_page_size : int
+            Max page size defined by the API server. It is currently 1000.
 
         Returns
         -------
@@ -569,11 +581,36 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v1/projects?teamId={}".format(self.cloudos_url, workspace_id),
+        r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, page_size, page),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return r
+        content = json.loads(r.content)
+        if get_all:
+            total_projects = content['total']
+            if total_projects <= max_page_size:
+                r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, total_projects, 1),
+                               headers=headers, verify=verify)
+                if r.status_code >= 400:
+                    raise BadRequestException(r)
+                return json.loads(r.content)['projects']
+            else:
+                n_pages = (total_projects // max_page_size) + int((total_projects % max_page_size) > 0)
+                for p in range(n_pages):
+                    p += 1
+                    r = retry_requests_get(
+                        "{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(
+                            self.cloudos_url, workspace_id, max_page_size, p),
+                        headers=headers, verify=verify)
+                    if r.status_code >= 400:
+                        raise BadRequestException(r)
+                    if p == 1:
+                        all_content_p = json.loads(r.content)['projects']
+                    else:
+                        all_content_p += json.loads(r.content)['projects']
+                return all_content_p
+        else:
+            return content['projects']
 
     @staticmethod
     def process_project_list(r, all_fields=False):
@@ -582,10 +619,7 @@ class Cloudos:
         Parameters
         ----------
         r : requests.models.Response
-        The server response. There are two types of responses:
-            - A list with 2 elements: 'total' and 'projects', being 'projects' a list of dicts,
-              one for each project.
-            - A list of dicts, one for each project.
+            A list of dicts, each corresponding to a project.
         all_fields : bool. Default=False
             Whether to return a reduced version of the DataFrame containing
             only the selected columns or the full DataFrame.
@@ -607,10 +641,9 @@ class Cloudos:
                    'jobCount',
                    'notebookSessionCount'
                    ]
-        my_projects = json.loads(r.content)
-        if 'projects' in my_projects:
-            my_projects = my_projects['projects']
-        df_full = pd.json_normalize(my_projects)
+        df_full = pd.json_normalize(r)
+        if df_full.empty:
+            return df_full
         if all_fields:
             df = df_full
         else:
