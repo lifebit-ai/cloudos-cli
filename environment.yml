@@ -7,5 +7,6 @@ dependencies:
     - pip
     - requests
     - click
+    - rich-click
     - pandas
     - numpy==1.26.4
