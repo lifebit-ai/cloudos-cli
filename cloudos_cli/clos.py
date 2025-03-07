@@ -313,6 +313,8 @@ class Cloudos:
                    'project.updatedAt'
                    ]
         df_full = pd.json_normalize(r)
+        if df_full.empty:
+            return df_full
         if all_fields:
             df = df_full
         else:

@@ -807,6 +807,10 @@ def list_jobs(apikey,
         print('\t' + str(cl) + '\n')
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
+    # Check if the user provided the --page option
+    ctx = click.get_current_context()
+    if not isinstance(page, int) or page < 1:
+        raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     if last_n_jobs != 'all':
         try:
             last_n_jobs = int(last_n_jobs)
@@ -814,7 +818,12 @@ def list_jobs(apikey,
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
-    if output_format == 'csv':
+    if len(my_jobs_r) == 0:
+        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+        else:
+            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+    elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
