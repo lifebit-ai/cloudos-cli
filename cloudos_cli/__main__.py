@@ -1040,7 +1040,12 @@ def list_projects(apikey,
     else:
         get_all = False
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
-    if output_format == 'csv':
+    if len(my_projects_r) == 0:
+        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+        else:
+            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+    elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
         print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
