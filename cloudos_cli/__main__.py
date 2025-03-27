@@ -409,23 +409,30 @@ def run(apikey,
             docker_login = True
     else:
         docker_login = False
-    if (execution_platform == 'azure' and nextflow_version == 'latest') or execution_platform == 'azure':
-        print(f'[Message] You have specified Nextflow version \'{nextflow_version}\' for execution platform: \'azure\'.' +
-               'The workflow will use the only available \'22.11.1-edge\' version on CloudOS.')
-        nextflow_version = '22.11.1-edge'
-    elif (execution_platform == 'hpc' and nextflow_version == 'latest') or execution_platform == 'hpc':
-        print(f'[Message] You have specified Nextflow version \'{nextflow_version}\' for execution platform: \'hpc\'.' +
-               'The workflow will use the only available \'22.10.8\' version on CloudOS.')
-        nextflow_version = '22.10.8'
-    else:
+    if nextflow_version == 'latest':
         if execution_platform == 'aws':
-            if nextflow_version == 'latest':
-                print(f'[Message] You have specified Nextflow version \'latest\' for execution platform: \'{execution_platform}\'. The workflow will use the ' +
-                      f'latest version available on CloudOS: {nextflow_version}.')
-                nextflow_version = '24.04.4'
+            nextflow_version = '24.04.4'
+        elif execution_platform == 'azure':
+            nextflow_version = '22.11.1-edge'
+        else:
+            nextflow_version = '22.10.8'
+        print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
+              f'latest version available on CloudOS: {nextflow_version}.')
+    if execution_platform == 'aws':
+        if nextflow_version not in ['24.04.4', '22.10.8']:
+            print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
+            nextflow_version = '22.10.8'
+    if execution_platform == 'azure':
+        if nextflow_version != '22.11.1-edge':
+            print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
+            nextflow_version = '22.11.1-edge'
+    if execution_platform == 'hpc':
+        if nextflow_version != '22.10.8':
+            print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-                'to be written in DSL2 and does not support DSL1.')
+              'to be written in DSL2 and does not support DSL1.')
     print('\nExecuting run...')
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
