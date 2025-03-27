@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import click
+import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.queue.queue import Queue
@@ -18,6 +18,12 @@ JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 JOB_RUNNING = 'running'
 REQUEST_INTERVAL_CROMWELL = 30
+AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
+AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
+HPC_NEXTFLOW_VERSIONS = ['22.10.8']
+AWS_NEXTFLOW_LATEST = '24.04.4'
+AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
+HPC_NEXTFLOW_LATEST = '22.10.8'
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -126,7 +132,7 @@ def queue():
               help=('Nextflow version to use when executing the workflow in CloudOS. ' +
                     'Please, note that versions above 22.10.8 are only DSL2 compatible. ' +
                     'Default=22.10.8.'),
-              type=click.Choice(['22.10.8', '24.04.4', 'latest']),
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
               default='22.10.8')
 @click.option('--git-commit',
               help=('The exact whole 40 character commit hash to run for ' +
@@ -410,9 +416,26 @@ def run(apikey,
     else:
         docker_login = False
     if nextflow_version == 'latest':
-        nextflow_version = '24.04.4'
-        print('[Message] You have specified Nextflow version \'latest\'. The workflow will use the ' +
+        if execution_platform == 'aws':
+            nextflow_version = AWS_NEXTFLOW_LATEST
+        elif execution_platform == 'azure':
+            nextflow_version = AZURE_NEXTFLOW_LATEST
+        else:
+            nextflow_version = HPC_NEXTFLOW_LATEST
+        print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
               f'latest version available on CloudOS: {nextflow_version}.')
+    if execution_platform == 'aws':
+        if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
+            print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
+            nextflow_version = '22.10.8'
+    if execution_platform == 'azure':
+        if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
+            print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
+            nextflow_version = '22.11.1-edge'
+    if execution_platform == 'hpc':
+        if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
+            print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
               'to be written in DSL2 and does not support DSL1.')
