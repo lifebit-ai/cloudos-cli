@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.19.0 (2025-03-27)
+
+### Feature
+
+- Update Nextflow version dependencies for aws, azure and hpc environments
+- Adds [rich_click](https://github.com/ewels/rich-click) to improve help output text
+
 ## v2.18.0 (2025-03-05)
 
 ### Feature
