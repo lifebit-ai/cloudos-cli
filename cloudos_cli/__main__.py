@@ -18,6 +18,12 @@ JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
 JOB_RUNNING = 'running'
 REQUEST_INTERVAL_CROMWELL = 30
+AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
+AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
+HPC_NEXTFLOW_VERSIONS = ['22.10.8']
+AWS_NEXTFLOW_LATEST = '24.04.4'
+AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
+HPC_NEXTFLOW_LATEST = '22.10.8'
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -411,23 +417,23 @@ def run(apikey,
         docker_login = False
     if nextflow_version == 'latest':
         if execution_platform == 'aws':
-            nextflow_version = '24.04.4'
+            nextflow_version = AWS_NEXTFLOW_LATEST
         elif execution_platform == 'azure':
-            nextflow_version = '22.11.1-edge'
+            nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
-            nextflow_version = '22.10.8'
+            nextflow_version = HPC_NEXTFLOW_LATEST
         print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
               f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
-        if nextflow_version not in ['24.04.4', '22.10.8']:
+        if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
             print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
-        if nextflow_version != '22.11.1-edge':
+        if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
             print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
-        if nextflow_version != '22.10.8':
+        if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
             print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
