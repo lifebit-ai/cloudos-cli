@@ -544,5 +544,5 @@ class Job(Cloudos):
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]
         print('\tJob successfully launched to CloudOS, please check the ' +
-              f'following link: {cloudos_url}/app/jobs/{j_id}')
+              f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
