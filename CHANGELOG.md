@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.19.1 (2025-04-14)
+
+### Fix
+
+- Jobs URL fix for pointing to updated path
+
 ## v2.19.0 (2025-03-27)
 
 ### Feature

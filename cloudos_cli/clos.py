@@ -87,7 +87,7 @@ class Cloudos:
         : dict
             A dict with three elements collected from the job status: 'name', 'id', 'status'.
         """
-        j_url = f'{self.cloudos_url}/app/jobs/{job_id}'
+        j_url = f'{self.cloudos_url}/app/advanced-analytics/analyses/{job_id}'
         elapsed = 0
         j_status_h_old = ''
         # make sure user doesn't surpass the wait time

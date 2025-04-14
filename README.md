@@ -250,10 +250,10 @@ If everything went well, you should see something like:
 
 ```console
 Executing run...
-	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355
+	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355
 	Your assigned job id is: 62c83a1191fe06013b7ef355
 	Your current job status is: initializing
-	To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355 or use the following command:
+	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or use the following command:
     cloudos job status \
         --apikey $MY_API_KEY \
         --cloudos-url https://cloudos.lifebit.ai \
@@ -286,7 +286,7 @@ previous command should have an output similar to:
 
 ```console
 Executing run...
-	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/jobs/62c83a6191fe06013b7ef363
+	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363
 	Your assigned job id is: 62c83a6191fe06013b7ef363
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.
@@ -388,7 +388,7 @@ The expected output should be something similar to:
 Executing status...
 	Your current job status is: completed
 
-	To further check your job status you can either go to https://cloudos.lifebit.ai/app/jobs/62c83a1191fe06013b7ef355 or repeat the command you just used.
+	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
 
 #### Get a list of your jobs from a CloudOS workspace
