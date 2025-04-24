@@ -7,7 +7,7 @@ import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 
 # GLOBAL VARS
@@ -757,3 +757,31 @@ class Cloudos:
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
+
+    def abort_job(self, job, workspace_id, verify=True):
+        """Abort a job.
+
+        Parameters
+        ----------
+        job : string
+            The CloudOS job id of the job to abort.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id), headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r

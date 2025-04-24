@@ -859,6 +859,71 @@ def list_jobs(apikey,
     print(f'\tJob list saved to {outfile}')
 
 
+@job.command('abort')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-ids',
+              help=("Comma separated list of job ids to abort."),
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def abort_jobs(apikey,
+              cloudos_url,
+              workspace_id,
+              job_ids,
+              verbose,
+              disable_ssl_verification,
+              ssl_cert):
+    """Abort all specified jobs from a CloudOS workspace."""
+    cloudos_url = cloudos_url.rstrip('/')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print('Aborting jobs...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tSearching for jobs in the following workspace: ' +
+              f'{workspace_id}')
+    # check if the user provided an empty job list
+    if not job_ids:
+        print("[ERROR] No job IDs provided. Please specify at least one job ID to abort.")
+        return
+    jobs = job_ids.replace(" ", "").split(',')
+
+    for job in jobs:
+        try:
+            j_status = cl.get_job_status(job, verify_ssl)
+        except Exception as e:
+            print(f"[ERROR] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
+            continue
+        j_status_content = json.loads(j_status.content)
+        # check if job id is valid & is in working state (initial, running, queued)
+        if j_status_content['status'] not in ['running', 'initializing']:
+            print(f"[WARNING] Job {job} is not in a state that can be aborted and is ignored. Current status: {j_status_content['status']}")
+        else:
+            cl.abort_job(job, workspace_id, verify_ssl)
+            print(f"\tJob {job} aborted successfully.")
+
+
 @workflow.command('list')
 @click.option('-k',
               '--apikey',
