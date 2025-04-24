@@ -385,7 +385,7 @@ class Job(Cloudos):
                 "enabled": batch,
                 "jobQueue": job_queue_id
             },
-            "cromwellCloudResources": cromwell_id,
+        #    "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
@@ -395,9 +395,8 @@ class Job(Cloudos):
             },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
-            "revision": revision_block,
-            "profile": nextflow_profile,
-            "instanceType": instance_type,
+        #    "revision": revision_block,
+        #    "profile": nextflow_profile,  # only here when required
             "usesFusionFileSystem": use_mountpoints
         }
         if execution_platform != 'hpc':
@@ -537,12 +536,12 @@ class Job(Cloudos):
                                                cost_limit,
                                                use_mountpoints,
                                                docker_login)
-        r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
+        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        j_id = json.loads(r.content)["_id"]
+        j_id = json.loads(r.content)["jobId"]
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id

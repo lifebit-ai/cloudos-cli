@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.20.0 (2025-04-24)
+
+### Features
+
+- Updates POST job endpoint to v2.
+
 ## v2.19.1 (2025-04-14)
 
 ### Fix
