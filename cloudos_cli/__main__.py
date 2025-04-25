@@ -26,6 +26,7 @@ HPC_NEXTFLOW_VERSIONS = ['22.10.8']
 AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
+ABORT_JOB_STATES = ['running', 'initializing']
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -70,7 +71,7 @@ def run_cloudos_cli():
 
 @run_cloudos_cli.group()
 def job():
-    """CloudOS job functionality: run and check jobs in CloudOS."""
+    """CloudOS job functionality: run, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
@@ -917,6 +918,73 @@ def list_jobs(apikey,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tJob list saved to {outfile}')
+
+
+@job.command('abort')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-ids',
+              help=('One or more job ids to abort. If more than ' +
+                    'one is provided, they must be provided as ' +
+                    'a comma separated list of ids. E.g. id1,id2,id3'),
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def abort_jobs(apikey,
+              cloudos_url,
+              workspace_id,
+              job_ids,
+              verbose,
+              disable_ssl_verification,
+              ssl_cert):
+    """Abort all specified jobs from a CloudOS workspace."""
+    cloudos_url = cloudos_url.rstrip('/')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print('Aborting jobs...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tSearching for jobs in the following workspace: ' +
+              f'{workspace_id}')
+    # check if the user provided an empty job list
+    jobs = job_ids.replace(' ', '')
+    if not jobs:
+        raise ValueError('No job IDs provided. Please specify at least one job ID to abort.')
+    jobs = jobs.split(',')
+
+    for job in jobs:
+        try:
+            j_status = cl.get_job_status(job, verify_ssl)
+        except Exception as e:
+            print(f"[WARNING] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
+            continue
+        j_status_content = json.loads(j_status.content)
+        # check if job id is valid & is in working state (initial, running)
+        if j_status_content['status'] not in ABORT_JOB_STATES:
+            print(f"[WARNING] Job {job} is not in a state that can be aborted and is ignored. Current status: {j_status_content['status']}")
+        else:
+            cl.abort_job(job, workspace_id, verify_ssl)
+            print(f"\tJob '{job}' aborted successfully.")
 
 
 @workflow.command('list')
