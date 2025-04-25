@@ -914,7 +914,7 @@ def abort_jobs(apikey,
         try:
             j_status = cl.get_job_status(job, verify_ssl)
         except Exception as e:
-            print(f"[ERROR] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
+            print(f"[WARNING] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
             continue
         j_status_content = json.loads(j_status.content)
         # check if job id is valid & is in working state (initial, running)
