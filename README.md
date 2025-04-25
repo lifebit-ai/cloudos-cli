@@ -296,47 +296,9 @@ Executing run...
 
 #### Abort single or multiple jobs from CloudOS
 
-Aborts jobs in the CloudOS workspace that are either running or initialising.
+Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.
 
-Usage: 
-```console
-cloudos job abort \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --job-ids "ID1,ID2,ID3,ID4"
-```
-
-Example leading to an error (missing actual job ids):
-```console 
-cloudos job abort \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --job-ids ""
-```
-Error message:
-```console
-Aborting jobs...
-[ERROR] No job IDs provided. Please specify at least one job ID to abort.
-```
-
-
-Example leading to warning (job id 012498120597125 does not exist):
-```console
-cloudos job abort \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --job-ids "680a3cf80e56949775c02f16,012498120597125"
-```
-Warning message:
-```console
-Aborting jobs...
-[WARNING] Failed to get status for job 012498120597125: Server returned status 404. Reason: Not Found
-```
-
-Example of successful execution:
+Example:
 ```console
 cloudos job abort \
     --cloudos-url $CLOUDOS \
@@ -344,29 +306,11 @@ cloudos job abort \
     --workspace-id $WORKSPACE_ID \
     --job-ids "680a3cf80e56949775c02f16"
 
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.20.0
-
-CloudOS job functionality: run and check jobs in CloudOS.
 
 Aborting jobs...
         Job 680a3cf80e56949775c02f16 aborted successfully.
 ```
 
-Example leading to warning (job id 680a3cf80e56949775c02f16 was not is a state to be aborted):
-```console
-cloudos job abort \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --job-ids "680a3cf80e56949775c02f16"
-```
-Warning message:
-```console
-Aborting jobs...
-[WARNING] Job 680a3cf80e56949775c02f16 is not in a state that can be aborted and is ignored. Current status: aborted
-```
 
 #### Executor support
 

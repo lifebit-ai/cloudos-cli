@@ -874,7 +874,9 @@ def list_jobs(apikey,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--job-ids',
-              help=("Comma separated list of job ids to abort."),
+              help=('One or more job ids to abort. If more than ' +
+                    'one is provided, they must be provided as ' +
+                    'a comma separated list of ids. E.g. id1,id2,id3'),
               required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
