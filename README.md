@@ -360,7 +360,7 @@ cloudos job abort \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
-    --job-ids "680a3cf80e56949775c02f16,012498120597125"
+    --job-ids "680a3cf80e56949775c02f16"
 ```
 Warning message:
 ```console
