@@ -907,10 +907,10 @@ def abort_jobs(apikey,
         print('\tSearching for jobs in the following workspace: ' +
               f'{workspace_id}')
     # check if the user provided an empty job list
-    if not job_ids:
-        print("[ERROR] No job IDs provided. Please specify at least one job ID to abort.")
-        return
-    jobs = job_ids.replace(" ", "").split(',')
+    jobs = job_ids.replace(' ', '')
+    if not jobs:
+        raise ValueError('No job IDs provided. Please specify at least one job ID to abort.')
+    jobs = jobs.split(',')
 
     for job in jobs:
         try:
