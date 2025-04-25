@@ -294,6 +294,24 @@ Executing run...
 	Your job took 420 seconds to complete successfully.
 ```
 
+#### Abort single or multiple jobs from CloudOS
+
+Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.
+
+Example:
+```console
+cloudos job abort \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --job-ids "680a3cf80e56949775c02f16"
+
+
+Aborting jobs...
+        Job 680a3cf80e56949775c02f16 aborted successfully.
+```
+
+
 #### Executor support
 
 CloudOS supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.

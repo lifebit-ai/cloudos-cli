@@ -73,3 +73,37 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
     # Make a request using the session object
     response = session.post(url, **kwargs)
     return response
+
+
+def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+    """Wrap normal requests put with an error strategy.
+
+    Parameters
+    ----------
+    url : string
+        The request URL
+    total : int
+        Total number of retries
+    status_forcelist : list
+        A list of ints with the status codes to trigger the retries
+
+    Return
+    ------
+    response : requests.Response
+        The Response object returned by the API server
+    """
+    retry_strategy = Retry(
+        total=total,
+        status_forcelist=status_forcelist
+    )
+    # Create an HTTP adapter with the retry strategy and mount it to session
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    # Create a new session object
+    session = requests.Session()
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
+    # Make a request using the session object
+    response = session.put(url, **kwargs)
+    return response

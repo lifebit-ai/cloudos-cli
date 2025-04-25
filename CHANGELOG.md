@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.20.0 (2025-04-25)
+
+### Feat
+
+- Adds ability to abort jobs (single or multiple)
+
 ## v2.19.1 (2025-04-14)
 
 ### Fix
