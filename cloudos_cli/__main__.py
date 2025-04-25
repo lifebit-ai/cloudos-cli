@@ -24,6 +24,7 @@ HPC_NEXTFLOW_VERSIONS = ['22.10.8']
 AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
+ABORT_JOB_STATES = ['running', 'initializing']
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -916,12 +917,12 @@ def abort_jobs(apikey,
             print(f"[ERROR] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
             continue
         j_status_content = json.loads(j_status.content)
-        # check if job id is valid & is in working state (initial, running, queued)
-        if j_status_content['status'] not in ['running', 'initializing']:
+        # check if job id is valid & is in working state (initial, running)
+        if j_status_content['status'] not in ABORT_JOB_STATES:
             print(f"[WARNING] Job {job} is not in a state that can be aborted and is ignored. Current status: {j_status_content['status']}")
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
-            print(f"\tJob {job} aborted successfully.")
+            print(f"\tJob '{job}' aborted successfully.")
 
 
 @workflow.command('list')
