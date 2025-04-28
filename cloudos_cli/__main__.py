@@ -1431,7 +1431,8 @@ def list_profiles():
 
 @configure.command('remove-profile')
 @click.option('--profile',
-              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated')
+              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated',
+              required=True)
 def remove_profile(profile):
     config_manager = ConfigurationProfile()
     config_manager.remove_profile(profile)

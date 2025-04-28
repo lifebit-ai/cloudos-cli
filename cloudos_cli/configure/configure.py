@@ -65,6 +65,8 @@ class ConfigurationProfile:
         if os.path.exists(self.config_file):
             config.read(self.config_file)
 
+        number_of_profiles = len(config.sections())
+
         # Check if the profile already exists
         if profile_name in config.sections():
             answer = input(f"Profile '{profile_name}' already exists. Overwrite it? (y/n): ").strip().lower()
@@ -90,6 +92,19 @@ class ConfigurationProfile:
         project_name = input(f"Project name [{profile_name}]: ").strip()
         platform_executor = input(f"Platform executor [{profile_name}]: ").strip()
         repository_provider = input(f"Repository provider [{profile_name}]: ").strip()
+        if number_of_profiles >= 1:
+            make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
+            if make_default == 'y':
+                default_profile = True
+                # Remove the default flag from any existing profiles
+                for section in config.sections():
+                    if 'default' in config[section]:
+                        if config[section]['default'].lower() == 'true':
+                            config[section]['default'] = 'False'
+            else:
+                default_profile = False
+        else:
+            default_profile = True
 
         # Save API token into credentials file
         credentials[profile_name] = {
@@ -104,8 +119,10 @@ class ConfigurationProfile:
             'platform_workspace_id': platform_workspace_id,
             'project_name': project_name,
             'platform_executor': platform_executor,
-            'repository_provider': repository_provider
+            'repository_provider': repository_provider,
+            'default': default_profile
         }
+
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
 
@@ -149,7 +166,7 @@ class ConfigurationProfile:
     def list_profiles(self):
         """Lists all available profiles."""
         config = configparser.ConfigParser()
-        config.read(self.credentials_file)
+        config.read(self.config_file)
 
         if not config.sections():
             print("No profiles found.")
@@ -157,7 +174,11 @@ class ConfigurationProfile:
 
         print("Available profiles:")
         for profile in config.sections():
-            print(f" - {profile}")
+            # Check if the profile is the default one
+            if config[profile].getboolean('default', fallback=False):
+                print(f" - {profile} (default)")
+            else:
+                print(f" - {profile}")
 
     def remove_profile(self, profile):
         """Removes a profile from the credentials and config files."""
