@@ -11,6 +11,8 @@ import os
 import urllib3
 from ._version import __version__
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from cloudos_cli.configure.configure import ConfigurationProfile
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -96,6 +98,22 @@ def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
 
+
+@run_cloudos_cli.group(invoke_without_command=True)
+@click.option('--profile',
+              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated')
+def configure(profile):
+    """CloudOS configuration."""
+    print(configure.__doc__ + '\n')
+    ctx = click.get_current_context()
+    if ctx.invoked_subcommand is None and profile is None:
+        print('Invoked without subcommand. Will generate profile "default".\n')
+        config_manager = ConfigurationProfile()
+        config_manager.create_profile_from_input(profile_name="default")
+
+    if profile:
+        config_manager = ConfigurationProfile()
+        config_manager.create_profile_from_input(profile_name=profile)
 
 @job.command('run')
 @click.option('-k',
@@ -1403,6 +1421,20 @@ def list_queues(apikey,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tJob queue list saved to {outfile}')
+
+
+@configure.command('list-profiles')
+def list_profiles():
+    config_manager = ConfigurationProfile()
+    config_manager.list_profiles()
+
+
+@configure.command('remove-profile')
+@click.option('--profile',
+              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated')
+def remove_profile(profile):
+    config_manager = ConfigurationProfile()
+    config_manager.remove_profile(profile)
 
 
 if __name__ == "__main__":
