@@ -208,6 +208,26 @@ class ConfigurationProfile:
         else:
             print(f"No profile found with the name '{profile}'.")
 
+    def make_default_profile(self, profile_name):
+        """Sets a profile as the default."""
+        config = configparser.ConfigParser()
+        config.read(self.config_file)
+
+        if not config.has_section(profile_name):
+            print(f"No profile found with the name '{profile_name}'.")
+            return
+
+        # Remove the default flag from any existing profiles
+        for section in config.sections():
+            if 'default' in config[section]:
+                if config[section]['default'].lower() == 'true':
+                    config[section]['default'] = 'False'
+
+        # Set the new default profile
+        config[profile_name]['default'] = 'True'
+        with open(self.config_file, 'w') as conf_file:
+            config.write(conf_file)
+        print(f"Profile '{profile_name}' set as default.")
 
 # Example usage
 # if __name__ == "__main__":

@@ -101,19 +101,24 @@ def queue():
 
 @run_cloudos_cli.group(invoke_without_command=True)
 @click.option('--profile',
-              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated')
-def configure(profile):
+              help='Name of the profile. Not using this option will lead to profile named "deafult" being generated')
+@click.option('--make-default',
+              is_flag=True,
+              help='Make the profile the default one.')
+def configure(profile, make_default):
     """CloudOS configuration."""
     print(configure.__doc__ + '\n')
     ctx = click.get_current_context()
+    config_manager = ConfigurationProfile()
+
     if ctx.invoked_subcommand is None and profile is None:
         print('Invoked without subcommand. Will generate profile "default".\n')
-        config_manager = ConfigurationProfile()
         config_manager.create_profile_from_input(profile_name="default")
 
-    if profile:
-        config_manager = ConfigurationProfile()
+    if profile and not make_default:
         config_manager.create_profile_from_input(profile_name=profile)
+    else:
+        config_manager.make_default_profile(profile_name=profile)
 
 @job.command('run')
 @click.option('-k',
