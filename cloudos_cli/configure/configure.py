@@ -13,44 +13,6 @@ class ConfigurationProfile:
         if not os.path.exists(self.config_dir):
             os.makedirs(self.config_dir)
 
-    def create_default_profile(self, api_key):
-        """Creates a default profile in credentials and config files."""
-        os.makedirs(self.config_dir, exist_ok=True)
-
-        # Create and write credentials
-        credentials = configparser.ConfigParser()
-        credentials['default'] = {
-            'api_key': api_key
-        }
-        with open(self.credentials_file, 'w') as cred_file:
-            credentials.write(cred_file)
-
-        # Create and write config
-        config = configparser.ConfigParser()
-        config['default'] = {
-            'region': 'us-east-1',
-            'timeout': '30',
-            'retries': '5'
-        }
-        with open(self.config_file, 'w') as conf_file:
-            config.write(conf_file)
-
-
-    def read_and_print_profile(self):
-        """Reads and prints variables from credentials and config files."""
-        credentials = configparser.ConfigParser()
-        config = configparser.ConfigParser()
-
-        credentials.read(self.credentials_file)
-        config.read(self.config_file)
-
-        print("== Credentials ==")
-        for key, value in credentials['default'].items():
-            print(f"{key}: {value}")
-
-        print("\n== Config ==")
-        for key, value in config['default'].items():
-            print(f"{key}: {value}")
 
     def create_profile_from_input(self, profile_name):
         """Interactively create a profile in credentials and config files."""
@@ -128,40 +90,6 @@ class ConfigurationProfile:
 
         print(f"\n✅ Profile '{profile_name}' created successfully!")
 
-    # def create_profile(self, profile_name, api_key, url, project_name):
-    #     """Creates a new profile with the given environmental variables."""
-    #     self.config_file = os.path.join(self.config_dir, "credentials")
-    #     self.config[profile_name] = {
-    #         "api_key": api_key,
-    #         "url": url,
-    #         "project_name": project_name
-    #     }
-
-    #     with open(self.config_file, "w") as file:
-    #         self.config.write(file)
-    #     print(f"Profile '{profile_name}' created successfully at {self.config_file}.")
-
-    # def load_profile(self, profile_name):
-    #     """Loads an existing profile."""
-    #     self.config_file = os.path.join(self.config_dir, f"{profile_name}.ini")
-    #     if not os.path.exists(self.config_file):
-    #         raise FileNotFoundError(f"Profile '{profile_name}' does not exist.")
-
-    #     self.config.read(self.config_file)
-    #     self.config.get()
-    #     return self.config[profile_name]
-
-    # def create_profile_interactively(self):
-    #     """Creates a new profile by asking the user for input."""
-    #     profile_name = input("Enter profile name: ").strip()
-    #     api_key = input("Enter API key: ").strip()
-    #     url = input("Enter URL: ").strip()
-    #     project_name = input("Enter project name: ").strip()
-
-    #     self.create_profile(profile_name, api_key, url, project_name)
-
-    def check_if_profile_exists():
-        pass
 
     def list_profiles(self):
         """Lists all available profiles."""
@@ -228,25 +156,3 @@ class ConfigurationProfile:
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
         print(f"Profile '{profile_name}' set as default.")
-
-# Example usage
-# if __name__ == "__main__":
-#     config_manager = ConfigurationProfile()
-
-#     print("1. Create a new profile interactively")
-#     print("2. Load an existing profile")
-#     choice = input("Choose an option (1/2): ").strip()
-
-#     if choice == "1":
-#         config_manager.create_profile_interactively()
-#     elif choice == "2":
-#         profile_name = input("Enter the profile name to load: ").strip()
-#         try:
-#             profile = config_manager.load_profile(profile_name)
-#             print(f"Loaded profile '{profile_name}':")
-#             for key, value in profile.items():
-#                 print(f"{key}: {value}")
-#         except FileNotFoundError as e:
-#             print(e)
-#     else:
-#         print("Invalid choice.")
