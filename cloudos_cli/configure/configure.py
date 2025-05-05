@@ -54,6 +54,8 @@ class ConfigurationProfile:
         project_name = input(f"Project name [{profile_name}]: ").strip()
         platform_executor = input(f"Platform executor [{profile_name}]: ").strip()
         repository_provider = input(f"Repository provider [{profile_name}]: ").strip()
+        workspace_id = input(f"Workspace id [{profile_name}]: ").strip()
+        workflow_name = input(f"Workflow name [{profile_name}]: ").strip()
         if number_of_profiles >= 1:
             make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
             if make_default == 'y':
@@ -70,18 +72,20 @@ class ConfigurationProfile:
 
         # Save API token into credentials file
         credentials[profile_name] = {
-            'api_key': api_token
+            'apikey': api_token
         }
         with open(self.credentials_file, 'w') as cred_file:
             credentials.write(cred_file)
 
         # Save other settings into config file
         config[profile_name] = {
-            'platform_url': platform_url,
-            'platform_workspace_id': platform_workspace_id,
+            'cloudos_url': platform_url,
+            'workspace_id': platform_workspace_id,
             'project_name': project_name,
-            'platform_executor': platform_executor,
-            'repository_provider': repository_provider,
+            'execution_platform': platform_executor,
+            'repository_platform': repository_provider,
+            'workspace_id': workspace_id,
+            'workflow_name': workflow_name,
             'default': default_profile
         }
 
@@ -126,6 +130,15 @@ class ConfigurationProfile:
 
         # Check if the section exists in the config file
         if config.has_section(profile) and credentials.has_section(profile):
+            # check if this profile is the current default
+            if config[profile].getboolean('default', fallback=False):
+                # If it is, set the first profile as default
+                for section in config.sections():
+                    if section != profile:
+                        config[section]['default'] = 'True'
+                        break
+                else:
+                    print("No other profiles available to set as default.")
             config.remove_section(profile)
             credentials.remove_section(profile)
             with open(self.credentials_file, 'w') as credfile:
@@ -156,3 +169,67 @@ class ConfigurationProfile:
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
         print(f"Profile '{profile_name}' set as default.")
+
+
+    def load_profile(self, profile_name):
+        config = configparser.ConfigParser()
+        credentials = configparser.ConfigParser()
+
+        # If files exist, read them
+        if os.path.exists(self.credentials_file):
+            credentials.read(self.credentials_file)
+        if os.path.exists(self.config_file):
+            config.read(self.config_file)
+
+        if not config.has_section(profile_name):
+            print(f"No profile found with the name '{profile_name}'.")
+
+        return {
+            'apikey': credentials[profile_name].get('apikey', ""),
+            'cloudos_url': config[profile_name].get('cloudos_url', ""),
+            'workspace_id': config[profile_name].get('workspace_id', ""),
+            'project_name': config[profile_name].get('project_name', ""),
+            'workflow_name': config[profile_name].get('workflow_name', "")
+        }
+
+
+    def check_if_profile_exists(self, profile_name):
+        """Check if a profile exists in the config file."""
+        config = configparser.ConfigParser()
+        config.read(self.config_file)
+
+        if not config.has_section(profile_name):
+            return False
+        return True
+
+
+    def determine_default_profile(self):
+        """Determine the default profile from the config file."""
+        config = configparser.ConfigParser()
+        config.read(self.config_file)
+
+        if len(config.sections()) == 0:
+            print("No profiles found, please create one with 'cloudos configure'.")
+            return None
+
+        # prioritize profiles marked as default
+        for section in config.sections():
+            if 'default' in config[section]:
+                if config[section]['default'].lower() == 'true':
+                    return section
+
+        # check if no "default" profile exists in the sections
+        if 'default' not in config.sections():
+            print("No default profile found. Making the first profile the default.")
+            # Set the first profile as default
+            first_profile = config.sections()[0]
+            config[first_profile]['default'] = 'True'
+            with open(self.config_file, 'w') as conf_file:
+                config.write(conf_file)
+            return first_profile
+        else:
+            # make "default" profile as default
+            config["default"]["default"] = "True"
+            with open(self.config_file, 'w') as conf_file:
+                config.write(conf_file)
+            return "default"

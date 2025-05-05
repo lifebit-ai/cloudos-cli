@@ -63,10 +63,52 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
 
 @click.group()
 @click.version_option(__version__)
-def run_cloudos_cli():
+@click.option('--profile', default='default', help='Profile to use from the config file')
+@click.pass_context
+def run_cloudos_cli(ctx, profile):
     """CloudOS python package: a package for interacting with CloudOS."""
     print(run_cloudos_cli.__doc__ + '\n')
     print('Version: ' + __version__ + '\n')
+    ctx.ensure_object(dict)
+    config_manager = ConfigurationProfile()
+    # source_profile = ctx.get_parameter_source('profile')
+    # if source_profile == click.core.ParameterSource.COMMANDLINE:
+    #     # User explicitly provided --profile
+    # else:
+    #     # Using default or inherited value
+
+    if not config_manager.check_if_profile_exists(profile_name=profile):
+        print(f'Profile "{profile}" does not exist. Needs to be created.\n')
+    else:
+        profile_data = ConfigurationProfile().load_profile(profile_name=profile)
+        # Inject default values BEFORE subcommand runs
+        shared_config = dict({
+            'apikey': profile_data['apikey'],
+            'cloudos_url': profile_data['cloudos_url'],
+            'workspace_id': profile_data['workspace_id'],
+            'project_name': profile_data['project_name'],
+            'workflow_name': profile_data['workflow_name'],
+            'profile': profile
+        })
+        ctx.default_map = dict({
+            'job': {
+                'run': shared_config,
+                'run-curated-examples': shared_config,
+                'abort': shared_config,
+                'status': shared_config,
+                'list': shared_config,
+            },
+            'workflow': {
+                'list': shared_config,
+                'import': shared_config,
+            },
+            'project': {
+                'list': shared_config,
+            },
+            'queue': {
+                'list': shared_config,
+            }
+        })
 
 
 @run_cloudos_cli.group()
@@ -100,25 +142,29 @@ def queue():
 
 
 @run_cloudos_cli.group(invoke_without_command=True)
-@click.option('--profile',
-              help='Name of the profile. Not using this option will lead to profile named "deafult" being generated')
+@click.option('--profile', help='Profile to use from the config file', default='default')
 @click.option('--make-default',
               is_flag=True,
               help='Make the profile the default one.')
-def configure(profile, make_default):
+@click.pass_context
+def configure(ctx, profile, make_default):
     """CloudOS configuration."""
     print(configure.__doc__ + '\n')
-    ctx = click.get_current_context()
+    profile = profile or ctx.obj['profile']
     config_manager = ConfigurationProfile()
 
-    if ctx.invoked_subcommand is None and profile is None:
-        print('Invoked without subcommand. Will generate profile "default".\n')
+    if ctx.invoked_subcommand is None and profile == "default":
+        # if config_manager.check_if_profile_exists(profile_name="default"):
+        #     print('When running "cloudos configure" without profile, the profile "default" is created/modified.')
+        #     print('The modification can be skipped.\n')
+        #     config_manager.create_profile_from_input(profile_name="default")
         config_manager.create_profile_from_input(profile_name="default")
 
-    if profile and not make_default:
+    if profile != "default" and not make_default:
         config_manager.create_profile_from_input(profile_name=profile)
-    else:
+    if make_default:
         config_manager.make_default_profile(profile_name=profile)
+
 
 @job.command('run')
 @click.option('-k',
@@ -263,7 +309,10 @@ def configure(profile, make_default):
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def run(apikey,
+@click.option('--profile', help='Profile to use from the config file', default='default')
+@click.pass_context
+def run(ctx,
+        apikey,
         cloudos_url,
         workspace_id,
         project_name,
@@ -299,9 +348,18 @@ def run(apikey,
         verbose,
         request_interval,
         disable_ssl_verification,
-        ssl_cert):
+        ssl_cert,
+        profile):
     """Submit a job to CloudOS."""
+    profile = profile or ctx.default_map['job']['run']['profile']
+    apikey = apikey or ctx.default_map['job']['run']['apikey']
+    cloudos_url = cloudos_url or ctx.default_map['job']['run']['cloudos_url']
     cloudos_url = cloudos_url.rstrip('/')
+    execution_platform = execution_platform or ctx.default_map['job']['run']['execution_platform']
+    workflow_name = workflow_name or ctx.default_map['job']['run']['workflow_name']
+    project_name = project_name or ctx.default_map['job']['run']['project_name']
+    workspace_id = workspace_id or ctx.default_map['job']['run']['workspace_id']
+    repository_platform = repository_platform or ctx.default_map['job']['run']['repository_platform']
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
@@ -607,6 +665,7 @@ def run(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def run_curated_examples(apikey,
                          cloudos_url,
                          workspace_id,
@@ -756,6 +815,7 @@ def run_curated_examples(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def job_status(apikey,
                cloudos_url,
                job_id,
@@ -829,6 +889,7 @@ def job_status(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def list_jobs(apikey,
               cloudos_url,
               workspace_id,
@@ -910,6 +971,7 @@ def list_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def abort_jobs(apikey,
               cloudos_url,
               workspace_id,
@@ -989,6 +1051,7 @@ def abort_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def list_workflows(apikey,
                    cloudos_url,
                    workspace_id,
@@ -1066,6 +1129,7 @@ def list_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def import_workflows(apikey,
                      cloudos_url,
                      workspace_id,
@@ -1133,6 +1197,7 @@ def import_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def list_projects(apikey,
                   cloudos_url,
                   workspace_id,
@@ -1398,6 +1463,7 @@ def cromwell_stop(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.pass_context
 def list_queues(apikey,
                 cloudos_url,
                 workspace_id,
@@ -1438,7 +1504,9 @@ def list_profiles():
 @click.option('--profile',
               help='Name of the profile. Not using this option will lead to profile named "deafults" being generated',
               required=True)
-def remove_profile(profile):
+@click.pass_context
+def remove_profile(ctx, profile):
+    profile = profile or ctx.obj['profile']
     config_manager = ConfigurationProfile()
     config_manager.remove_profile(profile)
 
