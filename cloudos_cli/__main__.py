@@ -63,32 +63,25 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
 
 @click.group()
 @click.version_option(__version__)
-@click.option('--profile', default='default', help='Profile to use from the config file')
 @click.pass_context
-def run_cloudos_cli(ctx, profile):
+def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     print(run_cloudos_cli.__doc__ + '\n')
     print('Version: ' + __version__ + '\n')
     ctx.ensure_object(dict)
     config_manager = ConfigurationProfile()
-    # source_profile = ctx.get_parameter_source('profile')
-    # if source_profile == click.core.ParameterSource.COMMANDLINE:
-    #     # User explicitly provided --profile
-    # else:
-    #     # Using default or inherited value
-
-    if not config_manager.check_if_profile_exists(profile_name=profile):
-        print(f'Profile "{profile}" does not exist. Needs to be created.\n')
-    else:
-        profile_data = ConfigurationProfile().load_profile(profile_name=profile)
-        # Inject default values BEFORE subcommand runs
+    profile_to_use = config_manager.determine_default_profile()
+    if profile_to_use is None:
+        print('[Warning] No profile found. Please create one with "cloudos configure".\n')
         shared_config = dict({
-            'apikey': profile_data['apikey'],
-            'cloudos_url': profile_data['cloudos_url'],
-            'workspace_id': profile_data['workspace_id'],
-            'project_name': profile_data['project_name'],
-            'workflow_name': profile_data['workflow_name'],
-            'profile': profile
+            'apikey': 'init',
+            'cloudos_url': 'init',
+            'workspace_id': 'init',
+            'project_name': 'init',
+            'workflow_name': 'init',
+            'repository_platform': 'init',
+            'execution_platform': 'init',
+            'profile': 'init'
         })
         ctx.default_map = dict({
             'job': {
@@ -97,18 +90,72 @@ def run_cloudos_cli(ctx, profile):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
-            },
-            'workflow': {
-                'list': shared_config,
-                'import': shared_config,
-            },
-            'project': {
-                'list': shared_config,
-            },
-            'queue': {
+            }
+        })
+    else:
+        profile_data = config_manager.load_profile(profile_name=profile_to_use)
+        shared_config = dict({
+            'apikey': profile_data['apikey'],
+            'cloudos_url': profile_data['cloudos_url'],
+            'workspace_id': profile_data['workspace_id'],
+            'project_name': profile_data['project_name'],
+            'workflow_name': profile_data['workflow_name'],
+            'repository_platform': profile_data['repository_platform'],
+            'execution_platform': profile_data['execution_platform'],
+            'profile': profile_to_use
+        })
+        ctx.default_map = dict({
+            'job': {
+                'run': shared_config,
+                'run-curated-examples': shared_config,
+                'abort': shared_config,
+                'status': shared_config,
                 'list': shared_config,
             }
         })
+    # if not config_manager.check_if_profile_exists(profile_name=profile):
+    #     print(f'Profile "{profile}" does not exist. Needs to be created.\n')
+    # else:
+    #     source_profile = ctx.get_parameter_source('profile')
+    #     if source_profile == click.core.ParameterSource.COMMANDLINE:
+    #         # User explicitly provided --profile
+    #         profile_to_use = profile
+    #     else:
+    #         # Using default or inherited value
+    #         profile_to_use = config_manager.determine_default_profile()
+    #         if profile_to_use is None:
+    #             print('[Error] No default profile found. Please create one with "cloudos configure".\n')
+    #             sys.exit(1)
+    #     print(f'Using profile as default: "{profile_to_use}"\n')
+    #     profile_data = ConfigurationProfile().load_profile(profile_name=profile_to_use)
+    #     # Inject default values BEFORE subcommand runs
+    #     shared_config = dict({
+    #         'apikey': profile_data['apikey'],
+    #         'cloudos_url': profile_data['cloudos_url'],
+    #         'workspace_id': profile_data['workspace_id'],
+    #         'project_name': profile_data['project_name'],
+    #         'workflow_name': profile_data['workflow_name'],
+    #         'profile': profile_to_use
+    #     })
+    #     ctx.default_map = dict({
+    #         'job': {
+    #             'run': shared_config,
+    #             'run-curated-examples': shared_config,
+    #             'abort': shared_config,
+    #             'status': shared_config,
+    #             'list': shared_config,
+    #         },
+    #         'workflow': {
+    #             'list': shared_config,
+    #             'import': shared_config,
+    #         },
+    #         'project': {
+    #             'list': shared_config,
+    #         },
+    #         'queue': {
+    #             'list': shared_config,
+    #         }
+    #     })
 
 
 @run_cloudos_cli.group()
@@ -164,6 +211,11 @@ def configure(ctx, profile, make_default):
         config_manager.create_profile_from_input(profile_name=profile)
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
+
+
+def get_param_value(ctx, param_value, param_name, default_value):
+    source = ctx.get_parameter_source(param_name)
+    return default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
 
 
 @job.command('run')
@@ -309,7 +361,7 @@ def configure(ctx, profile, make_default):
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-@click.option('--profile', help='Profile to use from the config file', default='default')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def run(ctx,
         apikey,
@@ -352,15 +404,18 @@ def run(ctx,
         profile):
     """Submit a job to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    apikey = apikey or ctx.default_map['job']['run']['apikey']
-    cloudos_url = cloudos_url or ctx.default_map['job']['run']['cloudos_url']
-    cloudos_url = cloudos_url.rstrip('/')
-    execution_platform = execution_platform or ctx.default_map['job']['run']['execution_platform']
-    workflow_name = workflow_name or ctx.default_map['job']['run']['workflow_name']
-    project_name = project_name or ctx.default_map['job']['run']['project_name']
-    workspace_id = workspace_id or ctx.default_map['job']['run']['workspace_id']
-    repository_platform = repository_platform or ctx.default_map['job']['run']['repository_platform']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+    repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
+    execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+    project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print(f'Using profile: {profile}\n')
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
               'in CloudOS. Option ignored.')
@@ -665,8 +720,10 @@ def run(ctx,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def run_curated_examples(apikey,
+def run_curated_examples(ctx,
+                         apikey,
                          cloudos_url,
                          workspace_id,
                          project_name,
@@ -687,12 +744,22 @@ def run_curated_examples(apikey,
                          request_interval,
                          verbose,
                          disable_ssl_verification,
-                         ssl_cert):
+                         ssl_cert,
+                         profile):
     """Run all the curated workflows with example parameters.
 
     NOTE that currently, only Nextflow workflows are supported.
     """
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+    project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -815,15 +882,24 @@ def run_curated_examples(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def job_status(apikey,
+def job_status(ctx,
+               apikey,
                cloudos_url,
                job_id,
                verbose,
                disable_ssl_verification,
-               ssl_cert):
+               ssl_cert,
+               profile):
     """Check job status in CloudOS."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['status']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -889,8 +965,10 @@ def job_status(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_jobs(apikey,
+def list_jobs(ctx,
+              apikey,
               cloudos_url,
               workspace_id,
               output_basename,
@@ -901,9 +979,17 @@ def list_jobs(apikey,
               archived,
               verbose,
               disable_ssl_verification,
-              ssl_cert):
+              ssl_cert,
+              profile):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -971,16 +1057,26 @@ def list_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def abort_jobs(apikey,
-              cloudos_url,
-              workspace_id,
-              job_ids,
-              verbose,
-              disable_ssl_verification,
-              ssl_cert):
+def abort_jobs(ctx,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               job_ids,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
     """Abort all specified jobs from a CloudOS workspace."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
     if verbose:
@@ -1051,8 +1147,10 @@ def abort_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_workflows(apikey,
+def list_workflows(ctx,
+                   apikey,
                    cloudos_url,
                    workspace_id,
                    output_basename,
@@ -1061,9 +1159,17 @@ def list_workflows(apikey,
                    curated,
                    verbose,
                    disable_ssl_verification,
-                   ssl_cert):
+                   ssl_cert,
+                   profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1129,8 +1235,10 @@ def list_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def import_workflows(apikey,
+def import_workflows(ctx,
+                     apikey,
                      cloudos_url,
                      workspace_id,
                      workflow_url,
@@ -1139,9 +1247,18 @@ def import_workflows(apikey,
                      workflow_docs_link,
                      repository_id,
                      disable_ssl_verification,
-                     ssl_cert):
+                     ssl_cert,
+                     profile):
     """Imports workflows to CloudOS."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
     print('\t[Message] Only Nextflow workflows are currently supported.\n')
@@ -1197,8 +1314,10 @@ def import_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_projects(apikey,
+def list_projects(ctx,
+                  apikey,
                   cloudos_url,
                   workspace_id,
                   output_basename,
@@ -1207,9 +1326,17 @@ def list_projects(apikey,
                   page,
                   verbose,
                   disable_ssl_verification,
-                  ssl_cert):
+                  ssl_cert,
+                  profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1463,17 +1590,27 @@ def cromwell_stop(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_queues(apikey,
+def list_queues(ctx,
+                apikey,
                 cloudos_url,
                 workspace_id,
                 output_basename,
                 output_format,
                 all_fields,
                 disable_ssl_verification,
-                ssl_cert):
+                ssl_cert,
+                profile):
     """Collect all available job queues from a CloudOS workspace."""
-    cloudos_url = cloudos_url.rstrip('/')
+    profile = profile or ctx.default_map['job']['run']['profile']
+    # load profile data
+    config_manager = ConfigurationProfile()
+    profile_data = config_manager.load_profile(profile_name=profile)
+    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')

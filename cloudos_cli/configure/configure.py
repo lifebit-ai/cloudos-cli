@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import configparser
 import getpass
+import sys
 
 class ConfigurationProfile:
     def __init__(self):
@@ -52,9 +53,29 @@ class ConfigurationProfile:
         platform_url = input(f"Platform URL [{profile_name}]: ").strip()
         platform_workspace_id = input(f"Platform workspace ID [{profile_name}]: ").strip()
         project_name = input(f"Project name [{profile_name}]: ").strip()
-        platform_executor = input(f"Platform executor [{profile_name}]: ").strip()
-        repository_provider = input(f"Repository provider [{profile_name}]: ").strip()
-        workspace_id = input(f"Workspace id [{profile_name}]: ").strip()
+        while True:
+            platform_executor = input(f"Platform executor [{profile_name}]:\n\t1. aws (default)\n\t2. azure ").strip()
+            if platform_executor == "1" or platform_executor.lower() == "aws" or platform_executor == "":
+                platform_executor = "aws"
+                break
+            elif platform_executor == "2" or platform_executor.lower() == "azure":
+                platform_executor = "azure"
+                break
+            else:
+                print("❌ Invalid choice. Please select either 1 (aws) or 2 (azure).")
+        while True:
+            repository_provider = input(f"Repository provider [{profile_name}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer").strip()
+            if repository_provider == "1" or repository_provider.lower() == "github" or repository_provider == "":
+                repository_provider = "github"
+                break
+            elif repository_provider == "2" or repository_provider.lower() == "gitlab":
+                repository_provider = "gitlab"
+                break
+            elif repository_provider == "3" or repository_provider.lower() == "bitbucketserver":
+                repository_provider = "bitbucketServer"
+                break
+            else:
+                print("❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).")
         workflow_name = input(f"Workflow name [{profile_name}]: ").strip()
         if number_of_profiles >= 1:
             make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
@@ -84,7 +105,6 @@ class ConfigurationProfile:
             'project_name': project_name,
             'execution_platform': platform_executor,
             'repository_platform': repository_provider,
-            'workspace_id': workspace_id,
             'workflow_name': workflow_name,
             'default': default_profile
         }
@@ -182,14 +202,17 @@ class ConfigurationProfile:
             config.read(self.config_file)
 
         if not config.has_section(profile_name):
-            print(f"No profile found with the name '{profile_name}'.")
+            print(f'[Error] Profile "{profile_name}" does not exist. Please create it with "cloudos configure --profile {profile_name}".\n')
+            sys.exit(1)
 
         return {
             'apikey': credentials[profile_name].get('apikey', ""),
             'cloudos_url': config[profile_name].get('cloudos_url', ""),
             'workspace_id': config[profile_name].get('workspace_id', ""),
             'project_name': config[profile_name].get('project_name', ""),
-            'workflow_name': config[profile_name].get('workflow_name', "")
+            'workflow_name': config[profile_name].get('workflow_name', ""),
+            'execution_platform': config[profile_name].get('execution_platform', ""),
+            'repository_platform': config[profile_name].get('repository_platform', ""),
         }
 
 
@@ -233,3 +256,4 @@ class ConfigurationProfile:
             with open(self.config_file, 'w') as conf_file:
                 config.write(conf_file)
             return "default"
+
