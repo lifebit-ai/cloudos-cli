@@ -52,7 +52,7 @@ pip install .
 
 ## Configuration
 
-Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named `.cloudos` will be generated, with files `credentials` and `config` also being created. The structure will look like:
+Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named `.cloudos` will be created, with files `credentials` and `config` also being created. The structure will look like:
 
 ```console
 $HOME
@@ -71,8 +71,7 @@ In order to generate a profile called `default`, the following command can be us
 cloudos configure
 ```
 
-This will bring in prompts for API (which handles is as a secret, and cannot be seen typed and is required twice in order to verify the key was added correctly), Platform URL, Project name, Platform executor, Repository provider, Workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
-
+This will bring in prompts for API (which is handled as a secret, and cannot be seen typed and is required twice in order to verify the key was added correctly), platform URL, project name, platform executor, repository provider, workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
 
 ### Configure named profile
 
@@ -100,7 +99,7 @@ cloudos configure --profile {other-profile} --make-default
 At any time it can be seen how many profiles are present and which is the default:
 
 ```console
-cloudos configulre list-profiles
+cloudos configure list-profiles
 ```
 
 The response will look like:
@@ -114,7 +113,11 @@ Available profiles:
 
 ### Remove profile
 
+Any profile can be remove with:
 
+```console
+cloudos configure remove-profile --profile second-profile
+```
 
 ## Usage
 
