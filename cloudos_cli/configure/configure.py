@@ -5,8 +5,13 @@ import getpass
 import sys
 
 class ConfigurationProfile:
-    def __init__(self):
-        self.config_dir = os.path.join(Path.home(), ".cloudos")
+    def __init__(self, config_dir=None):
+        """Initialize the ConfigurationProfile class.
+        Args:
+            config_dir (str): Directory where the configuration files are stored.
+        """
+        # Set the configuration directory to the user's home directory if not provided
+        self.config_dir = config_dir or os.path.join(Path.home(), ".cloudos")
         self.credentials_file = os.path.join(self.config_dir, "credentials")
         self.config_file = os.path.join(self.config_dir, "config")
 

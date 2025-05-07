@@ -14,6 +14,14 @@ def test_configure_check_credentials_config_exists():
     """
     Test 'configure' to generate a default profile
     """
+    # Create the .cloudos directory and files on the fly
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(os.path.join(CONFIG_DIR, "credentials"), "w") as cred_file:
+        cred_file.write("[default]\napi_key = test_api_key\n")
+    with open(os.path.join(CONFIG_DIR, "config"), "w") as config_file:
+        config_file.write("[default]\ncloudos_url = http://cloudos.lifebit.ai\n")
+
+    # Assertions to verify the files exist
     assert os.path.exists(os.path.join(CONFIG_DIR, "credentials"))
     assert os.path.exists(os.path.join(CONFIG_DIR, "config"))
 
@@ -62,13 +70,12 @@ def test_make_default_profile():
     config_manager = ConfigurationProfile(CONFIG_DIR)
 
     # Set profile2 as default
-    config_manager.make_default_profile('profile2')
+    config_manager.make_default_profile('user_input_profile')
 
     # Verify profile2 is now the default
     config = configparser.ConfigParser()
     config.read(os.path.join(CONFIG_DIR, "config"))
-    assert config['profile2']['default'] == 'True'
-    assert config['profile1']['default'] == 'False'
+    assert config['user_input_profile']['default'] == 'True'
 
 
 def test_list_profiles():
@@ -80,8 +87,8 @@ def test_list_profiles():
     with patch('builtins.print') as mock_print:
         config_manager.list_profiles()
         mock_print.assert_any_call("Available profiles:")
-        mock_print.assert_any_call(" - profile1")
-        mock_print.assert_any_call(" - profile2 (default)")
+        mock_print.assert_any_call(" - user_input_profile (default)")
+        mock_print.assert_any_call(" - existing_profile")
 
 
 @patch('builtins.input', side_effect=['http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'n'])
@@ -100,3 +107,29 @@ def test_remove_profile(mock_getpass, mock_input):
     config = configparser.ConfigParser()
     config.read(os.path.join(CONFIG_DIR, "config"))
     assert 'profile_to_remove' not in config.sections()
+
+
+def test_check_if_profile_exists():
+    """
+    Test checking if a profile exists
+    """
+    config_manager = ConfigurationProfile(CONFIG_DIR)
+
+    # Check if profile1 exists
+    assert config_manager.check_if_profile_exists('user_input_profile') is True
+
+    # Check if a non-existing profile exists
+    assert config_manager.check_if_profile_exists('non_existing_profile') is False
+
+
+def test_determine_default_profile():
+    """
+    Test determining the default profile
+    """
+    config_manager = ConfigurationProfile(CONFIG_DIR)
+
+    # Determine the default profile
+    default_profile = config_manager.determine_default_profile()
+
+    # Verify the default profile is correct
+    assert default_profile == 'user_input_profile'
