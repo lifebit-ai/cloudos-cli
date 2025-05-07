@@ -103,6 +103,11 @@ def run_cloudos_cli(ctx):
                 'start': shared_config,
                 'stop': shared_config
             },
+            'queue': {
+                'list': shared_config,
+                'create': shared_config,
+                'delete': shared_config
+            }
         })
     else:
         profile_data = config_manager.load_profile(profile_name=profile_to_use)
@@ -136,6 +141,11 @@ def run_cloudos_cli(ctx):
                 'start': shared_config,
                 'stop': shared_config
             },
+            'queue': {
+                'list': shared_config,
+                'create': shared_config,
+                'delete': shared_config
+            }
         })
 
 
@@ -1587,7 +1597,7 @@ def list_queues(ctx,
                 ssl_cert,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['']['run']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
