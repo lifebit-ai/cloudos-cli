@@ -113,49 +113,6 @@ def run_cloudos_cli(ctx):
                 'list': shared_config,
             }
         })
-    # if not config_manager.check_if_profile_exists(profile_name=profile):
-    #     print(f'Profile "{profile}" does not exist. Needs to be created.\n')
-    # else:
-    #     source_profile = ctx.get_parameter_source('profile')
-    #     if source_profile == click.core.ParameterSource.COMMANDLINE:
-    #         # User explicitly provided --profile
-    #         profile_to_use = profile
-    #     else:
-    #         # Using default or inherited value
-    #         profile_to_use = config_manager.determine_default_profile()
-    #         if profile_to_use is None:
-    #             print('[Error] No default profile found. Please create one with "cloudos configure".\n')
-    #             sys.exit(1)
-    #     print(f'Using profile as default: "{profile_to_use}"\n')
-    #     profile_data = ConfigurationProfile().load_profile(profile_name=profile_to_use)
-    #     # Inject default values BEFORE subcommand runs
-    #     shared_config = dict({
-    #         'apikey': profile_data['apikey'],
-    #         'cloudos_url': profile_data['cloudos_url'],
-    #         'workspace_id': profile_data['workspace_id'],
-    #         'project_name': profile_data['project_name'],
-    #         'workflow_name': profile_data['workflow_name'],
-    #         'profile': profile_to_use
-    #     })
-    #     ctx.default_map = dict({
-    #         'job': {
-    #             'run': shared_config,
-    #             'run-curated-examples': shared_config,
-    #             'abort': shared_config,
-    #             'status': shared_config,
-    #             'list': shared_config,
-    #         },
-    #         'workflow': {
-    #             'list': shared_config,
-    #             'import': shared_config,
-    #         },
-    #         'project': {
-    #             'list': shared_config,
-    #         },
-    #         'queue': {
-    #             'list': shared_config,
-    #         }
-    #     })
 
 
 @run_cloudos_cli.group()
@@ -201,10 +158,6 @@ def configure(ctx, profile, make_default):
     config_manager = ConfigurationProfile()
 
     if ctx.invoked_subcommand is None and profile == "default":
-        # if config_manager.check_if_profile_exists(profile_name="default"):
-        #     print('When running "cloudos configure" without profile, the profile "default" is created/modified.')
-        #     print('The modification can be skipped.\n')
-        #     config_manager.create_profile_from_input(profile_name="default")
         config_manager.create_profile_from_input(profile_name="default")
 
     if profile != "default" and not make_default:
