@@ -79,8 +79,8 @@ def run_cloudos_cli(ctx):
             'workspace_id': 'init',
             'project_name': 'init',
             'workflow_name': 'init',
-            'repository_platform': 'init',
-            'execution_platform': 'init',
+            'repository_platform': 'github',
+            'execution_platform': 'aws',
             'profile': 'init'
         })
         ctx.default_map = dict({
@@ -357,18 +357,18 @@ def run(ctx,
         profile):
     """Submit a job to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-    workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
-    repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
-    execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-    project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
+    # load profile data, only when profile is not 'init'
+    if profile != 'init':
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    print(f'Using profile: {profile}\n')
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
               'in CloudOS. Option ignored.')
@@ -704,14 +704,15 @@ def run_curated_examples(ctx,
     NOTE that currently, only Nextflow workflows are supported.
     """
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-    execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-    project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
@@ -848,10 +849,11 @@ def job_status(ctx,
     """Check job status in CloudOS."""
     profile = profile or ctx.default_map['job']['status']['profile']
     # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+    if profile != 'init':
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -937,11 +939,12 @@ def list_jobs(ctx,
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['job']['run']['profile']
     # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    if profile != 'init':
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1023,12 +1026,13 @@ def abort_jobs(ctx,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
@@ -1116,12 +1120,13 @@ def list_workflows(ctx,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1204,13 +1209,14 @@ def import_workflows(ctx,
                      profile):
     """Imports workflows to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-    workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
@@ -1283,12 +1289,13 @@ def list_projects(ctx,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1557,12 +1564,13 @@ def list_queues(ctx,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
     profile = profile or ctx.default_map['job']['run']['profile']
-    # load profile data
-    config_manager = ConfigurationProfile()
-    profile_data = config_manager.load_profile(profile_name=profile)
-    apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-    cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-    workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
