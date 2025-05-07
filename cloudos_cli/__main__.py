@@ -95,6 +95,10 @@ def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
 
+@run_cloudos_cli.group()
+def import_workflows():
+    """Import workflows"""
+    print(import_workflows.__doc__ + "\n")
 
 @job.command('run')
 @click.option('-k',
