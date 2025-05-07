@@ -49,6 +49,73 @@ pip install .
 ```
 
 > NOTE: To be able to call the `cloudos` executable, ensure that the local clone of the `cloudos-cli` folder is included in the `PATH` variable ,using for example the command `export PATH="/absolute/path/to/cloudos-cli:$PATH"`.
+
+## Configuration
+
+Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named `.cloudos` will be generated, with files `credentials` and `config` also being created. The structure will look like:
+
+```console
+$HOME
+  └── .cloudos
+        ├── credentials     <-- holds API key
+        └── config          <-- holds all other parameters
+```
+
+### Configure default profile
+
+To facilitate the reuse of required parameters, profiles can be created. 
+
+In order to generate a profile called `default`, the following command can be used:
+
+```console
+cloudos configure
+```
+
+This will bring in prompts for API (which handles is as a secret, and cannot be seen typed and is required twice in order to verify the key was added correctly), Platform URL, Project name, Platform executor, Repository provider, Workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
+
+
+### Configure named profile
+
+In order to generate a named profile, the following command can be used:
+
+```console
+cloudos configure --profile {profile-name}
+```
+
+The same prompts as before will apear. If there is already a profile with the same name, there will a prompt to either overwrite the parameters or abort.
+
+> [!NOTE]
+> When there is already at least 1 previous profile defined, a new question will appear asking to make the current profile as default
+
+### Change the default profile
+
+This can be achieved with:
+
+```console
+cloudos configure --profile {other-profile} --make-default
+```
+
+### List profiles
+
+At any time it can be seen how many profiles are present and which is the default:
+
+```console
+cloudos configulre list-profiles
+```
+
+The response will look like:
+
+```console
+Available profiles:
+ - default (default)
+ - second-profile
+ - third-profile
+```
+
+### Remove profile
+
+
+
 ## Usage
 
 The package is meant to be used both as a CLI tool and as a regular package to

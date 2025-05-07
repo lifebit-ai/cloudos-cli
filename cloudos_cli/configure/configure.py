@@ -237,7 +237,6 @@ class ConfigurationProfile:
         config.read(self.config_file)
 
         if len(config.sections()) == 0:
-            print("No profiles found, please create one with 'cloudos configure'.")
             return None
 
         # prioritize profiles marked as default
