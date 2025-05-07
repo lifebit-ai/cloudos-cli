@@ -90,7 +90,19 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
-            }
+            },
+            'workflow': { 
+                'list': shared_config,
+                'import': shared_config
+            },
+            'project': {
+                'list': shared_config
+            },
+            'cromwell': {
+                'status': shared_config,
+                'start': shared_config,
+                'stop': shared_config
+            },
         })
     else:
         profile_data = config_manager.load_profile(profile_name=profile_to_use)
@@ -111,7 +123,19 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
-            }
+            },
+            'workflow': {
+                'list': shared_config,
+                'import': shared_config
+            },
+            'project': {
+                'list': shared_config
+            },
+            'cromwell': {
+                'status': shared_config,
+                'start': shared_config,
+                'stop': shared_config
+            },
         })
 
 
@@ -1119,7 +1143,7 @@ def list_workflows(ctx,
                    ssl_cert,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['workflow']['list']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
