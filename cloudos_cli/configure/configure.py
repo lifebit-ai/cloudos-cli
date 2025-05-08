@@ -21,7 +21,20 @@ class ConfigurationProfile:
 
 
     def create_profile_from_input(self, profile_name):
-        """Interactively create a profile in credentials and config files."""
+        """Interactively create a profile in credentials and config files.
+        Parameters:
+        ----------
+        profile_name : str
+            The name of the profile to create or update. If the profile already exists, 
+            the user will be prompted to update its parameters.
+        This method guides the user through an interactive process to input or update 
+        profile details such as API token, platform URL, workspace ID, project name, 
+        execution platform, repository provider, and workflow name. The profile can 
+        also be set as the default profile if desired.
+        The API token is stored in the credentials file, while other settings are 
+        stored in the config file. If the profile already exists, existing values 
+        are pre-filled for convenience.        
+        """
 
         # Load or create configparser instances
         credentials = configparser.ConfigParser()
@@ -144,7 +157,12 @@ class ConfigurationProfile:
                 print(f" - {profile}")
 
     def remove_profile(self, profile):
-        """Removes a profile from the credentials and config files."""
+        """Removes a profile from the config and credentials files.
+        Parameters:
+        ----------
+        profile : str
+            The name of the profile to remove.
+        """
         # Load or create configparser instances
         credentials = configparser.ConfigParser()
         config = configparser.ConfigParser()
@@ -181,7 +199,12 @@ class ConfigurationProfile:
             print(f"No profile found with the name '{profile}'.")
 
     def make_default_profile(self, profile_name):
-        """Sets a profile as the default."""
+        """Set a profile as the default profile.
+        Parameters:
+        ----------
+        profile_name : str
+            The name of the profile to set as default.
+        """
         config = configparser.ConfigParser()
         config.read(self.config_file)
 
@@ -203,6 +226,16 @@ class ConfigurationProfile:
 
 
     def load_profile(self, profile_name):
+        """Load a profile from the config and credentials files.
+        Parameters:
+        ----------
+        profile_name : str
+            The name of the profile to load.
+        Returns:
+        -------
+        dict
+            A dictionary containing the profile details.
+        """
         config = configparser.ConfigParser()
         credentials = configparser.ConfigParser()
 
@@ -228,7 +261,16 @@ class ConfigurationProfile:
 
 
     def check_if_profile_exists(self, profile_name):
-        """Check if a profile exists in the config file."""
+        """Check if a profile exists in the config file.
+        Parameters:
+        ----------
+        profile_name : str
+            The name of the profile to check.
+        Returns:
+        -------
+        bool
+            True if the profile exists, False otherwise.
+        """
         config = configparser.ConfigParser()
         config.read(self.config_file)
 
@@ -238,7 +280,12 @@ class ConfigurationProfile:
 
 
     def determine_default_profile(self):
-        """Determine the default profile from the config file."""
+        """Determine the default profile from the config file.
+        Returns:
+        -------
+        str
+            The name of the default profile, or None if no default is set.
+        """
         config = configparser.ConfigParser()
         config.read(self.config_file)
 
@@ -266,4 +313,3 @@ class ConfigurationProfile:
             with open(self.config_file, 'w') as conf_file:
                 config.write(conf_file)
             return "default"
-
