@@ -5,6 +5,14 @@ import getpass
 import sys
 
 class ConfigurationProfile:
+    """Class to manage configuration profiles for the CloudOS CLI.
+    This class provides methods to create, list, remove, and load profiles from
+    configuration files. It also allows setting a profile as the default profile.
+    Attributes:
+        config_dir (str): Directory where the configuration files are stored.
+        credentials_file (str): Path to the credentials file.
+        config_file (str): Path to the config file.
+    """
     def __init__(self, config_dir=None):
         """Initialize the ConfigurationProfile class.
         Args:
