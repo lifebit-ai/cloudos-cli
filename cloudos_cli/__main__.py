@@ -104,9 +104,7 @@ def run_cloudos_cli(ctx):
                 'stop': shared_config
             },
             'queue': {
-                'list': shared_config,
-                'create': shared_config,
-                'delete': shared_config
+                'list': shared_config
             }
         })
     else:
@@ -142,9 +140,7 @@ def run_cloudos_cli(ctx):
                 'stop': shared_config
             },
             'queue': {
-                'list': shared_config,
-                'create': shared_config,
-                'delete': shared_config
+                'list': shared_config
             }
         })
 
@@ -737,7 +733,7 @@ def run_curated_examples(ctx,
 
     NOTE that currently, only Nextflow workflows are supported.
     """
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
@@ -971,7 +967,7 @@ def list_jobs(ctx,
               ssl_cert,
               profile):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['job']['list']['profile']
     # load profile data
     if profile != 'init':
         config_manager = ConfigurationProfile()
@@ -1059,7 +1055,7 @@ def abort_jobs(ctx,
                ssl_cert,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['job']['abort']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
@@ -1242,7 +1238,7 @@ def import_workflows(ctx,
                      ssl_cert,
                      profile):
     """Imports workflows to CloudOS."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['workflow']['import']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
@@ -1322,7 +1318,7 @@ def list_projects(ctx,
                   ssl_cert,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
-    profile = profile or ctx.default_map['job']['run']['profile']
+    profile = profile or ctx.default_map['project']['list']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
@@ -1597,7 +1593,7 @@ def list_queues(ctx,
                 ssl_cert,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
-    profile = profile or ctx.default_map['']['run']['profile']
+    profile = profile or ctx.default_map['queue']['list']['profile']
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
