@@ -73,12 +73,29 @@ class ConfigurationProfile:
         print(f"Creating profile: {profile_name}")
 
         # Ask for user input
+        ## API token
         api_token = input(
             f"API token [{'****' + shared_config['apikey'][-4:]}]: "
         ).strip() if shared_config else input(f"API token [{profile_name}]: ").strip()
+        # If the user presses Enter, keep the existing value
+        api_token = shared_config.get('apikey', api_token) if api_token == "" else api_token
+
+        ## Platform URL
         platform_url = input(f"Platform URL [{shared_config.get('cloudos_url', profile_name)}]: ").strip()
+        # If the user presses Enter, keep the existing value
+        platform_url = shared_config.get('cloudos_url', platform_url) if platform_url == "" else platform_url
+
+        ## Workspace ID
         platform_workspace_id = input(f"Platform workspace ID [{shared_config.get('workspace_id', profile_name)}]: ").strip()
+        # If the user presses Enter, keep the existing value
+        platform_workspace_id = shared_config.get('workspace_id', platform_workspace_id) if platform_workspace_id == "" else platform_workspace_id
+
+        ## Project name
         project_name = input(f"Project name [{shared_config.get('project_name', profile_name)}]: ").strip()
+        # If the user presses Enter, keep the existing value
+        project_name = shared_config.get('project_name', project_name) if project_name == "" else project_name
+
+        ## Execution platform
         while True:
             platform_executor = input(f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n\t1. aws (default)\n\t2. azure ").strip()
             if platform_executor == "1" or platform_executor.lower() == "aws" or platform_executor == "":
@@ -89,6 +106,8 @@ class ConfigurationProfile:
                 break
             else:
                 print("❌ Invalid choice. Please select either 1 (aws) or 2 (azure).")
+
+        ## Repository provider
         while True:
             repository_provider = input(f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer").strip()
             if repository_provider == "1" or repository_provider.lower() == "github" or repository_provider == "":
@@ -102,7 +121,13 @@ class ConfigurationProfile:
                 break
             else:
                 print("❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).")
+
+        ## Workflow name
         workflow_name = input(f"Workflow name [{shared_config.get('workflow_name', profile_name)}]: ").strip()
+        # If the user presses Enter, keep the existing value
+        workflow_name = shared_config.get('workflow_name', workflow_name) if workflow_name == "" else workflow_name
+
+        # Make the profile the default if it is the first one
         if number_of_profiles >= 1:
             default_profile = self.determine_default_profile()
             if default_profile is not None:
