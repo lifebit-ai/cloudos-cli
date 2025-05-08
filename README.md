@@ -71,7 +71,7 @@ In order to generate a profile called `default`, the following command can be us
 cloudos configure
 ```
 
-This will bring in prompts for API (which is handled as a secret, and cannot be seen typed and is required twice in order to verify the key was added correctly), platform URL, project name, platform executor, repository provider, workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
+This will bring in prompts for API, platform URL, project name, platform executor, repository provider, workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
 
 ### Configure named profile
 
@@ -81,7 +81,7 @@ In order to generate a named profile, the following command can be used:
 cloudos configure --profile {profile-name}
 ```
 
-The same prompts as before will apear. If there is already a profile with the same name, there will a prompt to either overwrite the parameters or abort.
+The same prompts as before will apear. If there is already a profile with the same name, the set parameters will appear in square brackets, where they can be overwritten or left unmodified by pressing Enter/Return.
 
 > [!NOTE]
 > When there is already at least 1 previous profile defined, a new question will appear asking to make the current profile as default
