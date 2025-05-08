@@ -48,14 +48,14 @@ class WFImport(ABC):
             "docsLink": workflow_docs_link,
             "team": workspace_id
         }
-        self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={self.workspace_id}"
+        self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
         self.verify = verify
 
     @abstractmethod
     def fill_payload(self, *args, **kwargs):
         """
         Uses the methods required by a repository service to gather the following data, and
-        use it to fill the None vbalues from self.payload using dot-notation (in parenthesis)
+        use it to fill the None values from self.payload using dot-notation (in parentheses)
         - repository ID (repository.repositoryId)
         - repository name (repository.name)
         - owner login (repository.owner.login)
