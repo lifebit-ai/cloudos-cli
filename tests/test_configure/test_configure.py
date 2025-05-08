@@ -26,9 +26,8 @@ def test_configure_check_credentials_config_exists():
     assert os.path.exists(os.path.join(CONFIG_DIR, "config"))
 
 
-@patch('builtins.input', side_effect=['http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'y'])
-@patch('getpass.getpass', side_effect=[APIKEY1, APIKEY1])
-def test_create_profile_with_user_input(mock_getpass, mock_input):
+@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '2', '2', 'workflow_name', 'n'])
+def test_create_profile_with_user_input(mock_input):
     """
     Test creating a profile with mocked user input
     """
@@ -42,25 +41,23 @@ def test_create_profile_with_user_input(mock_getpass, mock_input):
     assert config['user_input_profile']['cloudos_url'] == CLOUDOS_URL
 
 
-@patch('builtins.input', side_effect=['http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'n'])
-@patch('getpass.getpass', side_effect=[APIKEY1, APIKEY1])
-def test_create_profile_abort_if_exists(mock_getpass, mock_input):
+@patch('builtins.input', side_effect=['', '', '', '', '', '', '', 'n'])
+def test_create_profile_keep_existing_values(mock_input):
     """
-    Test that creating a profile aborts if the profile already exists and user chooses not to overwrite
+    Test creating a profile and leaving it as is by pressing "Enter" for each field
     """
     config_manager = ConfigurationProfile(CONFIG_DIR)
 
-    # Create a profile first
-    config_manager.create_profile_from_input('existing_profile')
+    # Attempt to create the same profile again, pressing "Enter" to keep existing values
+    with patch('builtins.print') as mock_in:
+        config_manager.create_profile_from_input('user_input_profile')
 
-    # Attempt to create the same profile again
-    with patch('builtins.input', side_effect=['n']):  # Simulate user choosing not to overwrite
-        config_manager.create_profile_from_input('existing_profile')
-
-    # Verify the profile was not overwritten
+    # Verify the profile values remain unchanged
     config = configparser.ConfigParser()
     config.read(os.path.join(CONFIG_DIR, "config"))
-    assert config['existing_profile']['cloudos_url'] == CLOUDOS_URL
+    assert config['user_input_profile']['cloudos_url'] == CLOUDOS_URL
+    assert config['user_input_profile']['execution_platform'] == "aws"
+    assert config['user_input_profile']['repository_platform'] == "github"
 
 
 def test_make_default_profile():
@@ -87,13 +84,12 @@ def test_list_profiles():
     with patch('builtins.print') as mock_print:
         config_manager.list_profiles()
         mock_print.assert_any_call("Available profiles:")
+        mock_print.assert_any_call(" - default")
         mock_print.assert_any_call(" - user_input_profile (default)")
-        mock_print.assert_any_call(" - existing_profile")
 
 
-@patch('builtins.input', side_effect=['http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'n'])
-@patch('getpass.getpass', side_effect=[APIKEY1, APIKEY1])
-def test_remove_profile(mock_getpass, mock_input):
+@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'n'])
+def test_remove_profile(mock_input):
     """
     Test removing a profile
     """
