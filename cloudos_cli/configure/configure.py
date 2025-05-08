@@ -35,31 +35,31 @@ class ConfigurationProfile:
 
         number_of_profiles = len(config.sections())
 
+        shared_config = dict({})
         # Check if the profile already exists
         if profile_name in config.sections():
-            answer = input(f"Profile '{profile_name}' already exists. Overwrite it? (y/n): ").strip().lower()
-            if answer != 'y':
-                print("Aborting without changes.")
-                return
+            profile_data = self.load_profile(profile_name=profile_name)
+            shared_config['apikey'] = profile_data['apikey']
+            shared_config['cloudos_url'] = profile_data['cloudos_url']
+            shared_config['workspace_id'] = profile_data['workspace_id']
+            shared_config['project_name'] = profile_data['project_name']
+            shared_config['workflow_name'] = profile_data['workflow_name']
+            shared_config['repository_platform'] = profile_data['repository_platform']
+            shared_config['execution_platform'] = profile_data['execution_platform']
+            shared_config['profile'] = profile_name
+            print(f"Profile '{profile_name}' already exists. You can update single parameters or all.")
 
         print(f"Creating profile: {profile_name}")
 
         # Ask for user input
-        # --- Double entry verification for the API token ---
+        api_token = input(
+            f"API token [{'****' + shared_config['apikey'][-4:]}]: "
+        ).strip() if shared_config else input(f"API token [{profile_name}]: ").strip()
+        platform_url = input(f"Platform URL [{shared_config.get('cloudos_url', profile_name)}]: ").strip()
+        platform_workspace_id = input(f"Platform workspace ID [{shared_config.get('workspace_id', profile_name)}]: ").strip()
+        project_name = input(f"Project name [{shared_config.get('project_name', profile_name)}]: ").strip()
         while True:
-            api_token = getpass.getpass(f"API token [{profile_name}]: ").strip()
-            api_token_confirm = getpass.getpass(f"Confirm API token [{profile_name}]: ").strip()
-
-            if api_token == api_token_confirm:
-                print("✅ API token confirmed.")
-                break
-            else:
-                print("❌ Tokens do not match. Please try again.\n")
-        platform_url = input(f"Platform URL [{profile_name}]: ").strip()
-        platform_workspace_id = input(f"Platform workspace ID [{profile_name}]: ").strip()
-        project_name = input(f"Project name [{profile_name}]: ").strip()
-        while True:
-            platform_executor = input(f"Platform executor [{profile_name}]:\n\t1. aws (default)\n\t2. azure ").strip()
+            platform_executor = input(f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n\t1. aws (default)\n\t2. azure ").strip()
             if platform_executor == "1" or platform_executor.lower() == "aws" or platform_executor == "":
                 platform_executor = "aws"
                 break
@@ -69,7 +69,7 @@ class ConfigurationProfile:
             else:
                 print("❌ Invalid choice. Please select either 1 (aws) or 2 (azure).")
         while True:
-            repository_provider = input(f"Repository provider [{profile_name}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer").strip()
+            repository_provider = input(f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer").strip()
             if repository_provider == "1" or repository_provider.lower() == "github" or repository_provider == "":
                 repository_provider = "github"
                 break
@@ -81,18 +81,24 @@ class ConfigurationProfile:
                 break
             else:
                 print("❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).")
-        workflow_name = input(f"Workflow name [{profile_name}]: ").strip()
+        workflow_name = input(f"Workflow name [{shared_config.get('workflow_name', profile_name)}]: ").strip()
         if number_of_profiles >= 1:
-            make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
-            if make_default == 'y':
-                default_profile = True
-                # Remove the default flag from any existing profiles
-                for section in config.sections():
-                    if 'default' in config[section]:
-                        if config[section]['default'].lower() == 'true':
-                            config[section]['default'] = 'False'
-            else:
-                default_profile = False
+            default_profile = self.determine_default_profile()
+            if default_profile is not None:
+                if default_profile == profile_name:
+                    print(f"Profile '{profile_name}' is already the default profile.")
+                    return
+                else:
+                    make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
+                    if make_default == 'y':
+                        default_profile = True
+                        # Remove the default flag from any existing profiles
+                        for section in config.sections():
+                            if 'default' in config[section]:
+                                if config[section]['default'].lower() == 'true':
+                                    config[section]['default'] = 'False'
+                    else:
+                        default_profile = False
         else:
             default_profile = True
 
