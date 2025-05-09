@@ -11,8 +11,7 @@ from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
 import pandas as pd
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
-from gitlab import Gitlab
-from gitlab import exceptions as GLError
+from gitlab import Gitlab, GitlabAuthenticationError
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -99,19 +98,22 @@ class ImportGitlab(WFImport):
          gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
          repo_name = parsed_url.path.split("/")[-1]
          project_with_namespace = parsed_url.path[1:]
-         gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
-         project = gl.projects.get(project_with_namespace)
-         attrs = project.attributes
-         ## required data
-         repo_id = attrs["id"]
-         repo_name = attrs["name"]
-         group_id = project.namespace["id"]
-         group_name = project.namespace["full_path"]
+         try:
+             gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+             project = gl.projects.get(project_with_namespace)
+             attrs = project.attributes
+             ## required data
+             repo_id = attrs["id"]
+             repo_name = attrs["name"]
+             group_id = project.namespace["id"]
+             group_name = project.namespace["full_path"]
 
-         self.payload["repository"]["repositoryId"] = repo_id
-         self.payload["repository"]["name"] = repo_name
-         self.payload["repository"]["owner"]["login"] = group_name
-         self.payload["repository"]["owner"]["id"] = group_id
+             self.payload["repository"]["repositoryId"] = repo_id
+             self.payload["repository"]["name"] = repo_name
+             self.payload["repository"]["owner"]["login"] = group_name
+             self.payload["repository"]["owner"]["id"] = group_id
+         except GitlabAuthenticationError:
+             raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
 
 
 
