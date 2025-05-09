@@ -10,6 +10,9 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
 import pandas as pd
 from abc import ABC, abstractmethod
+from urllib.parse import urlsplit
+from gitlab import Gitlab
+from gitlab import exceptions as GLError
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -18,8 +21,8 @@ JOB_ABORTED = 'aborted'
 
 
 class WFImport(ABC):
-    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform, workflow_name, workflow_url, workflow_docs_link="",
-                 verify=True):
+    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link="", verify=True):
         self.workflow_url = workflow_url
         self.headers = {
             "Content-type": "application/json",
@@ -89,6 +92,27 @@ class WFImport(ABC):
             raise BadRequestException(r)
         content = json.loads(r.content)
         return content['_id']
+
+class ImportGitlab(WFImport):
+     def fill_payload(self, gitlab_apikey):
+         parsed_url = urlsplit(self.workflow_url)
+         gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+         repo_name = parsed_url.path.split("/")[-1]
+         project_with_namespace = parsed_url.path[1:]
+         gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+         project = gl.projects.get(project_with_namespace)
+         attrs = project.attributes
+         ## required data
+         repo_id = attrs["id"]
+         repo_name = attrs["name"]
+         group_id = project.namespace["id"]
+         group_name = project.namespace["full_path"]
+
+         self.payload["repository"]["repositoryId"] = repo_id
+         self.payload["repository"]["name"] = repo_name
+         self.payload["repository"]["owner"]["login"] = group_name
+         self.payload["repository"]["owner"]["id"] = group_id
+
 
 
 @dataclass
