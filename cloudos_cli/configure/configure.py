@@ -58,59 +58,95 @@ class ConfigurationProfile:
 
         shared_config = dict({})
         # Check if the profile already exists
-        if profile_name in config.sections():
+        if profile_name in config.sections() and profile_name in credentials.sections():
             profile_data = self.load_profile(profile_name=profile_name)
-            shared_config['apikey'] = profile_data['apikey']
-            shared_config['cloudos_url'] = profile_data['cloudos_url']
-            shared_config['workspace_id'] = profile_data['workspace_id']
-            shared_config['project_name'] = profile_data['project_name']
-            shared_config['workflow_name'] = profile_data['workflow_name']
-            shared_config['repository_platform'] = profile_data['repository_platform']
-            shared_config['execution_platform'] = profile_data['execution_platform']
+            shared_config['apikey'] = profile_data.get('apikey', None)
+            shared_config['cloudos_url'] = profile_data.get('cloudos_url', None)
+            shared_config['workspace_id'] = profile_data.get('workspace_id', None)
+            shared_config['project_name'] = profile_data.get('project_name', None)
+            shared_config['workflow_name'] = profile_data.get('workflow_name', None)
+            shared_config['repository_platform'] = profile_data.get('repository_platform', None)
+            shared_config['execution_platform'] = profile_data.get('execution_platform', None)
             shared_config['profile'] = profile_name
             print(f"Profile '{profile_name}' already exists. You can update single parameters or all.")
 
-        print(f"Creating profile: {profile_name}")
+        if shared_config.get('profile', None) is not None:
+            print(f"Updating profile: {profile_name}")
+        else:
+            print(f"Creating new profile: {profile_name}")
 
         # Ask for user input
         ## API token
-        api_token = input(
-            f"API token [{'****' + shared_config['apikey'][-4:]}]: "
-        ).strip() if shared_config else input(f"API token [{profile_name}]: ").strip()
+        present_api_token = shared_config.get('apikey', None)
+        if present_api_token is not None:
+            # Mask the API token except for the last 4 characters, max 16 characters masked
+            masked_api_token = '*' * max(0, min(len(present_api_token) - 4, 16)) + present_api_token[-4:]
+            api_token = input(f"API token [{masked_api_token}]: ").strip()
+        else:
+            api_token = input(f"API token [{profile_name}]: ").strip()
         # If the user presses Enter, keep the existing value
-        api_token = shared_config.get('apikey', api_token) if api_token == "" else api_token
+        if api_token == "" and shared_config.get('apikey', None) is not None:
+            api_token = shared_config['apikey']
+        elif api_token == "":
+            api_token = None
+        else:
+            api_token = api_token
 
         ## Platform URL
         platform_url = input(f"Platform URL [{shared_config.get('cloudos_url', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
-        platform_url = shared_config.get('cloudos_url', platform_url) if platform_url == "" else platform_url
+        if platform_url == "" and shared_config.get('cloudos_url', None) is not None:
+            platform_url = shared_config['cloudos_url']
+        elif platform_url == "":
+            platform_url = None
+        else:
+            platform_url = platform_url
 
         ## Workspace ID
         platform_workspace_id = input(f"Platform workspace ID [{shared_config.get('workspace_id', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
-        platform_workspace_id = shared_config.get('workspace_id', platform_workspace_id) if platform_workspace_id == "" else platform_workspace_id
+        if platform_workspace_id == "" and shared_config.get('workspace_id', None) is not None:
+            platform_workspace_id = shared_config['workspace_id']
+        elif platform_workspace_id == "":
+            platform_workspace_id = None
+        else:
+            platform_workspace_id = platform_workspace_id
 
         ## Project name
         project_name = input(f"Project name [{shared_config.get('project_name', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
-        project_name = shared_config.get('project_name', project_name) if project_name == "" else project_name
+        if project_name == "" and shared_config.get('project_name', None) is not None:
+            project_name = shared_config['project_name']
+        elif project_name == "":
+            project_name = None
+        else:
+            project_name = project_name
 
         ## Execution platform
         while True:
-            platform_executor = input(f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n\t1. aws (default)\n\t2. azure ").strip()
-            if platform_executor == "1" or platform_executor.lower() == "aws" or platform_executor == "":
+            platform_executor = input(f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n\t1. aws (default)\n\t2. azure\n ").strip()
+            if platform_executor == "" and shared_config.get('execution_platform', None) is not None:
+                platform_executor = shared_config['execution_platform']
+                break
+            elif platform_executor == "1" or platform_executor.lower() == "aws":
                 platform_executor = "aws"
                 break
             elif platform_executor == "2" or platform_executor.lower() == "azure":
                 platform_executor = "azure"
+                break
+            elif platform_executor == "":
+                platform_executor = "aws"
                 break
             else:
                 print("❌ Invalid choice. Please select either 1 (aws) or 2 (azure).")
 
         ## Repository provider
         while True:
-            repository_provider = input(f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer").strip()
-            if repository_provider == "1" or repository_provider.lower() == "github" or repository_provider == "":
+            repository_provider = input(f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer\n").strip()
+            if repository_provider == "" and shared_config.get('repository_platform', None) is not None:
+                repository_provider = shared_config['repository_platform']
+                break
+            elif repository_provider == "1" or repository_provider.lower() == "github":
                 repository_provider = "github"
                 break
             elif repository_provider == "2" or repository_provider.lower() == "gitlab":
@@ -119,13 +155,21 @@ class ConfigurationProfile:
             elif repository_provider == "3" or repository_provider.lower() == "bitbucketserver":
                 repository_provider = "bitbucketServer"
                 break
+            elif repository_provider == "":
+                repository_provider = "github"
+                break
             else:
                 print("❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).")
 
         ## Workflow name
         workflow_name = input(f"Workflow name [{shared_config.get('workflow_name', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
-        workflow_name = shared_config.get('workflow_name', workflow_name) if workflow_name == "" else workflow_name
+        if workflow_name == "" and shared_config.get('workflow_name', None) is not None:
+            workflow_name = shared_config['workflow_name']
+        elif workflow_name == "":
+            workflow_name = None
+        else:
+            workflow_name = workflow_name
 
         # Make the profile the default if it is the first one
         if number_of_profiles >= 1:
@@ -133,7 +177,7 @@ class ConfigurationProfile:
             if default_profile is not None:
                 if default_profile == profile_name:
                     print(f"Profile '{profile_name}' is already the default profile.")
-                    return
+                    default_profile = True
                 else:
                     make_default = input(f"Make this profile the default? (y/n) [{profile_name}]: ").strip().lower()
                     if make_default == 'y':
@@ -149,27 +193,38 @@ class ConfigurationProfile:
             default_profile = True
 
         # Save API token into credentials file
-        credentials[profile_name] = {
-            'apikey': api_token
-        }
+        credentials[profile_name] = {}
+        if api_token is not None:
+            credentials[profile_name]['apikey'] = api_token
         with open(self.credentials_file, 'w') as cred_file:
             credentials.write(cred_file)
 
         # Save other settings into config file
-        config[profile_name] = {
-            'cloudos_url': platform_url,
-            'workspace_id': platform_workspace_id,
-            'project_name': project_name,
-            'execution_platform': platform_executor,
-            'repository_platform': repository_provider,
-            'workflow_name': workflow_name,
-            'default': default_profile
-        }
+        config[profile_name] = {}
+        if platform_url is not None:
+            config[profile_name]['cloudos_url'] = platform_url
+        if platform_workspace_id is not None:
+            config[profile_name]['workspace_id'] = platform_workspace_id
+        if project_name is not None:
+            config[profile_name]['project_name'] = project_name
+        if platform_executor is not None:
+            config[profile_name]['execution_platform'] = platform_executor
+        if repository_provider is not None:
+            config[profile_name]['repository_platform'] = repository_provider
+        if workflow_name is not None:
+            config[profile_name]['workflow_name'] = workflow_name
+        if default_profile is not None:
+            config[profile_name]['default'] = str(default_profile)
 
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
 
-        print(f"\n✅ Profile '{profile_name}' created successfully!")
+        # if the profile existed, print message as updated
+        if shared_config.get('profile', None) is not None:
+            print(f"\n✅ Profile '{profile_name}' updated successfully!")
+        else:
+            # if the profile was created, print message as created
+            print(f"\n✅ Profile '{profile_name}' created successfully!")
 
 
     def list_profiles(self):

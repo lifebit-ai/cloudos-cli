@@ -110,13 +110,13 @@ def run_cloudos_cli(ctx):
     else:
         profile_data = config_manager.load_profile(profile_name=profile_to_use)
         shared_config = dict({
-            'apikey': profile_data['apikey'],
-            'cloudos_url': profile_data['cloudos_url'],
-            'workspace_id': profile_data['workspace_id'],
-            'project_name': profile_data['project_name'],
-            'workflow_name': profile_data['workflow_name'],
-            'repository_platform': profile_data['repository_platform'],
-            'execution_platform': profile_data['execution_platform'],
+            'apikey': profile_data.get('apikey', ""),
+            'cloudos_url': profile_data.get('cloudos_url', ""),
+            'workspace_id': profile_data.get('workspace_id', ""),
+            'project_name': profile_data.get('project_name', ""),
+            'workflow_name': profile_data.get('workflow_name', ""),
+            'repository_platform': profile_data.get('repository_platform', ""),
+            'execution_platform': profile_data.get('execution_platform', ""),
             'profile': profile_to_use
         })
         ctx.default_map = dict({
@@ -143,7 +143,7 @@ def run_cloudos_cli(ctx):
                 'list': shared_config
             }
         })
-
+        print("cloudos_url: " + shared_config['cloudos_url'])
 
 @run_cloudos_cli.group()
 def job():
@@ -196,9 +196,13 @@ def configure(ctx, profile, make_default):
         config_manager.make_default_profile(profile_name=profile)
 
 
-def get_param_value(ctx, param_value, param_name, default_value):
+def get_param_value(ctx, param_value, param_name, default_value, required=True):
     source = ctx.get_parameter_source(param_name)
-    return default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
+    print(f"Source for {param_name}: {param_value}")
+    result = default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
+    if required and result == "":
+        raise click.UsageError(f"Missing required options: {click.style('--'+param_name, fg='cyan', bold=True)}")
+    return result
 
 
 @job.command('run')
@@ -208,9 +212,8 @@ def get_param_value(ctx, param_value, param_name, default_value):
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=('The CloudOS url you are trying to access to.'),
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -387,17 +390,19 @@ def run(ctx,
         profile):
     """Submit a job to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
+
     # load profile data, only when profile is not 'init'
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'], required=True).rstrip('/')
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True)
         repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True)
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
