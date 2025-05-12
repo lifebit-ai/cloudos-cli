@@ -27,6 +27,7 @@ AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
+CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -196,9 +197,8 @@ def configure(ctx, profile, make_default):
         config_manager.make_default_profile(profile_name=profile)
 
 
-def get_param_value(ctx, param_value, param_name, default_value, required=True):
+def get_param_value(ctx, param_value, param_name, default_value, required=False):
     source = ctx.get_parameter_source(param_name)
-    print(f"Source for {param_name}: {param_value}")
     result = default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
     if required and result == "":
         raise click.UsageError(f"Missing required options: {click.style('--'+param_name, fg='cyan', bold=True)}")
@@ -212,8 +212,8 @@ def get_param_value(ctx, param_value, param_name, default_value, required=True):
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to.'),
-              required=True)
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -396,13 +396,14 @@ def run(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'], required=True).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
         workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True)
         repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
@@ -627,9 +628,8 @@ def run(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -744,11 +744,11 @@ def run_curated_examples(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
-
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -856,9 +856,8 @@ def run_curated_examples(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -888,8 +887,8 @@ def job_status(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
-
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+    cloudos_url = cloudos_url.rstrip('/')
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -914,9 +913,8 @@ def job_status(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -978,9 +976,9 @@ def list_jobs(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-
+    cloudos_url = cloudos_url.rstrip('/')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1028,9 +1026,8 @@ def list_jobs(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1066,8 +1063,9 @@ def abort_jobs(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
@@ -1107,9 +1105,8 @@ def abort_jobs(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1160,8 +1157,9 @@ def list_workflows(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1198,9 +1196,8 @@ def list_workflows(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1249,9 +1246,10 @@ def import_workflows(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
         workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+    cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
@@ -1275,9 +1273,8 @@ def import_workflows(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1329,8 +1326,9 @@ def list_projects(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1381,9 +1379,8 @@ def list_projects(ctx,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1396,15 +1393,28 @@ def list_projects(ctx,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_status(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_status(ctx,
+                    apikey,
                     cromwell_token,
                     cloudos_url,
                     workspace_id,
                     verbose,
                     disable_ssl_verification,
-                    ssl_cert):
+                    ssl_cert,
+                    profile):
     """Check Cromwell server status in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
@@ -1432,9 +1442,8 @@ def cromwell_status(apikey,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1451,16 +1460,29 @@ def cromwell_status(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_restart(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_restart(ctx,
+                     apikey,
                      cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
                      verbose,
                      disable_ssl_verification,
-                     ssl_cert):
+                     ssl_cert,
+                     profile):
     """Restart Cromwell server in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1510,9 +1532,8 @@ def cromwell_restart(apikey,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1525,15 +1546,28 @@ def cromwell_restart(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_stop(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_stop(ctx,
+                  apikey,
                   cromwell_token,
                   cloudos_url,
                   workspace_id,
                   verbose,
                   disable_ssl_verification,
-                  ssl_cert):
+                  ssl_cert,
+                  profile):
     """Stop Cromwell server in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    if profile != 'init':
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1559,9 +1593,8 @@ def cromwell_stop(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1604,8 +1637,9 @@ def list_queues(ctx,
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
-        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']).rstrip('/')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+    cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format

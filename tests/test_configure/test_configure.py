@@ -56,8 +56,8 @@ def test_create_profile_keep_existing_values(mock_input):
     config = configparser.ConfigParser()
     config.read(os.path.join(CONFIG_DIR, "config"))
     assert config['user_input_profile']['cloudos_url'] == CLOUDOS_URL
-    assert config['user_input_profile']['execution_platform'] == "aws"
-    assert config['user_input_profile']['repository_platform'] == "github"
+    assert config['user_input_profile']['execution_platform'] == "azure"
+    assert config['user_input_profile']['repository_platform'] == "gitlab"
 
 
 def test_make_default_profile():
