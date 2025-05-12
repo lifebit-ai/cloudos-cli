@@ -144,7 +144,7 @@ def run_cloudos_cli(ctx):
                 'list': shared_config
             }
         })
-        print("cloudos_url: " + shared_config['cloudos_url'])
+
 
 @run_cloudos_cli.group()
 def job():
