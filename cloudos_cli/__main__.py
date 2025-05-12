@@ -188,7 +188,7 @@ def configure(ctx, profile, make_default):
     profile = profile or ctx.obj['profile']
     config_manager = ConfigurationProfile()
 
-    if ctx.invoked_subcommand is None and profile == "default":
+    if ctx.invoked_subcommand is None and profile == "default" and not make_default:
         config_manager.create_profile_from_input(profile_name="default")
 
     if profile != "default" and not make_default:
@@ -743,12 +743,13 @@ def run_curated_examples(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -886,9 +887,10 @@ def job_status(ctx,
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
     cloudos_url = cloudos_url.rstrip('/')
+
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -975,10 +977,11 @@ def list_jobs(ctx,
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1062,9 +1065,9 @@ def abort_jobs(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1156,9 +1159,9 @@ def list_workflows(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1245,10 +1248,10 @@ def import_workflows(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
-        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1325,9 +1328,9 @@ def list_projects(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1636,9 +1639,9 @@ def list_queues(ctx,
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'])
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'])
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
     cloudos_url = cloudos_url.rstrip('/')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
