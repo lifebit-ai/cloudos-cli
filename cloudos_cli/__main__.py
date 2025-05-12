@@ -405,7 +405,11 @@ def run(ctx,
         repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id', '--workflow-name', '--project-name'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -757,7 +761,11 @@ def run_curated_examples(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id', '--project-name'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -904,7 +912,11 @@ def job_status(ctx,
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.append('--apikey')
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1001,7 +1013,11 @@ def list_jobs(ctx,
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1095,7 +1111,11 @@ def abort_jobs(ctx,
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1195,7 +1215,11 @@ def list_workflows(ctx,
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1291,7 +1315,11 @@ def import_workflows(ctx,
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
         workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id', '--workflow-name'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1376,7 +1404,11 @@ def list_projects(ctx,
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1466,7 +1498,11 @@ def cromwell_status(ctx,
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.append('--workspace-id')
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1539,7 +1575,11 @@ def cromwell_restart(ctx,
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.append('--workspace-id')
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1629,7 +1669,11 @@ def cromwell_stop(ctx,
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.append('--workspace-id')
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
@@ -1708,7 +1752,11 @@ def list_queues(ctx,
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        missing.extend(['--apikey', '--workspace-id'])
     cloudos_url = cloudos_url.rstrip('/')
+
     # Raise once, after all checks
     if missing:
         formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
