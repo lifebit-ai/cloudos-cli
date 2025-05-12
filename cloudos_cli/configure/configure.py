@@ -300,6 +300,11 @@ class ConfigurationProfile:
             print(f"No profile found with the name '{profile_name}'.")
             return
 
+        # Check if the profile is already default
+        if config[profile_name].getboolean('default', fallback=False):
+            print(f"Profile '{profile_name}' is already the default profile.")
+            return
+
         # Remove the default flag from any existing profiles
         for section in config.sections():
             if 'default' in config[section]:
