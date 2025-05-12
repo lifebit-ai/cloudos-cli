@@ -197,11 +197,13 @@ def configure(ctx, profile, make_default):
         config_manager.make_default_profile(profile_name=profile)
 
 
-def get_param_value(ctx, param_value, param_name, default_value, required=False):
+def get_param_value(ctx, param_value, param_name, default_value, required=False, missing_required_params=None):
     source = ctx.get_parameter_source(param_name)
     result = default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
+
     if required and result == "":
-        raise click.UsageError(f"Missing required options: {click.style('--'+param_name, fg='cyan', bold=True)}")
+        if missing_required_params is not None:
+            missing_required_params.append('--' + param_name)
     return result
 
 
@@ -391,18 +393,23 @@ def run(ctx,
     """Submit a job to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
 
+    missing = []
     # load profile data, only when profile is not 'init'
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
-        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
         repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True)
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
@@ -739,16 +746,22 @@ def run_curated_examples(ctx,
     NOTE that currently, only Nextflow workflows are supported.
     """
     profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
         execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True)
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
@@ -883,13 +896,19 @@ def job_status(ctx,
                profile):
     """Check job status in CloudOS."""
     profile = profile or ctx.default_map['job']['status']['profile']
+
+    missing = []
     # load profile data
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -973,14 +992,20 @@ def list_jobs(ctx,
               profile):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['job']['list']['profile']
+
+    missing = []
     # load profile data
     if profile != 'init':
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1061,14 +1086,20 @@ def abort_jobs(ctx,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
     profile = profile or ctx.default_map['job']['abort']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
@@ -1155,14 +1186,20 @@ def list_workflows(ctx,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['workflow']['list']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1244,15 +1281,21 @@ def import_workflows(ctx,
                      profile):
     """Imports workflows to CloudOS."""
     profile = profile or ctx.default_map['workflow']['import']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
-        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
@@ -1324,14 +1367,20 @@ def list_projects(ctx,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['project']['list']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1410,13 +1459,18 @@ def cromwell_status(ctx,
     """Check Cromwell server status in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -1478,13 +1532,18 @@ def cromwell_restart(ctx,
     """Restart Cromwell server in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -1563,13 +1622,18 @@ def cromwell_stop(ctx,
     """Stop Cromwell server in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -1635,14 +1699,20 @@ def list_queues(ctx,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
     profile = profile or ctx.default_map['queue']['list']['profile']
+
+    missing = []
     if profile != 'init':
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
-        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True)
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
