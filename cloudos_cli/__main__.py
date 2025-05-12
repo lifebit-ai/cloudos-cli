@@ -28,6 +28,7 @@ AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
 CLOUDOS_URL = 'https://cloudos.lifebit.ai'
+INIT_PROFILE = 'initialisingProfile'
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -75,14 +76,14 @@ def run_cloudos_cli(ctx):
     if profile_to_use is None:
         print('[Warning] No profile found. Please create one with "cloudos configure".\n')
         shared_config = dict({
-            'apikey': 'init',
-            'cloudos_url': 'init',
-            'workspace_id': 'init',
-            'project_name': 'init',
-            'workflow_name': 'init',
+            'apikey': '',
+            'cloudos_url': CLOUDOS_URL,
+            'workspace_id': '',
+            'project_name': '',
+            'workflow_name': '',
             'repository_platform': 'github',
             'execution_platform': 'aws',
-            'profile': 'init'
+            'profile': INIT_PROFILE
         })
         ctx.default_map = dict({
             'job': {
@@ -92,7 +93,7 @@ def run_cloudos_cli(ctx):
                 'status': shared_config,
                 'list': shared_config,
             },
-            'workflow': { 
+            'workflow': {
                 'list': shared_config,
                 'import': shared_config
             },
@@ -394,8 +395,9 @@ def run(ctx,
     profile = profile or ctx.default_map['job']['run']['profile']
 
     missing = []
-    # load profile data, only when profile is not 'init'
-    if profile != 'init':
+    # load profile data, only when profile is not 'initialisingProfile'
+    if profile != INIT_PROFILE:
+        # means that the user is using a profile
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
@@ -407,12 +409,18 @@ def run(ctx,
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id', '--workflow-name', '--project-name'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', repository_platform)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+        project_name = get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -752,7 +760,7 @@ def run_curated_examples(ctx,
     profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -763,12 +771,16 @@ def run_curated_examples(ctx,
         project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id', '--project-name'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+        project_name = get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -907,19 +919,20 @@ def job_status(ctx,
 
     missing = []
     # load profile data
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
         cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.append('--apikey')
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     print('Executing status...')
@@ -1007,7 +1020,7 @@ def list_jobs(ctx,
 
     missing = []
     # load profile data
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
         apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
@@ -1015,12 +1028,14 @@ def list_jobs(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1104,7 +1119,7 @@ def abort_jobs(ctx,
     profile = profile or ctx.default_map['job']['abort']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1113,12 +1128,14 @@ def abort_jobs(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1208,7 +1225,7 @@ def list_workflows(ctx,
     profile = profile or ctx.default_map['workflow']['list']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1217,12 +1234,14 @@ def list_workflows(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1307,7 +1326,7 @@ def import_workflows(ctx,
     profile = profile or ctx.default_map['workflow']['import']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1317,12 +1336,15 @@ def import_workflows(ctx,
         workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id', '--workflow-name'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1397,7 +1419,7 @@ def list_projects(ctx,
     profile = profile or ctx.default_map['project']['list']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1406,12 +1428,14 @@ def list_projects(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1492,7 +1516,7 @@ def cromwell_status(ctx,
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1500,12 +1524,13 @@ def cromwell_status(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.append('--workspace-id')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
@@ -1569,7 +1594,7 @@ def cromwell_restart(ctx,
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1577,12 +1602,13 @@ def cromwell_restart(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.append('--workspace-id')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
@@ -1663,7 +1689,7 @@ def cromwell_stop(ctx,
     profile = profile or ctx.default_map['cromwell']['status']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1671,12 +1697,13 @@ def cromwell_stop(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.append('--workspace-id')
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     if apikey is None and cromwell_token is None:
@@ -1745,7 +1772,7 @@ def list_queues(ctx,
     profile = profile or ctx.default_map['queue']['list']['profile']
 
     missing = []
-    if profile != 'init':
+    if profile != INIT_PROFILE:
         # load profile data
         config_manager = ConfigurationProfile()
         profile_data = config_manager.load_profile(profile_name=profile)
@@ -1754,12 +1781,14 @@ def list_queues(ctx,
         workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
     else:
         # when no profile is used, we need to check if the user provided all required parameters
-        missing.extend(['--apikey', '--workspace-id'])
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
 
     # Raise once, after all checks
     if missing:
-        formatted = ', '.join(click.style(p, fg='cyan', bold=True) for p in missing)
+        formatted = ', '.join(p for p in missing)
         raise click.UsageError(f"Missing required option/s: {formatted}")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
