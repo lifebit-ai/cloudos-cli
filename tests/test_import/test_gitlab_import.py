@@ -1,15 +1,18 @@
 import pytest
 from gitlab import GitlabAuthenticationError
-
+from os import environ
 from cloudos_cli.clos import ImportGitlab
-from cloudos_cli.clos import ImportGitlab
+import pytest
 
-CLOUDOS_URL = "http://cloudos.lifebit.ai"
-WF_URL_BASEGROUP = "https://gitlab.com/lb-ortiz/spammer-nf"
-WF_URL_SUBGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/spammer-nf"
-WF_URL_NESTEDGROUP = (
-    "https://gitlab.com/lb-ortiz/sample_subgroup/nested-subgroup/spammer-nf"
-)
+
+CLOUDOS_URL = environ["CLOUDOS_URL"]
+CLOUDOS_TOKEN = environ["CLOUDOS_TOKEN"]
+WORKSPACE_ID = environ["WORKSPACE_ID"]
+GITLAB_TOKEN = environ["GITLAB_TOKEN"]
+GITLAB_BAD_TOKEN = environ["GITLAB_BAD_TOKEN"]
+WF_URL_BASEGROUP = environ["WF_URL_BASEGROUP"]
+WF_URL_SUBGROUP = environ["WF_URL_SUBGROUP"]
+WF_URL_NESTEDGROUP = environ["WF_URL_NESTEDGROUP"]
 repo_name = "spammer-nf"
 repo_expected_data = [
     [WF_URL_BASEGROUP, (69676121, repo_name, 89592167, "lb-ortiz")],
@@ -48,3 +51,9 @@ def test_failed_login(repo_url=repo_expected_data[0][0], args=repo_expected_data
         assert GitlabImport.payload["repository"]["owner"]["id"] == ex_group_id
         assert GitlabImport.payload["repository"]["owner"]["login"] == ex_group_name
     assert "Could not login to Gitlab. Check Gitlab URL and Gitlab API key" in str(excinfo.value)
+
+def test_full_import():
+    GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
+                                platform="gitlab", workflow_url=WF_URL_BASEGROUP, workflow_name=repo_name)
+    GitlabImport.fill_payload(gitlab_apikey=GITLAB_TOKEN)
+    GitlabImport.import_workflow()

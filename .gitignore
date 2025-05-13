@@ -149,3 +149,4 @@ __pycache__
 **/.DS_Store
 **/._.DS_Store
 .idea
+tests/.env

@@ -71,10 +71,10 @@ class WFImport(ABC):
         for required_key in ["repositoryId", "name", ("owner", "login"), ("owner", "id")]:
             if isinstance(required_key, tuple):
                 key1, key2 = required_key
-                value = self.payload[key1][key2]
+                value = self.payload["repository"][key1][key2]
                 str_value = f"self.payload['repository']['{key1}']['{key2}']"
             else:
-                value = self.payload[required_key]
+                value = self.payload["repository"][required_key]
                 str_value = f"self.payload['repository']['{required_key}']"
             if value is None:
                 raise ValueError("The payload dictionary does not have the required data. " +
@@ -90,6 +90,8 @@ class WFImport(ABC):
         elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
+        self.import_obj = content
+        print(f"Status: {r.status_code}")
         return content['_id']
 
 class ImportGitlab(WFImport):
