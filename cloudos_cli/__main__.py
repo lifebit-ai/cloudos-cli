@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import rich_click as click
-from pygments.lexer import default
-
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos, ImportGitlab
 from cloudos_cli.queue.queue import Queue
@@ -13,6 +11,8 @@ import os
 import urllib3
 from ._version import __version__
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from cloudos_cli.configure.configure import ConfigurationProfile
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -27,6 +27,8 @@ AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
+CLOUDOS_URL = 'https://cloudos.lifebit.ai'
+INIT_PROFILE = 'initialisingProfile'
 
 
 def ssl_selector(disable_ssl_verification, ssl_cert):
@@ -63,10 +65,86 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
 
 @click.group()
 @click.version_option(__version__)
-def run_cloudos_cli():
+@click.pass_context
+def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     print(run_cloudos_cli.__doc__ + '\n')
     print('Version: ' + __version__ + '\n')
+    ctx.ensure_object(dict)
+    config_manager = ConfigurationProfile()
+    profile_to_use = config_manager.determine_default_profile()
+    if profile_to_use is None:
+        print('[Warning] No profile found. Please create one with "cloudos configure".\n')
+        shared_config = dict({
+            'apikey': '',
+            'cloudos_url': CLOUDOS_URL,
+            'workspace_id': '',
+            'project_name': '',
+            'workflow_name': '',
+            'repository_platform': 'github',
+            'execution_platform': 'aws',
+            'profile': INIT_PROFILE
+        })
+        ctx.default_map = dict({
+            'job': {
+                'run': shared_config,
+                'run-curated-examples': shared_config,
+                'abort': shared_config,
+                'status': shared_config,
+                'list': shared_config,
+            },
+            'workflow': {
+                'list': shared_config,
+                'import': shared_config
+            },
+            'project': {
+                'list': shared_config
+            },
+            'cromwell': {
+                'status': shared_config,
+                'start': shared_config,
+                'stop': shared_config
+            },
+            'queue': {
+                'list': shared_config
+            }
+        })
+    else:
+        profile_data = config_manager.load_profile(profile_name=profile_to_use)
+        shared_config = dict({
+            'apikey': profile_data.get('apikey', ""),
+            'cloudos_url': profile_data.get('cloudos_url', ""),
+            'workspace_id': profile_data.get('workspace_id', ""),
+            'project_name': profile_data.get('project_name', ""),
+            'workflow_name': profile_data.get('workflow_name', ""),
+            'repository_platform': profile_data.get('repository_platform', ""),
+            'execution_platform': profile_data.get('execution_platform', ""),
+            'profile': profile_to_use
+        })
+        ctx.default_map = dict({
+            'job': {
+                'run': shared_config,
+                'run-curated-examples': shared_config,
+                'abort': shared_config,
+                'status': shared_config,
+                'list': shared_config,
+            },
+            'workflow': {
+                'list': shared_config,
+                'import': shared_config
+            },
+            'project': {
+                'list': shared_config
+            },
+            'cromwell': {
+                'status': shared_config,
+                'start': shared_config,
+                'stop': shared_config
+            },
+            'queue': {
+                'list': shared_config
+            }
+        })
 
 
 @run_cloudos_cli.group()
@@ -97,6 +175,37 @@ def cromwell():
 def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
+
+
+@run_cloudos_cli.group(invoke_without_command=True)
+@click.option('--profile', help='Profile to use from the config file', default='default')
+@click.option('--make-default',
+              is_flag=True,
+              help='Make the profile the default one.')
+@click.pass_context
+def configure(ctx, profile, make_default):
+    """CloudOS configuration."""
+    print(configure.__doc__ + '\n')
+    profile = profile or ctx.obj['profile']
+    config_manager = ConfigurationProfile()
+
+    if ctx.invoked_subcommand is None and profile == "default" and not make_default:
+        config_manager.create_profile_from_input(profile_name="default")
+
+    if profile != "default" and not make_default:
+        config_manager.create_profile_from_input(profile_name=profile)
+    if make_default:
+        config_manager.make_default_profile(profile_name=profile)
+
+
+def get_param_value(ctx, param_value, param_name, default_value, required=False, missing_required_params=None):
+    source = ctx.get_parameter_source(param_name)
+    result = default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
+
+    if required and result == "":
+        if missing_required_params is not None:
+            missing_required_params.append('--' + param_name)
+    return result
 
 
 # This is put here to avoid changing current code.
@@ -158,9 +267,8 @@ def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -250,9 +358,9 @@ def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url
                     'Default=3600.'),
               default=3600)
 @click.option('--wdl-mainfile',
-              help='For WDL workflows, which mainFile (.wdl) is configured to use.', )
+              help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
 @click.option('--wdl-importsfile',
-              help='For WDL workflows, which importsFile (.zip) is configured to use.', )
+              help='For WDL workflows, which importsFile (.zip) is configured to use.',)
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
@@ -294,7 +402,10 @@ def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def run(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def run(ctx,
+        apikey,
         cloudos_url,
         workspace_id,
         project_name,
@@ -330,9 +441,40 @@ def run(apikey,
         verbose,
         request_interval,
         disable_ssl_verification,
-        ssl_cert):
+        ssl_cert,
+        profile):
     """Submit a job to CloudOS."""
+    profile = profile or ctx.default_map['job']['run']['profile']
+
+    missing = []
+    # load profile data, only when profile is not 'initialisingProfile'
+    if profile != INIT_PROFILE:
+        # means that the user is using a profile
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', repository_platform)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+        project_name = get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if spot:
         print('[Message] You have specified spot instances but they are no longer available ' +
@@ -477,23 +619,19 @@ def run(apikey,
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             nextflow_version = HPC_NEXTFLOW_LATEST
-        print(
-            f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
-            f'latest version available on CloudOS: {nextflow_version}.')
+        print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
+              f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print(
-                f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
+            print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print(
-                f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
+            print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print(
-                f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
@@ -561,9 +699,8 @@ def run(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -642,7 +779,10 @@ def run(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def run_curated_examples(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def run_curated_examples(ctx,
+                         apikey,
                          cloudos_url,
                          workspace_id,
                          project_name,
@@ -663,12 +803,38 @@ def run_curated_examples(apikey,
                          request_interval,
                          verbose,
                          disable_ssl_verification,
-                         ssl_cert):
+                         ssl_cert,
+                         profile):
     """Run all the curated workflows with example parameters.
 
     NOTE that currently, only Nextflow workflows are supported.
     """
+    profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+        project_name = get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     cl = Cloudos(cloudos_url, apikey, None)
     curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
@@ -776,9 +942,8 @@ def run_curated_examples(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -791,14 +956,37 @@ def run_curated_examples(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def job_status(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_status(ctx,
+               apikey,
                cloudos_url,
                job_id,
                verbose,
                disable_ssl_verification,
-               ssl_cert):
+               ssl_cert,
+               profile):
     """Check job status in CloudOS."""
+    profile = profile or ctx.default_map['job']['status']['profile']
+
+    missing = []
+    # load profile data
+    if profile != INIT_PROFILE:
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -823,9 +1011,8 @@ def job_status(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -864,7 +1051,10 @@ def job_status(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def list_jobs(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_jobs(ctx,
+              apikey,
               cloudos_url,
               workspace_id,
               output_basename,
@@ -875,9 +1065,31 @@ def list_jobs(apikey,
               archived,
               verbose,
               disable_ssl_verification,
-              ssl_cert):
+              ssl_cert,
+              profile):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
+    profile = profile or ctx.default_map['job']['list']['profile']
+
+    missing = []
+    # load profile data
+    if profile != INIT_PROFILE:
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -902,11 +1114,9 @@ def list_jobs(apikey,
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print(
-                '\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
+            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
         else:
-            print(
-                '\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
+            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
@@ -927,9 +1137,8 @@ def list_jobs(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -947,15 +1156,40 @@ def list_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def abort_jobs(apikey,
-              cloudos_url,
-              workspace_id,
-              job_ids,
-              verbose,
-              disable_ssl_verification,
-              ssl_cert):
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def abort_jobs(ctx,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               job_ids,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
     """Abort all specified jobs from a CloudOS workspace."""
+    profile = profile or ctx.default_map['job']['abort']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
     if verbose:
@@ -994,9 +1228,8 @@ def abort_jobs(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1026,7 +1259,10 @@ def abort_jobs(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def list_workflows(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_workflows(ctx,
+                   apikey,
                    cloudos_url,
                    workspace_id,
                    output_basename,
@@ -1035,9 +1271,31 @@ def list_workflows(apikey,
                    curated,
                    verbose,
                    disable_ssl_verification,
-                   ssl_cert):
+                   ssl_cert,
+                   profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    profile = profile or ctx.default_map['workflow']['list']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1073,9 +1331,8 @@ def list_workflows(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1103,7 +1360,10 @@ def list_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def import_workflows(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def import_workflows(ctx,
+                     apikey,
                      cloudos_url,
                      workspace_id,
                      workflow_url,
@@ -1112,9 +1372,33 @@ def import_workflows(apikey,
                      workflow_docs_link,
                      repository_id,
                      disable_ssl_verification,
-                     ssl_cert):
+                     ssl_cert,
+                     profile):
     """Imports workflows to CloudOS."""
+    profile = profile or ctx.default_map['workflow']['import']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing workflow import...\n')
     print('\t[Message] Only Nextflow workflows are currently supported.\n')
@@ -1137,9 +1421,8 @@ def import_workflows(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1170,7 +1453,10 @@ def import_workflows(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def list_projects(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_projects(ctx,
+                  apikey,
                   cloudos_url,
                   workspace_id,
                   output_basename,
@@ -1179,9 +1465,31 @@ def list_projects(apikey,
                   page,
                   verbose,
                   disable_ssl_verification,
-                  ssl_cert):
+                  ssl_cert,
+                  profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
+    profile = profile or ctx.default_map['project']['list']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1204,11 +1512,9 @@ def list_projects(apikey,
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print(
-                '\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
         else:
-            print(
-                '\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
     elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
@@ -1233,9 +1539,8 @@ def list_projects(apikey,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1248,15 +1553,38 @@ def list_projects(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_status(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_status(ctx,
+                    apikey,
                     cromwell_token,
                     cloudos_url,
                     workspace_id,
                     verbose,
                     disable_ssl_verification,
-                    ssl_cert):
+                    ssl_cert,
+                    profile):
     """Check Cromwell server status in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     print('Executing status...')
@@ -1284,9 +1612,8 @@ def cromwell_status(apikey,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1303,16 +1630,39 @@ def cromwell_status(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_restart(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_restart(ctx,
+                     apikey,
                      cromwell_token,
                      cloudos_url,
                      workspace_id,
                      wait_time,
                      verbose,
                      disable_ssl_verification,
-                     ssl_cert):
+                     ssl_cert,
+                     profile):
     """Restart Cromwell server in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1362,9 +1712,8 @@ def cromwell_restart(apikey,
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1377,15 +1726,38 @@ def cromwell_restart(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def cromwell_stop(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def cromwell_stop(ctx,
+                  apikey,
                   cromwell_token,
                   cloudos_url,
                   workspace_id,
                   verbose,
                   disable_ssl_verification,
-                  ssl_cert):
+                  ssl_cert,
+                  profile):
     """Stop Cromwell server in CloudOS."""
+    profile = profile or ctx.default_map['cromwell']['status']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1411,9 +1783,8 @@ def cromwell_stop(apikey,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1437,16 +1808,41 @@ def cromwell_stop(apikey,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def list_queues(apikey,
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_queues(ctx,
+                apikey,
                 cloudos_url,
                 workspace_id,
                 output_basename,
                 output_format,
                 all_fields,
                 disable_ssl_verification,
-                ssl_cert):
+                ssl_cert,
+                profile):
     """Collect all available job queues from a CloudOS workspace."""
+    profile = profile or ctx.default_map['queue']['list']['profile']
+
+    missing = []
+    if profile != INIT_PROFILE:
+        # load profile data
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
     cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
     print('Executing list...')
@@ -1465,6 +1861,23 @@ def list_queues(apikey,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tJob queue list saved to {outfile}')
+
+
+@configure.command('list-profiles')
+def list_profiles():
+    config_manager = ConfigurationProfile()
+    config_manager.list_profiles()
+
+
+@configure.command('remove-profile')
+@click.option('--profile',
+              help='Name of the profile. Not using this option will lead to profile named "deafults" being generated',
+              required=True)
+@click.pass_context
+def remove_profile(ctx, profile):
+    profile = profile or ctx.obj['profile']
+    config_manager = ConfigurationProfile()
+    config_manager.remove_profile(profile)
 
 
 if __name__ == "__main__":
