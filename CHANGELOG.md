@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.21.0 (2025-05-13)
+
+### Feat
+
+- Adds ability to configure profiles for all commands
+
 ## v2.20.0 (2025-04-25)
 
 ### Feat
