@@ -90,30 +90,32 @@ class WFImport(ABC):
         elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
-        self.import_obj = content
-        print(f"Status: {r.status_code}")
-        return content['_id']
+        wf_id = None
+        for wf in content:
+            if "repository" in wf and "url" in wf["repository"] and wf["repository"]["url"] == self.workflow_url:
+                wf_id = wf["_id"]
+        return wf_id
 
 class ImportGitlab(WFImport):
      def fill_payload(self, gitlab_apikey):
          parsed_url = urlsplit(self.workflow_url)
          gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-         repo_name = parsed_url.path.split("/")[-1]
          project_with_namespace = parsed_url.path[1:]
          try:
              gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+             gl.auth()
+             user_id = gl.user.id
              project = gl.projects.get(project_with_namespace)
              attrs = project.attributes
              ## required data
              repo_id = attrs["id"]
              repo_name = attrs["name"]
-             group_id = project.namespace["id"]
-             group_name = project.namespace["full_path"]
+             group_name = attrs["namespace"]["full_path"]
 
              self.payload["repository"]["repositoryId"] = repo_id
              self.payload["repository"]["name"] = repo_name
              self.payload["repository"]["owner"]["login"] = group_name
-             self.payload["repository"]["owner"]["id"] = group_id
+             self.payload["repository"]["owner"]["id"] = user_id
          except GitlabAuthenticationError:
              raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
 
