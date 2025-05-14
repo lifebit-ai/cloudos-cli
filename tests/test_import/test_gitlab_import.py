@@ -13,7 +13,7 @@ GITLAB_BAD_TOKEN = environ["GITLAB_BAD_TOKEN"]
 WF_URL_BASEGROUP = environ["WF_URL_BASEGROUP"]
 WF_URL_SUBGROUP = environ["WF_URL_SUBGROUP"]
 WF_URL_NESTEDGROUP = environ["WF_URL_NESTEDGROUP"]
-REPO_NAME = "new-spammer-nf"
+REPO_NAME = "from-gitlab-spammer-nf"
 repo_expected_data = [
         [WF_URL_BASEGROUP, (69676121, REPO_NAME, 89592167, "lb-ortiz")],
         [WF_URL_SUBGROUP, (69676104, REPO_NAME, 107145926, "lb-ortiz/sample_subgroup")],

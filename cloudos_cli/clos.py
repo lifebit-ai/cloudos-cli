@@ -24,7 +24,7 @@ class WFImport(ABC):
                  workflow_name, workflow_url, workflow_docs_link="", verify=True):
         self.workflow_url = workflow_url
         self.headers = {
-            "Content-type": "application/json",
+            "Content-Type": "application/json",
             "apikey": cloudos_apikey
         }
         self.payload = {
@@ -90,11 +90,7 @@ class WFImport(ABC):
         elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
-        wf_id = None
-        for wf in content:
-            if "repository" in wf and "url" in wf["repository"] and wf["repository"]["url"] == self.workflow_url:
-                wf_id = wf["_id"]
-        return wf_id
+        return content["_id"]
 
 class ImportGitlab(WFImport):
      def fill_payload(self, gitlab_apikey):
