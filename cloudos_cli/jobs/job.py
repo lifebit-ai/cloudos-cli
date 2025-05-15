@@ -197,7 +197,9 @@ class Job(Cloudos):
                                  cost_limit,
                                  use_mountpoints,
                                  docker_login,
-                                 command=None):
+                                 command=None,
+                                 cpus=1,
+                                 memory=4):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -426,6 +428,16 @@ class Job(Cloudos):
             }
         if workflow_type == 'docker':
             params['command'] = command
+            params["resourceRequirements"] = {
+                "cpu": cpus,
+                "ram": memory
+            }
+            params['masterInstance'] = {
+                "requestedInstance": {
+                    "type": instance_type,
+                    "asSpot": False
+                }
+            }
         return params
 
     def send_job(self,
@@ -453,7 +465,9 @@ class Job(Cloudos):
                  use_mountpoints=False,
                  docker_login=False,
                  verify=True,
-                 command=None):
+                 command=None,
+                 cpus=1,
+                 memory=4):
         """Send a job to CloudOS.
 
         Parameters
@@ -557,7 +571,9 @@ class Job(Cloudos):
                                                cost_limit,
                                                use_mountpoints,
                                                docker_login,
-                                               command=command)
+                                               command=command,
+                                               cpus=cpus,
+                                               memory=memory)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)

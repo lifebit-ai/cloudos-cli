@@ -2030,7 +2030,9 @@ def run_bash_job(ctx,
                       hpc_id=None,
                       cost_limit=cost_limit,
                       verify=verify_ssl,
-                      command=command)
+                      command=command,
+                      cpus=cpus,
+                      memory=memory)
 
     print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{j_id}'
