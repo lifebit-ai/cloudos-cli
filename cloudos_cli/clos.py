@@ -9,11 +9,112 @@ from dataclasses import dataclass
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
+from abc import ABC, abstractmethod
+from urllib.parse import urlsplit
+from gitlab import Gitlab, GitlabAuthenticationError
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
 JOB_ABORTED = 'aborted'
+
+
+class WFImport(ABC):
+    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link="", verify=True):
+        self.workflow_url = workflow_url
+        self.headers = {
+            "Content-Type": "application/json",
+            "apikey": cloudos_apikey
+        }
+        self.payload = {
+            "workflowType": "nextflow",
+            "repository": {
+                "platform": platform,
+                "repositoryId": None,
+                "name": None,
+                "owner": {
+                    "login": None,
+                    "id": None},
+                "isPrivate": True,
+                "url": self.workflow_url,
+                "commit": "",
+                "branch": ""
+            },
+            "name": workflow_name,
+            "description": "",
+            "isPublic": False,
+            "mainFile": "main.nf",
+            "defaultContainer": None,
+            "processes": [],
+            "docsLink": workflow_docs_link,
+            "team": workspace_id
+        }
+        self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
+        self.verify = verify
+
+    @abstractmethod
+    def fill_payload(self, *args, **kwargs):
+        """
+        Uses the methods required by a repository service to gather the following data, and
+        use it to fill the None values from self.payload using dot-notation (in parentheses)
+        - repository ID (repository.repositoryId)
+        - repository name (repository.name)
+        - owner login (repository.owner.login)
+        - owner id (repository.owner.id)
+        this function must update self.payload in-place, and should be called before
+        calling import_workflow
+        """
+        pass
+
+    def check_payload(self):
+        for required_key in ["repositoryId", "name", ("owner", "login"), ("owner", "id")]:
+            if isinstance(required_key, tuple):
+                key1, key2 = required_key
+                value = self.payload["repository"][key1][key2]
+                str_value = f"self.payload['repository']['{key1}']['{key2}']"
+            else:
+                value = self.payload["repository"][required_key]
+                str_value = f"self.payload['repository']['{required_key}']"
+            if value is None:
+                raise ValueError("The payload dictionary does not have the required data. " +
+                                 f"Check that {str_value} is present and the method "
+                                 f"self.fill_payload() has been executed")
+
+    def import_workflow(self):
+        self.check_payload()
+        r = retry_requests_post(self.post_request_url, json=self.payload, headers=self.headers, verify=self.verify)
+        if r.status_code == 401:
+            raise ValueError('It seems your API key is not authorised. Please check if ' +
+                             'your workspace has support for importing workflows using cloudos-cli')
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        content = json.loads(r.content)
+        return content["_id"]
+
+class ImportGitlab(WFImport):
+     def fill_payload(self, gitlab_apikey):
+         parsed_url = urlsplit(self.workflow_url)
+         gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+         project_with_namespace = parsed_url.path[1:]
+         try:
+             gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+             gl.auth()
+             user_id = gl.user.id
+             project = gl.projects.get(project_with_namespace)
+             attrs = project.attributes
+             ## required data
+             repo_id = attrs["id"]
+             repo_name = attrs["name"]
+             group_name = attrs["namespace"]["full_path"]
+
+             self.payload["repository"]["repositoryId"] = repo_id
+             self.payload["repository"]["name"] = repo_name
+             self.payload["repository"]["owner"]["login"] = group_name
+             self.payload["repository"]["owner"]["id"] = user_id
+         except GitlabAuthenticationError:
+             raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
+
 
 
 @dataclass
@@ -57,7 +158,7 @@ class Cloudos:
             "apikey": apikey
         }
         r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
-                                                    j_id),
+                                                          j_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -178,7 +279,7 @@ class Cloudos:
         cloudos_url = self.cloudos_url
         headers = self._create_cromwell_header()
         r = retry_requests_get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
-                                                               workspace_id),
+                                                                     workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -247,8 +348,8 @@ class Cloudos:
         else:
             archived_status = "false"
         r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
-                               self.cloudos_url, workspace_id, page, archived_status),
-                               headers=headers, verify=verify)
+            self.cloudos_url, workspace_id, page, archived_status),
+            headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
@@ -267,7 +368,7 @@ class Cloudos:
             else:
                 next_to_get = jobs_to_get
             return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
-                                                       page=page+1, archived=archived,
+                                                       page=page + 1, archived=archived,
                                                        verify=verify)
         if jobs_to_get < 0:
             return content['jobs'][:jobs_to_get]
@@ -361,7 +462,7 @@ class Cloudos:
             if workflows_to_get > workflows_collected:
                 return content['workflows'] + self.get_curated_workflow_list(workspace_id,
                                                                              get_all=True,
-                                                                             page=page+1,
+                                                                             page=page + 1,
                                                                              verify=verify)
         else:
             return content['workflows']
@@ -551,7 +652,7 @@ class Cloudos:
             return False
 
     def get_project_list(self, workspace_id, verify=True, get_all=True,
-                        page=1, page_size=10, max_page_size=1000):
+                         page=1, page_size=10, max_page_size=1000):
         """Get all the project from a CloudOS workspace.
 
         Parameters
@@ -581,16 +682,19 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, page_size, page),
-                               headers=headers, verify=verify)
+        r = retry_requests_get(
+            "{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, page_size, page),
+            headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
         if get_all:
             total_projects = content['total']
             if total_projects <= max_page_size:
-                r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, total_projects, 1),
-                               headers=headers, verify=verify)
+                r = retry_requests_get(
+                    "{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id,
+                                                                              total_projects, 1),
+                    headers=headers, verify=verify)
                 if r.status_code >= 400:
                     raise BadRequestException(r)
                 return json.loads(r.content)['projects']
