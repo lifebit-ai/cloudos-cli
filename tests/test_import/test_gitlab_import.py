@@ -44,7 +44,7 @@ def test_failed_login(repo_url=repo_expected_data[0][0], args=repo_expected_data
 
 def test_full_import():
     GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
-                                platform="gitlab", workflow_url=WF_URL_BASEGROUP, workflow_name=REPO_NAME)
+                                platform="gitlab", workflow_url=WF_URL_NESTEDGROUP, workflow_name=REPO_NAME)
     GitlabImport.fill_payload(gitlab_apikey=GITLAB_TOKEN)
     wf_id = GitlabImport.import_workflow()
     print(f"Pipeline {REPO_NAME} was imported with id {wf_id}")

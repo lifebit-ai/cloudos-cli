@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import rich_click as click
+from pygments.lexer import default
+
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos
+from cloudos_cli.clos import Cloudos, ImportGitlab
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -95,10 +97,58 @@ def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
 
+
+# This is put here to avoid changing current code.
+# Once we have all three (Bitbucket, Github, Gitlab) repo systems
+# working with API keys, we can re-arrange the UI
 @run_cloudos_cli.group()
 def import_workflows():
     """Import workflows"""
     print(import_workflows.__doc__ + "\n")
+
+
+@import_workflows.command("gitlab")
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+# This is a placeholder in case we decide to handle all imports from the same function
+# @click.option("-p", "--platform", type=click.Choice(["github", "gitlab", "bitbucket"]),
+#               help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
+#               default="github")
+@click.option("-r", "--repository-apikey", help="Repository API key.", required=True)
+@click.option("-n", "--workflow-name", help="Workflow name.", required=True)
+@click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
+@click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
+                  disable_ssl_verification, ssl_cert, repository_apikey, platform="gitlab"):
+    """
+    Import workflows from Gitlab.
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    gitlab_import = ImportGitlab(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                                 platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+                                 workflow_docs_link=workflow_docs_link,
+                                 verify=verify_ssl)
+    gitlab_import.fill_payload(repository_apikey)
+    workflow_id = gitlab_import.import_workflow()
+    print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
+          f'following ID: {workflow_id}')
+
 
 @job.command('run')
 @click.option('-k',
@@ -199,9 +249,9 @@ def import_workflows():
                     'Default=3600.'),
               default=3600)
 @click.option('--wdl-mainfile',
-              help='For WDL workflows, which mainFile (.wdl) is configured to use.',)
+              help='For WDL workflows, which mainFile (.wdl) is configured to use.', )
 @click.option('--wdl-importsfile',
-              help='For WDL workflows, which importsFile (.zip) is configured to use.',)
+              help='For WDL workflows, which importsFile (.zip) is configured to use.', )
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
@@ -426,19 +476,23 @@ def run(apikey,
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             nextflow_version = HPC_NEXTFLOW_LATEST
-        print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
-              f'latest version available on CloudOS: {nextflow_version}.')
+        print(
+            f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
+            f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
+            print(
+                f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
+            print(
+                f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            print(
+                f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
@@ -847,9 +901,11 @@ def list_jobs(apikey,
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
+            print(
+                '\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
         else:
-            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
+            print(
+                '\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
@@ -1080,9 +1136,11 @@ def list_projects(apikey,
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+            print(
+                '\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
         else:
-            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+            print(
+                '\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
     elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
