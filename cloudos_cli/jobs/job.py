@@ -561,10 +561,6 @@ class Job(Cloudos):
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
-        print("params: ", params)
-        print("r: ", r)
-        print("r.content: ", r.content)
-        print("r.status_code: ", r.status_code)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["_id"]

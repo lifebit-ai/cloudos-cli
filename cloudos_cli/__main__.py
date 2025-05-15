@@ -107,6 +107,9 @@ def run_cloudos_cli(ctx):
             },
             'queue': {
                 'list': shared_config
+            },
+            'bash': {
+                'job': shared_config
             }
         })
     else:
@@ -143,6 +146,9 @@ def run_cloudos_cli(ctx):
             },
             'queue': {
                 'list': shared_config
+            },
+            'bash': {
+                'job': shared_config
             }
         })
 
@@ -1959,6 +1965,37 @@ def run_bash_job(ctx,
         ssl_cert,
         profile):
     """Run a bash job in CloudOS."""
+    profile = profile or ctx.default_map['bash']['job']['profile']
+
+    missing = []
+    # load profile data, only when profile is not 'initialisingProfile'
+    if profile != INIT_PROFILE:
+        # means that the user is using a profile
+        config_manager = ConfigurationProfile()
+        profile_data = config_manager.load_profile(profile_name=profile)
+        apikey = get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+        project_name = get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+    else:
+        # when no profile is used, we need to check if the user provided all required parameters
+        apikey = get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+        cloudos_url = get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+        workspace_id = get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+        workflow_name = get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
+        repository_platform = get_param_value(ctx, repository_platform, 'repository_platform', repository_platform)
+        execution_platform = get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+        project_name = get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
+    cloudos_url = cloudos_url.rstrip('/')
+
+    # Raise once, after all checks
+    if missing:
+        formatted = ', '.join(p for p in missing)
+        raise click.UsageError(f"Missing required option/s: {formatted}")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if instance_type == 'NONE_SELECTED':
@@ -2003,7 +2040,7 @@ def run_bash_job(ctx,
         j_status = j.wait_job_completion(job_id=j_id,
                                          wait_time=wait_time,
                                          request_interval=request_interval,
-                                         verbose=verbose,
+                                         verbose=False,
                                          verify=verify_ssl)
         j_name = j_status['name']
         j_final_s = j_status['status']
@@ -2023,6 +2060,7 @@ def run_bash_job(ctx,
               '\t\t--apikey $MY_API_KEY \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--job-id {j_id}\n')
+
 
 if __name__ == "__main__":
     run_cloudos_cli()
