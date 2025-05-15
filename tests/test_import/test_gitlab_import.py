@@ -5,14 +5,14 @@ from cloudos_cli.clos import ImportGitlab
 import pytest
 
 
-CLOUDOS_URL = environ["CLOUDOS_URL"]
+CLOUDOS_URL = "https://cloudos.lifebit.ai"
 CLOUDOS_TOKEN = environ["CLOUDOS_TOKEN"]
-WORKSPACE_ID = environ["WORKSPACE_ID"]
+WORKSPACE_ID = "5c6d3e9bd954e800b23f8c62"
 GITLAB_TOKEN = environ["GITLAB_TOKEN"]
-GITLAB_BAD_TOKEN = environ["GITLAB_BAD_TOKEN"]
-WF_URL_BASEGROUP = environ["WF_URL_BASEGROUP"]
-WF_URL_SUBGROUP = environ["WF_URL_SUBGROUP"]
-WF_URL_NESTEDGROUP = environ["WF_URL_NESTEDGROUP"]
+GITLAB_BAD_TOKEN = "this_wont_work"
+WF_URL_BASEGROUP = "https://gitlab.com/lb-ortiz/spammer-nf"
+WF_URL_SUBGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/spammer-nf"
+WF_URL_NESTEDGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/nested-subgroup/spammer-nf"
 REPO_NAME = "from-gitlab-spammer-nf"
 WF_NAME = "spammer-nf"
 repo_expected_data = [
