@@ -364,6 +364,53 @@ Executing run...
 	Your job took 420 seconds to complete successfully.
 ```
 
+#### Send a bash job to CloudOS
+
+After configuring either a profile or the required variables, a bash job can be sent to
+CloudOS using the command `bash` and the subcommand `job`:
+
+```bash
+cloudos bash job \
+    --profile bash_jobs \
+    --parameter -test_variable=value \
+    --parameter --flag=activate \
+    --parameter send="yes" \
+    --job-name $JOB_NAME \
+    --command "echo 'send' > new_file.txt" \
+    --resumable
+```
+The `--command` parameter is required and will setup the command for the parameters to run.
+
+Each `--parameter` can have a different prefix, either '--', '-', or '', depending on the use case. These can be used as many times as needed.
+
+> [!NOTE]
+> At the moment only string values are allowed to the `--parameter` options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.
+
+If everything went well, you should see something like:
+
+```console
+CloudOS bash functionality.
+
+        Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334
+        Your assigned job id is: 682622d09f305de717327334
+
+        Your current job status is: initializing
+        To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334 or use the following command:
+        cloudos job status \
+                --apikey $MY_API_KEY \
+                --cloudos-url https://cloudos.lifebit.ai \
+                --job-id 682622d09f305de717327334
+```
+
+As you can see, the current status is `initializing`. This will change
+while the job progresses. To check the status, just apply the suggested
+command.
+
+Another option is to set the `--wait-completion` parameter, which run the same
+job command but waiting for its completion exactly as in the description above.
+
+Parameters `--request-interval` and `--wait-time` can be added in order to check the status of the job periodically.
+
 #### Abort single or multiple jobs from CloudOS
 
 Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.
