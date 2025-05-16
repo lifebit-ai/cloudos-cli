@@ -141,6 +141,16 @@ class ImportGithub(WFImport):
             self.payload["repository"]["owner"]["login"] = owner_login
 
 
+class ImportBitBucket(WFImport):
+    def fill_payload(self, bitbucket_apikey):
+        headers = {"Authorization": f"Bearer {bitbucket_apikey}", "Accept": "application/json"}
+        parsed_url = urlsplit(self.workflow_url)
+        slug = parsed_url.path.split("/src", "")
+        req_url = f"https://api.bitbucket.org/2.0/repositories/{slug}"
+        r = requests.get(req_url, headers=headers)
+
+
+        r = requests.get()
 
 @dataclass
 class Cloudos:
