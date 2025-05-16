@@ -35,7 +35,8 @@ class WFImport(ABC):
                 "name": None,
                 "owner": {
                     "login": None,
-                    "id": None},
+                    "id": None
+                },
                 "isPrivate": True,
                 "url": self.workflow_url,
                 "commit": "",
@@ -114,6 +115,28 @@ class ImportGitlab(WFImport):
              self.payload["repository"]["owner"]["id"] = user_id
          except GitlabAuthenticationError:
              raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
+
+
+class ImportGithub(WFImport):
+    def fill_payload(self, github_apikey):
+        headers = {"Authorization": f"Bearer {github_apikey}", "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json"}
+        parsed_url = urlsplit(self.workflow_url)
+        github_base_url =f"{parsed_url.scheme}://api.{parsed_url.netloc}"
+        url_endpoint = f"{github_base_url}/repos{parsed_url.path}"
+        r = requests.get(url_endpoint, headers=headers)
+        status_code = r.status_code
+        if status_code == 400:
+
+        if r.status_code == 200:
+            resp = json.loads(r.content)
+            repo_id = resp["id"]
+            repo_name = resp["name"]
+            owner_login = resp["owner"]["login"]
+            owner_id = resp["owner"]["id"]
+            self.payload["repository"]["repositoryId"] = repo_id
+            self.payload["repository"]["name"] = repo_name
+            self.payload["repository"]["owner"]["id"] = owner_id
+            self.payload["repository"]["owner"]["login"] = owner_login
 
 
 

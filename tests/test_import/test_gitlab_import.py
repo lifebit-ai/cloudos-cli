@@ -1,4 +1,3 @@
-import pytest
 from gitlab import GitlabAuthenticationError
 from os import environ
 from cloudos_cli.clos import ImportGitlab
