@@ -3,6 +3,7 @@ from pathlib import Path
 import configparser
 import getpass
 import sys
+import click
 
 class ConfigurationProfile:
     """Class to manage configuration profiles for the CloudOS CLI.
@@ -406,3 +407,65 @@ class ConfigurationProfile:
             with open(self.config_file, 'w') as conf_file:
                 config.write(conf_file)
             return "default"
+
+
+    @staticmethod
+    def get_param_value(ctx, param_value, param_name, default_value, required=False, missing_required_params=None):
+        source = ctx.get_parameter_source(param_name)
+        result = default_value if source != click.core.ParameterSource.COMMANDLINE else param_value
+
+        if required and result == "":
+            if missing_required_params is not None:
+                missing_required_params.append('--' + param_name)
+        return result
+
+
+    #def load_profile_and_validate_data(self, ctx, INIT_PROFILE, profile, required_params=None, optional_params=None):
+    def load_profile_and_validate_data(self, ctx, INIT_PROFILE, CLOUDOS_URL, profile, apikey=None, cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None, execution_platform=None, repository_platform=None):
+        """
+        Load profile data and validate required parameters.
+
+        Parameters
+        ----------
+        ctx : click.Context
+            The Click context object.
+        profile : str
+            The profile name to load.
+        required_params : list, optional
+            List of required parameter names.
+        optional_params : list, optional
+            List of optional parameter names.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the loaded and validated parameters.
+        """
+        missing = []
+
+        if profile != INIT_PROFILE:
+            profile_data = self.load_profile(profile_name=profile)
+            apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
+            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
+            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
+            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
+            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
+            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
+            project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+        else:
+            # when no profile is used, we need to check if the user provided all required parameters
+            apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
+            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
+            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
+            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform', repository_platform)
+            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
+            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
+        cloudos_url = cloudos_url.rstrip('/')
+
+        # Raise once, after all checks
+        if missing:
+            formatted = ', '.join(p for p in missing)
+            raise click.UsageError(f"Missing required option/s: {formatted}")
+        
+        return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name

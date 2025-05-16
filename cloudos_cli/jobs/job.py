@@ -108,7 +108,7 @@ class Job(Cloudos):
                          verify=True):
         """Fetch the cloudos id for a given name.
 
-        Paramters
+        Parameters
         ---------
         apikey : string
             Your CloudOS API key
@@ -146,6 +146,9 @@ class Job(Cloudos):
         if resource == 'workflows':
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
+                if (element["name"] == name and element["workflowType"] == "docker" and
+                    not element["archived"]["status"]):
+                    return element["_id"] # no mainfile or importsfile
                 if (element["name"] == name and
                     element["repository"]["platform"] == repository_platform and
                     not element["archived"]["status"]):
@@ -193,7 +196,10 @@ class Job(Cloudos):
                                  cromwell_id,
                                  cost_limit,
                                  use_mountpoints,
-                                 docker_login):
+                                 docker_login,
+                                 command=None,
+                                 cpus=1,
+                                 memory=4):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -278,6 +284,9 @@ class Job(Cloudos):
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
+        if workflow_type == 'docker' and len(parameter) == 0:
+            raise ValueError('No --parameter were provided. At least one of ' +
+                             'these are required for bash workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -331,7 +340,16 @@ class Job(Cloudos):
                                      'as spacer. E.g: input=value')
                 p_name = p_split[0]
                 p_value = '='.join(p_split[1:])
-                if workflow_type == 'wdl':
+                if workflow_type == 'docker':
+                    prefix = "--" if p_name.startswith('--') else ("-" if p_name.startswith('-') else '')
+                    # leave defined for adding files later
+                    parameter_kind = "textValue"
+                    param = {"prefix": prefix,
+                             "name": p_name.lstrip('-'),
+                             "parameterKind": parameter_kind,
+                             "textValue": p_value}
+                    workflow_params.append(param)
+                elif workflow_type == 'wdl':
                     param = {"prefix": "",
                              "name": p_name,
                              "parameterKind": "textValue",
@@ -345,6 +363,7 @@ class Job(Cloudos):
                     workflow_params.append(param)
             if len(workflow_params) == 0:
                 raise ValueError(f'The provided parameters are not valid: {parameter}')
+
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
@@ -407,6 +426,18 @@ class Job(Cloudos):
                     "asSpot": False
                 }
             }
+        if workflow_type == 'docker':
+            params['command'] = command
+            params["resourceRequirements"] = {
+                "cpu": cpus,
+                "ram": memory
+            }
+            params['masterInstance'] = {
+                "requestedInstance": {
+                    "type": instance_type,
+                    "asSpot": False
+                }
+            }
         return params
 
     def send_job(self,
@@ -433,7 +464,10 @@ class Job(Cloudos):
                  cost_limit=30.0,
                  use_mountpoints=False,
                  docker_login=False,
-                 verify=True):
+                 verify=True,
+                 command=None,
+                 cpus=1,
+                 memory=4):
         """Send a job to CloudOS.
 
         Parameters
@@ -536,7 +570,10 @@ class Job(Cloudos):
                                                cromwell_id,
                                                cost_limit,
                                                use_mountpoints,
-                                               docker_login)
+                                               docker_login,
+                                               command=command,
+                                               cpus=cpus,
+                                               memory=memory)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
                                                             workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
