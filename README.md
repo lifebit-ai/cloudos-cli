@@ -364,7 +364,7 @@ Executing run...
 	Your job took 420 seconds to complete successfully.
 ```
 
-#### Send a bash job to CloudOS
+#### Send a bash job to CloudOS (sequential sample processing)
 
 After configuring either a profile or the required variables, a bash job can be sent to
 CloudOS using the command `bash` and the subcommand `job`:
