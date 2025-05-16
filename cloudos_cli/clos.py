@@ -12,6 +12,7 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
 from gitlab import Gitlab, GitlabAuthenticationError
+from cloudos_cli.utils.errors import GithubRepositoryError
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -125,7 +126,8 @@ class ImportGithub(WFImport):
         url_endpoint = f"{github_base_url}/repos{parsed_url.path}"
         r = requests.get(url_endpoint, headers=headers)
         status_code = r.status_code
-        if status_code == 400:
+        if status_code >= 400:
+            raise GithubRepositoryError(status_code)
 
         if r.status_code == 200:
             resp = json.loads(r.content)

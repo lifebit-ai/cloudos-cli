@@ -42,7 +42,7 @@ def test_failed_login(repo_url=repo_expected_data[0][0], args=repo_expected_data
         assert GitlabImport.payload["repository"]["owner"]["login"] == ex_group_name
     assert "Could not login to Gitlab. Check Gitlab URL and Gitlab API key" in str(excinfo.value)
 
-def test_full_import():
+def test_full_gitlab_import():
     GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
                                 platform="gitlab", workflow_url=WF_URL_NESTEDGROUP, workflow_name=REPO_NAME)
     GitlabImport.fill_payload(gitlab_apikey=GITLAB_TOKEN)
