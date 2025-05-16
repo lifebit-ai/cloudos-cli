@@ -2,7 +2,7 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos, ImportGitlab
+from cloudos_cli.clos import Cloudos, ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -259,6 +259,47 @@ def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')
 
+@import_workflows.command("github")
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=('The CloudOS url you are trying to access to. ' +
+                    'Default=https://cloudos.lifebit.ai.'),
+              default='https://cloudos.lifebit.ai')
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+# This is a placeholder in case we decide to handle all imports from the same function
+# @click.option("-p", "--platform", type=click.Choice(["github", "gitlab", "bitbucket"]),
+#               help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
+#               default="github")
+@click.option("-r", "--repository-apikey", help="Repository API key.", required=True)
+@click.option("-n", "--workflow-name", help="Workflow name.", required=True)
+@click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
+@click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+def import_github(apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
+                  disable_ssl_verification, ssl_cert, repository_apikey, platform="github"):
+    """
+    Import workflows from Gitlab.
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    gitlab_import = ImportGithub(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                                 platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+                                 workflow_docs_link=workflow_docs_link,
+                                 verify=verify_ssl)
+    gitlab_import.fill_payload(repository_apikey)
+    workflow_id = gitlab_import.import_workflow()
+    print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
+          f'following ID: {workflow_id}')
 
 @job.command('run')
 @click.option('-k',
