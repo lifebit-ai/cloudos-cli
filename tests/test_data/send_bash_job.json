@@ -1,0 +1,270 @@
+{
+    "_id": "6826f3355102322c42e9154x",
+    "user": {
+        "id": "62bc2b13e9967b013ac802c4",
+        "name": "John",
+        "surname": "Doe",
+        "email": "xxx@lifebit.ai",
+        "picture": "https://gravatar.com/avatar/2463c1ce213a4f78b2f76e2bfbd925c9?d=identicon",
+        "organization": "Lifebit",
+        "completedMilestones": {
+            "hasDoneTutorial": false,
+            "hasSeenWelcomeMessage": true
+        },
+        "isPredefined": false,
+        "isSuspended": false,
+        "favoritedPublicBuckets": [],
+        "favoritedPublicAzureContainers": [],
+        "adGroups": [],
+        "isApproved": true,
+        "isReviewed": true,
+        "isVerified": true,
+        "isAllowedToCreateWorkspace": true,
+        "totalCreditsInCents": 999.99568,
+        "dockerRegistriesCredentials": []
+    },
+    "jobType": "dockerAWS",
+    "team": "5c6d3e9bd954e800b23f8c62",
+    "workflow": {
+        "archived": {
+            "archivalTimestamp": null,
+            "status": false
+        },
+        "_id": "6800d0ca0332fd8813a2db25",
+        "containerName": "library/ubuntu",
+        "defaultCommand": "echo \"hello\" > test.txt && ls -al && echo \"hello world\"",
+        "name": "Ubuntu_array_Val_Space_Separator_43xub",
+        "description": "test",
+        "isCurated": false,
+        "isPredefined": false,
+        "isFeatured": false,
+        "isModule": false,
+        "isPublic": false,
+        "isLifebitManaged": false,
+        "group": "user",
+        "priceAmount": 0,
+        "priceUnit": "PER_SAMPLE",
+        "tags": [],
+        "overview": "",
+        "producesReport": false,
+        "docsLink": "https://hub.docker.com/r/library/ubuntu",
+        "owner": {
+            "git": {
+                "github": {
+                    "token": "bearer",
+                    "token_type": "bearer",
+                    "scope": [
+                        "repo",
+                        "user"
+                    ],
+                    "username": "xxx",
+                    "email": null,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/75623064?v=4"
+                },
+                "bitbucket": {
+                    "token_type": "bearer",
+                    "scope": []
+                },
+                "bitbucketServer": {
+                    "token_type": "bearer",
+                    "access_type": "pat",
+                    "scope": []
+                },
+                "gitlab": {
+                    "namespaceId": null,
+                    "apiUrl": "https://gitlab.com",
+                    "token": "tokn",
+                    "token_type": "bearer",
+                    "scope": [
+                        "read_repository",
+                        "read_user",
+                        "api",
+                        "read_api",
+                        "profile",
+                        "email",
+                        "read_registry"
+                    ],
+                    "refresh_token": "token",
+                    "expires_at": 1744902960556,
+                    "username": "john.doe",
+                    "access_type": "oauth"
+                }
+            },
+            "_id": "669a9dfe474e319e71685421",
+            "name": "automation",
+            "surname": "user",
+            "isSuspended": false,
+            "email": "automation_user_admin@lifebit.ai",
+            "isPredefined": false,
+            "isVerified": true,
+            "isApproved": true,
+            "isReviewed": true,
+            "password": "pass",
+            "role": "user",
+            "picture": "https://gravatar.com/avatar/18145c0990205cd3fdebf89fee9fb1a2?d=identicon",
+            "archived": false,
+            "completedMilestones": {
+                "hasDoneTutorial": false,
+                "hasSeenWelcomeMessage": false
+            },
+            "external_connection_details": {
+                "tokens_refreshed": false
+            },
+            "adGroups": [],
+            "favoritedPublicBuckets": [],
+            "favoritedPublicAzureContainers": [],
+            "creditsEvents": [
+                {
+                    "amountChangeInCents": 1000,
+                    "description": "Initial amount of $10 granted for free by Lifebit.",
+                    "_id": "669a9dfe474e319e71685428",
+                    "createdAt": "2024-07-19T17:10:22.179Z",
+                    "updatedAt": "2024-07-19T17:10:22.179Z"
+                }
+            ],
+            "dockerRegistriesCredentials": [
+                {
+                    "server": "docker.io",
+                    "username": "lifebitautomations@gmail.com",
+                    "password": "passs",
+                    "_id": "6800c06be67953ec8ed04940"
+                }
+            ],
+            "createdAt": "2024-07-19T17:10:22.111Z",
+            "updatedAt": "2025-05-06T21:21:02.480Z",
+            "__v": 59,
+            "privateLifebitApiKey": "70mVqRfTy1URjUbxGUTATpF7j5nc4DH3VPe1EXmq"
+        },
+        "team": "5c6d3e9bd954e800b23f8c62",
+        "imageUrl": null,
+        "workflowType": "docker",
+        "parametersInfo": [],
+        "parameters": [],
+        "createdAt": "2025-04-17T09:58:34.677Z",
+        "updatedAt": "2025-04-17T09:58:34.677Z",
+        "__v": 0
+    },
+    "name": "ubuntuArrayValS_30_04_2025",
+    "parameters": [
+        {
+            "name": "hello",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "HELLO"
+        }
+    ],
+    "project": {
+        "_id": "681dc9f121cd5b935168d13f",
+        "user": "6329e3bd3c0e00014641eeea",
+        "team": {
+            "_id": "5c6d3e9bd954e800b23f8c62",
+            "name": "Lifebit Internal Production",
+            "createdAt": "2019-02-20T11:48:46.597Z",
+            "updatedAt": "2025-05-16T08:11:02.893Z",
+            "__v": 0,
+            "computeCostSpent": 6488292.547694654,
+            "lustreMaxTimeLimit": {
+                "amount": 30,
+                "unit": "days"
+            },
+            "computeCostLimit": 10000000,
+            "organisation": "648851e79e1c4e014b4cb37a",
+            "status": "active",
+            "computeCostLimitUpdatedBy": "OrganisationAdmin",
+            "storageVersioningStatus": "enabling",
+            "deactivated": false,
+            "isSetupInProgress": false,
+            "id": "5c6d3e9bd954e800b23f8c62"
+        },
+        "name": "TS-bash",
+        "description": "",
+        "projectData": [],
+        "projectJobs": [
+            "68244e1961838a24cca86a8e",
+            "6824529761838a24cca8876b",
+            "6824cbbfba4b973e459d70f4",
+            "6824cc2161838a24ccabe99b",
+            "6825e7629f305de7172fdf91",
+            "6825f88f9f305de7173110b1",
+            "682620ed2611613df035492c",
+            "682621562611613df0356309",
+            "6826225b2611613df03571e4",
+            "682622d09f305de717327334",
+            "682625b12611613df03597ca",
+            "682626b32611613df035a13e"
+        ],
+        "createdAt": "2025-05-09T09:25:05.262Z",
+        "updatedAt": "2025-05-15T17:38:59.333Z",
+        "__v": 0
+    },
+    "masterInstance": {
+        "requestedInstance": {
+            "type": "c5.xlarge",
+            "asSpot": false
+        }
+    },
+    "instanceType": "c5.xlarge",
+    "spotInstances": {
+        "usedInstance": {},
+        "instances": []
+    },
+    "storageMode": "regular",
+    "storageSizeInGb": 500,
+    "status": "scheduled",
+    "error": {},
+    "logs": {
+        "s3BucketName": "lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c",
+        "s3Prefix": "deploit/teams/5c6d3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/681dc9f121cd5b935168d13f/jobs/6826f3355102322c42e9154c/logs"
+    },
+    "results": {},
+    "saveProcessLogs": true,
+    "createdAt": "2025-05-16T08:11:33.686Z",
+    "updatedAt": "2025-05-16T08:11:33.714Z",
+    "realInstancesExecutionCost": 0,
+    "instancesExecutionCostSavings": 0,
+    "masterInstanceOnDemandExecutionCost": 0,
+    "masterInstanceSpotExecutionCost": 0,
+    "onDemandExecutionCost": 0,
+    "spotExecutionCost": 0,
+    "masterInstanceStorageCost": 0,
+    "storageCost": 0,
+    "serviceFee": 0,
+    "additionalCost": 0,
+    "moduleExecutionCost": 0,
+    "isReportAvailable": false,
+    "monitor": {
+        "processDataList": [],
+        "processSummaryData": {},
+        "processesStatusesSummary": {
+            "submitted": 0,
+            "retried": 0,
+            "failed": 0,
+            "completed": 0,
+            "totalProcs": 0,
+            "completedProcs": 0,
+            "processNames": []
+        },
+        "workflowStatus": {
+            "runName": "",
+            "runId": "",
+            "runStatus": "",
+            "_id": "6826f3355102322c42e9154d"
+        },
+        "usesProcessMetricsService": true
+    },
+    "progress": {
+        "stdout": "",
+        "trace": "",
+        "log": ""
+    },
+    "computeCostLimit": 3000,
+    "resourceRequirements": {
+        "cpu": 1,
+        "ram": 4
+    },
+    "command": "echo \"hello\" > test.txt && ls -al && echo \"hello world\"",
+    "revision": {
+        "digest": "sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+        "tag": ""
+    }
+}
