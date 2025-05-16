@@ -1,0 +1,12 @@
+[default]
+cloudos_url = http://cloudos.lifebit.ai
+
+[user_input_profile]
+cloudos_url = http://cloudos.lifebit.ai
+workspace_id = workspace_id
+project_name = project_name
+execution_platform = azure
+repository_platform = gitlab
+workflow_name = workflow_name
+default = True
+
