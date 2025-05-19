@@ -54,7 +54,7 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
-          GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cloudos import-workflows github --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/post-gwas-target-identification --repository-apikey $GITHUB_TOKEN
   job_list:
