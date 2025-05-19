@@ -1,10 +1,6 @@
 from urllib.parse import urlsplit
-
-import pytest
 import responses
 from cloudos_cli.clos import ImportGithub
-from os import environ
-from cloudos_cli.utils.errors import GithubRepositoryError
 
 CLOUDOS_URL = "https://cloudos.lifebit.ai"
 CLOUDOS_TOKEN = "some_token"
