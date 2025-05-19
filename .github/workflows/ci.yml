@@ -77,7 +77,7 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
-          $GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos import-workflows gitlab --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repository-apikey $GITLAB_TOKEN
   job_run_and_status:
