@@ -27,7 +27,7 @@ def test_fetch_correct_repo_data(repo_url, fixture_path, expected):
     parsed_url = urlsplit(repo_url)
     project_with_namespace = parsed_url.path[1:].replace("/", "%2F")
     fixture = json.load(open(fixture_path))
-    user = json.load(open("data/user.json"))
+    user = json.load(open("tests/test_import/data/user.json"))
 
     responses.add(
         responses.GET,
