@@ -558,19 +558,22 @@ def run(ctx,
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             nextflow_version = HPC_NEXTFLOW_LATEST
-        print(f'[Message] You have specified Nextflow version \'latest\' for execution platform \'{execution_platform}\'. The workflow will use the ' +
+        print('[Message] You have specified Nextflow version \'latest\' for execution platform ' +
+              f'\'{execution_platform}\'. The workflow will use the ' +
               f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'aws\', the workflow will use the default \'22.10.8\' version on CloudOS.')
+            print('[Message] For execution platform \'aws\', the workflow will use the default ' +
+                  '\'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' version on CloudOS.')
+            print('[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
+                  'version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print(f'[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
@@ -1034,9 +1037,12 @@ def list_jobs(ctx,
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace has no jobs created yet.')
+            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
+                  'has no jobs created yet.')
         else:
-            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the jobs by not using --page parameter.')
+            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested ' +
+                  'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
+                  'using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
@@ -1129,7 +1135,8 @@ def abort_jobs(ctx,
         j_status_content = json.loads(j_status.content)
         # check if job id is valid & is in working state (initial, running)
         if j_status_content['status'] not in ABORT_JOB_STATES:
-            print(f"[WARNING] Job {job} is not in a state that can be aborted and is ignored. Current status: {j_status_content['status']}")
+            print("[WARNING] Job {job} is not in a state that can be aborted and is ignored. " +
+                  f"Current status: {j_status_content['status']}")
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
@@ -1407,9 +1414,12 @@ def list_projects(ctx,
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 projects collected. This is likely because your workspace has no projects created yet.')
+            print('\t[Message] A total of 0 projects collected. This is likely because your workspace ' +
+                  'has no projects created yet.')
         else:
-            print('\t[Message] A total of 0 projects collected. This is likely because the --page you requested does not exist. Please, try a smaller number for --page or collect all the projects by not using --page parameter.')
+            print('\t[Message] A total of 0 projects collected. This is likely because the --page you ' +
+                  'requested does not exist. Please, try a smaller number for --page or collect all the ' +
+                  'projects by not using --page parameter.')
     elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
@@ -1852,32 +1862,32 @@ def remove_profile(ctx, profile):
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def run_bash_job(ctx,
-        apikey,
-        command,
-        cloudos_url,
-        workspace_id,
-        project_name,
-        workflow_name,
-        parameter,
-        job_name,
-        resumable,
-        do_not_save_logs,
-        job_queue,
-        instance_type,
-        instance_disk,
-        cpus,
-        memory,
-        storage_mode,
-        lustre_size,
-        wait_completion,
-        wait_time,
-        repository_platform,
-        execution_platform,
-        cost_limit,
-        request_interval,
-        disable_ssl_verification,
-        ssl_cert,
-        profile):
+                 apikey,
+                 command,
+                 cloudos_url,
+                 workspace_id,
+                 project_name,
+                 workflow_name,
+                 parameter,
+                 job_name,
+                 resumable,
+                 do_not_save_logs,
+                 job_queue,
+                 instance_type,
+                 instance_disk,
+                 cpus,
+                 memory,
+                 storage_mode,
+                 lustre_size,
+                 wait_completion,
+                 wait_time,
+                 repository_platform,
+                 execution_platform,
+                 cost_limit,
+                 request_interval,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
     """Run a bash job in CloudOS."""
     profile = profile or ctx.default_map['bash']['job']['profile']
 
@@ -1919,7 +1929,7 @@ def run_bash_job(ctx,
         batch = True
 
     queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None,
-                    workspace_id=workspace_id, verify=verify_ssl)
+                  workspace_id=workspace_id, verify=verify_ssl)
     # I have to add 'nextflow', other wise the job queue id is not found
     job_queue_id = queue.fetch_job_queue_id(workflow_type='nextflow', batch=batch,
                                             job_queue=job_queue)
