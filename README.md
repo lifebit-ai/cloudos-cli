@@ -366,12 +366,17 @@ Executing run...
 
 #### Send a bash job to CloudOS (sequential sample processing)
 
-After configuring either a profile or the required variables, a bash job can be sent to
-CloudOS using the command `bash` and the subcommand `job`:
+A bash job can be sent to CloudOS using the command `bash` and the subcommand `job`. In this case, the `--workflow-name` must be a bash job already
+present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).
 
 ```bash
+WORKFLOW_NAME="ubuntu"  # This should be a bash workflow
 cloudos bash job \
-    --profile bash_jobs \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name "$PROJECT_NAME" \
+    --workflow-name $WORKFLOW_NAME \
     --parameter -test_variable=value \
     --parameter --flag=activate \
     --parameter send="yes" \
@@ -406,10 +411,8 @@ As you can see, the current status is `initializing`. This will change
 while the job progresses. To check the status, just apply the suggested
 command.
 
-Another option is to set the `--wait-completion` parameter, which run the same
-job command but waiting for its completion exactly as in the description above.
-
-Parameters `--request-interval` and `--wait-time` can be added in order to check the status of the job periodically.
+Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
+Check `cloudos bash job --help` for more details.
 
 #### Abort single or multiple jobs from CloudOS
 
