@@ -349,9 +349,8 @@ class ConfigurationProfile:
             config.read(self.config_file)
 
         if not config.has_section(profile_name):
-            print(f'[Error] Profile "{profile_name}" does not exist. Please create it ' +
-                  f'with "cloudos configure --profile {profile_name}".\n')
-            sys.exit(1)
+            raise ValueError(f'Profile "{profile_name}" does not exist. Please create it ' +
+                             f'with "cloudos configure --profile {profile_name}".\n')
 
         return {
             'apikey': credentials[profile_name].get('apikey', ""),
@@ -423,11 +422,11 @@ class ConfigurationProfile:
 
         if required and result == "":
             if missing_required_params is not None:
-                missing_required_params.append('--' + param_name)
+                missing_required_params.append('--' + param_name.replace('_', '-'))
         return result
 
-    def load_profile_and_validate_data(self, ctx, INIT_PROFILE, CLOUDOS_URL, profile, apikey=None, cloudos_url=None,
-                                       workspace_id=None, project_name=None, workflow_name=None,
+    def load_profile_and_validate_data(self, ctx, INIT_PROFILE, CLOUDOS_URL, profile, required_dict, apikey=None,
+                                       cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None,
                                        execution_platform=None, repository_platform=None):
         """
         Load profile data and validate required parameters.
@@ -438,10 +437,8 @@ class ConfigurationProfile:
             The Click context object.
         profile : str
             The profile name to load.
-        required_params : list, optional
-            List of required parameter names.
-        optional_params : list, optional
-            List of optional parameter names.
+        required_dict : dict
+            A dictionary with param name as key and whether is required or not (as bool) as value.
 
         Returns
         -------
@@ -453,31 +450,35 @@ class ConfigurationProfile:
         if profile != INIT_PROFILE:
             profile_data = self.load_profile(profile_name=profile)
             apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
-                                          required=True, missing_required_params=missing)
+                                          required=required_dict['apikey'], missing_required_params=missing)
             cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url',
                                                profile_data['cloudos_url']) or CLOUDOS_URL
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
-                                                required=True, missing_required_params=missing)
+                                                required=required_dict['workspace_id'], missing_required_params=missing)
             workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
-                                                 required=True, missing_required_params=missing)
+                                                 required=required_dict['workflow_name'], missing_required_params=missing)
             repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
                                                        profile_data['repository_platform'])
             execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform',
                                                       profile_data['execution_platform'])
             project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
-                                                required=True, missing_required_params=missing)
+                                                required=required_dict['project_name'], missing_required_params=missing)
         else:
             # when no profile is used, we need to check if the user provided all required parameters
-            apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
+            apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
+                                          missing_required_params=missing)
             cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
-            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True,
+            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
+                                                required=required_dict['workspace_id'],
                                                 missing_required_params=missing)
-            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True,
+            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name,
+                                                 required=required_dict['workflow_name'],
                                                  missing_required_params=missing)
             repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
                                                        repository_platform)
             execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
-            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name, required=True,
+            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
+                                                required=required_dict['project_name'],
                                                 missing_required_params=missing)
         cloudos_url = cloudos_url.rstrip('/')
 

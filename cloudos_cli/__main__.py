@@ -395,7 +395,13 @@ def run(ctx,
         profile):
     """Submit a job to CloudOS."""
     profile = profile or ctx.default_map['job']['run']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': True,
+        'project_name': True
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -404,6 +410,7 @@ def run(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
@@ -752,7 +759,13 @@ def run_curated_examples(ctx,
     NOTE that currently, only Nextflow workflows are supported.
     """
     profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -761,6 +774,7 @@ def run_curated_examples(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
@@ -902,7 +916,13 @@ def job_status(ctx,
                profile):
     """Check job status in CloudOS."""
     profile = profile or ctx.default_map['job']['status']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -911,6 +931,7 @@ def job_status(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url
         )
@@ -998,7 +1019,13 @@ def list_jobs(ctx,
               profile):
     """Collect all your jobs from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['job']['list']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1007,6 +1034,7 @@ def list_jobs(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
@@ -1095,7 +1123,13 @@ def abort_jobs(ctx,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
     profile = profile or ctx.default_map['job']['abort']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1104,6 +1138,7 @@ def abort_jobs(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
@@ -1196,7 +1231,13 @@ def list_workflows(ctx,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['workflow']['list']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1205,6 +1246,7 @@ def list_workflows(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
@@ -1291,7 +1333,13 @@ def import_workflows(ctx,
                      profile):
     """Imports workflows to CloudOS."""
     profile = profile or ctx.default_map['workflow']['import']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1300,6 +1348,7 @@ def import_workflows(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
@@ -1377,7 +1426,13 @@ def list_projects(ctx,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
     profile = profile or ctx.default_map['project']['list']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1386,6 +1441,7 @@ def list_projects(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
@@ -1471,7 +1527,13 @@ def cromwell_status(ctx,
                     profile):
     """Check Cromwell server status in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1480,6 +1542,7 @@ def cromwell_status(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
         )
@@ -1544,7 +1607,13 @@ def cromwell_restart(ctx,
                      profile):
     """Restart Cromwell server in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1553,6 +1622,7 @@ def cromwell_restart(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
         )
@@ -1634,7 +1704,13 @@ def cromwell_stop(ctx,
                   profile):
     """Stop Cromwell server in CloudOS."""
     profile = profile or ctx.default_map['cromwell']['status']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1643,6 +1719,7 @@ def cromwell_stop(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
         )
@@ -1712,7 +1789,13 @@ def list_queues(ctx,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
     profile = profile or ctx.default_map['queue']['list']['profile']
-
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -1721,6 +1804,7 @@ def list_queues(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id
@@ -1890,6 +1974,13 @@ def run_bash_job(ctx,
                  profile):
     """Run a bash job in CloudOS."""
     profile = profile or ctx.default_map['bash']['job']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': True,
+        'project_name': True
+    }
 
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1899,6 +1990,7 @@ def run_bash_job(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
