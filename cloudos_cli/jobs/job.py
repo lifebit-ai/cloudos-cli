@@ -147,11 +147,11 @@ class Job(Cloudos):
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
                 if (element["name"] == name and element["workflowType"] == "docker" and
-                    not element["archived"]["status"]):
-                    return element["_id"] # no mainfile or importsfile
+                        not element["archived"]["status"]):
+                    return element["_id"]  # no mainfile or importsfile
                 if (element["name"] == name and
-                    element["repository"]["platform"] == repository_platform and
-                    not element["archived"]["status"]):
+                        element["repository"]["platform"] == repository_platform and
+                        not element["archived"]["status"]):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
@@ -575,7 +575,7 @@ class Job(Cloudos):
                                                cpus=cpus,
                                                memory=memory)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
-                                                            workspace_id),
+                                                                  workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
