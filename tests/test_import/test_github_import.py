@@ -2,15 +2,11 @@ from urllib.parse import urlsplit
 import responses
 from cloudos_cli.clos import ImportGithub
 
-CLOUDOS_URL = "https://cloudos.lifebit.ai"
 CLOUDOS_TOKEN = "some_token"
 WORKSPACE_ID = "5c6d3e9bd954e800b23f8c62"
 GITHUB_TOKEN = "another_token"
-GITHUB_BAD_TOKEN = "bad_token"
 WF_MAIN_URL = "https://github.com/lifebit-ai/post-gwas-target-identification"
-WF_BAD_URL = "https://github.com/something-that-should-not-work/repo"
 REPO_NAME = "post-gwas-target-identification"
-WF_NAME = "pgta-from-github"
 
 EXPECTED = (930401807, REPO_NAME, 30871219, 'lifebit-ai')
 
