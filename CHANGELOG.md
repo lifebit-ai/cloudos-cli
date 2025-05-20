@@ -5,6 +5,7 @@
 ### Feat
 
 - Adds ability to send bash jobs in sequential sample processing (only strings)
+- Updates requirements
 
 ## v2.21.0 (2025-05-13)
 

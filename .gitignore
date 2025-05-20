@@ -151,3 +151,6 @@ __pycache__
 
 # flask8 configs
 .flake8
+
+# test-produced files
+tests/test_data/.cloudos/
