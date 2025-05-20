@@ -197,9 +197,9 @@ class Job(Cloudos):
                                  cost_limit,
                                  use_mountpoints,
                                  docker_login,
-                                 command=None,
-                                 cpus=1,
-                                 memory=4):
+                                 command,
+                                 cpus,
+                                 memory):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -262,6 +262,13 @@ class Job(Cloudos):
             Whether to use or not AWS S3 mountpoint for quicker file staging.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
+        command : string
+            The command to run in bash jobs.
+        cpus : int
+            The number of CPUs to use for the bash jobs task's master node.
+        memory : int
+            The amount of memory, in GB, to use for the bash job task's master node.
+
 
         Returns
         -------
@@ -363,7 +370,6 @@ class Job(Cloudos):
                     workflow_params.append(param)
             if len(workflow_params) == 0:
                 raise ValueError(f'The provided parameters are not valid: {parameter}')
-
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
@@ -399,11 +405,6 @@ class Job(Cloudos):
             "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
-            "batch": {
-                "dockerLogin": docker_login,
-                "enabled": batch,
-                "jobQueue": job_queue_id
-            },
             "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
@@ -419,6 +420,12 @@ class Job(Cloudos):
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints
         }
+        if job_queue_id is not None:
+            params['batch'] = {
+                "dockerLogin": docker_login,
+                "enabled": batch,
+                "jobQueue": job_queue_id
+            }
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
@@ -431,12 +438,6 @@ class Job(Cloudos):
             params["resourceRequirements"] = {
                 "cpu": cpus,
                 "ram": memory
-            }
-            params['masterInstance'] = {
-                "requestedInstance": {
-                    "type": instance_type,
-                    "asSpot": False
-                }
             }
         return params
 
@@ -526,10 +527,16 @@ class Job(Cloudos):
             Whether to use or not AWS S3 mountpoint for quicker file staging.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
-        verify: [bool|string]
+        verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        command : string
+            The command to run in bash jobs.
+        cpus : int
+            The number of CPUs to use for the bash jobs task's master node.
+        memory : int
+            The amount of memory, in GB, to use for the bash job task's master node.
 
         Returns
         -------

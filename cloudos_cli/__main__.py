@@ -1813,11 +1813,11 @@ def remove_profile(ctx, profile):
               type=int,
               default=500)
 @click.option('--cpus',
-              help='The number of CPUs to use. Default=1.',
+              help='The number of CPUs to use for the task\'s master node. Default=1.',
               type=int,
               default=1)
 @click.option('--memory',
-              help='The amount of memory to use. Default=4.',
+              help='The amount of memory, in GB, to use for the task\'s master node. Default=4.',
               type=int,
               default=4)
 @click.option('--storage-mode',
@@ -1928,11 +1928,14 @@ def run_bash_job(ctx,
     else:
         batch = True
 
-    queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None,
-                  workspace_id=workspace_id, verify=verify_ssl)
-    # I have to add 'nextflow', other wise the job queue id is not found
-    job_queue_id = queue.fetch_job_queue_id(workflow_type='nextflow', batch=batch,
-                                            job_queue=job_queue)
+    if job_queue is not None:
+        queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None,
+                      workspace_id=workspace_id, verify=verify_ssl)
+        # I have to add 'nextflow', other wise the job queue id is not found
+        job_queue_id = queue.fetch_job_queue_id(workflow_type='nextflow', batch=batch,
+                                                job_queue=job_queue)
+    else:
+        job_queue_id = None
     j_id = j.send_job(job_config=None,
                       parameter=parameter,
                       git_commit=None,
