@@ -148,3 +148,6 @@ __pycache__
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+# flask8 configs
+.flake8

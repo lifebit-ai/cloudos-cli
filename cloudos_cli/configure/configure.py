@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 import configparser
-import getpass
 import sys
 import click
+
 
 class ConfigurationProfile:
     """Class to manage configuration profiles for the CloudOS CLI.
@@ -14,6 +14,7 @@ class ConfigurationProfile:
         credentials_file (str): Path to the credentials file.
         config_file (str): Path to the config file.
     """
+
     def __init__(self, config_dir=None):
         """Initialize the ConfigurationProfile class.
         Args:
@@ -28,21 +29,20 @@ class ConfigurationProfile:
         if not os.path.exists(self.config_dir):
             os.makedirs(self.config_dir)
 
-
     def create_profile_from_input(self, profile_name):
         """Interactively create a profile in credentials and config files.
         Parameters:
         ----------
         profile_name : str
-            The name of the profile to create or update. If the profile already exists, 
+            The name of the profile to create or update. If the profile already exists,
             the user will be prompted to update its parameters.
-        This method guides the user through an interactive process to input or update 
-        profile details such as API token, platform URL, workspace ID, project name, 
-        execution platform, repository provider, and workflow name. The profile can 
+        This method guides the user through an interactive process to input or update
+        profile details such as API token, platform URL, workspace ID, project name,
+        execution platform, repository provider, and workflow name. The profile can
         also be set as the default profile if desired.
-        The API token is stored in the credentials file, while other settings are 
-        stored in the config file. If the profile already exists, existing values 
-        are pre-filled for convenience.        
+        The API token is stored in the credentials file, while other settings are
+        stored in the config file. If the profile already exists, existing values
+        are pre-filled for convenience.
         """
 
         # Load or create configparser instances
@@ -77,7 +77,7 @@ class ConfigurationProfile:
             print(f"Creating new profile: {profile_name}")
 
         # Ask for user input
-        ## API token
+        # API token
         present_api_token = shared_config.get('apikey', None)
         if present_api_token is not None:
             # Mask the API token except for the last 4 characters, max 16 characters masked
@@ -93,7 +93,7 @@ class ConfigurationProfile:
         else:
             api_token = api_token
 
-        ## Platform URL
+        # Platform URL
         platform_url = input(f"Platform URL [{shared_config.get('cloudos_url', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
         if platform_url == "" and shared_config.get('cloudos_url', None) is not None:
@@ -103,8 +103,10 @@ class ConfigurationProfile:
         else:
             platform_url = platform_url
 
-        ## Workspace ID
-        platform_workspace_id = input(f"Platform workspace ID [{shared_config.get('workspace_id', profile_name)}]: ").strip()
+        # Workspace ID
+        platform_workspace_id = input(
+            f"Platform workspace ID [{shared_config.get('workspace_id', profile_name)}]: "
+        ).strip()
         # If the user presses Enter, keep the existing value
         if platform_workspace_id == "" and shared_config.get('workspace_id', None) is not None:
             platform_workspace_id = shared_config['workspace_id']
@@ -113,7 +115,7 @@ class ConfigurationProfile:
         else:
             platform_workspace_id = platform_workspace_id
 
-        ## Project name
+        # Project name
         project_name = input(f"Project name [{shared_config.get('project_name', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
         if project_name == "" and shared_config.get('project_name', None) is not None:
@@ -123,9 +125,13 @@ class ConfigurationProfile:
         else:
             project_name = project_name
 
-        ## Execution platform
+        # Execution platform
         while True:
-            platform_executor = input(f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n\t1. aws (default)\n\t2. azure\n ").strip()
+            platform_executor = input(
+                f"Platform executor [{shared_config.get('execution_platform', profile_name)}]:\n" +
+                "\t1. aws (default)\n" +
+                "\t2. azure\n"
+            ).strip()
             if platform_executor == "" and shared_config.get('execution_platform', None) is not None:
                 platform_executor = shared_config['execution_platform']
                 break
@@ -141,9 +147,14 @@ class ConfigurationProfile:
             else:
                 print("❌ Invalid choice. Please select either 1 (aws) or 2 (azure).")
 
-        ## Repository provider
+        # Repository provider
         while True:
-            repository_provider = input(f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n\t1. github (default)\n\t2. gitlab\n\t3. bitBucketServer\n").strip()
+            repository_provider = input(
+                f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n" +
+                "\t1. github (default)\n" +
+                "\t2. gitlab\n" +
+                "\t3. bitBucketServer\n"
+            ).strip()
             if repository_provider == "" and shared_config.get('repository_platform', None) is not None:
                 repository_provider = shared_config['repository_platform']
                 break
@@ -162,7 +173,7 @@ class ConfigurationProfile:
             else:
                 print("❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).")
 
-        ## Workflow name
+        # Workflow name
         workflow_name = input(f"Workflow name [{shared_config.get('workflow_name', profile_name)}]: ").strip()
         # If the user presses Enter, keep the existing value
         if workflow_name == "" and shared_config.get('workflow_name', None) is not None:
@@ -226,7 +237,6 @@ class ConfigurationProfile:
         else:
             # if the profile was created, print message as created
             print(f"\n✅ Profile '{profile_name}' created successfully!")
-
 
     def list_profiles(self):
         """Lists all available profiles."""
@@ -318,7 +328,6 @@ class ConfigurationProfile:
             config.write(conf_file)
         print(f"Profile '{profile_name}' set as default.")
 
-
     def load_profile(self, profile_name):
         """Load a profile from the config and credentials files.
         Parameters:
@@ -340,7 +349,8 @@ class ConfigurationProfile:
             config.read(self.config_file)
 
         if not config.has_section(profile_name):
-            print(f'[Error] Profile "{profile_name}" does not exist. Please create it with "cloudos configure --profile {profile_name}".\n')
+            print(f'[Error] Profile "{profile_name}" does not exist. Please create it ' +
+                  f'with "cloudos configure --profile {profile_name}".\n')
             sys.exit(1)
 
         return {
@@ -352,7 +362,6 @@ class ConfigurationProfile:
             'execution_platform': config[profile_name].get('execution_platform', ""),
             'repository_platform': config[profile_name].get('repository_platform', ""),
         }
-
 
     def check_if_profile_exists(self, profile_name):
         """Check if a profile exists in the config file.
@@ -371,7 +380,6 @@ class ConfigurationProfile:
         if not config.has_section(profile_name):
             return False
         return True
-
 
     def determine_default_profile(self):
         """Determine the default profile from the config file.
@@ -408,7 +416,6 @@ class ConfigurationProfile:
                 config.write(conf_file)
             return "default"
 
-
     @staticmethod
     def get_param_value(ctx, param_value, param_name, default_value, required=False, missing_required_params=None):
         source = ctx.get_parameter_source(param_name)
@@ -419,9 +426,9 @@ class ConfigurationProfile:
                 missing_required_params.append('--' + param_name)
         return result
 
-
-    #def load_profile_and_validate_data(self, ctx, INIT_PROFILE, profile, required_params=None, optional_params=None):
-    def load_profile_and_validate_data(self, ctx, INIT_PROFILE, CLOUDOS_URL, profile, apikey=None, cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None, execution_platform=None, repository_platform=None):
+    def load_profile_and_validate_data(self, ctx, INIT_PROFILE, CLOUDOS_URL, profile, apikey=None, cloudos_url=None,
+                                       workspace_id=None, project_name=None, workflow_name=None,
+                                       execution_platform=None, repository_platform=None):
         """
         Load profile data and validate required parameters.
 
@@ -445,27 +452,37 @@ class ConfigurationProfile:
 
         if profile != INIT_PROFILE:
             profile_data = self.load_profile(profile_name=profile)
-            apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'], required=True, missing_required_params=missing)
-            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url']) or CLOUDOS_URL
-            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'], required=True, missing_required_params=missing)
-            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'], required=True, missing_required_params=missing)
-            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform', profile_data['repository_platform'])
-            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', profile_data['execution_platform'])
-            project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'], required=True, missing_required_params=missing)
+            apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
+                                          required=True, missing_required_params=missing)
+            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url',
+                                               profile_data['cloudos_url']) or CLOUDOS_URL
+            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
+                                                required=True, missing_required_params=missing)
+            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
+                                                 required=True, missing_required_params=missing)
+            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
+                                                       profile_data['repository_platform'])
+            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform',
+                                                      profile_data['execution_platform'])
+            project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
+                                                required=True, missing_required_params=missing)
         else:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=True, missing_required_params=missing)
             cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or CLOUDOS_URL
-            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True, missing_required_params=missing)
-            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True, missing_required_params=missing)
-            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform', repository_platform)
+            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id, required=True,
+                                                missing_required_params=missing)
+            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name, required=True,
+                                                 missing_required_params=missing)
+            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
+                                                       repository_platform)
             execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
-            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name, required=True, missing_required_params=missing)
+            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name, required=True,
+                                                missing_required_params=missing)
         cloudos_url = cloudos_url.rstrip('/')
 
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
             raise click.UsageError(f"Missing required option/s: {formatted}")
-        
         return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name
