@@ -93,27 +93,27 @@ class WFImport(ABC):
         return content["_id"]
 
 class ImportGitlab(WFImport):
-     def fill_payload(self, gitlab_apikey):
-         parsed_url = urlsplit(self.workflow_url)
-         gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-         project_with_namespace = parsed_url.path[1:]
-         try:
-             gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
-             gl.auth()
-             user_id = gl.user.id
-             project = gl.projects.get(project_with_namespace)
-             attrs = project.attributes
-             ## required data
-             repo_id = attrs["id"]
-             repo_name = attrs["name"]
-             group_name = attrs["namespace"]["full_path"]
+    def fill_payload(self, gitlab_apikey):
+        parsed_url = urlsplit(self.workflow_url)
+        gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        project_with_namespace = parsed_url.path[1:]
+        try:
+            gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+            gl.auth()
+            user_id = gl.user.id
+            project = gl.projects.get(project_with_namespace)
+            attrs = project.attributes
+            ## required data
+            repo_id = attrs["id"]
+            repo_name = attrs["name"]
+            group_name = attrs["namespace"]["full_path"]
 
-             self.payload["repository"]["repositoryId"] = repo_id
-             self.payload["repository"]["name"] = repo_name
-             self.payload["repository"]["owner"]["login"] = group_name
-             self.payload["repository"]["owner"]["id"] = user_id
-         except GitlabAuthenticationError:
-             raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
+            self.payload["repository"]["repositoryId"] = repo_id
+            self.payload["repository"]["name"] = repo_name
+            self.payload["repository"]["owner"]["login"] = group_name
+            self.payload["repository"]["owner"]["id"] = user_id
+        except GitlabAuthenticationError:
+            raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
 
 
 
