@@ -149,5 +149,10 @@ __pycache__
 **/.DS_Store
 **/._.DS_Store
 .idea
+
+# flask8 configs
+.flake8
+
+# test-produced files
 tests/.env
-tests/test_data/.cloudos
+tests/test_data/.cloudos/
