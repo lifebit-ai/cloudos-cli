@@ -104,7 +104,7 @@ class ImportGitlab(WFImport):
             user_id = gl.user.id
             project = gl.projects.get(project_with_namespace)
             attrs = project.attributes
-            ## required data
+            # required data
             repo_id = attrs["id"]
             repo_name = attrs["name"]
             group_name = attrs["namespace"]["full_path"]
