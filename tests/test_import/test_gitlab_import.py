@@ -14,9 +14,9 @@ WF_URL_NESTEDGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/nested-subgrou
 REPO_NAME = "from-gitlab-spammer-nf"
 WF_NAME = "spammer-nf"
 repo_expected_data = [
-        [WF_URL_BASEGROUP, "tests/test_import/data/lb-ortiz_spammer-nf.json", (69676121, REPO_NAME, 21882195, "lb-ortiz")],
-        [WF_URL_SUBGROUP, "tests/test_import/data/lb-ortiz_subgroup_spammer-nf.json", (69676104, REPO_NAME, 21882195, "lb-ortiz/sample_subgroup")],
-        [WF_URL_NESTEDGROUP, "tests/test_import/data/lb-ortiz_subgroup_nested-subgroup_spammer-nf.json", (69676266, REPO_NAME, 21882195, "lb-ortiz/sample_subgroup/nested-subgroup")]
+        [WF_URL_BASEGROUP, "tests/test_import/data/lb-ortiz_spammer-nf.json", (1, REPO_NAME, 100, "lb-ortiz")],
+        [WF_URL_SUBGROUP, "tests/test_import/data/lb-ortiz_subgroup_spammer-nf.json", (2, REPO_NAME, 100, "lb-ortiz/sample_subgroup")],
+        [WF_URL_NESTEDGROUP, "tests/test_import/data/lb-ortiz_subgroup_nested-subgroup_spammer-nf.json", (3, REPO_NAME, 100, "lb-ortiz/sample_subgroup/nested-subgroup")]
 ]
 
 
