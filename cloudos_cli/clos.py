@@ -92,6 +92,7 @@ class WFImport(ABC):
         content = json.loads(r.content)
         return content["_id"]
 
+
 class ImportGitlab(WFImport):
     def fill_payload(self, gitlab_apikey):
         parsed_url = urlsplit(self.workflow_url)
