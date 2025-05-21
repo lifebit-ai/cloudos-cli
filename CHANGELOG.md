@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.22.0 (2025-05-15)
+
+### Feat
+
+- Adds ability to send bash jobs in sequential sample processing (only strings)
+- Updates requirements
+
 ## v2.21.0 (2025-05-13)
 
 ### Feat
