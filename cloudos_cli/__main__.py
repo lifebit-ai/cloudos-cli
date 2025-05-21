@@ -2,7 +2,7 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos, ImportGitlab
+from cloudos_cli.clos import Cloudos, ImportGitlab, WFImport
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -208,16 +208,14 @@ def get_param_value(ctx, param_value, param_name, default_value, required=False,
     return result
 
 
-# This is put here to avoid changing current code.
-# Once we have all three (Bitbucket, Github, Gitlab) repo systems
-# working with API keys, we can re-arrange the UI
 @run_cloudos_cli.group()
 def import_workflows():
     """Import workflows"""
     print(import_workflows.__doc__ + "\n")
 
-
-@import_workflows.command("gitlab")
+# Import is a placeholder, and will be removed once the original import_workflows functionality
+# is replaced
+@import_workflows.command("import")
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -230,13 +228,14 @@ def import_workflows():
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-# This is a placeholder in case we decide to handle all imports from the same function
-# @click.option("-p", "--platform", type=click.Choice(["github", "gitlab", "bitbucket"]),
-#               help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
-#               default="github")
-@click.option("-r", "--repository-apikey", help="Repository API key.", required=True)
+@click.option("-p", "--platform", type=click.Choice(["github", "gitlab", "bitbucket"]),
+              help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
+              default="github")
 @click.option("-n", "--workflow-name", help="Workflow name.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
+@click.option("-a", "--repo-api-url", help="URL of the repository service API", required=True)
+@click.option("-v", "--repo-api-version", help="Repository service API version", required=True)
+@click.option("-r", "--repo-apikey", help="Repository API key.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
@@ -244,17 +243,20 @@ def import_workflows():
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-def import_gitlab(apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
-                  disable_ssl_verification, ssl_cert, repository_apikey, platform="gitlab"):
+def import_wf(apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
+                  platform, repo_api_url, repo_api_version, repo_apikey,
+                  disable_ssl_verification, ssl_cert):
     """
     Import workflows from Gitlab.
     """
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    gitlab_import = ImportGitlab(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                                 platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
-                                 workflow_docs_link=workflow_docs_link,
-                                 verify=verify_ssl)
-    gitlab_import.fill_payload(repository_apikey)
+    repo_services = {"gitlab": ImportGitlab}
+    repo_cls = repo_services[platform]
+    gitlab_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+                             repo_api_url=repo_api_url, repo_api_version=repo_api_version, repo_apikey=repo_apikey,
+                             workflow_docs_link=workflow_docs_link, verify=verify_ssl)
+    gitlab_import.fill_payload()
     workflow_id = gitlab_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')

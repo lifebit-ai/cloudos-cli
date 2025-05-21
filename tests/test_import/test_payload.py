@@ -26,7 +26,7 @@ class import_class(WFImport):
                                 f"self.fill_payload() has been executed")
 
 def test_fill_payload_succeeds():
-    sample_class = import_class(cloudos_url="http://example.comv", cloudos_apikey="somekey", workspace_id="myworkspace", platform="gitlab", workflow_name="someworkflow", workflow_url="http://workflows.com")
+    sample_class = import_class(cloudos_url="http://example.comv", cloudos_apikey="somekey", workspace_id="myworkspace", platform="gitlab", workflow_name="someworkflow", workflow_url="http://workflows.com", repo_apikey="", repo_api_url="", repo_api_version="")
     with does_not_raise():
         sample_class.fill_payload(repo_id="repo_id", repo_name="repo_name", owner_id="owner_id", owner_login="owner_login")
 
@@ -37,7 +37,7 @@ def test_fill_payload_succeeds():
     ("owner_id", {"repo_id": "repo_id", "repo_name": "repo_name", "owner_login": "owner_login", "owner_id": None}, "self.payload['repository']['owner']['id']")
 ])
 def test_fill_payload_missing_param(missing_param, params, expected_error_pattern):
-    sample_class = import_class(cloudos_url="http://example.comv", cloudos_apikey="somekey", workspace_id="myworkspace", platform="gitlab", workflow_name="someworkflow", workflow_url="http://workflows.com")
+    sample_class = import_class(cloudos_url="http://example.comv", cloudos_apikey="somekey", workspace_id="myworkspace", platform="gitlab", workflow_name="someworkflow", workflow_url="http://workflows.com", repo_apikey="", repo_api_version="", repo_api_url="")
     sample_class.fill_payload(**params)
 
     # When a parameter is None, check_payload should raise ValueError

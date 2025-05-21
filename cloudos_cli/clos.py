@@ -21,8 +21,11 @@ JOB_ABORTED = 'aborted'
 
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link="", verify=True):
+                 workflow_name, workflow_url, repo_api_url, repo_api_version, repo_apikey, workflow_docs_link="", verify=True):
         self.workflow_url = workflow_url
+        self.repo_api_url = repo_api_url
+        self.repo_api_version = repo_api_version
+        self.repo_apikey = repo_apikey
         self.headers = {
             "Content-Type": "application/json",
             "apikey": cloudos_apikey
@@ -54,7 +57,7 @@ class WFImport(ABC):
         self.verify = verify
 
     @abstractmethod
-    def fill_payload(self, *args, **kwargs):
+    def fill_payload(self):
         """
         Uses the methods required by a repository service to gather the following data, and
         use it to fill the None values from self.payload using dot-notation (in parentheses)
@@ -94,12 +97,11 @@ class WFImport(ABC):
 
 
 class ImportGitlab(WFImport):
-    def fill_payload(self, gitlab_apikey):
+    def fill_payload(self):
         parsed_url = urlsplit(self.workflow_url)
-        gitlab_base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
         project_with_namespace = parsed_url.path[1:]
         try:
-            gl = Gitlab(gitlab_base_url, private_token=gitlab_apikey)
+            gl = Gitlab(self.repo_api_url, api_version=self.repo_api_version, private_token=self.repo_apikey)
             gl.auth()
             user_id = gl.user.id
             project = gl.projects.get(project_with_namespace)

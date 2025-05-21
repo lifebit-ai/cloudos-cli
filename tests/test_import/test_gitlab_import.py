@@ -39,8 +39,10 @@ def test_fetch_correct_repo_data(repo_url, fixture_path, expected):
         url="https://gitlab.com/api/v4/user",
         json=user
     )
-    GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID, platform="gitlab", workflow_url=repo_url, workflow_name=REPO_NAME)
-    GitlabImport.fill_payload(gitlab_apikey=GITLAB_TOKEN)
+    GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
+                                platform="gitlab", workflow_url=repo_url, workflow_name=REPO_NAME, repo_api_url="https://gitlab.com", repo_api_version=4, repo_apikey=GITLAB_TOKEN
+                                )
+    GitlabImport.fill_payload()
     assert GitlabImport.payload["repository"]["repositoryId"] == ex_repo_id
     assert GitlabImport.payload["repository"]["name"] == WF_NAME
     assert GitlabImport.payload["repository"]["owner"]["id"] == ex_group_id
