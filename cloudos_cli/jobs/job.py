@@ -109,7 +109,7 @@ class Job(Cloudos):
         """Fetch the cloudos id for a given name.
 
         Parameters
-        ---------
+        ----------
         apikey : string
             Your CloudOS API key
         cloudos_url : string
