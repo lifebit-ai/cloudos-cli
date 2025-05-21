@@ -117,7 +117,6 @@ class ImportGitlab(WFImport):
             raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
 
 
-
 @dataclass
 class Cloudos:
     """A simple class to contain the required connection information.
