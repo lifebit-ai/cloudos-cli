@@ -79,7 +79,7 @@ jobs:
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repo-apikey $GITLAB_TOKEN --repo-api-url https://gitlab.com -v 4
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repo-apikey $GITLAB_TOKEN --repo-api-url https://gitlab.com -v 4 --platform gitlab
   job_run_and_status:
     runs-on: ubuntu-latest
     strategy:
