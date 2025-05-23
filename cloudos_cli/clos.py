@@ -67,16 +67,6 @@ class WFImport(ABC):
         return r_data["mainFile"]
 
     def get_repo(self):
-        """
-        Uses the methods required by a repository service to gather the following data, and
-        use it to fill the None values from self.payload using dot-notation (in parentheses)
-        - repository ID (repository.repositoryId)
-        - repository name (repository.name)
-        - owner login (repository.owner.login)
-        - owner id (repository.owner.id)
-        this function must update self.payload in-place, and should be called before
-        calling import_workflow
-        """
         # add bearer token to headers for testing
         header = self.headers | {"Authorization": "Bearer"}
         r = requests.get(self.get_repo_url, params=self.get_repo_params, headers=header)
