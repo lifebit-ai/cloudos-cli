@@ -1,0 +1,30 @@
+{"workflows": [
+    {
+        "_id": "67bf34d27f56d721d1b120ea",
+        "owner": {
+            "id": "60a77a0d02378e019a100bf7"
+        },
+        "name": "ubuntu",
+        "docsLink": "",
+        "description": "",
+        "isLifebitManaged": false,
+        "group": "user",
+        "tags": [],
+        "overview": "",
+        "createdAt": "2025-02-26T15:35:46.585Z",
+        "updatedAt": "2025-02-26T15:35:46.585Z",
+        "imageUrl": null,
+        "parametersInfo": [],
+        "archived": {
+            "status": false,
+            "archivalTimestamp": null
+        },
+        "workflowType": "docker",
+        "containerName": "library/ubuntu",
+        "defaultCommand": ""
+    }
+],
+"paginationMetadata": {
+    "Pagination-Count": 10
+}
+}

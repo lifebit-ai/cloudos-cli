@@ -108,8 +108,8 @@ class Job(Cloudos):
                          verify=True):
         """Fetch the cloudos id for a given name.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         apikey : string
             Your CloudOS API key
         cloudos_url : string
@@ -146,9 +146,12 @@ class Job(Cloudos):
         if resource == 'workflows':
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
+                if (element["name"] == name and element["workflowType"] == "docker" and
+                        not element["archived"]["status"]):
+                    return element["_id"]  # no mainfile or importsfile
                 if (element["name"] == name and
-                    element["repository"]["platform"] == repository_platform and
-                    not element["archived"]["status"]):
+                        element["repository"]["platform"] == repository_platform and
+                        not element["archived"]["status"]):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
@@ -193,7 +196,10 @@ class Job(Cloudos):
                                  cromwell_id,
                                  cost_limit,
                                  use_mountpoints,
-                                 docker_login):
+                                 docker_login,
+                                 command,
+                                 cpus,
+                                 memory):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -256,6 +262,13 @@ class Job(Cloudos):
             Whether to use or not AWS S3 mountpoint for quicker file staging.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
+        command : string
+            The command to run in bash jobs.
+        cpus : int
+            The number of CPUs to use for the bash jobs task's master node.
+        memory : int
+            The amount of memory, in GB, to use for the bash job task's master node.
+
 
         Returns
         -------
@@ -278,6 +291,9 @@ class Job(Cloudos):
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
+        if workflow_type == 'docker' and len(parameter) == 0:
+            raise ValueError('No --parameter were provided. At least one of ' +
+                             'these are required for bash workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -331,7 +347,16 @@ class Job(Cloudos):
                                      'as spacer. E.g: input=value')
                 p_name = p_split[0]
                 p_value = '='.join(p_split[1:])
-                if workflow_type == 'wdl':
+                if workflow_type == 'docker':
+                    prefix = "--" if p_name.startswith('--') else ("-" if p_name.startswith('-') else '')
+                    # leave defined for adding files later
+                    parameter_kind = "textValue"
+                    param = {"prefix": prefix,
+                             "name": p_name.lstrip('-'),
+                             "parameterKind": parameter_kind,
+                             "textValue": p_value}
+                    workflow_params.append(param)
+                elif workflow_type == 'wdl':
                     param = {"prefix": "",
                              "name": p_name,
                              "parameterKind": "textValue",
@@ -380,11 +405,6 @@ class Job(Cloudos):
             "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
-            "batch": {
-                "dockerLogin": docker_login,
-                "enabled": batch,
-                "jobQueue": job_queue_id
-            },
             "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
@@ -400,12 +420,24 @@ class Job(Cloudos):
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints
         }
+        if job_queue_id is not None:
+            params['batch'] = {
+                "dockerLogin": docker_login,
+                "enabled": batch,
+                "jobQueue": job_queue_id
+            }
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
                     "type": instance_type,
                     "asSpot": False
                 }
+            }
+        if workflow_type == 'docker':
+            params['command'] = command
+            params["resourceRequirements"] = {
+                "cpu": cpus,
+                "ram": memory
             }
         return params
 
@@ -433,7 +465,10 @@ class Job(Cloudos):
                  cost_limit=30.0,
                  use_mountpoints=False,
                  docker_login=False,
-                 verify=True):
+                 verify=True,
+                 command=None,
+                 cpus=1,
+                 memory=4):
         """Send a job to CloudOS.
 
         Parameters
@@ -492,10 +527,16 @@ class Job(Cloudos):
             Whether to use or not AWS S3 mountpoint for quicker file staging.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
-        verify: [bool|string]
+        verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        command : string
+            The command to run in bash jobs.
+        cpus : int
+            The number of CPUs to use for the bash jobs task's master node.
+        memory : int
+            The amount of memory, in GB, to use for the bash job task's master node.
 
         Returns
         -------
@@ -536,9 +577,12 @@ class Job(Cloudos):
                                                cromwell_id,
                                                cost_limit,
                                                use_mountpoints,
-                                               docker_login)
+                                               docker_login,
+                                               command=command,
+                                               cpus=cpus,
+                                               memory=memory)
         r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
-                                                            workspace_id),
+                                                                  workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)

@@ -1,10 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.22.0 (2025-15-15)
+## v2.23.0 (2025-05-21)
 
 ### Feat
 
 - Adds the ability to import workflows from Gitlab using only a Gitlab token
+
+## v2.22.0 (2025-05-15)
+
+### Feat
+
+- Adds ability to send bash jobs in sequential sample processing (only strings)
+- Updates requirements
 
 ## v2.21.0 (2025-05-13)
 
