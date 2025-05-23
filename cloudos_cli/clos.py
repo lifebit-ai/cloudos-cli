@@ -21,11 +21,11 @@ JOB_ABORTED = 'aborted'
 
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, repo_api_url, repo_api_version, repo_apikey, workflow_docs_link="", verify=True):
+                 workflow_name, workflow_url, workflow_docs_link="", verify=True):
         self.workflow_url = workflow_url
-        self.repo_api_url = repo_api_url
-        self.repo_api_version = repo_api_version
-        self.repo_apikey = repo_apikey
+        self.repo_name = ""
+        self.repo_owner = ""
+        self.repo_host = ""
         self.headers = {
             "Content-Type": "application/json",
             "apikey": cloudos_apikey
@@ -53,11 +53,13 @@ class WFImport(ABC):
             "docsLink": workflow_docs_link,
             "team": workspace_id
         }
+        self.get_repo_url = ""
+        self.get_repo_params = dict()
         self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
         self.verify = verify
 
     @abstractmethod
-    def fill_payload(self):
+    def get_repo(self):
         """
         Uses the methods required by a repository service to gather the following data, and
         use it to fill the None values from self.payload using dot-notation (in parentheses)
@@ -68,7 +70,7 @@ class WFImport(ABC):
         this function must update self.payload in-place, and should be called before
         calling import_workflow
         """
-        pass
+        endpoint = f"{self.clo}"
 
     def check_payload(self):
         for required_key in ["repositoryId", "name", ("owner", "login"), ("owner", "id")]:
@@ -97,26 +99,17 @@ class WFImport(ABC):
 
 
 class ImportGitlab(WFImport):
-    def fill_payload(self):
+    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link, verify):
+        super().__init__(cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link, verify)
         parsed_url = urlsplit(self.workflow_url)
-        project_with_namespace = parsed_url.path[1:]
-        try:
-            gl = Gitlab(self.repo_api_url, api_version=self.repo_api_version, private_token=self.repo_apikey)
-            gl.auth()
-            user_id = gl.user.id
-            project = gl.projects.get(project_with_namespace)
-            attrs = project.attributes
-            # required data
-            repo_id = attrs["id"]
-            repo_name = attrs["name"]
-            group_name = attrs["namespace"]["full_path"]
+        repo_name = parsed_url.path[-1]
+        repo_owner = "/".join(parsed_url.path[1:-1])
+        repo_host = f"{parsed_url.scheme}//{parsed_url.netloc}"
+        self.get_repo_url = f"{cloudos_url}/api/v1/git/gitlab/getPublicRepo"
+        self.get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=workspace_id)
 
-            self.payload["repository"]["repositoryId"] = repo_id
-            self.payload["repository"]["name"] = repo_name
-            self.payload["repository"]["owner"]["login"] = group_name
-            self.payload["repository"]["owner"]["id"] = user_id
-        except GitlabAuthenticationError:
-            raise GitlabAuthenticationError("Could not login to Gitlab. Check Gitlab URL and Gitlab API key")
 
 
 @dataclass
