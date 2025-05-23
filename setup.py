@@ -23,7 +23,7 @@ setuptools.setup(
     entry_points={"console_scripts": [
         "cloudos=cloudos_cli.__main__:run_cloudos_cli"
     ]},
-    install_requires=["click>=8.0.1", "rich-click>=1.8.2", "pandas>=1.3.4", "numpy>=1.26.4", "requests>=2.26.0", "python-gitlab>=5.6.0"],
+    install_requires=["click>=8.0.1", "rich-click>=1.8.2", "pandas>=1.3.4", "numpy>=1.26.4", "requests>=2.26.0"],
     extras_require={
         "test": ["pytest", "mock", "responses", "requests_mock"]
     },

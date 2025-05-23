@@ -9,9 +9,8 @@ from dataclasses import dataclass
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
-from abc import ABC, abstractmethod
+from abc import ABC
 from urllib.parse import urlsplit
-from gitlab import Gitlab, GitlabAuthenticationError
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -21,8 +20,9 @@ JOB_ABORTED = 'aborted'
 
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link="", verify=True):
+                 workflow_name, workflow_url, workflow_docs_link="", main_file=None, verify=True):
         self.workflow_url = workflow_url
+        self.main_file = main_file
         self.repo_name = ""
         self.repo_owner = ""
         self.repo_host = ""
@@ -55,10 +55,17 @@ class WFImport(ABC):
         }
         self.get_repo_url = ""
         self.get_repo_params = dict()
+        self.get_repo_main_file_url = ""
+        self.get_repo_main_file_params = ""
         self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
         self.verify = verify
 
-    @abstractmethod
+    def get_repo_main_file(self):
+        header = self.headers | {"Authorization": "Bearer"}
+        r = requests.get(self.get_repo_main_file_url, params=self.get_repo_main_file_params, headers=header)
+        r_data = r.json()
+        return r_data["mainFile"]
+
     def get_repo(self):
         """
         Uses the methods required by a repository service to gather the following data, and
@@ -70,7 +77,14 @@ class WFImport(ABC):
         this function must update self.payload in-place, and should be called before
         calling import_workflow
         """
-        endpoint = f"{self.clo}"
+        # add bearer token to headers for testing
+        header = self.headers | {"Authorization": "Bearer"}
+        r = requests.get(self.get_repo_url, params=self.get_repo_params, headers=header)
+        r_data = r.json()
+        self.payload["repository"]["repositoryId"] = r_data["id"]
+        self.payload["repository"]["owner"]["id"] = r_data["creator_id"]
+        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
+
 
     def check_payload(self):
         for required_key in ["repositoryId", "name", ("owner", "login"), ("owner", "id")]:
@@ -87,6 +101,7 @@ class WFImport(ABC):
                                  f"self.fill_payload() has been executed")
 
     def import_workflow(self):
+        self.get_repo()
         self.check_payload()
         r = retry_requests_post(self.post_request_url, json=self.payload, headers=self.headers, verify=self.verify)
         if r.status_code == 401:
@@ -100,15 +115,20 @@ class WFImport(ABC):
 
 class ImportGitlab(WFImport):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, verify):
+                 workflow_name, workflow_url, workflow_docs_link, main_file, verify):
         super().__init__(cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, verify)
+                 workflow_name, workflow_url, workflow_docs_link, main_file, verify)
         parsed_url = urlsplit(self.workflow_url)
-        repo_name = parsed_url.path[-1]
-        repo_owner = "/".join(parsed_url.path[1:-1])
-        repo_host = f"{parsed_url.scheme}//{parsed_url.netloc}"
+        repo_name = parsed_url.path.split("/")[-1]
+        repo_owner = "/".join(parsed_url.path.split("/")[1:-1])
+        repo_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
         self.get_repo_url = f"{cloudos_url}/api/v1/git/gitlab/getPublicRepo"
         self.get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=workspace_id)
+        self.payload["repository"]["owner"]["login"] = repo_owner
+        self.payload["repository"]["name"] = repo_name
+
+        self.get_repo_main_file_url = f"{cloudos_url}/api/v1/git/gitlab/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
+        self.get_repo_main_file_params = dict(host=repo_host, teamId=workspace_id)
 
 
 

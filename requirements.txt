@@ -7,4 +7,3 @@ pytest>=6.2.5
 responses>=0.21.0
 mock>=3.0.5
 rich-click>=1.8.2
-python-gitlab>=5.6.0
