@@ -1299,9 +1299,6 @@ def list_workflows(ctx,
               default="github")
 @click.option("-n", "--workflow-name", help="Workflow name.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
-@click.option("-a", "--repo-api-url", help="URL of the repository service API", required=True)
-@click.option("-v", "--repo-api-version", help="Repository service API version", required=True)
-@click.option("-r", "--repo-apikey", help="Repository API key.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
@@ -1312,8 +1309,7 @@ def list_workflows(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def import_wf(ctx, apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
-                  platform, repo_api_url, repo_api_version, repo_apikey,
-                  disable_ssl_verification, ssl_cert, profile):
+                  platform, disable_ssl_verification, ssl_cert, profile):
     """
     Import workflows from supported repository providers.
     """
