@@ -242,7 +242,7 @@ def configure(ctx, profile, make_default):
               type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
               default='22.10.8')
 @click.option('--git-commit',
-              help=('The exact whole 40 character commit hash to run for ' +
+              help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
                     'of the default branch.'))

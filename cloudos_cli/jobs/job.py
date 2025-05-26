@@ -215,7 +215,7 @@ class Job(Cloudos):
             It is typically used to run curated pipelines using the already available
             example parameters.
         git_commit : string
-            The exact commit of the pipeline to use. Equivalent to -r
+            The git commit hash of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
             default branch will be used.
         git_tag : string
@@ -484,7 +484,7 @@ class Job(Cloudos):
             It is typically used to run curated pipelines using the already available
             example parameters.
         git_commit : string
-            The exact commit of the pipeline to use. Equivalent to -r
+            The git commit hash of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
             default branch will be used.
         git_tag : string
