@@ -430,7 +430,7 @@ class Job(Cloudos):
             raise ValueError('Please, specify none or only one of --git-tag, ' +
                              '--git-branch or --git-commit options.')
         elif sum(git_flag) == 1:
-            revision_type = ["tag" if git_tag is not None else "commit" if git_commit is not None else "branch"]
+            revision_type = 'tag' if git_tag is not None else 'commit' if git_commit is not None else 'branch'
             params['revision'] = {
                 "revisionType": revision_type,
                 "tag": git_tag,
