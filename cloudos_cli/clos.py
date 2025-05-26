@@ -61,14 +61,14 @@ class WFImport(ABC):
         self.verify = verify
 
     def get_repo_main_file(self):
-        header = self.headers | {"Authorization": "Bearer"}
+        header = self.headers | {"Authorization": "Bearer "}
         r = requests.get(self.get_repo_main_file_url, params=self.get_repo_main_file_params, headers=header)
         r_data = r.json()
         return r_data["mainFile"]
 
     def get_repo(self):
         # add bearer token to headers for testing
-        header = self.headers | {"Authorization": "Bearer"}
+        header = self.headers | {"Authorization": "Bearer "}
         r = requests.get(self.get_repo_url, params=self.get_repo_params, headers=header)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
@@ -118,6 +118,24 @@ class ImportGitlab(WFImport):
         self.payload["repository"]["name"] = repo_name
 
         self.get_repo_main_file_url = f"{cloudos_url}/api/v1/git/gitlab/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
+        self.get_repo_main_file_params = dict(host=repo_host, teamId=workspace_id)
+
+
+class ImportGithub(WFImport):
+    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link, main_file, verify):
+        super().__init__(cloudos_url, cloudos_apikey, workspace_id, platform,
+                 workflow_name, workflow_url, workflow_docs_link, main_file, verify)
+        parsed_url = urlsplit(self.workflow_url)
+        repo_name = parsed_url.path.split("/")[-1]
+        repo_owner = "/".join(parsed_url.path.split("/")[1:-1])
+        repo_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        self.get_repo_url = f"{cloudos_url}/api/v1/git/github/getPublicRepo"
+        self.get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=workspace_id)
+        self.payload["repository"]["owner"]["login"] = repo_owner
+        self.payload["repository"]["name"] = repo_name
+
+        self.get_repo_main_file_url = f"{cloudos_url}/api/v1/git/github/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
         self.get_repo_main_file_params = dict(host=repo_host, teamId=workspace_id)
 
 
