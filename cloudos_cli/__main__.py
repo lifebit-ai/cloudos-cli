@@ -250,6 +250,10 @@ def configure(ctx, profile, make_default):
               help=('The tag to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
                     'of the default branch.'))
+@click.option('--git-branch',
+              help=('The branch to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
@@ -259,20 +263,6 @@ def configure(ctx, profile, make_default):
 @click.option('--do-not-save-logs',
               help=('Avoids process log saving. If you select this option, your job process ' +
                     'logs will not be stored.'),
-              is_flag=True)
-@click.option('--spot',
-              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
-                    'Spot instances are no longer available in CloudOS.'),
-              is_flag=True)
-@click.option('--batch',
-              help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
-                    'so there is no need to use this flag. It is maintained for ' +
-                    'backwards compatibility.'),
-              is_flag=True)
-@click.option('--ignite',
-              help=('This flag allows running ignite executor if available. Please, note ' +
-                    'that ignite executor is being deprecated and may not be available in your ' +
-                    'CloudOS.'),
               is_flag=True)
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
@@ -358,12 +348,10 @@ def run(ctx,
         parameter,
         git_commit,
         git_tag,
+        git_branch,
         job_name,
         resumable,
         do_not_save_logs,
-        spot,
-        batch,
-        ignite,
         job_queue,
         nextflow_profile,
         nextflow_version,
@@ -416,9 +404,6 @@ def run(ctx,
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    if spot:
-        print('[Message] You have specified spot instances but they are no longer available ' +
-              'in CloudOS. Option ignored.')
     if do_not_save_logs:
         save_logs = False
     else:
@@ -432,11 +417,6 @@ def run(ctx,
             instance_type = None
     if execution_platform == 'azure' or execution_platform == 'hpc':
         batch = None
-    elif ignite:
-        batch = None
-        print('[Warning] You have specified ignite executor. Please, note that ignite is being ' +
-              'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
-              'CloudOS')
     else:
         batch = True
     if execution_platform == 'hpc':
@@ -586,6 +566,7 @@ def run(ctx,
                       parameter=parameter,
                       git_commit=git_commit,
                       git_tag=git_tag,
+                      git_branch=git_branch,
                       job_name=job_name,
                       resumable=resumable,
                       save_logs=save_logs,
@@ -1773,6 +1754,7 @@ def run_bash_job(ctx,
                       parameter=parameter,
                       git_commit=None,
                       git_tag=None,
+                      git_branch=None,
                       job_name=job_name,
                       resumable=False,
                       save_logs=do_not_save_logs,

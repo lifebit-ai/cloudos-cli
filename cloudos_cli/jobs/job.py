@@ -177,6 +177,7 @@ class Job(Cloudos):
                                  example_parameters,
                                  git_commit,
                                  git_tag,
+                                 git_branch,
                                  project_id,
                                  workflow_id,
                                  job_name,
@@ -219,6 +220,9 @@ class Job(Cloudos):
             default branch will be used.
         git_tag : string
             The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
+        git_branch : string
+            The branch of the pipeline to use. If not specified, the last
             commit of the default branch will be used.
         project_id : string
             The CloudOS project id for a given project name.
@@ -421,21 +425,18 @@ class Job(Cloudos):
             }
         if workflow_type == 'wdl':
             params['cromwellCloudResources'] = cromwell_id
-        if git_tag is not None and git_commit is not None:
-            raise ValueError('Please, specify none or only one of --git-tag' +
-                             ' or --git-commit options but not both.')
-        elif git_commit is not None:
-            revision_block = {
-                                 "commit": git_commit,
-                                 "isLatest": False
-                             }
-            params['revision'] = revision_block
-        elif git_tag is not None:
-            revision_block = {
-                                 "tag": git_tag,
-                                 "isLatest": False
-                             }
-            params['revision'] = revision_block
+        git_flag = [x is not None for x in [git_tag, git_commit, git_branch]]
+        if sum(git_flag) > 1:
+            raise ValueError('Please, specify none or only one of --git-tag, ' +
+                             '--git-branch or --git-commit options.')
+        elif sum(git_flag) == 1:
+            revision_type = ["tag" if git_tag is not None else "commit" if git_commit is not None else "branch"]
+            params['revision'] = {
+                "revisionType": revision_type,
+                "tag": git_tag,
+                "commit": git_commit,
+                "branch": git_branch
+            }
         if nextflow_profile is not None:
             params['profile'] = nextflow_profile
         return params
@@ -446,6 +447,7 @@ class Job(Cloudos):
                  example_parameters=[],
                  git_commit=None,
                  git_tag=None,
+                 git_branch=None,
                  job_name='new_job',
                  resumable=False,
                  save_logs=True,
@@ -487,6 +489,9 @@ class Job(Cloudos):
             default branch will be used.
         git_tag : string
             The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
+        git_branch : string
+            The branch of the pipeline to use. If not specified, the last
             commit of the default branch will be used.
         job_name : string
             The name to assign to the job.
@@ -557,6 +562,7 @@ class Job(Cloudos):
                                                example_parameters,
                                                git_commit,
                                                git_tag,
+                                               git_branch,
                                                project_id,
                                                workflow_id,
                                                job_name,
