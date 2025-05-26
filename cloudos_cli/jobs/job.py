@@ -403,7 +403,7 @@ class Job(Cloudos):
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints
+            "usesFusionFileSystem": use_mountpoints,
         }
         if job_queue_id is not None:
             params['batch'] = {
