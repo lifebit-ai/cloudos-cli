@@ -394,8 +394,7 @@ class Job(Cloudos):
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
             "execution": {
-                "computeCostLimit": cost_limit,
-                "optim": "test"
+                "computeCostLimit": cost_limit
             },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
@@ -411,8 +410,7 @@ class Job(Cloudos):
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
-                    "type": instance_type,
-                    "asSpot": False
+                    "type": instance_type
                 }
             }
         if workflow_type == 'docker':
