@@ -463,7 +463,7 @@ CloudOS can also be configured to use Microsoft Azure compute platforms.
 If your CloudOS is configured to
 use Azure, you will need to take into consideration the following:
 
-- When sending jobs to CloudOS using `cloudos job run` or `cloudos job run-curated-examples` commands, please use the option `--execution-platform azure`.
+- When sending jobs to CloudOS using `cloudos job run` command, please use the option `--execution-platform azure`.
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working.
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:
@@ -619,21 +619,7 @@ Executing list...
 	Workflow list saved to workflow_list.json
 ```
 
-Normally, collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOS.
-By using `--curated` flag, the collected workflows will instead include "CURATED PIPELINES & TOOLS" only.
-
-```bash
-cloudos workflow list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --curated
-```
-```console
-Executing list...
-	Workflow list collected with a total of 73 workflows.
-	Workflow list saved to workflow_list.csv
-```
+The collected workflows are those that can be found in "WORKSPACE TOOLS" section in CloudOS.
 
 #### Import a Nextflow workflow to a CloudOS workspace
 
@@ -820,39 +806,6 @@ Executing list...
 	Workflow list collected with a total of 320 projects.
 	Workflow list saved to project_list.csv
 ```
-
-#### Run all Curated Workflows with example parameters
-
-In "Pipelines" section in CloudOS, there is a special type of workflows called "CURATED PIPELINES & TOOLS". These workflows are
-curated and maintained by our team. Some of them also offer the possibility of testing them using example parameters. We have
-added the following CLI functionality to be able to run all of these curated workflows with example parameters.
-
-The following example will launch all the workspace curated workflows with example parameters:
-
-```bash
-cloudos job run-curated-examples \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME"
-```
-
-```console
-    All 39 curated job launched successfully!
-```
-
-You can also wait for all jobs completion and get a final summary of their status using the `--wait-completion` flag:
-
-```bash
-cloudos job run-curated-examples \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME" \
-    --wait-completion
-```
-
->NOTE: currently, this command only runs Nextflow curated workflows.
 
 #### Get a list of the available job queues
 

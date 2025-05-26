@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.23.0 (2025-05-26)
+
+- Updates jobs POST endpoint from v1 to v2
+- Removes `cloudos job run-curated-examples` functionality, as it was deprecated from the platform
+
 ## v2.22.0 (2025-05-15)
 
 ### Feat

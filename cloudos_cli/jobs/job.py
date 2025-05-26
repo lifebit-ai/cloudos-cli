@@ -373,21 +373,6 @@ class Job(Cloudos):
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
-        if git_tag is not None and git_commit is not None:
-            raise ValueError('Please, specify none or only one of --git-tag' +
-                             ' or --git-commit options but not both.')
-        if git_commit is not None:
-            revision_block = {
-                                 "commit": git_commit,
-                                 "isLatest": False
-                             }
-        elif git_tag is not None:
-            revision_block = {
-                                 "tag": git_tag,
-                                 "isLatest": False
-                             }
-        else:
-            revision_block = ""
         if storage_mode == "lustre":
             print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
                   'storage is available in your CloudOS workspace.\n')
@@ -405,7 +390,6 @@ class Job(Cloudos):
             "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
-            "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
@@ -415,8 +399,6 @@ class Job(Cloudos):
             },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
-            "revision": revision_block,
-            "profile": nextflow_profile,
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints
         }
@@ -439,6 +421,25 @@ class Job(Cloudos):
                 "cpu": cpus,
                 "ram": memory
             }
+        if workflow_type == 'wdl':
+            params['cromwellCloudResources'] = cromwell_id
+        if git_tag is not None and git_commit is not None:
+            raise ValueError('Please, specify none or only one of --git-tag' +
+                             ' or --git-commit options but not both.')
+        elif git_commit is not None:
+            revision_block = {
+                                 "commit": git_commit,
+                                 "isLatest": False
+                             }
+            params['revision'] = revision_block
+        elif git_tag is not None:
+            revision_block = {
+                                 "tag": git_tag,
+                                 "isLatest": False
+                             }
+            params['revision'] = revision_block
+        if nextflow_profile is not None:
+            params['profile'] = nextflow_profile
         return params
 
     def send_job(self,
@@ -581,12 +582,12 @@ class Job(Cloudos):
                                                command=command,
                                                cpus=cpus,
                                                memory=memory)
-        r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
+        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        j_id = json.loads(r.content)["_id"]
+        j_id = json.loads(r.content)["jobId"]
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id

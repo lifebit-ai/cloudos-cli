@@ -10,15 +10,11 @@ import sys
 import os
 import urllib3
 from ._version import __version__
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from cloudos_cli.configure.configure import ConfigurationProfile
 
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
-JOB_FAILED = 'failed'
-JOB_ABORTED = 'aborted'
-JOB_RUNNING = 'running'
 REQUEST_INTERVAL_CROMWELL = 30
 AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
 AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
@@ -88,7 +84,6 @@ def run_cloudos_cli(ctx):
         ctx.default_map = dict({
             'job': {
                 'run': shared_config,
-                'run-curated-examples': shared_config,
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
@@ -127,7 +122,6 @@ def run_cloudos_cli(ctx):
         ctx.default_map = dict({
             'job': {
                 'run': shared_config,
-                'run-curated-examples': shared_config,
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
@@ -641,248 +635,6 @@ def run(ctx,
               f'\t\t--job-id {j_id}\n')
 
 
-@job.command('run-curated-examples')
-@click.option('-k',
-              '--apikey',
-              help='Your CloudOS API key',
-              required=True)
-@click.option('-c',
-              '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
-@click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
-              required=True)
-@click.option('--project-name',
-              help='The name of a CloudOS project.',
-              required=True)
-@click.option('--resumable',
-              help='Whether to make the job able to be resumed or not.',
-              is_flag=True)
-@click.option('--do-not-save-logs',
-              help=('Avoids process log saving. If you select this option, your job process ' +
-                    'logs will not be stored.'),
-              is_flag=True)
-@click.option('--spot',
-              help=('[Deprecated in 2.11.0] This option has been deprecated and has no effect. ' +
-                    'Spot instances are no longer available in CloudOS.'),
-              is_flag=True)
-@click.option('--batch',
-              help=('[Deprecated in 2.7.0] Since v2.7.0, the default executor is AWSbatch ' +
-                    'so there is no need to use this flag. It is maintained for ' +
-                    'backwards compatibility.'),
-              is_flag=True)
-@click.option('--ignite',
-              help=('This flag allows running ignite executor if available. Please, note ' +
-                    'that ignite executor is being deprecated and may not be available in your ' +
-                    'CloudOS.'),
-              is_flag=True)
-@click.option('--instance-type',
-              help=('The type of execution platform compute instance to use. ' +
-                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
-              default='NONE_SELECTED')
-@click.option('--instance-disk',
-              help='The amount of disk storage to configure. Default=500.',
-              type=int,
-              default=500)
-@click.option('--storage-mode',
-              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
-                    'regular or lustre storage. Default=regular.'),
-              default='regular')
-@click.option('--lustre-size',
-              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
-                    'be 1200 or a multiple of it. Default=1200.'),
-              type=int,
-              default=1200)
-@click.option('--execution-platform',
-              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
-              type=click.Choice(['aws', 'azure']),
-              default='aws')
-@click.option('--cost-limit',
-              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
-              type=float,
-              default=30.0)
-@click.option('--accelerate-file-staging',
-              help='Enables AWS S3 mountpoint for quicker file staging.',
-              is_flag=True)
-@click.option('--wait-completion',
-              help=('Whether to wait to job completion and report final ' +
-                    'job status.'),
-              is_flag=True)
-@click.option('--wait-time',
-              help=('Max time to wait (in seconds) to job completion. ' +
-                    'Default=3600.'),
-              default=3600)
-@click.option('--request-interval',
-              help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' +
-                    'make fewer requests so that is not considered spamming by the API. ' +
-                    'Default=30.'),
-              default=30)
-@click.option('--verbose',
-              help='Whether to print information messages or not.',
-              is_flag=True)
-@click.option('--disable-ssl-verification',
-              help=('Disable SSL certificate verification. Please, remember that this option is ' +
-                    'not generally recommended for security reasons.'),
-              is_flag=True)
-@click.option('--ssl-cert',
-              help='Path to your SSL certificate file.')
-@click.option('--profile', help='Profile to use from the config file', default=None)
-@click.pass_context
-def run_curated_examples(ctx,
-                         apikey,
-                         cloudos_url,
-                         workspace_id,
-                         project_name,
-                         resumable,
-                         do_not_save_logs,
-                         spot,
-                         batch,
-                         ignite,
-                         instance_type,
-                         instance_disk,
-                         storage_mode,
-                         lustre_size,
-                         execution_platform,
-                         cost_limit,
-                         accelerate_file_staging,
-                         wait_completion,
-                         wait_time,
-                         request_interval,
-                         verbose,
-                         disable_ssl_verification,
-                         ssl_cert,
-                         profile):
-    """Run all the curated workflows with example parameters.
-
-    NOTE that currently, only Nextflow workflows are supported.
-    """
-    profile = profile or ctx.default_map['job']['run-curated-examples']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            execution_platform=execution_platform,
-            project_name=project_name
-        )
-    )
-
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    cl = Cloudos(cloudos_url, apikey, None)
-    curated_workflows = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
-    job_id_list = []
-    runnable_curated_workflows = [
-        w for w in curated_workflows if w['workflowType'] == 'nextflow' and len(w['parameters']) > 0
-    ]
-    if spot:
-        print('\n[Message] You have specified spot instances but they are no longer available ' +
-              'in CloudOS. Option ignored.\n')
-    if do_not_save_logs:
-        save_logs = False
-    else:
-        save_logs = True
-    if instance_type == 'NONE_SELECTED':
-        if execution_platform == 'aws':
-            instance_type = 'c5.xlarge'
-        if execution_platform == 'azure':
-            instance_type = 'Standard_D4as_v4'
-    if execution_platform == 'azure':
-        batch = None
-    elif ignite:
-        batch = None
-        print('\n[Warning] You have specified ignite executor. Please, note that ignite is being ' +
-              'removed from CloudOS, so the command may fail. Check ignite availability in your ' +
-              'CloudOS\n')
-    else:
-        batch = True
-    if accelerate_file_staging:
-        if execution_platform != 'aws':
-            print('[Message] You have selected accelerate file staging, but this function is ' +
-                  'only available when execution platform is AWS. The accelerate file staging ' +
-                  'will not be applied')
-            use_mountpoints = False
-        else:
-            use_mountpoints = True
-            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
-                  'Please, take into consideration the following:\n' +
-                  '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
-                  '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t- This is still a CloudOS BETA feature.\n')
-    else:
-        use_mountpoints = False
-    for workflow in runnable_curated_workflows:
-        workflow_name = workflow['name']
-        j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
-                   repository_platform=workflow['repository']['platform'], verify=verify_ssl)
-        j_id = j.send_job(example_parameters=workflow['parameters'],
-                          job_name=f"{workflow['name']}|Example_Run",
-                          resumable=resumable,
-                          save_logs=save_logs,
-                          batch=batch,
-                          instance_type=instance_type,
-                          instance_disk=instance_disk,
-                          storage_mode=storage_mode,
-                          lustre_size=lustre_size,
-                          execution_platform=execution_platform,
-                          workflow_type='nextflow',
-                          cost_limit=cost_limit,
-                          use_mountpoints=use_mountpoints,
-                          verify=verify_ssl)
-        print(f'\tYour assigned job id is: {j_id}\n')
-        job_id_list.append(j_id)
-    print(f'\n\tAll {len(runnable_curated_workflows)} curated job launched successfully!\n')
-    if wait_completion:
-        print('\tPlease, wait until jobs completion (max wait time of ' +
-              f'{wait_time} seconds).\n')
-        # Multi-threaded api requests, max_workers is hard-coded to not allow for
-        # big numbers that can collapse API server.
-        threads = []
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            for j in job_id_list:
-                threads.append(executor.submit(cl.wait_job_completion,
-                                               job_id=j,
-                                               wait_time=wait_time,
-                                               request_interval=request_interval,
-                                               verbose=verbose,
-                                               verify=verify_ssl)
-                               )
-        j_status_all = [task.result() for task in as_completed(threads)]
-        # Summary of job status
-        print("\n\tCurated example runs final status:\n")
-        for j_s in j_status_all:
-            j_name = j_s['name']
-            j_id = j_s['id']
-            j_status = j_s['status']
-            print(f'\t\tJob status for job "{j_name}" (ID: {j_id}): {j_status}')
-        successful_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_COMPLETED]
-        failed_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_FAILED]
-        aborted_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_ABORTED]
-        running_jobs = [j_s for j_s in j_status_all if j_s['status'] == JOB_RUNNING]
-        print(f"""\n\tJob summary:
-              Successful jobs.....:  {len(successful_jobs)}
-              Failed jobs.........:  {len(failed_jobs)}
-              Jobs still running..:  {len(running_jobs)}
-              Aborted jobs........:  {len(aborted_jobs)}
-            -------------------------------
-              Total jobs..........:  {len(j_status_all)}""")
-
-
 @job.command('status')
 @click.option('-k',
               '--apikey',
@@ -1203,9 +955,6 @@ def abort_jobs(ctx,
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
-@click.option('--curated',
-              help='Whether to collect curated workflows only.',
-              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1224,7 +973,6 @@ def list_workflows(ctx,
                    output_basename,
                    output_format,
                    all_fields,
-                   curated,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert,
@@ -1264,10 +1012,7 @@ def list_workflows(ctx,
         print('\t' + str(cl) + '\n')
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
-    if curated:
-        my_workflows_r = cl.get_curated_workflow_list(workspace_id, verify=verify_ssl)
-    else:
-        my_workflows_r = cl.get_workflow_list(workspace_id, verify=verify_ssl)
+    my_workflows_r = cl.get_workflow_list(workspace_id, verify=verify_ssl)
     if output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)

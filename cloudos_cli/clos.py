@@ -57,7 +57,7 @@ class Cloudos:
             "apikey": apikey
         }
         r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
-                                                    j_id),
+                                                          j_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -178,7 +178,7 @@ class Cloudos:
         cloudos_url = self.cloudos_url
         headers = self._create_cromwell_header()
         r = retry_requests_get("{}/api/v1/cromwell?teamId={}".format(cloudos_url,
-                                                               workspace_id),
+                                                                     workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -321,51 +321,6 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def get_curated_workflow_list(self, workspace_id, get_all=True, page=1, verify=True):
-        """Get all the curated workflows from a CloudOS workspace.
-
-        Parameters
-        ----------
-        workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
-        get_all : bool
-            Whether to get all available curated workflows or just the indicated page.
-        page : int
-            The page number to retrieve, from the paginated response.
-        verify: [bool|string]
-            Whether to use SSL verification or not. Alternatively, if
-            a string is passed, it will be interpreted as the path to
-            the SSL certificate file.
-
-        Returns
-        -------
-        r : list
-            A list of dicts, each corresponding to a workflow.
-        """
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
-        r = retry_requests_get(
-            "{}/api/v3/workflows?search=&groups[]=curated&groups[]=featured&groups[]=predefined&page={}&teamId={}".format(
-                self.cloudos_url, page, workspace_id),
-            headers=headers, verify=verify)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        content = json.loads(r.content)
-        if get_all:
-            workflows_collected = len(content['workflows'])
-            workflows_to_get = content['paginationMetadata']['Pagination-Count']
-            if workflows_to_get <= workflows_collected or workflows_collected == 0:
-                return content['workflows']
-            if workflows_to_get > workflows_collected:
-                return content['workflows'] + self.get_curated_workflow_list(workspace_id,
-                                                                             get_all=True,
-                                                                             page=page+1,
-                                                                             verify=verify)
-        else:
-            return content['workflows']
-
     def get_workflow_list(self, workspace_id, verify=True, get_all=True,
                           page=1, page_size=10, max_page_size=1000,
                           archived_status=False):
@@ -497,7 +452,7 @@ class Cloudos:
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
         wt_all = my_workflows.loc[
-            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] is False),
             'workflowType']
         if len(wt_all) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
@@ -531,7 +486,7 @@ class Cloudos:
         my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
         my_workflows = self.process_workflow_list(my_workflows_r)
         group = my_workflows.loc[
-            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] is False),
             'group']
         if len(group) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
@@ -551,7 +506,7 @@ class Cloudos:
             return False
 
     def get_project_list(self, workspace_id, verify=True, get_all=True,
-                        page=1, page_size=10, max_page_size=1000):
+                         page=1, page_size=10, max_page_size=1000):
         """Get all the project from a CloudOS workspace.
 
         Parameters
@@ -581,7 +536,8 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, page_size, page),
+        r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(
+                self.cloudos_url, workspace_id, page_size, page),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -589,8 +545,9 @@ class Cloudos:
         if get_all:
             total_projects = content['total']
             if total_projects <= max_page_size:
-                r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(self.cloudos_url, workspace_id, total_projects, 1),
-                               headers=headers, verify=verify)
+                r = retry_requests_get("{}/api/v2/projects?teamId={}&pageSize={}&page={}".format(
+                        self.cloudos_url, workspace_id, total_projects, 1),
+                                       headers=headers, verify=verify)
                 if r.status_code >= 400:
                     raise BadRequestException(r)
                 return json.loads(r.content)['projects']
@@ -781,7 +738,8 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id), headers=headers, verify=verify)
+        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
