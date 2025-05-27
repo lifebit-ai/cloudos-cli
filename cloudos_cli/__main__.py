@@ -1340,11 +1340,10 @@ def import_wf(ctx, apikey, cloudos_url, workspace_id, workflow_name, workflow_ur
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
     repo_cls = repo_services[platform]
-    gitlab_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+    repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
                              platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
                              workflow_docs_link=workflow_docs_link, verify=verify_ssl)
-    gitlab_import.fill_payload()
-    workflow_id = gitlab_import.import_workflow()
+    workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')
 
