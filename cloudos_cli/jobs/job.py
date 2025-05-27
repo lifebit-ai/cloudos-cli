@@ -403,19 +403,22 @@ class Job(Cloudos):
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints,
+            "usesFusionFileSystem": use_mountpoints
         }
-        if job_queue_id is not None:
-            params['batch'] = {
-                "dockerLogin": docker_login,
-                "enabled": batch,
-                "jobQueue": job_queue_id
-            }
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
                     "type": instance_type
                 }
+            }
+            params['batch'] = {
+                "enabled": batch
+            }
+        if job_queue_id is not None:
+            params['batch'] = {
+                "dockerLogin": docker_login,
+                "enabled": batch,
+                "jobQueue": job_queue_id
             }
         if workflow_type == 'docker':
             params['command'] = command
