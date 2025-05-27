@@ -235,7 +235,7 @@ class Job(Cloudos):
         save_logs : bool
             Whether to save job logs or not.
         batch: bool
-            Whether to create a batch job or an ignite one.
+            Whether to create an AWS batch job or not.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string
@@ -503,7 +503,7 @@ class Job(Cloudos):
         save_logs : bool
             Whether to save job logs or not.
         batch: bool
-            Whether to create a batch job or an ignite one.
+            Whether to create an AWS batch job or not.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string

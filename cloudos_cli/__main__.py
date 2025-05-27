@@ -237,7 +237,6 @@ def configure(ctx, profile, make_default):
                     'to use with your job.'))
 @click.option('--nextflow-version',
               help=('Nextflow version to use when executing the workflow in CloudOS. ' +
-                    'Please, note that versions above 22.10.8 are only DSL2 compatible. ' +
                     'Default=22.10.8.'),
               type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
               default='22.10.8')
@@ -416,7 +415,7 @@ def run(ctx,
         else:
             instance_type = None
     if execution_platform == 'azure' or execution_platform == 'hpc':
-        batch = None
+        batch = False
     else:
         batch = True
     if execution_platform == 'hpc':
@@ -556,7 +555,7 @@ def run(ctx,
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
             print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
-    if nextflow_version != '22.10.8':
+    if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
         print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
               'to be written in DSL2 and does not support DSL1.')
     print('\nExecuting run...')
