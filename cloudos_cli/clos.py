@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
-from abc import ABC
+from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
+from os import environ
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -21,11 +22,15 @@ JOB_ABORTED = 'aborted'
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
                  workflow_name, workflow_url, workflow_docs_link="", main_file=None, verify=True):
+        self.cloudos_url = cloudos_url
         self.workflow_url = workflow_url
+        self.workspace_id = workspace_id
+        self.platform = platform
+        self.parsed_url = urlsplit(self.workflow_url)
         self.main_file = main_file
         self.repo_name = ""
         self.repo_owner = ""
-        self.repo_host = ""
+        self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         self.headers = {
             "Content-Type": "application/json",
             "apikey": cloudos_apikey
@@ -59,22 +64,19 @@ class WFImport(ABC):
         self.get_repo_main_file_params = ""
         self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
         self.verify = verify
+        self.BEARER = ""
 
     def get_repo_main_file(self):
-        header = self.headers | {"Authorization": "Bearer "}
-        r = requests.get(self.get_repo_main_file_url, params=self.get_repo_main_file_params, headers=header)
+        get_repo_main_file_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getWorkflowConfig/{self.repo_name}/{self.repo_owner.replace("/", "%2F")}"
+        get_repo_main_file_params = dict(host=self.repo_host, teamId=self.workspace_id)
+        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
+        r = requests.get(get_repo_main_file_url, params=get_repo_main_file_params, headers=header)
         r_data = r.json()
         return r_data["mainFile"]
 
-    def get_repo(self):
-        # add bearer token to headers for testing
-        header = self.headers | {"Authorization": "Bearer "}
-        r = requests.get(self.get_repo_url, params=self.get_repo_params, headers=header)
-        r_data = r.json()
-        self.payload["repository"]["repositoryId"] = r_data["id"]
-        self.payload["repository"]["owner"]["id"] = r_data["creator_id"]
-        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
-
+    @abstractmethod
+    def get_repo(self, *args, **kwargs):
+        pass
 
     def check_payload(self):
         for required_key in ["repositoryId", "name", ("owner", "login"), ("owner", "id")]:
@@ -88,7 +90,7 @@ class WFImport(ABC):
             if value is None:
                 raise ValueError("The payload dictionary does not have the required data. " +
                                  f"Check that {str_value} is present and the method "
-                                 f"self.fill_payload() has been executed")
+                                 f"self.get_repo() has been executed")
 
     def import_workflow(self):
         self.get_repo()
@@ -104,39 +106,39 @@ class WFImport(ABC):
 
 
 class ImportGitlab(WFImport):
-    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, main_file, verify):
-        super().__init__(cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, main_file, verify)
-        parsed_url = urlsplit(self.workflow_url)
-        repo_name = parsed_url.path.split("/")[-1]
-        repo_owner = "/".join(parsed_url.path.split("/")[1:-1])
-        repo_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        self.get_repo_url = f"{cloudos_url}/api/v1/git/gitlab/getPublicRepo"
-        self.get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=workspace_id)
-        self.payload["repository"]["owner"]["login"] = repo_owner
-        self.payload["repository"]["name"] = repo_name
-
-        self.get_repo_main_file_url = f"{cloudos_url}/api/v1/git/gitlab/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
-        self.get_repo_main_file_params = dict(host=repo_host, teamId=workspace_id)
+    def get_repo(self):
+        # add bearer token to headers for testing
+        get_repo_url = f"{self.cloudos_url}/api/v1/git/gitlab/getPublicRepo"
+        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
+        self.repo_name = self.parsed_url.path.split("/")[-1]
+        self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
+        self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
+        get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
+        r = requests.get(get_repo_url, params=get_repo_params, headers=header)
+        r_data = r.json()
+        self.payload["repository"]["repositoryId"] = r_data["id"]
+        self.payload["repository"]["name"] = r_data["name"]
+        self.payload["repository"]["owner"]["id"] = r_data["namespace"]["id"]
+        self.payload["repository"]["owner"]["login"] = r_data["namespace"]["full_path"]
+        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
 
 
 class ImportGithub(WFImport):
-    def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, main_file, verify):
-        super().__init__(cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link, main_file, verify)
-        parsed_url = urlsplit(self.workflow_url)
-        repo_name = parsed_url.path.split("/")[-1]
-        repo_owner = "/".join(parsed_url.path.split("/")[1:-1])
-        repo_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        self.get_repo_url = f"{cloudos_url}/api/v1/git/github/getPublicRepo"
-        self.get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=workspace_id)
-        self.payload["repository"]["owner"]["login"] = repo_owner
-        self.payload["repository"]["name"] = repo_name
-
-        self.get_repo_main_file_url = f"{cloudos_url}/api/v1/git/github/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
-        self.get_repo_main_file_params = dict(host=repo_host, teamId=workspace_id)
+    def get_repo(self):
+        # add bearer token to headers for testing
+        get_repo_url = f"{self.cloudos_url}/api/v1/git/github/getPublicRepo"
+        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
+        self.repo_name = self.parsed_url.path.split("/")[-1]
+        self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
+        self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
+        get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
+        r = requests.get(get_repo_url, params=get_repo_params, headers=header)
+        r_data = r.json()
+        self.payload["repository"]["repositoryId"] = r_data["id"]
+        self.payload["repository"]["name"] = r_data["name"]
+        self.payload["repository"]["owner"]["id"] = r_data["owner"]["id"]
+        self.payload["repository"]["owner"]["login"] = r_data["owner"]["login"]
+        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
 
 
 
