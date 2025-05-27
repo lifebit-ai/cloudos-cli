@@ -2,7 +2,7 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos, ImportGitlab, WFImport
+from cloudos_cli.clos import Cloudos, ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -1338,11 +1338,10 @@ def import_wf(ctx, apikey, cloudos_url, workspace_id, workflow_name, workflow_ur
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_services = {"gitlab": ImportGitlab}
+    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
     repo_cls = repo_services[platform]
     gitlab_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
                              platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
-                             repo_api_url=repo_api_url, repo_api_version=repo_api_version, repo_apikey=repo_apikey,
                              workflow_docs_link=workflow_docs_link, verify=verify_ssl)
     gitlab_import.fill_payload()
     workflow_id = gitlab_import.import_workflow()
