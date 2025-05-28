@@ -8,7 +8,6 @@ from responses import matchers
 CLOUDOS_URL = "https://cloudos.lifebit.ai"
 CLOUDOS_TOKEN = "cloudos_token"
 WORKSPACE_ID = "some_ws_id"
-GITLAB_TOKEN = "gitlab_token"
 WF_URL_BASEGROUP = "https://gitlab.com/lb-ortiz/spammer-nf"
 WF_URL_SUBGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/spammer-nf"
 WF_URL_NESTEDGROUP = "https://gitlab.com/lb-ortiz/sample_subgroup/nested-subgroup/spammer-nf"
