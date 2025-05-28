@@ -64,13 +64,11 @@ class WFImport(ABC):
         self.get_repo_main_file_params = ""
         self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
         self.verify = verify
-        self.BEARER = ""
 
     def get_repo_main_file(self):
         get_repo_main_file_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getWorkflowConfig/{self.repo_name}/{self.repo_owner.replace("/", "%2F")}"
         get_repo_main_file_params = dict(host=self.repo_host, teamId=self.workspace_id)
-        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
-        r = requests.get(get_repo_main_file_url, params=get_repo_main_file_params, headers=header)
+        r = requests.get(get_repo_main_file_url, params=get_repo_main_file_params, headers=self.headers)
         r_data = r.json()
         return r_data["mainFile"]
 
@@ -105,16 +103,17 @@ class WFImport(ABC):
         return content["_id"]
 
 
+# There are some duplicated lines here and on the github subclass. I did not put them in the abstract class because we
+# still don't know if the bitbucket data will come the same. If it does, then I will put as much as possible as part
+# of the abstract class
 class ImportGitlab(WFImport):
     def get_repo(self):
-        # add bearer token to headers for testing
         get_repo_url = f"{self.cloudos_url}/api/v1/git/gitlab/getPublicRepo"
-        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
         self.repo_name = self.parsed_url.path.split("/")[-1]
         self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = requests.get(get_repo_url, params=get_repo_params, headers=header)
+        r = requests.get(get_repo_url, params=get_repo_params, headers=self.headers)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
@@ -125,21 +124,18 @@ class ImportGitlab(WFImport):
 
 class ImportGithub(WFImport):
     def get_repo(self):
-        # add bearer token to headers for testing
         get_repo_url = f"{self.cloudos_url}/api/v1/git/github/getPublicRepo"
-        header = self.headers | {"Authorization": f"Bearer {self.BEARER}"}
         self.repo_name = self.parsed_url.path.split("/")[-1]
         self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = requests.get(get_repo_url, params=get_repo_params, headers=header)
+        r = requests.get(get_repo_url, params=get_repo_params, headers=self.headers)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
         self.payload["repository"]["owner"]["id"] = r_data["owner"]["id"]
         self.payload["repository"]["owner"]["login"] = r_data["owner"]["login"]
         self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
-
 
 
 @dataclass
