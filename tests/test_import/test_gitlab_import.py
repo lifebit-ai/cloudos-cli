@@ -36,7 +36,14 @@ def test_fetch_correct_repo_data(repo_url, main_file, expected):
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/git/gitlab/getPublicRepo",
         match=[matchers.query_param_matcher(get_repo_params)],
-        json={"id": ex_repo_id, "creator_id": ex_group_id}
+        json={
+            "id": ex_repo_id,
+            "name": WF_NAME,
+            "namespace": {
+                "id": ex_group_id,
+                "full_path": ex_group_name
+
+        }}
     )
     responses.add(
         responses.GET,
