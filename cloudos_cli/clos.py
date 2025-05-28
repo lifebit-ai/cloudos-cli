@@ -11,7 +11,7 @@ from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, 
 import pandas as pd
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
-from os import environ
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -43,7 +43,8 @@ class WFImport(ABC):
                 "name": None,
                 "owner": {
                     "login": None,
-                    "id": None},
+                    "id": None
+                },
                 "isPrivate": True,
                 "url": self.workflow_url,
                 "commit": "",
