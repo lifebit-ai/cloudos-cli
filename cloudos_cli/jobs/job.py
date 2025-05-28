@@ -177,6 +177,7 @@ class Job(Cloudos):
                                  example_parameters,
                                  git_commit,
                                  git_tag,
+                                 git_branch,
                                  project_id,
                                  workflow_id,
                                  job_name,
@@ -214,11 +215,14 @@ class Job(Cloudos):
             It is typically used to run curated pipelines using the already available
             example parameters.
         git_commit : string
-            The exact commit of the pipeline to use. Equivalent to -r
+            The git commit hash of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
             default branch will be used.
         git_tag : string
             The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
+        git_branch : string
+            The branch of the pipeline to use. If not specified, the last
             commit of the default branch will be used.
         project_id : string
             The CloudOS project id for a given project name.
@@ -231,7 +235,7 @@ class Job(Cloudos):
         save_logs : bool
             Whether to save job logs or not.
         batch: bool
-            Whether to create a batch job or an ignite one.
+            Whether to create an AWS batch job or not.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string
@@ -253,7 +257,7 @@ class Job(Cloudos):
         hpc_id : string
             The ID of your HPC in CloudOS.
         workflow_type : str
-            The type of workflow to run. Either 'nextflow' or 'wdl'.
+            The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
         cost_limit : float
@@ -373,21 +377,6 @@ class Job(Cloudos):
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
-        if git_tag is not None and git_commit is not None:
-            raise ValueError('Please, specify none or only one of --git-tag' +
-                             ' or --git-commit options but not both.')
-        if git_commit is not None:
-            revision_block = {
-                                 "commit": git_commit,
-                                 "isLatest": False
-                             }
-        elif git_tag is not None:
-            revision_block = {
-                                 "tag": git_tag,
-                                 "isLatest": False
-                             }
-        else:
-            revision_block = ""
         if storage_mode == "lustre":
             print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
                   'storage is available in your CloudOS workspace.\n')
@@ -402,10 +391,8 @@ class Job(Cloudos):
             "project": project_id,
             "workflow": workflow_id,
             "name": job_name,
-            "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
-            "cromwellCloudResources": cromwell_id,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
@@ -415,23 +402,25 @@ class Job(Cloudos):
             },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
-            "revision": revision_block,
-            "profile": nextflow_profile,
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints
         }
+        if workflow_type != 'docker':
+            params["nextflowVersion"] = nextflow_version
+        if execution_platform != 'hpc':
+            params['masterInstance'] = {
+                "requestedInstance": {
+                    "type": instance_type
+                }
+            }
+            params['batch'] = {
+                "enabled": batch
+            }
         if job_queue_id is not None:
             params['batch'] = {
                 "dockerLogin": docker_login,
                 "enabled": batch,
                 "jobQueue": job_queue_id
-            }
-        if execution_platform != 'hpc':
-            params['masterInstance'] = {
-                "requestedInstance": {
-                    "type": instance_type,
-                    "asSpot": False
-                }
             }
         if workflow_type == 'docker':
             params['command'] = command
@@ -439,6 +428,22 @@ class Job(Cloudos):
                 "cpu": cpus,
                 "ram": memory
             }
+        if workflow_type == 'wdl':
+            params['cromwellCloudResources'] = cromwell_id
+        git_flag = [x is not None for x in [git_tag, git_commit, git_branch]]
+        if sum(git_flag) > 1:
+            raise ValueError('Please, specify none or only one of --git-tag, ' +
+                             '--git-branch or --git-commit options.')
+        elif sum(git_flag) == 1:
+            revision_type = 'tag' if git_tag is not None else 'commit' if git_commit is not None else 'branch'
+            params['revision'] = {
+                "revisionType": revision_type,
+                "tag": git_tag,
+                "commit": git_commit,
+                "branch": git_branch
+            }
+        if nextflow_profile is not None:
+            params['profile'] = nextflow_profile
         return params
 
     def send_job(self,
@@ -447,6 +452,7 @@ class Job(Cloudos):
                  example_parameters=[],
                  git_commit=None,
                  git_tag=None,
+                 git_branch=None,
                  job_name='new_job',
                  resumable=False,
                  save_logs=True,
@@ -483,11 +489,14 @@ class Job(Cloudos):
             It is typically used to run curated pipelines using the already available
             example parameters.
         git_commit : string
-            The exact commit of the pipeline to use. Equivalent to -r
+            The git commit hash of the pipeline to use. Equivalent to -r
             option in Nextflow. If not specified, the last commit of the
             default branch will be used.
         git_tag : string
             The tag of the pipeline to use. If not specified, the last
+            commit of the default branch will be used.
+        git_branch : string
+            The branch of the pipeline to use. If not specified, the last
             commit of the default branch will be used.
         job_name : string
             The name to assign to the job.
@@ -496,7 +505,7 @@ class Job(Cloudos):
         save_logs : bool
             Whether to save job logs or not.
         batch: bool
-            Whether to create a batch job or an ignite one.
+            Whether to create an AWS batch job or not.
         job_queue_id : string
             Job queue Id to use in the batch job.
         nextflow_profile: string
@@ -518,7 +527,7 @@ class Job(Cloudos):
         hpc_id : string
             The ID of your HPC in CloudOS.
         workflow_type : str
-            The type of workflow to run. Either 'nextflow' or 'wdl'.
+            The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
         cost_limit : float
@@ -558,6 +567,7 @@ class Job(Cloudos):
                                                example_parameters,
                                                git_commit,
                                                git_tag,
+                                               git_branch,
                                                project_id,
                                                workflow_id,
                                                job_name,
@@ -581,12 +591,12 @@ class Job(Cloudos):
                                                command=command,
                                                cpus=cpus,
                                                memory=memory)
-        r = retry_requests_post("{}/api/v1/jobs?teamId={}".format(cloudos_url,
+        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        j_id = json.loads(r.content)["_id"]
+        j_id = json.loads(r.content)["jobId"]
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
