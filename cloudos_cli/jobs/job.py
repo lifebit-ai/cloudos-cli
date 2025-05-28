@@ -257,7 +257,7 @@ class Job(Cloudos):
         hpc_id : string
             The ID of your HPC in CloudOS.
         workflow_type : str
-            The type of workflow to run. Either 'nextflow' or 'wdl'.
+            The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
         cost_limit : float
@@ -391,20 +391,22 @@ class Job(Cloudos):
             "project": project_id,
             "workflow": workflow_id,
             "name": job_name,
-            "nextflowVersion": nextflow_version,
             "resumable": resumable,
             "saveProcessLogs": save_logs,
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
             "execution": {
-                "computeCostLimit": cost_limit
+                "computeCostLimit": cost_limit,
+                "optim": "test"
             },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints
         }
+        if workflow_type != 'docker':
+            params["nextflowVersion"] = nextflow_version
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
@@ -525,7 +527,7 @@ class Job(Cloudos):
         hpc_id : string
             The ID of your HPC in CloudOS.
         workflow_type : str
-            The type of workflow to run. Either 'nextflow' or 'wdl'.
+            The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
         cost_limit : float

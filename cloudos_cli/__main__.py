@@ -1736,12 +1736,8 @@ def run_bash_job(ctx,
                mainfile=None, importsfile=None,
                repository_platform=repository_platform, verify=verify_ssl)
 
-    if execution_platform == 'azure' or execution_platform == 'hpc':
-        batch = None
-    else:
-        batch = True
-
     if job_queue is not None:
+        batch = True
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None,
                       workspace_id=workspace_id, verify=verify_ssl)
         # I have to add 'nextflow', other wise the job queue id is not found
@@ -1749,6 +1745,7 @@ def run_bash_job(ctx,
                                                 job_queue=job_queue)
     else:
         job_queue_id = None
+        batch = False
     j_id = j.send_job(job_config=None,
                       parameter=parameter,
                       git_commit=None,
@@ -1757,7 +1754,7 @@ def run_bash_job(ctx,
                       job_name=job_name,
                       resumable=False,
                       save_logs=do_not_save_logs,
-                      batch=True,
+                      batch=batch,
                       job_queue_id=job_queue_id,
                       workflow_type='docker',
                       nextflow_profile=None,

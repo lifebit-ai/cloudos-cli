@@ -30,7 +30,8 @@
     "hpc": null,
     "storageSizeInGb": 500,
     "execution": {
-        "computeCostLimit": -1
+        "computeCostLimit": -1,
+        "optim": "test"
     },
     "lusterFsxStorageSizeInGb": 1200,
     "storageMode": "regular",
