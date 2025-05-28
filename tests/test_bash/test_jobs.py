@@ -60,7 +60,7 @@ def test_send_bash_job():
     # mock GET method with the .json
     responses.add(
             responses.POST,
-            url=f"{CLOUDOS_URL}/api/v1/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params_job)],
@@ -88,7 +88,8 @@ def test_send_bash_job():
               workflow_name=WORKFLOW_NAME)
     output = StringIO()
     sys.stdout = output
-    job_json = job.send_job(job_config=None,
+    job_json = job.send_job(
+        job_config=None,
         parameter=('--test=testValue', '-test2=testValue2', 'test3=testValue3'),
         job_name="test_bash_job",
         workflow_type='docker',

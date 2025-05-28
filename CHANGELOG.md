@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.23.0 (2025-05-26)
+
+- Updates jobs POST endpoint from v1 to v2
+- Removes `cloudos job run-curated-examples` functionality, as it was deprecated from the platform
+- Removes the following deprecated `cloudos job run` flags: `spot`, `ignite`, `batch` 
+- Adds `--git-branch` to `cloudos job run` command, to be able to specify the git branch to run
+
 ## v2.22.0 (2025-05-15)
 
 ### Feat
