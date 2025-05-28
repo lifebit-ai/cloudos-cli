@@ -30,8 +30,8 @@ def test_fetch_correct_repo_data(repo_url, main_file, expected):
     repo_owner = "/".join(parsed_url.path.split("/")[1:-1])
     repo_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
     get_repo_params = dict(repoName=repo_name, repoOwner=repo_owner, host=repo_host, teamId=WORKSPACE_ID)
-
-    get_repo_main_file_url = f"{CLOUDOS_URL}/api/v1/git/gitlab/getWorkflowConfig/{repo_name}/{repo_owner.replace("/", "%2F")}"
+    repo_owner_urlencode = repo_owner.replace("/", "%2F")
+    get_repo_main_file_url = f"{CLOUDOS_URL}/api/v1/git/gitlab/getWorkflowConfig/{repo_name}/{repo_owner_urlencode}"
     get_repo_main_file_params = dict(host=repo_host, teamId=WORKSPACE_ID)
     responses.add(
         responses.GET,
