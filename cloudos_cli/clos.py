@@ -67,7 +67,8 @@ class WFImport(ABC):
         self.verify = verify
 
     def get_repo_main_file(self):
-        get_repo_main_file_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getWorkflowConfig/{self.repo_name}/{self.repo_owner.replace("/", "%2F")}"
+        repo_owner_urlencode = self.repo_owner.replace("/", "%2F")
+        get_repo_main_file_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getWorkflowConfig/{self.repo_name}/{repo_owner_urlencode}"
         get_repo_main_file_params = dict(host=self.repo_host, teamId=self.workspace_id)
         r = requests.get(get_repo_main_file_url, params=get_repo_main_file_params, headers=self.headers)
         r_data = r.json()
