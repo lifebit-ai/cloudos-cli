@@ -309,6 +309,17 @@ def configure(ctx, profile, make_default):
               help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
                     'Default=660fae20f93358ad61e0104b'),
               default='660fae20f93358ad61e0104b')
+@click.option('--azure_worker_instance_type',
+              help=('The worker node instance type to be used in azure. ' +
+                    'Default=Standard_D4as_v4'),
+              default='Standard_D4as_v4')
+@click.option('--azure_worker_instance_disk',
+              help='The disk size in GB for the worker node to be used in azure. Default=100',
+              type=int,
+              default=100)
+@click.option('--azure_worker_instance_spot',
+              help='Whether the azure worker nodes have to be spot instances or not.',
+              is_flag=True)
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -366,6 +377,9 @@ def run(ctx,
         repository_platform,
         execution_platform,
         hpc_id,
+        azure_worker_instance_type,
+        azure_worker_instance_disk,
+        azure_worker_instance_spot,
         cost_limit,
         accelerate_file_staging,
         use_private_docker_repository,
@@ -581,6 +595,9 @@ def run(ctx,
                       hpc_id=hpc_id,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
+                      azure_worker_instance_type=azure_worker_instance_type,
+                      azure_worker_instance_disk=azure_worker_instance_disk,
+                      azure_worker_instance_spot=azure_worker_instance_spot,
                       cost_limit=cost_limit,
                       use_mountpoints=use_mountpoints,
                       docker_login=docker_login,
