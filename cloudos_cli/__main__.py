@@ -309,15 +309,15 @@ def configure(ctx, profile, make_default):
               help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
                     'Default=660fae20f93358ad61e0104b'),
               default='660fae20f93358ad61e0104b')
-@click.option('--azure_worker_instance_type',
+@click.option('--azure-worker-instance-type',
               help=('The worker node instance type to be used in azure. ' +
                     'Default=Standard_D4as_v4'),
               default='Standard_D4as_v4')
-@click.option('--azure_worker_instance_disk',
+@click.option('--azure-worker-instance-disk',
               help='The disk size in GB for the worker node to be used in azure. Default=100',
               type=int,
               default=100)
-@click.option('--azure_worker_instance_spot',
+@click.option('--azure-worker-instance-spot',
               help='Whether the azure worker nodes have to be spot instances or not.',
               is_flag=True)
 @click.option('--cost-limit',
