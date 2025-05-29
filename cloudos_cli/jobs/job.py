@@ -248,7 +248,7 @@ class Job(Cloudos):
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
-            The disk space of the instance, in GB.
+            The disk space of the master node instance, in GB.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
@@ -533,7 +533,7 @@ class Job(Cloudos):
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
-            The disk space of the instance, in GB.
+            The disk space of the master node instance, in GB.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
