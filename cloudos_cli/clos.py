@@ -371,8 +371,8 @@ class Cloudos:
         else:
             archived_status = "false"
         r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
-            self.cloudos_url, workspace_id, page, archived_status),
-            headers=headers, verify=verify)
+                               self.cloudos_url, workspace_id, page, archived_status),
+                               headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
