@@ -174,6 +174,7 @@ class Job(Cloudos):
     def convert_nextflow_to_json(self,
                                  job_config,
                                  parameter,
+                                 is_module,
                                  example_parameters,
                                  git_commit,
                                  git_tag,
@@ -431,7 +432,7 @@ class Job(Cloudos):
                 "enabled": batch,
                 "jobQueue": job_queue_id
             }
-        if execution_platform == 'azure':
+        if execution_platform == 'azure' and not is_module:
             params['azureBatch'] = {
                 "vmType": azure_worker_instance_type,
                 "spot": azure_worker_instance_spot,
@@ -464,6 +465,7 @@ class Job(Cloudos):
     def send_job(self,
                  job_config=None,
                  parameter=(),
+                 is_module =False,
                  example_parameters=[],
                  git_commit=None,
                  git_tag=None,
@@ -588,6 +590,7 @@ class Job(Cloudos):
         }
         params = self.convert_nextflow_to_json(job_config,
                                                parameter,
+                                               is_module,
                                                example_parameters,
                                                git_commit,
                                                git_tag,

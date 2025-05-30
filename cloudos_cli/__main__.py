@@ -522,6 +522,12 @@ def run(ctx,
                   'is a CloudOS module. CloudOS modules only work with ' +
                   'Nextflow version 22.10.8. Switching to use 22.10.8')
         nextflow_version = '22.10.8'
+        if execution_platform == 'azure':
+            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+                  'is a CloudOS module. For these workflows, worker nodes '+
+                  'are managed internally. For this reason, the options'+
+                  'azure-worker-instance-type, azure-worker-instance-disk and '+
+                  'azure-worker-instance-spot are not taking effect.')
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
                       workspace_id=workspace_id, verify=verify_ssl)
@@ -577,6 +583,7 @@ def run(ctx,
         print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
+                      is_module =is_module,
                       git_commit=git_commit,
                       git_tag=git_tag,
                       git_branch=git_branch,
