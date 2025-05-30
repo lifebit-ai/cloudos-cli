@@ -525,7 +525,7 @@ def run(ctx,
         if execution_platform == 'azure':
             print(f'[Message] The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes '+
-                  'are managed internally. For this reason, the options'+
+                  'are managed internally. For this reason, the options '+
                   'azure-worker-instance-type, azure-worker-instance-disk and '+
                   'azure-worker-instance-spot are not taking effect.')
     else:

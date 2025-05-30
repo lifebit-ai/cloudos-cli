@@ -158,65 +158,75 @@ own subcommands with its own `--help`:
 cloudos job run --help
 ```
 ```console
- Usage: cloudos job run [OPTIONS]                                                                                                                                  
-                                                                                                                                                                   
- Submit a job to CloudOS.                                                                                                                                          
-                                                                                                                                                                   
-╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --apikey                         -k  TEXT                                   Your CloudOS API key [required]                                                  │
-│    --cloudos-url                    -c  TEXT                                   The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai. │
-│ *  --workspace-id                       TEXT                                   The specific CloudOS workspace id. [required]                                    │
-│ *  --project-name                       TEXT                                   The name of a CloudOS project. [required]                                        │
-│ *  --workflow-name                      TEXT                                   The name of a CloudOS workflow or pipeline. [required]                           │
-│    --job-config                         TEXT                                   A config file similar to a nextflow.config file, but only with the parameters to │
-│                                                                                use with your job.                                                               │
-│    --parameter                      -p  TEXT                                   A single parameter to pass to the job call. It should be in the following form:  │
-│                                                                                parameter_name=parameter_value. E.g.: -p input=s3://path_to_my_file. You can use │
-│                                                                                this option as many times as parameters you want to include.                     │
-│    --nextflow-profile                   TEXT                                   A comma separated string indicating the nextflow profile/s to use with your job. │
-│    --nextflow-version                   [22.10.8|24.04.4|22.11.1-edge|latest]  Nextflow version to use when executing the workflow in CloudOS. Default=22.10.8. │
-│    --git-commit                         TEXT                                   The git commit hash to run for the selected pipeline. If not specified it        │
-│                                                                                defaults to the last commit of the default branch.                               │
-│    --git-tag                            TEXT                                   The tag to run for the selected pipeline. If not specified it defaults to the    │
-│                                                                                last commit of the default branch.                                               │
-│    --git-branch                         TEXT                                   The branch to run for the selected pipeline. If not specified it defaults to the │
-│                                                                                last commit of the default branch.                                               │
-│    --job-name                           TEXT                                   The name of the job. Default=new_job.                                            │
-│    --resumable                                                                 Whether to make the job able to be resumed or not.                               │
-│    --do-not-save-logs                                                          Avoids process log saving. If you select this option, your job process logs will │
-│                                                                                not be stored.                                                                   │
-│    --job-queue                          TEXT                                   Name of the job queue to use with a batch job.                                   │
-│    --instance-type                      TEXT                                   The type of execution platform compute instance to use.                          │
-│                                                                                Default=c5.xlarge(aws)|Standard_D4as_v4(azure).                                  │
-│    --instance-disk                      INTEGER                                The amount of disk storage to configure. Default=500.                            │
-│    --storage-mode                       TEXT                                   Either 'lustre' or 'regular'. Indicates if the user wants to select regular or   │
-│                                                                                lustre storage. Default=regular.                                                 │
-│    --lustre-size                        INTEGER                                The lustre storage to be used when --storage-mode=lustre, in GB. It should be    │
-│                                                                                1200 or a multiple of it. Default=1200.                                          │
-│    --wait-completion                                                           Whether to wait to job completion and report final job status.                   │
-│    --wait-time                          INTEGER                                Max time to wait (in seconds) to job completion. Default=3600.                   │
-│    --wdl-mainfile                       TEXT                                   For WDL workflows, which mainFile (.wdl) is configured to use.                   │
-│    --wdl-importsfile                    TEXT                                   For WDL workflows, which importsFile (.zip) is configured to use.                │
-│    --cromwell-token                 -t  TEXT                                   Specific Cromwell server authentication token. Currently, not necessary as       │
-│                                                                                apikey can be used instead, but maintained for backwards compatibility.          │
-│    --repository-platform                TEXT                                   Name of the repository platform of the workflow. Default=github.                 │
-│    --execution-platform                 [aws|azure|hpc]                        Name of the execution platform implemented in your CloudOS. Default=aws.         │
-│    --hpc-id                             TEXT                                   ID of your HPC, only applicable when --execution-platform=hpc.                   │
-│                                                                                Default=660fae20f93358ad61e0104b                                                 │
-│    --cost-limit                         FLOAT                                  Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).    │
-│    --accelerate-file-staging                                                   Enables AWS S3 mountpoint for quicker file staging.                              │
-│    --use-private-docker-repository                                             Allows to use private docker repository for running jobs. The Docker user        │
-│                                                                                account has to be already linked to CloudOS.                                     │
-│    --verbose                                                                   Whether to print information messages or not.                                    │
-│    --request-interval                   INTEGER                                Time interval to request (in seconds) the job status. For large jobs is          │
-│                                                                                important to use a high number to make fewer requests so that is not considered  │
-│                                                                                spamming by the API. Default=30.                                                 │
-│    --disable-ssl-verification                                                  Disable SSL certificate verification. Please, remember that this option is not   │
-│                                                                                generally recommended for security reasons.                                      │
-│    --ssl-cert                           TEXT                                   Path to your SSL certificate file.                                               │
-│    --profile                            TEXT                                   Profile to use from the config file                                              │
-│    --help                                                                      Show this message and exit.                                                      │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ Usage: cloudos job run [OPTIONS]                                                                                                                           
+                                                                                                                                                            
+ Submit a job to CloudOS.                                                                                                                                   
+                                                                                                                                                            
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --apikey                         -k  TEXT                                   Your CloudOS API key [required]                                           │
+│    --cloudos-url                    -c  TEXT                                   The CloudOS url you are trying to access to.                              │
+│                                                                                Default=https://cloudos.lifebit.ai.                                       │
+│ *  --workspace-id                       TEXT                                   The specific CloudOS workspace id. [required]                             │
+│ *  --project-name                       TEXT                                   The name of a CloudOS project. [required]                                 │
+│ *  --workflow-name                      TEXT                                   The name of a CloudOS workflow or pipeline. [required]                    │
+│    --job-config                         TEXT                                   A config file similar to a nextflow.config file, but only with the        │
+│                                                                                parameters to use with your job.                                          │
+│    --parameter                      -p  TEXT                                   A single parameter to pass to the job call. It should be in the following │
+│                                                                                form: parameter_name=parameter_value. E.g.: -p                            │
+│                                                                                input=s3://path_to_my_file. You can use this option as many times as      │
+│                                                                                parameters you want to include.                                           │
+│    --nextflow-profile                   TEXT                                   A comma separated string indicating the nextflow profile/s to use with    │
+│                                                                                your job.                                                                 │
+│    --nextflow-version                   [22.10.8|24.04.4|22.11.1-edge|latest]  Nextflow version to use when executing the workflow in CloudOS.           │
+│                                                                                Default=22.10.8.                                                          │
+│    --git-commit                         TEXT                                   The git commit hash to run for the selected pipeline. If not specified it │
+│                                                                                defaults to the last commit of the default branch.                        │
+│    --git-tag                            TEXT                                   The tag to run for the selected pipeline. If not specified it defaults to │
+│                                                                                the last commit of the default branch.                                    │
+│    --git-branch                         TEXT                                   The branch to run for the selected pipeline. If not specified it defaults │
+│                                                                                to the last commit of the default branch.                                 │
+│    --job-name                           TEXT                                   The name of the job. Default=new_job.                                     │
+│    --resumable                                                                 Whether to make the job able to be resumed or not.                        │
+│    --do-not-save-logs                                                          Avoids process log saving. If you select this option, your job process    │
+│                                                                                logs will not be stored.                                                  │
+│    --job-queue                          TEXT                                   Name of the job queue to use with a batch job.                            │
+│    --instance-type                      TEXT                                   The type of compute instance to use as master node.                       │
+│                                                                                Default=c5.xlarge(aws)|Standard_D4as_v4(azure).                           │
+│    --instance-disk                      INTEGER                                The disk space of the master node instance, in GB. Default=500.           │
+│    --storage-mode                       TEXT                                   Either 'lustre' or 'regular'. Indicates if the user wants to select       │
+│                                                                                regular or lustre storage. Default=regular.                               │
+│    --lustre-size                        INTEGER                                The lustre storage to be used when --storage-mode=lustre, in GB. It       │
+│                                                                                should be 1200 or a multiple of it. Default=1200.                         │
+│    --wait-completion                                                           Whether to wait to job completion and report final job status.            │
+│    --wait-time                          INTEGER                                Max time to wait (in seconds) to job completion. Default=3600.            │
+│    --wdl-mainfile                       TEXT                                   For WDL workflows, which mainFile (.wdl) is configured to use.            │
+│    --wdl-importsfile                    TEXT                                   For WDL workflows, which importsFile (.zip) is configured to use.         │
+│    --cromwell-token                 -t  TEXT                                   Specific Cromwell server authentication token. Currently, not necessary   │
+│                                                                                as apikey can be used instead, but maintained for backwards               │
+│                                                                                compatibility.                                                            │
+│    --repository-platform                TEXT                                   Name of the repository platform of the workflow. Default=github.          │
+│    --execution-platform                 [aws|azure|hpc]                        Name of the execution platform implemented in your CloudOS. Default=aws.  │
+│    --hpc-id                             TEXT                                   ID of your HPC, only applicable when --execution-platform=hpc.            │
+│                                                                                Default=660fae20f93358ad61e0104b                                          │
+│    --azure-worker-instance-type         TEXT                                   The worker node instance type to be used in azure.                        │
+│                                                                                Default=Standard_D4as_v4                                                  │
+│    --azure-worker-instance-disk         INTEGER                                The disk size in GB for the worker node to be used in azure. Default=100  │
+│    --azure-worker-instance-spot                                                Whether the azure worker nodes have to be spot instances or not.          │
+│    --cost-limit                         FLOAT                                  Add a cost limit to your job. Default=30.0 (For no cost limit please use  │
+│                                                                                -1).                                                                      │
+│    --accelerate-file-staging                                                   Enables AWS S3 mountpoint for quicker file staging.                       │
+│    --use-private-docker-repository                                             Allows to use private docker repository for running jobs. The Docker user │
+│                                                                                account has to be already linked to CloudOS.                              │
+│    --verbose                                                                   Whether to print information messages or not.                             │
+│    --request-interval                   INTEGER                                Time interval to request (in seconds) the job status. For large jobs is   │
+│                                                                                important to use a high number to make fewer requests so that is not      │
+│                                                                                considered spamming by the API. Default=30.                               │
+│    --disable-ssl-verification                                                  Disable SSL certificate verification. Please, remember that this option   │
+│                                                                                is not generally recommended for security reasons.                        │
+│    --ssl-cert                           TEXT                                   Path to your SSL certificate file.                                        │
+│    --profile                            TEXT                                   Profile to use from the config file                                       │
+│    --help                                                                      Show this message and exit.                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 #### Send a job to CloudOS
