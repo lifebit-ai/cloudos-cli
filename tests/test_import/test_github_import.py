@@ -1,6 +1,6 @@
 from urllib.parse import urlsplit
 import responses
-from cloudos_cli.clos import ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportGithub
 from responses import matchers
 
 CLOUDOS_URL = "https://cloudos.lifebit.ai"

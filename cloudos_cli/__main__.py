@@ -2,7 +2,8 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos, ImportGitlab, ImportGithub
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
 import json
 import time

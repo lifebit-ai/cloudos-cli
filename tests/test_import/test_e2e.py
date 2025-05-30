@@ -1,8 +1,8 @@
-from cloudos_cli.clos import ImportGitlab, ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
 
 CLOS_URL = "https://dev.sdlc.lifebit.ai"
-CLOS_TOKEN = "68369cec859e81fe43867aee:nqja8Q6Xdr1lMWUxNs0FdTia7l78tvW9ff7FDpst"
-WS_ID = "5ca489a630020c00b2fe7609"
+CLOS_TOKEN = ""
+WS_ID = ""
 GL_URL = "https://gitlab.com/lb-ortiz/sample_subgroup/spammer-nf"
 GL_NAME = "spammer-gl"
 GH_URL = "https://github.com/lifebit-ai/spammer-nf"

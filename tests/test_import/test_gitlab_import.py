@@ -1,6 +1,5 @@
-import json
 from urllib.parse import urlsplit
-from cloudos_cli.clos import ImportGitlab
+from cloudos_cli.import_wf.import_wf import ImportGitlab
 import pytest
 import responses
 from responses import matchers
