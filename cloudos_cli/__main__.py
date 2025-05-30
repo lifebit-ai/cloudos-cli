@@ -1019,7 +1019,7 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("-p", "--platform", type=click.Choice(["github", "gitlab", "bitbucket"]),
+@click.option("--platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
               default="github")
 @click.option("-n", "--workflow-name", help="Workflow name.", required=True)
