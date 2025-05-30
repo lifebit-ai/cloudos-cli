@@ -465,7 +465,7 @@ class Job(Cloudos):
     def send_job(self,
                  job_config=None,
                  parameter=(),
-                 is_module =False,
+                 is_module=False,
                  example_parameters=[],
                  git_commit=None,
                  git_tag=None,
