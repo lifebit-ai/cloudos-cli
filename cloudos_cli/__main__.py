@@ -266,11 +266,11 @@ def configure(ctx, profile, make_default):
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
-              help=('The type of execution platform compute instance to use. ' +
+              help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
               default='NONE_SELECTED')
 @click.option('--instance-disk',
-              help='The amount of disk storage to configure. Default=500.',
+              help='The disk space of the master node instance, in GB. Default=500.',
               type=int,
               default=500)
 @click.option('--storage-mode',
@@ -309,6 +309,17 @@ def configure(ctx, profile, make_default):
               help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
                     'Default=660fae20f93358ad61e0104b'),
               default='660fae20f93358ad61e0104b')
+@click.option('--azure-worker-instance-type',
+              help=('The worker node instance type to be used in azure. ' +
+                    'Default=Standard_D4as_v4'),
+              default='Standard_D4as_v4')
+@click.option('--azure-worker-instance-disk',
+              help='The disk size in GB for the worker node to be used in azure. Default=100',
+              type=int,
+              default=100)
+@click.option('--azure-worker-instance-spot',
+              help='Whether the azure worker nodes have to be spot instances or not.',
+              is_flag=True)
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
@@ -366,6 +377,9 @@ def run(ctx,
         repository_platform,
         execution_platform,
         hpc_id,
+        azure_worker_instance_type,
+        azure_worker_instance_disk,
+        azure_worker_instance_spot,
         cost_limit,
         accelerate_file_staging,
         use_private_docker_repository,
@@ -508,6 +522,12 @@ def run(ctx,
                   'is a CloudOS module. CloudOS modules only work with ' +
                   'Nextflow version 22.10.8. Switching to use 22.10.8')
         nextflow_version = '22.10.8'
+        if execution_platform == 'azure':
+            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+                  'is a CloudOS module. For these workflows, worker nodes '+
+                  'are managed internally. For this reason, the options '+
+                  'azure-worker-instance-type, azure-worker-instance-disk and '+
+                  'azure-worker-instance-spot are not taking effect.')
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
                       workspace_id=workspace_id, verify=verify_ssl)
@@ -563,6 +583,7 @@ def run(ctx,
         print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
+                      is_module =is_module,
                       git_commit=git_commit,
                       git_tag=git_tag,
                       git_branch=git_branch,
@@ -581,6 +602,9 @@ def run(ctx,
                       hpc_id=hpc_id,
                       workflow_type=workflow_type,
                       cromwell_id=cromwell_id,
+                      azure_worker_instance_type=azure_worker_instance_type,
+                      azure_worker_instance_disk=azure_worker_instance_disk,
+                      azure_worker_instance_spot=azure_worker_instance_spot,
                       cost_limit=cost_limit,
                       use_mountpoints=use_mountpoints,
                       docker_login=docker_login,
@@ -1611,11 +1635,11 @@ def remove_profile(ctx, profile):
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
-              help=('The type of execution platform compute instance to use. ' +
+              help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
               default='NONE_SELECTED')
 @click.option('--instance-disk',
-              help='The amount of disk storage to configure. Default=500.',
+              help='The disk space of the master node instance, in GB. Default=500.',
               type=int,
               default=500)
 @click.option('--cpus',

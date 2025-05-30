@@ -174,6 +174,7 @@ class Job(Cloudos):
     def convert_nextflow_to_json(self,
                                  job_config,
                                  parameter,
+                                 is_module,
                                  example_parameters,
                                  git_commit,
                                  git_tag,
@@ -195,6 +196,9 @@ class Job(Cloudos):
                                  hpc_id,
                                  workflow_type,
                                  cromwell_id,
+                                 azure_worker_instance_type,
+                                 azure_worker_instance_disk,
+                                 azure_worker_instance_spot,
                                  cost_limit,
                                  use_mountpoints,
                                  docker_login,
@@ -245,7 +249,7 @@ class Job(Cloudos):
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
-            The disk space of the instance, in GB.
+            The disk space of the master node instance, in GB.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
@@ -260,6 +264,12 @@ class Job(Cloudos):
             The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
+        azure_worker_instance_type: str
+            The worker node instance type to be used in azure.
+        azure_worker_instance_disk: int
+            The disk size in GB for the worker node to be used in azure.
+        azure_worker_instance_spot: bool
+            Whether the azure worker nodes have to be spot instances or not.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
@@ -422,6 +432,12 @@ class Job(Cloudos):
                 "enabled": batch,
                 "jobQueue": job_queue_id
             }
+        if execution_platform == 'azure' and not is_module:
+            params['azureBatch'] = {
+                "vmType": azure_worker_instance_type,
+                "spot": azure_worker_instance_spot,
+                "diskSizeInGb": azure_worker_instance_disk
+            }
         if workflow_type == 'docker':
             params['command'] = command
             params["resourceRequirements"] = {
@@ -449,6 +465,7 @@ class Job(Cloudos):
     def send_job(self,
                  job_config=None,
                  parameter=(),
+                 is_module=False,
                  example_parameters=[],
                  git_commit=None,
                  git_tag=None,
@@ -468,6 +485,9 @@ class Job(Cloudos):
                  hpc_id=None,
                  workflow_type='nextflow',
                  cromwell_id=None,
+                 azure_worker_instance_type='Standard_D4as_v4',
+                 azure_worker_instance_disk=100,
+                 azure_worker_instance_spot=False,
                  cost_limit=30.0,
                  use_mountpoints=False,
                  docker_login=False,
@@ -515,7 +535,7 @@ class Job(Cloudos):
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
-            The disk space of the instance, in GB.
+            The disk space of the master node instance, in GB.
         storage_mode : string
             Either 'lustre' or 'regular'. Indicates if the user wants to select regular
             or lustre storage.
@@ -530,6 +550,12 @@ class Job(Cloudos):
             The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
             Cromwell server ID.
+        azure_worker_instance_type: str
+            The worker node instance type to be used in azure.
+        azure_worker_instance_disk: int
+            The disk size in GB for the worker node to be used in azure.
+        azure_worker_instance_spot: bool
+            Whether the azure worker nodes have to be spot instances or not.
         cost_limit : float
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
@@ -564,6 +590,7 @@ class Job(Cloudos):
         }
         params = self.convert_nextflow_to_json(job_config,
                                                parameter,
+                                               is_module,
                                                example_parameters,
                                                git_commit,
                                                git_tag,
@@ -585,6 +612,9 @@ class Job(Cloudos):
                                                hpc_id,
                                                workflow_type,
                                                cromwell_id,
+                                               azure_worker_instance_type,
+                                               azure_worker_instance_disk,
+                                               azure_worker_instance_spot,
                                                cost_limit,
                                                use_mountpoints,
                                                docker_login,
