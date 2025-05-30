@@ -1033,8 +1033,17 @@ def list_workflows(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def import_wf(ctx, apikey, cloudos_url, workspace_id, workflow_name, workflow_url, workflow_docs_link,
-                  platform, disable_ssl_verification, ssl_cert, profile):
+def import_wf(ctx,
+              apikey,
+              cloudos_url,
+              workspace_id,
+              workflow_name,
+              workflow_url,
+              workflow_docs_link,
+              platform,
+              disable_ssl_verification,
+              ssl_cert,
+              profile):
     """
     Import workflows from supported repository providers.
     """
