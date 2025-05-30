@@ -266,7 +266,7 @@ def configure(ctx, profile, make_default):
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
-              help=('The type of execution platform compute instance to usen as master node. ' +
+              help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
               default='NONE_SELECTED')
 @click.option('--instance-disk',
@@ -1628,7 +1628,7 @@ def remove_profile(ctx, profile):
 @click.option('--job-queue',
               help='Name of the job queue to use with a batch job.')
 @click.option('--instance-type',
-              help=('The type of execution platform compute instance to use as master node. ' +
+              help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
               default='NONE_SELECTED')
 @click.option('--instance-disk',
