@@ -391,7 +391,7 @@ class Cloudos:
             else:
                 next_to_get = jobs_to_get
             return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
-                                                       page=page + 1, archived=archived,
+                                                       page=page+1, archived=archived,
                                                        verify=verify)
         if jobs_to_get < 0:
             return content['jobs'][:jobs_to_get]
