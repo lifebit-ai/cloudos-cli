@@ -1022,7 +1022,7 @@ def list_workflows(ctx,
 @click.option("--platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help="Repository service where the workflow is located. Valid choices: github, gitlab, bitbucket",
               default="github")
-@click.option("-n", "--workflow-name", help="Workflow name.", required=True)
+@click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
 @click.option('--disable-ssl-verification',
