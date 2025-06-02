@@ -10,8 +10,6 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 
-
-
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
 JOB_FAILED = 'failed'
