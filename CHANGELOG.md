@@ -1,10 +1,18 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.24.0 (2025-05-28)
+## v2.25.0 (2025-05-30)
 
 ### Feat
 
 - Adds the ability to import workflows from Gitlab and Github
+
+## v2.24.0 (2025-05-29)
+
+### Feat
+
+- Adds `--azure-worker-instance-type` to `cloudos job run` command, to be able to specify the worker node instance type to be used in azure
+- Adds `--azure-worker-instance-disk` to `cloudos job run` command, to be able to specify the disk size in GB for the worker node to be used in azure
+- Adds `--azure-worker-instance-spot` to `cloudos job run` command, to be able to specify whether the azure worker nodes have to be spot instances or not
 
 ## v2.23.0 (2025-05-26)
 
