@@ -1015,8 +1015,8 @@ def list_workflows(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
-                    'Default=https://cloudos.lifebit.ai.'),
-              default='https://cloudos.lifebit.ai')
+                    f'Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
