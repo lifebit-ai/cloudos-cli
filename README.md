@@ -639,25 +639,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --repository-project-id $REPOSITORY_PROJECT_ID \
-    --repository-id $REPOSITORY_ID
-```
-
-To import bitbucket server workflows, `--repository-id` parameter is not required:
-
-```bash
-WORKFLOW_URL="https://bitbucket.com/projects/MYPROJECT/repos/my-repo"
-
-# You will need only the repository_project_id
-REPOSITORY_PROJECT_ID=1234
-
-cloudos workflow import \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --workflow-url $WORKFLOW_URL \
-    --workflow-name "new_name_for_the_bitbucket_workflow" \
-    --repository-project-id $REPOSITORY_PROJECT_ID
+    --platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
