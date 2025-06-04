@@ -196,8 +196,6 @@ class Datasets(Cloudos):
                                 headers=headers, verify=self.verify)
         return r.json()
     
-
-    
     def list_s3_folder_content(self, path):
         """Uses
         ----------
@@ -222,7 +220,7 @@ class Datasets(Cloudos):
         s3_bucket_name = None
         s3_relative_path = None
 
-        folder_name = path.spit('/')[0]
+        folder_name = path.split('/')[0]
         job_name = path.split('/')[1]
 
         folder_content = self.list_datasets_content(folder_name)
@@ -244,7 +242,102 @@ class Datasets(Cloudos):
                                 headers=headers, verify=self.verify)
         return r.json()
 
+    def list_virtual_folder_content(self,path):
+        """Uses
+        ----------
+        apikey : string
+            Your CloudOS API key
+        cloudos_url : string
+            The CloudOS service url.
+        workspace_id : string
+            The specific Cloudos workspace id.
+        project_id : string
+            The specific project id
+        path : string
+            The path to the folder whose content are to be listed
+        """
+        #requires cloudos_url, folder_id, workspace_id
+        # url is: CLOUD_OS_URL/api/v1/folders/virtual/FOLDER_ID/items?teamId=WORKSPACE_ID
+        # Prepare api request for CloudOS to fetch dataset info
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
 
-    def list_virtual_folder_content():
-    #requires cloudos_url, folder_id, workspace_id
-    # url is: CLOUD_OS_URL/api/v1/folders/virtual/FOLDER_ID/items?teamId=WORKSPACE_ID
+        folder_name = path.split('/')[0]
+        job_name = path.split('/')[1]
+        folder_id = None
+        folder_content = self.list_datasets_content(folder_name)
+        ## folder_content is a dictionary of 3 keys files, folders and paginationMetadata
+        ## we expect that the path is referring to a folder not to a file
+        for job_folder in folder_content['folders']:
+            if job_folder['name'] == job_name:
+                folder_id=job_folder['_id']
+                break
+        if not folder_id:
+            raise ValueError(f"Folder '{folder_name}' not found in project '{self.project_name}'.")
+
+        r = retry_requests_get("{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
+                                                                  folder_id,
+                                                                  self.workspace_id),
+                                headers=headers, verify=self.verify)
+        return r.json()
+    
+    def list_folder_content(self, path=None):
+        """
+        Wrapper to list contents of a CloudOS folder.
+
+        Parameters
+        ----------
+        path : str, optional
+            A path like 'TopFolder', 'TopFolder/Subfolder', or deeper.
+            If None, lists all top-level datasets in the project.
+
+        Returns
+        -------
+        dict
+            JSON response from the appropriate CloudOS endpoint.
+        """
+        if not path:
+            return self.list_project_content()
+
+        parts = path.strip('/').split('/')
+
+        # Case: only top folder → list dataset
+        if len(parts) == 1:
+            return self.list_datasets_content(parts[0])
+
+        folder_name = parts[0]
+        job_name = parts[1]
+        subpath = '/'.join(parts[2:])  # may be empty
+
+        folder_content = self.list_datasets_content(folder_name)
+
+        for job_folder in folder_content.get("folders", []):
+            if job_folder["name"] == job_name:
+                folder_type = job_folder.get("folderType")
+
+                if folder_type == "S3Folder":
+                    # Rebuild full S3 path: TopFolder/JobName/.../...
+                    return self.list_s3_folder_content(path)
+
+                elif folder_type == "VirtualFolder":
+                    if len(parts) == 2:
+                        return self.list_virtual_folder_content(path)
+                    else:
+                        # VirtualFolder + deeper path → recurse one level and try again
+                        # e.g., VirtualTop/Job1/... → get virtual path and call recursively
+                        folder_id = job_folder["_id"]
+                        next_path = '/'.join(parts[:2])  # TopFolder/JobName
+                        rest_path = '/'.join(parts[2:])  # output/files
+                        virtual_content = self.list_virtual_folder_content(next_path)
+                        for subfolder in virtual_content.get("folders", []):
+                            if subfolder["name"] == parts[2]:
+                                new_virtual_path = f"{next_path}/{parts[2]}"
+                                return self.list_folder_content(new_virtual_path)
+                        raise ValueError(f"Subfolder '{parts[2]}' not found under virtual folder '{next_path}'")
+
+                else:
+                    raise ValueError(f"Unsupported folder type '{folder_type}' for path '{path}'")
+
+        raise ValueError(f"Folder '{job_name}' not found under dataset '{folder_name}'")

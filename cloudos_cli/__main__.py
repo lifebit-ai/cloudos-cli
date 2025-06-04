@@ -11,7 +11,7 @@ import os
 import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
-
+from cloudos_cli.datasets import Datasets
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -105,6 +105,9 @@ def run_cloudos_cli(ctx):
             },
             'bash': {
                 'job': shared_config
+            },
+            'datasets': {
+                'ls': shared_config
             }
         })
     else:
@@ -143,6 +146,9 @@ def run_cloudos_cli(ctx):
             },
             'bash': {
                 'job': shared_config
+            },
+            'datasets': {
+                'ls': shared_config
             }
         })
 
@@ -181,6 +187,11 @@ def queue():
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
+
+@run_cloudos_cli.group()
+def datasets():
+    """CloudOS datasets functionality."""
+    print(datasets.__doc__ + '\n')
 
 
 @run_cloudos_cli.group(invoke_without_command=True)
@@ -1824,6 +1835,84 @@ def run_bash_job(ctx,
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--job-id {j_id}\n')
 
+@datasets.command(name="ls")
+@click.argument("path", required=False, nargs=1)
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_files(ctx, 
+        apikey,
+        cloudos_url,
+        workspace_id,
+        disable_ssl_verification,
+        ssl_cert,
+        profile,
+        path):
+    """List contents of a path within a CloudOS workspace dataset."""
+    profile = profile or ctx.default_map['datasets']['list']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+
+    apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    datasets = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    try:
+        result = datasets.list_folder_content(path)
+        contents = result.get("contents") or result.get("datasets", [])
+        print(contents)
+        for item in contents:
+            name = item.get("name", "")
+            if item.get("isDir"):
+                # Blue and underlined for folders
+                name = click.style(name, fg="blue", underline=True)
+            click.echo(name)
+
+    except Exception as e:
+        click.echo(f"[ERROR] {str(e)}", err=True)
 
 if __name__ == "__main__":
     run_cloudos_cli()
+
