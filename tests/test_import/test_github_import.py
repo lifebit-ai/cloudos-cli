@@ -11,6 +11,7 @@ REPO_NAME = "post-gwas-target-identification"
 
 EXPECTED = (930401807, REPO_NAME, 30871219, 'lifebit-ai', None)
 
+
 @responses.activate
 def test_fetch_correct_repo_data():
     ex_repo_id, ex_repo_name, ex_group_id, ex_group_name, main_file = EXPECTED
