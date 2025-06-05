@@ -1,12 +1,11 @@
 import os
-import sys
-import responses
+import json
 import pytest
+import responses
 from click.testing import CliRunner
 from responses import matchers
 from cloudos_cli.__main__ import run_cloudos_cli
 from tests.functions_for_pytest import load_json_file
-import json
 
 
 # Constants and test data files
@@ -18,6 +17,7 @@ PROFILE_NAME = 'pytest-profile'
 DATASET_NAME = 'Analyses Results'
 FOLDER_PATH = 'AnalysesResults'
 INPUT_PROJECTS = "tests/test_data/projects.json"
+INPUT_DATASETS = "tests/test_data/datasets.json"
 INPUT_DATASET_CONTENT = "tests/test_data/dataset_folder_results.json"
 
 @pytest.fixture
@@ -32,16 +32,17 @@ def test_datasets_ls_s3_folder(cli_runner):
 
     # Load mock JSON responses
     mock_projects = json.loads(load_json_file(INPUT_PROJECTS))
+    mock_datasets = json.loads(load_json_file(INPUT_DATASETS))
     mock_dataset_contents = json.loads(load_json_file(INPUT_DATASET_CONTENT))
-    # Setup query param matchers
+
+    # Extract IDs
+    project_id = next((p["_id"] for p in mock_projects["projects"] if p["name"] == PROJECT_NAME), None)
+    dataset_id = next((d["_id"] for d in mock_datasets["datasets"] if d["name"] == DATASET_NAME), None)
+
+    # Headers and query matchers
+    headers = {"Content-type": "application/json", "apikey": APIKEY}
     params_projects = {"teamId": WORKSPACE_ID}
     params_dataset = {"teamId": WORKSPACE_ID}
-
-    # Headers
-    headers = {
-        "Content-type": "application/json",
-        "apikey": APIKEY
-    }
 
     # Mock /projects endpoint
     responses.add(
@@ -53,9 +54,15 @@ def test_datasets_ls_s3_folder(cli_runner):
         status=200
     )
 
-    # Dataset ID extracted from mock_projects matching PROJECT_NAME
-    project_id = next((p["_id"] for p in mock_projects["projects"] if p["name"] == PROJECT_NAME), None)
-    dataset_id = next((d["_id"] for d in mock_projects["projects"][0]["datasets"] if d["name"] == DATASET_NAME), None)
+    # Mock /datasets endpoint
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={project_id}&teamId={WORKSPACE_ID}",
+        body=mock_datasets,
+        headers=headers,
+        match=[matchers.query_param_matcher({"projectId": project_id, "teamId": WORKSPACE_ID})],
+        status=200
+    )
 
     # Mock /datasets/<id>/items endpoint
     responses.add(
@@ -67,7 +74,7 @@ def test_datasets_ls_s3_folder(cli_runner):
         status=200
     )
 
-    # Create a fake config profile in memory
+    # Create fake profile
     os.environ["CLOUDOS_PROFILES"] = f"""
     {{
         "{PROFILE_NAME}": {{
@@ -81,7 +88,7 @@ def test_datasets_ls_s3_folder(cli_runner):
     }}
     """
 
-    # Run the CLI command
+    # Run CLI
     result = cli_runner.invoke(run_cloudos_cli, [
         "datasets", "ls",
         "--profile", PROFILE_NAME,
