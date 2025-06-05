@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import BadRequestException, AccountNotLinkedException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 import json
 
@@ -104,6 +104,8 @@ class ImportGitlab(WFImport):
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
         r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        if r.status_code == 404:
+            raise AccountNotLinkedException(self.workflow_url)
         if r.status_code >= 400:
             raise BadRequestException(r)
         r_data = r.json()
