@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
-import requests
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 import json
 
 
@@ -57,7 +56,9 @@ class WFImport(ABC):
         repo_owner_urlencode = self.repo_owner.replace("/", "%2F")
         get_repo_main_file_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getWorkflowConfig/{self.repo_name}/{repo_owner_urlencode}"
         get_repo_main_file_params = dict(host=self.repo_host, teamId=self.workspace_id)
-        r = requests.get(get_repo_main_file_url, params=get_repo_main_file_params, headers=self.headers)
+        r = retry_requests_get(get_repo_main_file_url, params=get_repo_main_file_params, headers=self.headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         r_data = r.json()
         return r_data["mainFile"]
 
@@ -102,7 +103,9 @@ class ImportGitlab(WFImport):
         self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = requests.get(get_repo_url, params=get_repo_params, headers=self.headers)
+        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
@@ -118,7 +121,9 @@ class ImportGithub(WFImport):
         self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = requests.get(get_repo_url, params=get_repo_params, headers=self.headers)
+        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
