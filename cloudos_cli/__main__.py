@@ -1107,6 +1107,7 @@ def import_wf(ctx,
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')
 
+
 @project.command('list')
 @click.option('-k',
               '--apikey',
