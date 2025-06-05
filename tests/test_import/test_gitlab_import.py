@@ -41,8 +41,8 @@ def test_fetch_correct_repo_data(repo_url, main_file, expected):
             "namespace": {
                 "id": ex_group_id,
                 "full_path": ex_group_name
-
-        }}
+            }
+        }
     )
     responses.add(
         responses.GET,
