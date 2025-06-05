@@ -33,8 +33,8 @@ def test_fetch_correct_repo_data():
             "owner": {
                 "id": ex_group_id,
                 "login": ex_group_name
-
-        }}
+            }
+        }
     )
     responses.add(
         responses.GET,
