@@ -130,4 +130,3 @@ class ImportGithub(WFImport):
         self.payload["repository"]["owner"]["id"] = r_data["owner"]["id"]
         self.payload["repository"]["owner"]["login"] = r_data["owner"]["login"]
         self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
-
