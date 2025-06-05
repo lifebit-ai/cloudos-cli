@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.25.0 (2025-06-05)
+
+- Adds datasets class
+- Adds command to list files `cloudos datasets ls <path> --profile <profile>`
+
 ## v2.24.0 (2025-05-29)
 
 - Adds `--azure-worker-instance-type` to `cloudos job run` command, to be able to specify the worker node instance type to be used in azure.
