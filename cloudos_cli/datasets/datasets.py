@@ -182,6 +182,9 @@ class Datasets(Cloudos):
         pro_fol = self.list_project_content()
         folder_id = None
 
+        if folder_name == 'AnalysesResults':
+            folder_name = 'Analyses Results'
+
         for folder in pro_fol.get("datasets", []):
             if folder['name'] == folder_name:
                 folder_id = folder['_id']
@@ -217,30 +220,29 @@ class Datasets(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        # s3_bucket_name = None
-        # s3_relative_path = None
 
-        # folder_name = path.split('/')[0]
-        # job_name = path.split('/')[1]
-
-        # folder_content = self.list_datasets_content(folder_name)
-        # ## folder_content is a dictionary of 3 keys files, folders and paginationMetadata
-        # ## we expect that the path is referring to a folder not to a file
-        # for job_folder in folder_content['folders']:
-        #     if job_folder['name'] == job_name:
-        #         s3_bucket_name=job_folder['s3BucketName']
-        #         s3_relative_path=job_folder['s3Prefix']
-        #         break
-
-        # if not s3_bucket_name or not s3_relative_path:
-        #     raise ValueError(f"No matching job folder '{job_name}' found in dataset '{folder_name}'")
-        
         r = retry_requests_get("{}/api/v1/data-access/s3/bucket-contents?bucket={}&path={}&teamId={}".format(self.cloudos_url,
                                                                   s3_bucket_name,
                                                                   s3_relative_path,
                                                                   self.workspace_id),
                                 headers=headers, verify=self.verify)
-        return r.json()
+        raw = r.json()
+
+        #  Normalize response
+        normalized = {"folders": [], "files": []}
+        for item in raw.get("contents", []):
+            if item.get("isDir"):
+                item["folderType"] = "S3Folder"  # 👈 inject folderType
+                item["s3BucketName"] = s3_bucket_name
+                item["s3Prefix"] = item['path']
+                normalized["folders"].append(item)
+            else:
+                item["s3Prefix"] = item['path']
+                item["s3BucketName"] = s3_bucket_name
+
+                normalized["files"].append(item)
+
+        return normalized
 
     def list_virtual_folder_content(self,folder_id):
         """Uses

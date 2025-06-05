@@ -190,6 +190,7 @@ def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
 
+
 @run_cloudos_cli.group()
 @click.pass_context
 def datasets(ctx):
