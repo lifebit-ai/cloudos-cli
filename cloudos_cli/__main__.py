@@ -64,9 +64,11 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
 @click.pass_context
 def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
-    print(run_cloudos_cli.__doc__ + '\n')
-    print('Version: ' + __version__ + '\n')
     ctx.ensure_object(dict)
+    if ctx.invoked_subcommand not in ['datasets'] and ctx.args and ctx.args[0] == 'ls':
+        print(run_cloudos_cli.__doc__ + '\n')
+        print('Version: ' + __version__ + '\n')
+    
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
     if profile_to_use is None:
@@ -189,9 +191,11 @@ def bash():
     print(bash.__doc__ + '\n')
 
 @run_cloudos_cli.group()
-def datasets():
+@click.pass_context
+def datasets(ctx):
     """CloudOS datasets functionality."""
-    print(datasets.__doc__ + '\n')
+    if ctx.args and ctx.args[0] != 'ls':
+        print(datasets.__doc__ + '\n')
 
 
 @run_cloudos_cli.group(invoke_without_command=True)
@@ -1855,6 +1859,8 @@ def run_bash_job(ctx,
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--project-name',
+                help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def list_files(ctx, 
@@ -1863,6 +1869,7 @@ def list_files(ctx,
         workspace_id,
         disable_ssl_verification,
         ssl_cert,
+        project_name,
         profile,
         path):
     """List contents of a path within a CloudOS workspace dataset."""
@@ -1877,7 +1884,7 @@ def list_files(ctx,
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
 
-    apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform = (
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1890,6 +1897,7 @@ def list_files(ctx,
         )
     )
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
     datasets = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
@@ -1901,12 +1909,18 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
+        # Support multiple response structures
         contents = result.get("contents") or result.get("datasets", [])
-        print(contents)
+        if not contents:
+            # New response structure with separate 'files' and 'folders' as is for datasets
+            files = result.get("files", [])
+            folders = result.get("folders", [])
+            contents = [{"name": f["name"], "isDir": False} for f in files] + \
+                       [{"name": f["name"], "isDir": True} for f in folders]
+
         for item in contents:
             name = item.get("name", "")
             if item.get("isDir"):
-                # Blue and underlined for folders
                 name = click.style(name, fg="blue", underline=True)
             click.echo(name)
 

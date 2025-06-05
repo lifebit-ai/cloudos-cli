@@ -2,7 +2,7 @@
 This is the main class for file explorer (datasets).
 """
 
-from dataclasses import dataclass , field
+from dataclasses import dataclass
 from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
@@ -34,24 +34,26 @@ class Datasets(Cloudos):
     workspace_id: str
     project_name: str
     verify: Union[bool, str] = True
-    _project_id: str = field(default=None, init=False) 
+    project_id: str = None
 
     @property
     def project_id(self) -> str:
-        if self._project_id is None:
+        return self._project_id
+
+    @project_id.setter
+    def project_id(self, v) -> None:
+        if isinstance(v, property):
+            # Fetch the value as not defined by user.
             self._project_id = self.fetch_cloudos_id(
                 self.apikey,
                 self.cloudos_url,
                 'projects',
                 self.workspace_id,
                 self.project_name,
-                verify=self.verify
-            )
-        return self._project_id
-
-    @project_id.setter
-    def project_id(self, v: str):
-        self._project_id = v
+                verify=self.verify)
+        else:
+            # Let the user define the value.
+            self._project_id = v
 
     def fetch_cloudos_id(self,
                          apikey,
@@ -127,10 +129,6 @@ class Datasets(Cloudos):
                              f' and an importsFile \'{importsfile}\' was not found')
         else:
             raise ValueError(f'[ERROR] No {name} element in {resource} was found')
-    
-    ## r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
-    ##                                                          workspace_id),
-    ##                        data=json.dumps(params), headers=headers, verify=verify)
        
     def list_project_content(self):
         """
@@ -196,7 +194,7 @@ class Datasets(Cloudos):
                                 headers=headers, verify=self.verify)
         return r.json()
     
-    def list_s3_folder_content(self, path):
+    def list_s3_folder_content(self, s3_bucket_name, s3_relative_path):
         """Uses
         ----------
         apikey : string
@@ -207,8 +205,10 @@ class Datasets(Cloudos):
             The specific Cloudos workspace id.
         project_id : string
             The specific project id
-        path : string
-            The path to the folder whose content are to be listed
+        s3_bucket_name : string
+            The s3 bucket name
+        s3_relative_path: string
+            The relative path in the s3 bucket
         """
         #requires cloudos_url, bucket_name, relative_path, workspace_id
         # url is: CLOUD_OS_URL/api/v1/data-access/s3/bucket-contents?bucket=BUCKET_NAME&path=RELATIVE_PATH_IN_THE_BUCKET&teamId=WORKSPACE_ID
@@ -217,23 +217,23 @@ class Datasets(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        s3_bucket_name = None
-        s3_relative_path = None
+        # s3_bucket_name = None
+        # s3_relative_path = None
 
-        folder_name = path.split('/')[0]
-        job_name = path.split('/')[1]
+        # folder_name = path.split('/')[0]
+        # job_name = path.split('/')[1]
 
-        folder_content = self.list_datasets_content(folder_name)
-        ## folder_content is a dictionary of 3 keys files, folders and paginationMetadata
-        ## we expect that the path is referring to a folder not to a file
-        for job_folder in folder_content['folders']:
-            if job_folder['name'] == job_name:
-                s3_bucket_name=job_folder['s3BucketName']
-                s3_relative_path=job_folder['s3Prefix']
-                break
+        # folder_content = self.list_datasets_content(folder_name)
+        # ## folder_content is a dictionary of 3 keys files, folders and paginationMetadata
+        # ## we expect that the path is referring to a folder not to a file
+        # for job_folder in folder_content['folders']:
+        #     if job_folder['name'] == job_name:
+        #         s3_bucket_name=job_folder['s3BucketName']
+        #         s3_relative_path=job_folder['s3Prefix']
+        #         break
 
-        if not s3_bucket_name or not s3_relative_path:
-            raise ValueError(f"No matching job folder '{job_name}' found in dataset '{folder_name}'")
+        # if not s3_bucket_name or not s3_relative_path:
+        #     raise ValueError(f"No matching job folder '{job_name}' found in dataset '{folder_name}'")
         
         r = retry_requests_get("{}/api/v1/data-access/s3/bucket-contents?bucket={}&path={}&teamId={}".format(self.cloudos_url,
                                                                   s3_bucket_name,
@@ -242,7 +242,7 @@ class Datasets(Cloudos):
                                 headers=headers, verify=self.verify)
         return r.json()
 
-    def list_virtual_folder_content(self,path):
+    def list_virtual_folder_content(self,folder_id):
         """Uses
         ----------
         apikey : string
@@ -253,8 +253,8 @@ class Datasets(Cloudos):
             The specific Cloudos workspace id.
         project_id : string
             The specific project id
-        path : string
-            The path to the folder whose content are to be listed
+        folder_id : string
+            The folder id of the folder whose content are to be listed
         """
         #requires cloudos_url, folder_id, workspace_id
         # url is: CLOUD_OS_URL/api/v1/folders/virtual/FOLDER_ID/items?teamId=WORKSPACE_ID
@@ -263,19 +263,6 @@ class Datasets(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-
-        folder_name = path.split('/')[0]
-        job_name = path.split('/')[1]
-        folder_id = None
-        folder_content = self.list_datasets_content(folder_name)
-        ## folder_content is a dictionary of 3 keys files, folders and paginationMetadata
-        ## we expect that the path is referring to a folder not to a file
-        for job_folder in folder_content['folders']:
-            if job_folder['name'] == job_name:
-                folder_id=job_folder['_id']
-                break
-        if not folder_id:
-            raise ValueError(f"Folder '{folder_name}' not found in project '{self.project_name}'.")
 
         r = retry_requests_get("{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
                                                                   folder_id,
@@ -303,41 +290,47 @@ class Datasets(Cloudos):
 
         parts = path.strip('/').split('/')
 
-        # Case: only top folder → list dataset
         if len(parts) == 1:
             return self.list_datasets_content(parts[0])
 
-        folder_name = parts[0]
-        job_name = parts[1]
-        subpath = '/'.join(parts[2:])  # may be empty
+        dataset_name = parts[0]
+        folder_content = self.list_datasets_content(dataset_name)
 
-        folder_content = self.list_datasets_content(folder_name)
+        path_depth = 1
+        while path_depth < len(parts):
+            job_name = parts[path_depth]
+            found = False
 
-        for job_folder in folder_content.get("folders", []):
-            if job_folder["name"] == job_name:
-                folder_type = job_folder.get("folderType")
+            for job_folder in folder_content.get("folders", []):
+                if job_folder["name"] == job_name:
+                    found = True
+                    folder_type = job_folder.get("folderType")
 
-                if folder_type == "S3Folder":
-                    # Rebuild full S3 path: TopFolder/JobName/.../...
-                    return self.list_s3_folder_content(path)
+                    if folder_type == "S3Folder":
+                        s3_bucket_name = job_folder['s3BucketName']
+                        s3_relative_path = job_folder['s3Prefix']
+                        if path_depth == len(parts) - 1:
+                            return self.list_s3_folder_content(s3_bucket_name, s3_relative_path)
+                        else:
+                            sub_path = '/'.join(parts[0:path_depth+1])
+                            folder_content = self.list_folder_content(sub_path)
+                            path_depth += 1
+                            break
 
-                elif folder_type == "VirtualFolder":
-                    if len(parts) == 2:
-                        return self.list_virtual_folder_content(path)
+                    elif folder_type == "VirtualFolder":
+                        folder_id = job_folder['_id']
+                        if path_depth == len(parts) - 1:
+                            return self.list_virtual_folder_content(folder_id)
+                        else:
+                            sub_path = '/'.join(parts[0:path_depth+1])
+                            folder_content = self.list_folder_content(sub_path)
+                            path_depth += 1
+                            break
+
                     else:
-                        # VirtualFolder + deeper path → recurse one level and try again
-                        # e.g., VirtualTop/Job1/... → get virtual path and call recursively
-                        folder_id = job_folder["_id"]
-                        next_path = '/'.join(parts[:2])  # TopFolder/JobName
-                        rest_path = '/'.join(parts[2:])  # output/files
-                        virtual_content = self.list_virtual_folder_content(next_path)
-                        for subfolder in virtual_content.get("folders", []):
-                            if subfolder["name"] == parts[2]:
-                                new_virtual_path = f"{next_path}/{parts[2]}"
-                                return self.list_folder_content(new_virtual_path)
-                        raise ValueError(f"Subfolder '{parts[2]}' not found under virtual folder '{next_path}'")
+                        raise ValueError(f"Unsupported folder type '{folder_type}' for path '{path}'")
 
-                else:
-                    raise ValueError(f"Unsupported folder type '{folder_type}' for path '{path}'")
+            if not found:
+                raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
 
-        raise ValueError(f"Folder '{job_name}' not found under dataset '{folder_name}'")
+        return folder_content
