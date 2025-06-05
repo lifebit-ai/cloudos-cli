@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
 import requests
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import  retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_post
 import json
 
 
