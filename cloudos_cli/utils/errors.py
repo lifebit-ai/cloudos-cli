@@ -31,6 +31,7 @@ class TimeOutException(Exception):
         super(TimeOutException, self).__init__(msg)
         self.rv = rv
 
+
 class GithubRepositoryError(Exception):
     """
     Handles error codes from the Github API
