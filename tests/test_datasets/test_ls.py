@@ -6,6 +6,8 @@ from click.testing import CliRunner
 from responses import matchers
 from cloudos_cli.__main__ import run_cloudos_cli
 from tests.functions_for_pytest import load_json_file
+import json
+
 
 # Constants and test data files
 APIKEY = 'vnoiweur89u2ongs'
@@ -29,9 +31,8 @@ def test_datasets_ls_s3_folder(cli_runner):
     """
 
     # Load mock JSON responses
-    mock_projects = load_json_file(INPUT_PROJECTS)
-    mock_dataset_contents = load_json_file(INPUT_DATASET_CONTENT)
-
+    mock_projects = json.loads(load_json_file(INPUT_PROJECTS))
+    mock_dataset_contents = json.loads(load_json_file(INPUT_DATASET_CONTENT))
     # Setup query param matchers
     params_projects = {"teamId": WORKSPACE_ID}
     params_dataset = {"teamId": WORKSPACE_ID}
