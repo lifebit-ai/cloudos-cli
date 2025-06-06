@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import rich_click as click
+from pygments.lexer import default
+
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
@@ -1051,6 +1053,8 @@ def list_workflows(ctx,
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
+@click.option("--cost-limit", help="Cost limit for the workflow. Default: $30 USD.", default=30)
+@click.option("--workflow-description", help="Workflow description", default="")
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -1066,6 +1070,8 @@ def import_wf(ctx,
               workflow_name,
               workflow_url,
               workflow_docs_link,
+              cost_limit,
+              workflow_description,
               platform,
               disable_ssl_verification,
               ssl_cert,
@@ -1102,7 +1108,7 @@ def import_wf(ctx,
     repo_cls = repo_services[platform]
     repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
                              platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
-                             workflow_docs_link=workflow_docs_link, verify=verify_ssl)
+                             workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')

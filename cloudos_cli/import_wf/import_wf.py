@@ -7,7 +7,7 @@ import json
 
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
-                 workflow_name, workflow_url, workflow_docs_link="", main_file=None, verify=True):
+                 workflow_name, workflow_url, workflow_docs_link="", workflow_description="", cost_limit=30, main_file=None, verify=True):
         self.cloudos_url = cloudos_url
         self.workflow_url = workflow_url.rstrip('.git')
         self.workspace_id = workspace_id
@@ -37,13 +37,16 @@ class WFImport(ABC):
                 "branch": ""
             },
             "name": workflow_name,
-            "description": "",
+            "description": workflow_description,
             "isPublic": False,
             "mainFile": "main.nf",
             "defaultContainer": None,
             "processes": [],
             "docsLink": workflow_docs_link,
-            "team": workspace_id
+            "team": workspace_id,
+            "executionConfiguration": {
+                "costLimitInUsd": cost_limit
+            }
         }
         self.get_repo_url = ""
         self.get_repo_params = dict()
