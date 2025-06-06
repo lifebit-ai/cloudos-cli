@@ -1864,39 +1864,52 @@ def run_bash_job(ctx,
                 help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_files(ctx, 
-        apikey,
-        cloudos_url,
-        workspace_id,
-        disable_ssl_verification,
-        ssl_cert,
-        project_name,
-        profile,
-        path):
+def list_files(
+    ctx,
+    apikey,
+    cloudos_url,
+    workspace_id,
+    disable_ssl_verification,
+    ssl_cert,
+    project_name,
+    profile,
+    path
+):
     """List contents of a path within a CloudOS workspace dataset."""
-    profile = profile or ctx.default_map['datasets']['list']['profile']
-    # Create a dictionary with required and non-required params
+
+    # fallback to ctx default if profile not specified
+    profile = profile or ctx.default_map['datasets']['list'].get('profile')
+
+    config_manager = ConfigurationProfile()
+
     required_dict = {
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False
     }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
+    # load from profile, but allow overrides
+    loaded = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=None,  # <-- initially empty
+        cloudos_url=None,
+        workspace_id=None
     )
+
+    # Unpack profile values first
+    profile_apikey, profile_cloudos_url, profile_workspace_id, workflow_name, repository_platform, execution_platform, profile_project_name = loaded
+
+    # Override with explicitly passed args if provided
+    apikey = apikey or profile_apikey
+    cloudos_url = cloudos_url or profile_cloudos_url
+    workspace_id = workspace_id or profile_workspace_id
+    project_name = project_name or profile_project_name
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
@@ -1910,10 +1923,8 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        # Support multiple response structures
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
-            # New response structure with separate 'files' and 'folders' as is for datasets
             files = result.get("files", [])
             folders = result.get("folders", [])
             contents = [{"name": f["name"], "isDir": False} for f in files] + \
@@ -1927,6 +1938,7 @@ def list_files(ctx,
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
+
 
 if __name__ == "__main__":
     run_cloudos_cli()
