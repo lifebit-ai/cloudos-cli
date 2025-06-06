@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import rich_click as click
-from pygments.lexer import default
-
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
