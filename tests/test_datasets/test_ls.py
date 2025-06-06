@@ -70,7 +70,7 @@ def test_list_folder_content_for_s3_dataset():
         workspace_id=WORKSPACE_ID,
         project_name=PROJECT_NAME,
         verify=True,
-        project_id=project_id  # avoids a real call
+        project_id=project_id,  # avoids a real call
         cromwell_token=None
     )
 
