@@ -40,5 +40,5 @@ class AccountNotLinkedException(Exception):
     def __init__(self, wf_url):
         msg = (f"The pipeline at the URL {wf_url} cannot be imported. Check that you repository account " +
                "has been linked in your cloudOS workspace")
-        super(AccountNotLinkedException).__init__(msg)
+        super(AccountNotLinkedException, self).__init__(msg)
         self.wf_url = wf_url
