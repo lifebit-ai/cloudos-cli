@@ -45,14 +45,14 @@ class WFImport(ABC):
             "docsLink": workflow_docs_link,
             "team": workspace_id,
             "executionConfiguration": {
-                "costLimitInUsd": cost_limit
+                "costLimitsInUsd": {"value": cost_limit, "editable": True}
             }
         }
         self.get_repo_url = ""
         self.get_repo_params = dict()
         self.get_repo_main_file_url = ""
         self.get_repo_main_file_params = ""
-        self.post_request_url = f"{cloudos_url}/api/v1/workflows?teamId={workspace_id}"
+        self.post_request_url = f"{cloudos_url}/api/v2/workflows?teamId={workspace_id}"
         self.verify = verify
 
     def get_repo_main_file(self):
