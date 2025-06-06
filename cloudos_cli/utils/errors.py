@@ -30,3 +30,15 @@ class TimeOutException(Exception):
                "Status: {}; Reason: {}".format(rv.status_code, rv.reason))
         super(TimeOutException, self).__init__(msg)
         self.rv = rv
+
+
+class AccountNotLinkedException(Exception):
+    """
+    Displays a meaningful message when the user tries to import a repository from an account that is not linked
+    with their cloudOS account
+    """
+    def __init__(self, wf_url):
+        msg = (f"The pipeline at the URL {wf_url} cannot be imported. Check that you repository account " +
+               "has been linked in your cloudOS workspace")
+        super(AccountNotLinkedException, self).__init__(msg)
+        self.wf_url = wf_url
