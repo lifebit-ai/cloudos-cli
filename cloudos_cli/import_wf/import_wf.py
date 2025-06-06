@@ -106,7 +106,7 @@ class ImportGitlab(WFImport):
         r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
         if r.status_code == 404:
             raise AccountNotLinkedException(self.workflow_url)
-        if r.status_code >= 400:
+        elif r.status_code >= 400:
             raise BadRequestException(r)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
@@ -124,7 +124,9 @@ class ImportGithub(WFImport):
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
         r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
-        if r.status_code >= 400:
+        if r.status_code == 404:
+            raise AccountNotLinkedException(self.workflow_url)
+        elif r.status_code >= 400:
             raise BadRequestException(r)
         r_data = r.json()
         self.payload["repository"]["repositoryId"] = r_data["id"]
