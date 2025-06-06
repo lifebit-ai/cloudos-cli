@@ -1,0 +1,8 @@
+{
+    "datasets": [
+      {
+        "_id": "mock-dataset-id-1234",
+        "name": "Analyses Results"
+      }
+    ]
+  }
