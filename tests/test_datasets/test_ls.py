@@ -71,6 +71,7 @@ def test_list_folder_content_for_s3_dataset():
         project_name=PROJECT_NAME,
         verify=True,
         project_id=project_id  # avoids a real call
+        cromwell_token=None
     )
 
     result = datasets.list_folder_content(FOLDER_PATH)
