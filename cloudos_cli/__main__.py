@@ -1866,7 +1866,7 @@ def list_files(
     project_name,
     profile,
     path
-):
+    ):
     """List contents of a path within a CloudOS workspace dataset."""
 
     # fallback to ctx default if profile not specified
@@ -1881,26 +1881,23 @@ def list_files(
         'project_name': False
     }
 
-    # load from profile, but allow overrides
-    loaded = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict=required_dict,
-        apikey=None,  # <-- initially empty
-        cloudos_url=None,
-        workspace_id=None
-    )
-
     # Unpack profile values first
-    profile_apikey, profile_cloudos_url, profile_workspace_id, workflow_name, repository_platform, execution_platform, profile_project_name = loaded
-
-    # Override with explicitly passed args if provided
-    apikey = apikey or profile_apikey
-    cloudos_url = cloudos_url or profile_cloudos_url
-    workspace_id = workspace_id or profile_workspace_id
-    project_name = project_name or profile_project_name
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
