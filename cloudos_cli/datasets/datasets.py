@@ -183,8 +183,8 @@ class Datasets(Cloudos):
         if not folder_id:
             raise ValueError(f"Folder '{folder_name}' not found in project '{self.project_name}'.")
         r = retry_requests_get("{}/api/v1/datasets/{}/items?teamId={}".format(self.cloudos_url,
-                                                                  folder_id,
-                                                                  self.workspace_id),
+                                                                              folder_id,
+                                                                              self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
     def list_s3_folder_content(self, s3_bucket_name, s3_relative_path):
@@ -210,9 +210,9 @@ class Datasets(Cloudos):
         }
 
         r = retry_requests_get("{}/api/v1/data-access/s3/bucket-contents?bucket={}&path={}&teamId={}".format(self.cloudos_url,
-                                                                  s3_bucket_name,
-                                                                  s3_relative_path,
-                                                                  self.workspace_id),
+                                                                                                             s3_bucket_name,
+                                                                                                             s3_relative_path,
+                                                                                                             self.workspace_id),
                                 headers=headers, verify=self.verify)
         raw = r.json()
 
@@ -252,8 +252,8 @@ class Datasets(Cloudos):
         }
 
         r = retry_requests_get("{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
-                                                                  folder_id,
-                                                                  self.workspace_id),
+                                                                                     folder_id,
+                                                                                     self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
     def list_folder_content(self, path=None):
