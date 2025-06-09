@@ -31,12 +31,26 @@ class TimeOutException(Exception):
         super(TimeOutException, self).__init__(msg)
         self.rv = rv
 
+
+class AccountNotLinkedException(Exception):
+    """
+    Displays a meaningful message when the user tries to import a repository from an account that is not linked
+    with their cloudOS account
+    """
+    def __init__(self, wf_url):
+        msg = (f"The pipeline at the URL {wf_url} cannot be imported. Check that you repository account " +
+               "has been linked in your cloudOS workspace")
+        super(AccountNotLinkedException, self).__init__(msg)
+        self.wf_url = wf_url
+
+
 class JoBNotCompletedException(Exception):
     def __init__(self, job, status):
         msg = f"Job {job} has status {status}. Results are only available for jobs with status \"completed\""
         super(JoBNotCompletedException, self).__init__(msg)
         self.job = job
         self.status = status
+
 
 class NotAuthorisedException(Exception):
     def __init__(self):

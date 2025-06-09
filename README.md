@@ -597,91 +597,8 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub or Bitbucket server.
+- The workflow repository is located at GitHub or GitLab (specified by the option `--platform`. Available options: `github`, `gitlab`)
 - If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
-- You have got the `repository_id` and the `repository_project_id`.
-
-**How to get `repository_id` and `repository_project_id` from a GitHub repository**
-
-**Option 1: searching in the page source code**
-
-1. Go to the repository URL. Click on the right button of your mouse to get the following menu and click on "View Page Source".
-
-![Github Repo right click](docs/github_right_click.png)
-
-2. For collecting the `repository_project_id`, search for `octolytics-dimension-user_id` string in the source code. The `content` value is your `repository_project_id` (`30871219` in the example image).
-
-![Github Repo owner id](docs/github_user_id.png)
-
-3. For collecting the `repository_id`, search for `octolytics-dimension-repository_id` string in the source code. The `content` value is your `repository_id` (`122059362` in the example image).
-
-![Github Repo id](docs/github_repository_id.png)
-
-**Option 2: using github CLI**
-
-If you have access to the repository, you can use the following tools to collect the required values:
-
-- [gh](https://cli.github.com/)
-- [jq](https://jqlang.github.io/jq/download/)
-
-For collecting the `repository_project_id`:
-
-```
-# If your repo URL is https://github.com/lifebit-ai/DeepVariant
-OWNER="lifebit-ai"
-REPO="DeepVariant"
-repository_project_id=$(gh api -H "Accept: application/vnd.github+json" repos/$OWNER/$REPO | jq .owner.id)
-echo $repository_project_id
-30871219
-```
-
-For collecting the `repository_id`:
-
-```
-# If your repo URL is https://github.com/lifebit-ai/DeepVariant
-OWNER="lifebit-ai"
-REPO="DeepVariant"
-repository_id=$(gh api -H "Accept: application/vnd.github+json" repos/$OWNER/$REPO | jq .id)
-echo $repository_id
-122059362
-```
-
-**How to get `repository_project_id` from a Bitbucket server repository**
-
-For Bitbucket server repositories, only `repository_project_id` is required. To collect it:
-
-**Option 1: using the REST API from your browser**
-
-1. Create a REST API URL from your repo URL by adding `/rest/api/latest` to the URL: 
-
-```
-Original URL: https://bitbucket.com/projects/MYPROJECT/repos/my-repo
-REST API URL: https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo
-```
-
-> IMPORTANT NOTE: Please, as your repository original URL, do not use the "clone" URL provided by Bitbucket (the one with `.git` extension), use the actual browser URL, removing the terminal `/browse`.
-
-2. Use the REST API URL in a browser and it will generate a JSON output.
-
-3. Your `repository_project_id` is the value of the `project.id` field.
-
-![bitbucket project id](docs/bitbucket_project_id.png)
-
-**Option 2: using cURL**
-
-If you have access to the repository, you can use the following tools to collect the required value:
-
-- [cURL](https://curl.se/)
-- [jq](https://jqlang.github.io/jq/download/)
-
-For collecting the `repository_project_id`:
-
-```
-BITBUCKET_TOKEN="xxx"
-repository_project_id=$(curl https://bitbucket.com/rest/api/latest/projects/MYPROJECT/repos/my-repo -H "Authorization: Bearer $BITBUCKET_TOKEN" | jq .project.id)
-echo $repository_project_id
-1234
-```
 
 #### Usage of the workflow import command
 
@@ -691,18 +608,13 @@ To import GitHub workflows to CloudOS, you can use the following command:
 # Example workflow to import: https://github.com/lifebit-ai/DeepVariant
 WORKFLOW_URL="https://github.com/lifebit-ai/DeepVariant"
 
-# You will need the repository_project_id and repository_id values explained above
-REPOSITORY_PROJECT_ID=30871219
-REPOSITORY_ID=122059362
-
 cloudos workflow import \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --repository-project-id $REPOSITORY_PROJECT_ID \
-    --repository-id $REPOSITORY_ID
+    --platform github 
 ```
 
 The expected output will be:
@@ -727,25 +639,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --repository-project-id $REPOSITORY_PROJECT_ID \
-    --repository-id $REPOSITORY_ID
-```
-
-To import bitbucket server workflows, `--repository-id` parameter is not required:
-
-```bash
-WORKFLOW_URL="https://bitbucket.com/projects/MYPROJECT/repos/my-repo"
-
-# You will need only the repository_project_id
-REPOSITORY_PROJECT_ID=1234
-
-cloudos workflow import \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --workflow-url $WORKFLOW_URL \
-    --workflow-name "new_name_for_the_bitbucket_workflow" \
-    --repository-project-id $REPOSITORY_PROJECT_ID
+    --platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.

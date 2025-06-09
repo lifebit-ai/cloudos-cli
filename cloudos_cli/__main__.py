@@ -3,6 +3,7 @@
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
+from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -1187,29 +1188,21 @@ def list_workflows(ctx,
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=('The CloudOS url you are trying to access to. ' +
+                    f'Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--workflow-url',
-              help=('URL of the workflow to import. Please, note that it should ' +
-                    'be the URL shown in the browser, and it should come without ' +
-                    'any of the .git or /browse extensions.'),
-              required=True)
-@click.option('--workflow-name',
-              help="The name that the workflow will have in CloudOS",
-              required=True)
-@click.option('--workflow-docs-link',
-              help="Workflow documentation URL.",
-              default='')
-@click.option('--repository-project-id',
-              type=int,
-              help="The ID of your repository project",
-              required=True)
-@click.option('--repository-id',
-              type=int,
-              help="The ID of your repository. Only required for GitHub repositories")
+@click.option("--platform", type=click.Choice(["github", "gitlab"]),
+              help=('Repository service where the workflow is located. Valid choices: github, gitlab. ' +
+                    'Default=github'),
+              default="github")
+@click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
+@click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
+@click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
+@click.option("--cost-limit", help="Cost limit for the workflow. Default: $30 USD.", default=30)
+@click.option("--workflow-description", help="Workflow description", default="")
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -1218,19 +1211,22 @@ def list_workflows(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def import_workflows(ctx,
-                     apikey,
-                     cloudos_url,
-                     workspace_id,
-                     workflow_url,
-                     workflow_name,
-                     repository_project_id,
-                     workflow_docs_link,
-                     repository_id,
-                     disable_ssl_verification,
-                     ssl_cert,
-                     profile):
-    """Imports workflows to CloudOS."""
+def import_wf(ctx,
+              apikey,
+              cloudos_url,
+              workspace_id,
+              workflow_name,
+              workflow_url,
+              workflow_docs_link,
+              cost_limit,
+              workflow_description,
+              platform,
+              disable_ssl_verification,
+              ssl_cert,
+              profile):
+    """
+    Import workflows from supported repository providers.
+    """
     profile = profile or ctx.default_map['workflow']['import']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1256,16 +1252,12 @@ def import_workflows(ctx,
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    print('Executing workflow import...\n')
-    print('\t[Message] Only Nextflow workflows are currently supported.\n')
-    cl = Cloudos(cloudos_url, apikey, None)
-    workflow_id = cl.workflow_import(workspace_id,
-                                     workflow_url,
-                                     workflow_name,
-                                     repository_project_id,
-                                     workflow_docs_link,
-                                     repository_id,
-                                     verify=verify_ssl)
+    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
+    repo_cls = repo_services[platform]
+    repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+                             workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
+    workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')
 
