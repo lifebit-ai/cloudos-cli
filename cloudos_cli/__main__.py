@@ -12,6 +12,8 @@ import os
 import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
+from rich.console import Console
+from rich.table import Table
 
 
 # GLOBAL VARS
@@ -88,6 +90,7 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -126,6 +129,7 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -709,6 +713,93 @@ def job_status(ctx,
     j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
     print(f'\tTo further check your job status you can either go to {j_url} ' +
           'or repeat the command you just used.')
+
+
+@job.command('details')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_details(ctx,
+               apikey,
+               cloudos_url,
+               job_id,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
+    """Retrieve job details in CloudOS."""
+    profile = profile or ctx.default_map['job']['details']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url
+        )
+    )
+
+    print('Executing details...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    j_details = cl.get_job_status(job_id, verify_ssl)
+    j_details_h = json.loads(j_details.content)
+    console = Console()
+    table = Table(title="Job Details")
+
+    table.add_column("Field", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta", overflow="fold")
+
+    if j_details_h["parameters"] != []:
+        concat_string = '\n'.join(
+            [f"{param['prefix']}{param['name']}={param['textValue']}" for param in j_details_h["parameters"]])
+    else:
+        concat_string = 'No parameters provided'
+    table.add_row("Parameters", concat_string)
+    table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
+    table.add_row("Revision", str(j_details_h["revision"]["commit"]))
+    table.add_row("Accelerated File Staging", str(j_details_h["usesFusionFileSystem"]))
+    table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
+    table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
+    table.add_row("Nextflow Version", str(j_details_h["nextflowVersion"]))
+
+    console.print(table)
 
 
 @job.command('list')
