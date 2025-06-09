@@ -4,9 +4,7 @@ This is the main class for file explorer (datasets).
 
 from dataclasses import dataclass
 from typing import Union
-import json
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get
 
 
@@ -129,7 +127,6 @@ class Datasets(Cloudos):
                              f' and an importsFile \'{importsfile}\' was not found')
         else:
             raise ValueError(f'[ERROR] No {name} element in {resource} was found')
-       
     def list_project_content(self):
         """
         Fetch the information of the directories present in the projects.
@@ -145,22 +142,17 @@ class Datasets(Cloudos):
         project_id
             The specific project id
         """
-        #requires cloudos_url, project_id and workspace_id
-        # url is: CLOUD_OS_URL/api/v2/datasets?projectId=PROJECT_ID&teamId=WORKSPACE_ID
-        # Prepare api request for CloudOS to run a job
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
         r = retry_requests_get("{}/api/v2/datasets?projectId={}&teamId={}".format(self.cloudos_url,
-                                                                  self.project_id,
-                                                                  self.workspace_id),
-                                headers=headers, verify=self.verify)
+                                                                                  self.project_id,
+                                                                                  self.workspace_id),
+                               headers=headers, verify=self.verify)
         return r.json()
 
     def list_datasets_content(self, folder_name):
-    # requires cloudos_url, dataset_id, workspace_id
-    # url is: CLOUD_OS_URL/api/v1/datasets/DATASET_ID/items?teamId=WORKSPACE_ID
         """Uses
         ----------
         apikey : string
@@ -190,13 +182,11 @@ class Datasets(Cloudos):
                 folder_id = folder['_id']
         if not folder_id:
             raise ValueError(f"Folder '{folder_name}' not found in project '{self.project_name}'.")
-        
         r = retry_requests_get("{}/api/v1/datasets/{}/items?teamId={}".format(self.cloudos_url,
                                                                   folder_id,
                                                                   self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
-    
     def list_s3_folder_content(self, s3_bucket_name, s3_relative_path):
         """Uses
         ----------
@@ -213,8 +203,6 @@ class Datasets(Cloudos):
         s3_relative_path: string
             The relative path in the s3 bucket
         """
-        #requires cloudos_url, bucket_name, relative_path, workspace_id
-        # url is: CLOUD_OS_URL/api/v1/data-access/s3/bucket-contents?bucket=BUCKET_NAME&path=RELATIVE_PATH_IN_THE_BUCKET&teamId=WORKSPACE_ID
         # Prepare api request for CloudOS to fetch dataset info
         headers = {
             "Content-type": "application/json",
@@ -244,7 +232,7 @@ class Datasets(Cloudos):
 
         return normalized
 
-    def list_virtual_folder_content(self,folder_id):
+    def list_virtual_folder_content(self, folder_id):
         """Uses
         ----------
         apikey : string
@@ -258,9 +246,6 @@ class Datasets(Cloudos):
         folder_id : string
             The folder id of the folder whose content are to be listed
         """
-        #requires cloudos_url, folder_id, workspace_id
-        # url is: CLOUD_OS_URL/api/v1/folders/virtual/FOLDER_ID/items?teamId=WORKSPACE_ID
-        # Prepare api request for CloudOS to fetch dataset info
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
@@ -271,7 +256,6 @@ class Datasets(Cloudos):
                                                                   self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
-    
     def list_folder_content(self, path=None):
         """
         Wrapper to list contents of a CloudOS folder.

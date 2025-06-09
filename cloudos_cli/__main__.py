@@ -69,7 +69,6 @@ def run_cloudos_cli(ctx):
     if ctx.invoked_subcommand not in ['datasets'] and ctx.args and ctx.args[0] == 'ls':
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
-    
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
     if profile_to_use is None:
@@ -1832,6 +1831,7 @@ def run_bash_job(ctx,
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--job-id {j_id}\n')
 
+
 @datasets.command(name="ls")
 @click.argument("path", required=False, nargs=1)
 @click.option('-k',
@@ -1853,20 +1853,18 @@ def run_bash_job(ctx,
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--project-name',
-                help='The name of a CloudOS project.')
+              help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-def list_files(
-    ctx,
-    apikey,
-    cloudos_url,
-    workspace_id,
-    disable_ssl_verification,
-    ssl_cert,
-    project_name,
-    profile,
-    path
-    ):
+def list_files(ctx,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               disable_ssl_verification,
+               ssl_cert,
+               project_name,
+               profile,
+               path):
     """List contents of a path within a CloudOS workspace dataset."""
 
     # fallback to ctx default if profile not specified

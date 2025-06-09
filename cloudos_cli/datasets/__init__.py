@@ -1,5 +1,5 @@
 """
-Functions and classes related to jobs.
+Functions and classes related to datasets.
 """
 
 from .datasets import Datasets
