@@ -134,6 +134,45 @@ class Cloudos:
                   f'\t\t--job-id {job_id}\n')
         return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
+    def get_job_logs(self, j_id, workspace_id, verify=True):
+        """
+        Get the location of the logs for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
+                                                          j_id),
+                               headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        logs_obj = r.json()["logs"]
+        logs_bucket = logs_obj["s3BucketName"]
+        logs_path = logs_obj["s3Prefix"]
+        contents_params = dict(bucket=logs_bucket, path=logs_path, teamId=workspace_id)
+
+        contents_req = retry_requests_get(f"{cloudos_url}/api/v1/data-access/s3/bucket-contents",
+                                          params=contents_params, headers=headers, verify=verify)
+        if contents_req.status_code >= 400:
+            raise BadRequestException(contents_req)
+        logs_uri = f"s3://{logs_bucket}/{logs_path}"
+        contents_obj = contents_req.json()
+        logs = {"Logs URI": logs_uri}
+        for item in contents_obj["contents"]:
+            if not item["isDir"]:
+                filename = item["name"]
+                if filename == "stdout.txt":
+                    filename = "Nextflow standard output"
+                if filename == ".nextflow.log":
+                    filename = "Nextflow log"
+                if filename == "trace.txt":
+                    filename = "Trace file"
+                logs[filename] = f"s3://{logs_bucket}/{item['path']}"
+        return logs
+
     def _create_cromwell_header(self):
         """Generates cromwell header.
 
