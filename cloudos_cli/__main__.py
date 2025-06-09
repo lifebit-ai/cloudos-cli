@@ -13,6 +13,7 @@ import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.datasets import Datasets
+import re
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -1832,6 +1833,18 @@ def run_bash_job(ctx,
               f'\t\t--job-id {j_id}\n')
 
 
+def format_bytes(size):
+    """Convert bytes to human-readable format (e.g., 1.2 MB)."""
+    if size is None:
+        return "-"
+    power = 1024
+    n = 0
+    labels = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+    while size >= power and n < len(labels) - 1:
+        size /= power
+        n += 1
+    return f"{size:.1f} {labels[n]}"
+
 @datasets.command(name="ls")
 @click.argument("path", required=False, nargs=1)
 @click.option('-k',
@@ -1855,6 +1868,11 @@ def run_bash_job(ctx,
 @click.option('--project-name',
               help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--details',
+              help=('When selected, it prints the details of the listed files. '+
+                    'Details contain is_folder, Owner (name and surname), size '+
+                    'Last updated, file name, s3 path.'),
+              is_flag=True)
 @click.pass_context
 def list_files(ctx,
                apikey,
@@ -1864,7 +1882,8 @@ def list_files(ctx,
                ssl_cert,
                project_name,
                profile,
-               path):
+               path,
+               details):
     """List contents of a path within a CloudOS workspace dataset."""
 
     # fallback to ctx default if profile not specified
@@ -1910,18 +1929,67 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
+        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             files = result.get("files", [])
             folders = result.get("folders", [])
-            contents = [{"name": f["name"], "isDir": False} for f in files] + \
-                       [{"name": f["name"], "isDir": True} for f in folders]
-
-        for item in contents:
-            name = item.get("name", "")
-            if item.get("isDir"):
-                name = click.style(name, fg="blue", underline=True)
-            click.echo(name)
+            contents = files + folders
+        if details:
+            ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+            headers = ["Type", "Owner", "Size", "Last Updated", "Filepath", "S3 Path"]
+            rows = []
+            for item in contents:
+                is_folder = "folderType" in item
+                type_ = "folder" if is_folder else "file"
+                user = item.get("user", {})
+                owner = f"{user.get('name', '-') or '-'} {user.get('surname', '-') or '-'}".strip()
+                raw_size = item.get("sizeInBytes", item.get("size"))
+                size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
+                updated = item.get("updatedAt", "-")
+                filepath = item.get("name", "-")
+                if is_folder:
+                    s3_bucket = item.get("s3BucketName")
+                    s3_key = item.get("s3Prefix")
+                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                else:
+                    s3_path = f"s3://{item.get('s3BucketName', '-')}/{item.get('s3ObjectKey', item.get('s3Prefix', '-'))}"
+                rows.append([type_, owner, size, updated, filepath, s3_path])
+            col_widths = [len(h) for h in headers]
+            for row in rows:
+                for i, val in enumerate(row):
+                    text = str(val)
+                    visible_length = len(ansi_escape.sub('', text))
+                    col_widths[i] = max(col_widths[i], visible_length)
+            # Print header
+            header_line = []
+            for i, h in enumerate(headers):
+                header_line.append(h.ljust(col_widths[i]))
+            click.echo("  ".join(header_line))
+            # Print separator
+            separator_line = []
+            for w in col_widths:
+                separator_line.append("-" * w)
+            click.echo("  ".join(separator_line))
+            # Print rows with styling and padding
+            for row in rows:
+                padded_row = []
+                is_folder_row = row[0] == "folder"
+                for i, val in enumerate(row):
+                    text = str(val)
+                    if is_folder_row:
+                        text = click.style(text, fg="blue", underline=True)
+                    # Pad the styled text to match visible length
+                    visible_len = len(ansi_escape.sub('', text))
+                    padding = col_widths[i] - visible_len
+                    padded_row.append(text + " " * padding)
+                click.echo("  ".join(padded_row))
+        else:
+            for item in contents:
+                name = item.get("name", "")
+                if item.get("isDir"):
+                    name = click.style(name, fg="blue", underline=True)
+                click.echo(name)
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
