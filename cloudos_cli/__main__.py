@@ -798,6 +798,17 @@ def job_details(ctx,
     table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
     table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
     table.add_row("Nextflow Version", str(j_details_h["nextflowVersion"]))
+    executors = {
+        'nextflowAWS':'AWS',
+        'nextflowAzure': 'Azure',
+        'nextflowGcp': 'GCP',
+        'nextflowHpc': 'HPC',
+        'nextflowKubernetes': 'Kubernetes',
+        'dockerAWS': 'Docker',
+        'cromwellAWS': 'AWS'
+    }
+    execution_platform = executors.get(j_details_h["jobType"], str(None))
+    table.add_row("Execution Platform", execution_platform)
 
     console.print(table)
 
