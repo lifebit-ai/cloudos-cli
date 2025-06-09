@@ -6,7 +6,10 @@ import requests
 import time
 import json
 from dataclasses import dataclass
-from cloudos_cli.utils.errors import BadRequestException
+
+from certifi import contents
+
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 
@@ -134,6 +137,19 @@ class Cloudos:
                   f'\t\t--job-id {job_id}\n')
         return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
+    def get_bucket_contents(self, bucket, path, workspace_id, verify):
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        params = dict(bucket=bucket, path=path, teamId=workspace_id)
+        contents_req = retry_requests_get(f"{self.cloudos_url}/api/v1/data-access/s3/bucket-contents",
+                                          params=params, headers=headers, verify=verify)
+        if contents_req.status_code >= 400:
+            raise BadRequestException(contents_req)
+        return contents_req.json()["contents"]
+
+
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """
         Get the location of the logs for the specified job
@@ -144,24 +160,20 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
-                                                          j_id),
-                               headers=headers, verify=verify)
-        if r.status_code >= 400:
+        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url, j_id), headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code >= 400:
             raise BadRequestException(r)
         logs_obj = r.json()["logs"]
         logs_bucket = logs_obj["s3BucketName"]
         logs_path = logs_obj["s3Prefix"]
-        contents_params = dict(bucket=logs_bucket, path=logs_path, teamId=workspace_id)
 
-        contents_req = retry_requests_get(f"{cloudos_url}/api/v1/data-access/s3/bucket-contents",
-                                          params=contents_params, headers=headers, verify=verify)
-        if contents_req.status_code >= 400:
-            raise BadRequestException(contents_req)
+        contents_obj = self.get_bucket_contents(logs_bucket, logs_path, workspace_id, verify)
+
         logs_uri = f"s3://{logs_bucket}/{logs_path}"
-        contents_obj = contents_req.json()
         logs = {"Logs URI": logs_uri}
-        for item in contents_obj["contents"]:
+        for item in contents_obj:
             if not item["isDir"]:
                 filename = item["name"]
                 if filename == "stdout.txt":
@@ -172,6 +184,38 @@ class Cloudos:
                     filename = "Trace file"
                 logs[filename] = f"s3://{logs_bucket}/{item['path']}"
         return logs
+
+    def get_job_results(self, j_id, workspace_id, verify=True):
+        """
+        Get the location of the results for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        status = self.get_job_status(j_id, verify).json()["status"]
+        if status != JOB_COMPLETED:
+            raise JoBNotCompletedException(j_id, status)
+
+        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
+                                                          j_id),
+                               headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        results_obj = r.json()["results"]
+        results_bucket = results_obj["s3BucketName"]
+        results_path = results_obj["s3Prefix"]
+
+        contents_obj = self.get_bucket_contents(results_bucket, results_path, workspace_id, verify)
+        results = dict()
+        for item in contents_obj:
+            if item["isDir"]:
+                filename = item["name"]
+                results[filename] = f"s3://{results_bucket}/{item['path']}"
+        return results
+
 
     def _create_cromwell_header(self):
         """Generates cromwell header.

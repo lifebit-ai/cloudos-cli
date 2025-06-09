@@ -87,7 +87,8 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
-                'logs': shared_config
+                'logs': shared_config,
+                'results': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -126,7 +127,8 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
-                'logs': shared_config
+                'logs': shared_config,
+                'results': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -781,6 +783,79 @@ def job_logs(ctx,
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+    for name, path in logs.items():
+        print(f"{name}: {path}\n")
+
+
+@job.command('results')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_results(ctx,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               job_id,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
+    """Get the path to the results of a specified job."""
+    profile = profile or ctx.default_map['job']['results']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+
+    print('Executing results...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    logs = cl.get_job_results(job_id, workspace_id, verify_ssl)
     for name, path in logs.items():
         print(f"{name}: {path}\n")
 
