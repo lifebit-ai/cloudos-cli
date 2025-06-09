@@ -138,6 +138,37 @@ class Cloudos:
         return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
     def get_bucket_contents(self, bucket, path, workspace_id, verify):
+        """
+        Fetch the contents of a specified S3 bucket at a given path within a specific workspace.
+
+        This method interacts with an API endpoint to retrieve the contents of an S3 bucket
+        by providing the bucket name, path, and workspace ID. Headers and parameters needed
+        for the request are set, and an HTTP GET request is performed using retry logic. If
+        the request fails with a status code indicating an error (400 or above), a
+        BadRequestException is raised. The JSON response is parsed, and the "contents" field
+        is returned.
+
+        Parameters:
+            bucket: str
+                The name of the S3 bucket to retrieve contents from.
+
+            path: str
+                The specific path within the S3 bucket to retrieve contents from.
+
+            workspace_id: str
+                The workspace ID (teamId) associated with the bucket.
+
+            verify: bool
+                Whether to verify SSL certificates for the HTTP request.
+
+        Returns:
+            list
+                A list of contents within the specified S3 bucket and path.
+
+        Raises:
+            BadRequestException
+                Raised if the request results in a status code of 400 or above.
+        """
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
@@ -149,7 +180,6 @@ class Cloudos:
             raise BadRequestException(contents_req)
         return contents_req.json()["contents"]
 
-
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """
         Get the location of the logs for the specified job
@@ -160,7 +190,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url, j_id), headers=headers, verify=verify)
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code >= 400:
