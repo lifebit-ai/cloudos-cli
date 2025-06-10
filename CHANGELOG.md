@@ -12,6 +12,12 @@
 - Adds datasets class
 - Adds command to list files `cloudos datasets ls <path> --profile <profile>`
 
+## v2.26.1 (2025-06-10)
+
+### Patch
+
+- Fix PyPi build
+
 ## v2.26.0 (2025-06-05)
 
 - Adds datasets class
