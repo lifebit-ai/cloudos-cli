@@ -822,7 +822,7 @@ def job_details(ctx,
             # Create a config file with the parameters
             config_filename = f"{output_basename}.config"
             with open(config_filename, 'w') as config_file:
-                config_file.write("param {\n")
+                config_file.write("params {\n")
                 for param in j_details_h["parameters"]:
                     config_file.write(f"\t{param['name']} = {param['textValue']}\n")
                 config_file.write("}\n")
