@@ -10,7 +10,9 @@
       {
         "name": "results",
         "path": "...",
-        "isDir": true
+        "isDir": true,
+        "lastModified": "2025-01-23T08:40:46.000Z",
+        "size": 7576365
       }
     ]
   }

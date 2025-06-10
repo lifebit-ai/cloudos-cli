@@ -716,13 +716,24 @@ To list files present in File Explorer in a given project (whether they are anal
 cloudos datasets ls <path> --profile <profile name>
 ```
 Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to provide the following commands:
+```
 cloudos datasets ls <path> \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --project-name $PROJEC_NAME
+```
+
 The output of this command is a list of files and folders present in the specified project.
 If the `<path>` is left empty, the command will return the list of folders present in the selected project.
+
+If you require more information on the files and folder lister, you can use the `--details` flags that will output a table containing the following columns:
+- Type (folder or file)
+- Owner
+- Size in human readable format
+- Last updated
+- Filepath (the file or folder name)
+- S3 Path
 
 ### WDL pipeline support
 
