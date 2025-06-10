@@ -1929,6 +1929,7 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
+        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             files = result.get("files", [])
@@ -1941,8 +1942,20 @@ def list_files(ctx,
             for item in contents:
                 is_folder = "folderType" in item
                 type_ = "folder" if is_folder else "file"
-                user = item.get("user", {})
-                owner = f"{user.get('name', '-') or '-'} {user.get('surname', '-') or '-'}".strip()
+                user = item.get("user")
+                if isinstance(user, dict):
+                    name = user.get("name", "").strip()
+                    surname = user.get("surname", "").strip()
+                    if name and surname:
+                        owner = f"{name} {surname}"
+                    elif name:
+                        owner = name
+                    elif surname:
+                        owner = surname
+                    else:
+                        owner = "-"
+                else:
+                    owner = "-"
                 raw_size = item.get("sizeInBytes", item.get("size"))
                 size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
                 updated = item.get("updatedAt", "-")
