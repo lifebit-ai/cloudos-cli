@@ -80,6 +80,6 @@ def test_list_folder_content_for_s3_dataset():
     contents = result.get("contents", [])
     assert any(item["name"] == "flowchart.png" for item in contents)
     assert any(item["name"] == "results" for item in contents)
-    assert any(item["size"] == "7576365" for item in contents)
+    assert any(item["size"] == 7576365 for item in contents)
     assert any(item["path"] == "..." for item in contents)
 
