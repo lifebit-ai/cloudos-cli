@@ -150,7 +150,12 @@ class Datasets(Cloudos):
                                                                                   self.project_id,
                                                                                   self.workspace_id),
                                headers=headers, verify=self.verify)
-        return r.json()
+        raw = r.json()
+
+        #  Normalize response
+        for item in raw.get("datasets", []):
+            item ["folderType"]=True
+        return raw
 
     def list_datasets_content(self, folder_name):
         """Uses
@@ -187,6 +192,7 @@ class Datasets(Cloudos):
                                                                               self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
+    
     def list_s3_folder_content(self, s3_bucket_name, s3_relative_path):
         """Uses
         ----------

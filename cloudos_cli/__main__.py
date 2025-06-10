@@ -1929,7 +1929,6 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             files = result.get("files", [])
@@ -1965,7 +1964,12 @@ def list_files(ctx,
                     s3_key = item.get("s3Prefix")
                     s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
                 else:
-                    s3_path = f"s3://{item.get('s3BucketName', '-')}/{item.get('s3ObjectKey', item.get('s3Prefix', '-'))}"
+                    s3_bucket = item.get("s3BucketName")
+                    s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
+                    if s3_bucket and s3_key:
+                        s3_path = f"s3://{s3_bucket}/{s3_key}"
+                    else:
+                        s3_path = "-"
                 rows.append([type_, owner, size, updated, filepath, s3_path])
             col_widths = [len(h) for h in headers]
             for row in rows:
