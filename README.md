@@ -716,11 +716,13 @@ To list files present in File Explorer in a given project (whether they are anal
 cloudos datasets ls <path> --profile <profile name>
 ```
 Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to provide the following commands:
+```bash
 cloudos datasets ls <path> \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
     --project-name $PROJEC_NAME
+```
 The output of this command is a list of files and folders present in the specified project.
 If the `<path>` is left empty, the command will return the list of folders present in the selected project.
 
