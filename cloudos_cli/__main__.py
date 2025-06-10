@@ -1929,7 +1929,6 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             files = result.get("files", [])
