@@ -15,6 +15,7 @@ from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.datasets import Datasets
 import re
 
+
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
 REQUEST_INTERVAL_CROMWELL = 30
@@ -1833,6 +1834,7 @@ def run_bash_job(ctx,
               f'\t\t--job-id {j_id}\n')
 
 
+
 def format_bytes(size):
     """Convert bytes to human-readable format (e.g., 1.2 MB)."""
     if size is None:
@@ -2006,7 +2008,6 @@ def list_files(ctx,
                 if item.get("isDir"):
                     name = click.style(name, fg="blue", underline=True)
                 click.echo(name)
-
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 

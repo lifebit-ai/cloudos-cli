@@ -724,6 +724,7 @@ cloudos datasets ls <path> \
     --project-name $PROJEC_NAME
 ```
 
+
 The output of this command is a list of files and folders present in the specified project.
 If the `<path>` is left empty, the command will return the list of folders present in the selected project.
 
