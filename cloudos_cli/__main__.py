@@ -727,6 +727,19 @@ def job_status(ctx,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
+@click.option('--output-format',
+              help='The desired display for the output, either directly in standard output or saved as file. Default=stdout.',
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--output-basename',
+              help=('Output file base name to save jobs details. ' +
+                    'Default=job_details'),
+              default='job_details',
+              required=False)
+@click.option('--parameters',
+              help=('Whether to generate a ".config" file that can be used in the platform. ' +
+                    'It will have the same basename as defined in "--output-basename". '),
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -742,6 +755,9 @@ def job_details(ctx,
                apikey,
                cloudos_url,
                job_id,
+               output_format,
+               output_basename,
+               parameters,
                verbose,
                disable_ssl_verification,
                ssl_cert,
@@ -780,37 +796,92 @@ def job_details(ctx,
         print(f'\tSearching for job id: {job_id}')
     j_details = cl.get_job_status(job_id, verify_ssl)
     j_details_h = json.loads(j_details.content)
-    console = Console()
-    table = Table(title="Job Details")
 
-    table.add_column("Field", style="cyan", no_wrap=True)
-    table.add_column("Value", style="magenta", overflow="fold")
-
+    # Check if the job details contain parameters
     if j_details_h["parameters"] != []:
         concat_string = '\n'.join(
             [f"{param['prefix']}{param['name']}={param['textValue']}" for param in j_details_h["parameters"]])
+        # If the user requested to save the parameters in a config file
+        if parameters:
+            # Create a config file with the parameters
+            config_filename = f"{output_basename}.config"
+            with open(config_filename, 'w') as config_file:
+                config_file.write("param {\n")
+                for param in j_details_h["parameters"]:
+                    config_file.write(f"\t{param['name']} = {param['textValue']}\n")
+                config_file.write("}\n")
+            print(f"\tJob parameters have been saved to '{config_filename}'")
     else:
         concat_string = 'No parameters provided'
-    table.add_row("Parameters", concat_string)
-    table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
-    table.add_row("Revision", str(j_details_h["revision"]["commit"]))
-    table.add_row("Accelerated File Staging", str(j_details_h["usesFusionFileSystem"]))
-    table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
-    table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
-    table.add_row("Nextflow Version", str(j_details_h["nextflowVersion"]))
+        if parameters:
+            print("\tNo parameters found in the job details, no config file will be created.")
+
+    # Determine the execution platform based on jobType
     executors = {
-        'nextflowAWS':'AWS',
-        'nextflowAzure': 'Azure',
+        'nextflowAWS':'Batch AWS',
+        'nextflowAzure': 'Batch Azure',
         'nextflowGcp': 'GCP',
         'nextflowHpc': 'HPC',
         'nextflowKubernetes': 'Kubernetes',
-        'dockerAWS': 'Docker',
-        'cromwellAWS': 'AWS'
+        'dockerAWS': 'Batch AWS',
+        'cromwellAWS': 'Batch AWS'
     }
-    execution_platform = executors.get(j_details_h["jobType"], str(None))
-    table.add_row("Execution Platform", execution_platform)
+    execution_platform = executors.get(j_details_h["jobType"], "None")
 
-    console.print(table)
+    # revision
+    if j_details_h["jobType"] == "dockerAWS":
+        revision = j_details_h["revision"]["digest"]
+    else:
+        revision = j_details_h["revision"]["commit"]
+
+    # Output the job details
+    if output_format == 'stdout':
+        console = Console()
+        table = Table(title="Job Details")
+
+        table.add_column("Field", style="cyan", no_wrap=True)
+        table.add_column("Value", style="magenta", overflow="fold")
+
+        table.add_row("Parameters", concat_string)
+        if j_details_h["jobType"] == "dockerAWS":
+            table.add_row("Command", str(j_details_h["command"]))
+        table.add_row("Revision", str(revision))
+        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
+        table.add_row("Execution Platform", execution_platform)
+        table.add_row("Profile", str(j_details_h.get("profile", "None")))
+        table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
+        table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
+        table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
+        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
+        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
+                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
+
+        console.print(table)
+    else:
+        # Create a JSON object with the key-value pairs
+        job_details_json = {
+            "Parameters": ','.join(concat_string.split()),
+            "Revision": str(revision),
+            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
+            "Execution Platform": execution_platform,
+            "Profile": str(j_details_h.get("profile", "None")),
+            "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
+            "Storage": str(j_details_h["storageSizeInGb"]),
+            "Job Queue": str(j_details_h["batch"]["jobQueue"]["name"]),
+            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
+            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
+                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
+
+        }
+
+        # Conditionally add the "Command" key if the jobType is "dockerAWS"
+        if j_details_h["jobType"] == "dockerAWS":
+            job_details_json["Command"] = str(j_details_h["command"])
+
+        # Write the JSON object to a file
+        with open(f"{output_basename}.json", "w") as json_file:
+            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
+        print(f"\tJob details have been saved to '{output_basename}.json'")
 
 
 @job.command('list')
