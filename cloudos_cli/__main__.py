@@ -851,7 +851,8 @@ def job_details(ctx,
         table.add_row("Profile", str(j_details_h.get("profile", "None")))
         table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
         table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
-        table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
+        if j_details_h["jobType"] != "nextflowAzure":
+            table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
         table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
         table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
                                         f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
@@ -867,7 +868,6 @@ def job_details(ctx,
             "Profile": str(j_details_h.get("profile", "None")),
             "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
             "Storage": str(j_details_h["storageSizeInGb"]),
-            "Job Queue": str(j_details_h["batch"]["jobQueue"]["name"]),
             "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
             "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
                               f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
@@ -877,6 +877,10 @@ def job_details(ctx,
         # Conditionally add the "Command" key if the jobType is "dockerAWS"
         if j_details_h["jobType"] == "dockerAWS":
             job_details_json["Command"] = str(j_details_h["command"])
+
+        # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
+        if j_details_h["jobType"] != "nextflowAzure":
+            job_details_json["Job Queue"] = str(j_details_h["batch"]["jobQueue"]["name"])
 
         # Write the JSON object to a file
         with open(f"{output_basename}.json", "w") as json_file:
