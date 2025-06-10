@@ -12,7 +12,7 @@ import os
 import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
-
+from cloudos_cli.datasets import Datasets
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -65,9 +65,10 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
 @click.pass_context
 def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
-    print(run_cloudos_cli.__doc__ + '\n')
-    print('Version: ' + __version__ + '\n')
     ctx.ensure_object(dict)
+    if ctx.invoked_subcommand not in ['datasets'] and ctx.args and ctx.args[0] == 'ls':
+        print(run_cloudos_cli.__doc__ + '\n')
+        print('Version: ' + __version__ + '\n')
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
     if profile_to_use is None:
@@ -106,6 +107,9 @@ def run_cloudos_cli(ctx):
             },
             'bash': {
                 'job': shared_config
+            },
+            'datasets': {
+                'ls': shared_config
             }
         })
     else:
@@ -144,6 +148,9 @@ def run_cloudos_cli(ctx):
             },
             'bash': {
                 'job': shared_config
+            },
+            'datasets': {
+                'ls': shared_config
             }
         })
 
@@ -182,6 +189,14 @@ def queue():
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
+@click.pass_context
+def datasets(ctx):
+    """CloudOS datasets functionality."""
+    if ctx.args and ctx.args[0] != 'ls':
+        print(datasets.__doc__ + '\n')
 
 
 @run_cloudos_cli.group(invoke_without_command=True)
@@ -1817,5 +1832,101 @@ def run_bash_job(ctx,
               f'\t\t--job-id {j_id}\n')
 
 
+@datasets.command(name="ls")
+@click.argument("path", required=False, nargs=1)
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--project-name',
+              help='The name of a CloudOS project.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_files(ctx,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               disable_ssl_verification,
+               ssl_cert,
+               project_name,
+               profile,
+               path):
+    """List contents of a path within a CloudOS workspace dataset."""
+
+    # fallback to ctx default if profile not specified
+    profile = profile or ctx.default_map['datasets']['list'].get('profile')
+
+    config_manager = ConfigurationProfile()
+
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+
+    # Unpack profile values first
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    datasets = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    try:
+        result = datasets.list_folder_content(path)
+        contents = result.get("contents") or result.get("datasets", [])
+        if not contents:
+            files = result.get("files", [])
+            folders = result.get("folders", [])
+            contents = [{"name": f["name"], "isDir": False} for f in files] + \
+                       [{"name": f["name"], "isDir": True} for f in folders]
+
+        for item in contents:
+            name = item.get("name", "")
+            if item.get("isDir"):
+                name = click.style(name, fg="blue", underline=True)
+            click.echo(name)
+
+    except Exception as e:
+        click.echo(f"[ERROR] {str(e)}", err=True)
+
+
 if __name__ == "__main__":
     run_cloudos_cli()
+
