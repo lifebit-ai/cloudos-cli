@@ -196,6 +196,8 @@ class Cloudos:
         elif r.status_code >= 400:
             raise BadRequestException(r)
         logs_obj = r.json()["logs"]
+        if not "s3BucketName" in logs_obj:
+            raise ValueError("Only AWS jobs are currently supported")
         logs_bucket = logs_obj["s3BucketName"]
         logs_path = logs_obj["s3Prefix"]
 
