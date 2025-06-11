@@ -8,13 +8,16 @@ from cloudos_cli.queue.queue import Queue
 import json
 import time
 import sys
-import os
-import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
 from rich.table import Table
 from cloudos_cli.datasets import Datasets
+from cloudos_cli.utils.resources import ssl_selector, format_bytes
+from rich.console import Console
+from rich.table import Table
+from rich.style import Style
+
 
 
 # GLOBAL VARS
@@ -29,39 +32,6 @@ HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
 CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
-
-
-def ssl_selector(disable_ssl_verification, ssl_cert):
-    """Verify value selector.
-
-    This function stablish the value that will be passed to requests.verify
-    variable.
-
-    Parameters
-    ----------
-    disable_ssl_verification : bool
-        Whether to disable SSL verification.
-    ssl_cert : string
-        String indicating the path to the SSL certificate file to use.
-
-    Returns
-    -------
-    verify_ssl : [bool | string]
-        Either a bool or a path string to be passed to requests.verify to control
-        SSL verification.
-    """
-    if disable_ssl_verification:
-        verify_ssl = False
-        print('[WARNING] Disabling SSL verification')
-        urllib3.disable_warnings()
-    elif ssl_cert is None:
-        verify_ssl = True
-    elif os.path.isfile(ssl_cert):
-        verify_ssl = ssl_cert
-    else:
-        raise FileNotFoundError(f"The specified file '{ssl_cert}' was not found")
-    return verify_ssl
-
 
 @click.group()
 @click.version_option(__version__)
@@ -2033,6 +2003,11 @@ def run_bash_job(ctx,
 @click.option('--project-name',
               help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--details',
+              help=('When selected, it prints the details of the listed files. ' +
+                    'Details contains "Type", "Owner", "Size", "Last Updated", ' +
+                    '"Filepath", "S3 Path".'),
+              is_flag=True)
 @click.pass_context
 def list_files(ctx,
                apikey,
@@ -2042,14 +2017,14 @@ def list_files(ctx,
                ssl_cert,
                project_name,
                profile,
-               path):
+               path,
+               details):
     """List contents of a path within a CloudOS workspace dataset."""
 
     # fallback to ctx default if profile not specified
     profile = profile or ctx.default_map['datasets']['list'].get('profile')
 
     config_manager = ConfigurationProfile()
-
     required_dict = {
         'apikey': True,
         'workspace_id': True,
@@ -2057,7 +2032,6 @@ def list_files(ctx,
         'project_name': False
     }
 
-    # Unpack profile values first
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
         config_manager.load_profile_and_validate_data(
             ctx,
@@ -2090,21 +2064,69 @@ def list_files(ctx,
         result = datasets.list_folder_content(path)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
-            files = result.get("files", [])
-            folders = result.get("folders", [])
-            contents = [{"name": f["name"], "isDir": False} for f in files] + \
-                       [{"name": f["name"], "isDir": True} for f in folders]
+            contents = result.get("files", []) + result.get("folders", [])
 
-        for item in contents:
-            name = item.get("name", "")
-            if item.get("isDir"):
-                name = click.style(name, fg="blue", underline=True)
-            click.echo(name)
+        if details:
+            console = Console(width=None)  # Avoid terminal width truncation
+
+            table = Table(show_header=True, header_style="bold white")
+            table.add_column("Type", style="cyan", no_wrap=True)
+            table.add_column("Owner", style="white")
+            table.add_column("Size", style="magenta")
+            table.add_column("Last Updated", style="green")
+            table.add_column("Filepath", style="bold", overflow="fold")
+            table.add_column("S3 Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+
+            for item in contents:
+                is_folder = "folderType" in item or item.get("isDir", False)
+                type_ = "folder" if is_folder else "file"
+
+                user = item.get("user")
+                if isinstance(user, dict):
+                    name = user.get("name", "").strip()
+                    surname = user.get("surname", "").strip()
+                    if name and surname:
+                        owner = f"{name} {surname}"
+                    elif name:
+                        owner = name
+                    elif surname:
+                        owner = surname
+                    else:
+                        owner = "-"
+                else:
+                    owner = "-"
+
+                raw_size = item.get("sizeInBytes", item.get("size"))
+                size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
+
+                updated = item.get("updatedAt") or item.get("lastModified", "-")
+                filepath = item.get("name", "-")
+
+                if is_folder:
+                    s3_bucket = item.get("s3BucketName")
+                    s3_key = item.get("s3Prefix")
+                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                else:
+                    s3_bucket = item.get("s3BucketName")
+                    s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
+                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+
+                style = Style(color="blue", underline=True) if is_folder else None
+                table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
+
+            console.print(table)
+
+        else:
+            console = Console()
+            for item in contents:
+                name = item.get("name", "")
+                if item.get("isDir"):
+                    console.print(f"[blue underline]{name}[/]")
+                else:
+                    console.print(name)
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
-
 if __name__ == "__main__":
     run_cloudos_cli()
-
