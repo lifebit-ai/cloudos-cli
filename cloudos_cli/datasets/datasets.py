@@ -156,7 +156,6 @@ class Datasets(Cloudos):
         for item in raw.get("datasets", []):
             item ["folderType"]=True
         return raw
-
     def list_datasets_content(self, folder_name):
         """Uses
         ----------
