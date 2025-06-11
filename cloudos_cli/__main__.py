@@ -1892,22 +1892,12 @@ def list_files(ctx,
             folders = result.get("folders", [])
             contents = files + folders
         if details:
-            console = Console()
-            table = Table(show_header=True, header_style="bold white")
-
-            # Define columns
-            table.add_column("Type", style="cyan", no_wrap=True)
-            table.add_column("Owner", style="white")
-            table.add_column("Size", style="magenta")
-            table.add_column("Last Updated", style="green")
-            table.add_column("Filepath", style="bold")
-            table.add_column("S3 Path", style="dim")
-
-            # Fill table rows
+            ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+            headers = ["Type", "Owner", "Size", "Last Updated", "Filepath", "S3 Path"]
+            rows = []
             for item in contents:
-                is_folder = "folderType" in item or item.get("isDir", False)
+                is_folder = "folderType" in item
                 type_ = "folder" if is_folder else "file"
-
                 user = item.get("user")
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
@@ -1922,13 +1912,10 @@ def list_files(ctx,
                         owner = "-"
                 else:
                     owner = "-"
-
                 raw_size = item.get("sizeInBytes", item.get("size"))
                 size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
-
-                updated = item.get("updatedAt") or item.get("lastModified", "-")
+                updated = item.get("updatedAt", "-")
                 filepath = item.get("name", "-")
-
                 if is_folder:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3Prefix")
@@ -1936,20 +1923,46 @@ def list_files(ctx,
                 else:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
-
-                # Optional: blue+underline for folder rows
-                style = Style(color="blue", underline=True) if is_folder else None
-                table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
-
-            console.print(table)
+                    if s3_bucket and s3_key:
+                        s3_path = f"s3://{s3_bucket}/{s3_key}"
+                    else:
+                        s3_path = "-"
+                rows.append([type_, owner, size, updated, filepath, s3_path])
+            col_widths = [len(h) for h in headers]
+            for row in rows:
+                for i, val in enumerate(row):
+                    text = str(val)
+                    visible_length = len(ansi_escape.sub('', text))
+                    col_widths[i] = max(col_widths[i], visible_length)
+            # Print header
+            header_line = []
+            for i, h in enumerate(headers):
+                header_line.append(h.ljust(col_widths[i]))
+            click.echo("  ".join(header_line))
+            # Print separator
+            separator_line = []
+            for w in col_widths:
+                separator_line.append("-" * w)
+            click.echo("  ".join(separator_line))
+            # Print rows with styling and padding
+            for row in rows:
+                padded_row = []
+                is_folder_row = row[0] == "folder"
+                for i, val in enumerate(row):
+                    text = str(val)
+                    if is_folder_row:
+                        text = click.style(text, fg="blue", underline=True)
+                    # Pad the styled text to match visible length
+                    visible_len = len(ansi_escape.sub('', text))
+                    padding = col_widths[i] - visible_len
+                    padded_row.append(text + " " * padding)
+                click.echo("  ".join(padded_row))
         else:
             for item in contents:
                 name = item.get("name", "")
                 if item.get("isDir"):
-                    console.print(f"[blue underline]{name}[/]")
-                else:
-                    console.print(name)
+                    name = click.style(name, fg="blue", underline=True)
+                click.echo(name)
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
