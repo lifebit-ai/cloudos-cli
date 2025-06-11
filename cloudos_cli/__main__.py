@@ -727,14 +727,14 @@ def job_status(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def job_logs(ctx,
-               apikey,
-               cloudos_url,
-               workspace_id,
-               job_id,
-               verbose,
-               disable_ssl_verification,
-               ssl_cert,
-               profile):
+             apikey,
+             cloudos_url,
+             workspace_id,
+             job_id,
+             verbose,
+             disable_ssl_verification,
+             ssl_cert,
+             profile):
     """Get the path to the logs of a specified job."""
     profile = profile or ctx.default_map['job']['logs']['profile']
     # Create a dictionary with required and non-required params
