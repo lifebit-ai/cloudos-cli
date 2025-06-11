@@ -8,13 +8,14 @@ from cloudos_cli.queue.queue import Queue
 import json
 import time
 import sys
-import os
-import urllib3
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.datasets import Datasets
 import re
-
+from cloudos_cli.utils.resources import ssl_selector, format_bytes
+from rich.console import Console
+from rich.table import Table
+from rich.style import Style
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -28,39 +29,6 @@ HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
 CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
-
-
-def ssl_selector(disable_ssl_verification, ssl_cert):
-    """Verify value selector.
-
-    This function stablish the value that will be passed to requests.verify
-    variable.
-
-    Parameters
-    ----------
-    disable_ssl_verification : bool
-        Whether to disable SSL verification.
-    ssl_cert : string
-        String indicating the path to the SSL certificate file to use.
-
-    Returns
-    -------
-    verify_ssl : [bool | string]
-        Either a bool or a path string to be passed to requests.verify to control
-        SSL verification.
-    """
-    if disable_ssl_verification:
-        verify_ssl = False
-        print('[WARNING] Disabling SSL verification')
-        urllib3.disable_warnings()
-    elif ssl_cert is None:
-        verify_ssl = True
-    elif os.path.isfile(ssl_cert):
-        verify_ssl = ssl_cert
-    else:
-        raise FileNotFoundError(f"The specified file '{ssl_cert}' was not found")
-    return verify_ssl
-
 
 @click.group()
 @click.version_option(__version__)
@@ -1834,19 +1802,6 @@ def run_bash_job(ctx,
               f'\t\t--job-id {j_id}\n')
 
 
-
-def format_bytes(size):
-    """Convert bytes to human-readable format (e.g., 1.2 MB)."""
-    if size is None:
-        return "-"
-    power = 1024
-    n = 0
-    labels = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-    while size >= power and n < len(labels) - 1:
-        size /= power
-        n += 1
-    return f"{size:.1f} {labels[n]}"
-
 @datasets.command(name="ls")
 @click.argument("path", required=False, nargs=1)
 @click.option('-k',
@@ -1871,9 +1826,9 @@ def format_bytes(size):
               help='The name of a CloudOS project.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.option('--details',
-              help=('When selected, it prints the details of the listed files. '+
-                    'Details contain is_folder, Owner (name and surname), size '+
-                    'Last updated, file name, s3 path.'),
+              help=('When selected, it prints the details of the listed files. ' +
+                    'Details contains "Type", "Owner", "Size", "Last Updated", ' +
+                    '"Filepath", "S3 Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -1937,12 +1892,22 @@ def list_files(ctx,
             folders = result.get("folders", [])
             contents = files + folders
         if details:
-            ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-            headers = ["Type", "Owner", "Size", "Last Updated", "Filepath", "S3 Path"]
-            rows = []
+            console = Console()
+            table = Table(show_header=True, header_style="bold white")
+
+            # Define columns
+            table.add_column("Type", style="cyan", no_wrap=True)
+            table.add_column("Owner", style="white")
+            table.add_column("Size", style="magenta")
+            table.add_column("Last Updated", style="green")
+            table.add_column("Filepath", style="bold")
+            table.add_column("S3 Path", style="dim")
+
+            # Fill table rows
             for item in contents:
-                is_folder = "folderType" in item
+                is_folder = "folderType" in item or item.get("isDir", False)
                 type_ = "folder" if is_folder else "file"
+
                 user = item.get("user")
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
@@ -1957,10 +1922,13 @@ def list_files(ctx,
                         owner = "-"
                 else:
                     owner = "-"
+
                 raw_size = item.get("sizeInBytes", item.get("size"))
                 size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
-                updated = item.get("updatedAt", "-")
+
+                updated = item.get("updatedAt") or item.get("lastModified", "-")
                 filepath = item.get("name", "-")
+
                 if is_folder:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3Prefix")
@@ -1968,49 +1936,22 @@ def list_files(ctx,
                 else:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    if s3_bucket and s3_key:
-                        s3_path = f"s3://{s3_bucket}/{s3_key}"
-                    else:
-                        s3_path = "-"
-                rows.append([type_, owner, size, updated, filepath, s3_path])
-            col_widths = [len(h) for h in headers]
-            for row in rows:
-                for i, val in enumerate(row):
-                    text = str(val)
-                    visible_length = len(ansi_escape.sub('', text))
-                    col_widths[i] = max(col_widths[i], visible_length)
-            # Print header
-            header_line = []
-            for i, h in enumerate(headers):
-                header_line.append(h.ljust(col_widths[i]))
-            click.echo("  ".join(header_line))
-            # Print separator
-            separator_line = []
-            for w in col_widths:
-                separator_line.append("-" * w)
-            click.echo("  ".join(separator_line))
-            # Print rows with styling and padding
-            for row in rows:
-                padded_row = []
-                is_folder_row = row[0] == "folder"
-                for i, val in enumerate(row):
-                    text = str(val)
-                    if is_folder_row:
-                        text = click.style(text, fg="blue", underline=True)
-                    # Pad the styled text to match visible length
-                    visible_len = len(ansi_escape.sub('', text))
-                    padding = col_widths[i] - visible_len
-                    padded_row.append(text + " " * padding)
-                click.echo("  ".join(padded_row))
+                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+
+                # Optional: blue+underline for folder rows
+                style = Style(color="blue", underline=True) if is_folder else None
+                table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
+
+            console.print(table)
         else:
             for item in contents:
                 name = item.get("name", "")
                 if item.get("isDir"):
-                    name = click.style(name, fg="blue", underline=True)
-                click.echo(name)
+                    console.print(f"[blue underline]{name}[/]")
+                else:
+                    console.print(name)
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
-
 
 if __name__ == "__main__":
     run_cloudos_cli()

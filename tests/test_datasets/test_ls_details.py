@@ -17,6 +17,7 @@ INPUT_PROJECTS = "tests/test_data/projects.json"
 INPUT_DATASETS = "tests/test_data/datasets.json"
 INPUT_DATASET_CONTENT = "tests/test_data/dataset_folder_results.json"
 
+
 @responses.activate
 def test_list_folder_content_for_s3_dataset():
     # Load mocked data
@@ -32,11 +33,6 @@ def test_list_folder_content_for_s3_dataset():
     params_projects = {"teamId": WORKSPACE_ID}
     params_datasets = {"projectId": project_id, "teamId": WORKSPACE_ID}
     params_items = {"teamId": WORKSPACE_ID}
-
-    headers = {
-        "Content-type": "application/json",
-        "apikey": APIKEY
-    }
 
     # Mock endpoints
     responses.add(
@@ -82,4 +78,3 @@ def test_list_folder_content_for_s3_dataset():
     assert any(item["name"] == "results" for item in contents)
     assert any(item["size"] == 7576365 for item in contents)
     assert any(item["path"] == "..." for item in contents)
-

@@ -728,7 +728,7 @@ cloudos datasets ls <path> \
 The output of this command is a list of files and folders present in the specified project.
 If the `<path>` is left empty, the command will return the list of folders present in the selected project.
 
-If you require more information on the files and folder lister, you can use the `--details` flags that will output a table containing the following columns:
+If you require more information on the files and folder listed, you can use the `--details` flag that will output a table containing the following columns:
 - Type (folder or file)
 - Owner
 - Size in human readable format

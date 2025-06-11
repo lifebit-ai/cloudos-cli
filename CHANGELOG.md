@@ -1,16 +1,9 @@
 ## lifebit-ai/cloudos-cli: changelog
-## v2.26.0 (2025-06-05)
+## v2.27.0 (2025-06-10)
 
 ### Feat
 
 - Adds command to list details of files `cloudos datasets ls <path> --profile <profile> --details`
-
-## v2.26.1 (2025-06-10)
-
-### Feat
-
-- Adds datasets class
-- Adds command to list files `cloudos datasets ls <path> --profile <profile>`
 
 ## v2.26.0 (2025-06-05)
 
