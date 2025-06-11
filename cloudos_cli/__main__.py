@@ -813,7 +813,7 @@ def job_results(ctx,
     # Create a dictionary with required and non-required params
     required_dict = {
         'apikey': True,
-        'workspace_id': False,
+        'workspace_id': True,
         'workflow_name': False,
         'project_name': False
     }
