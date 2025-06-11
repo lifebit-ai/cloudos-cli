@@ -723,7 +723,7 @@ def job_status(ctx,
               default='job_details',
               required=False)
 @click.option('--parameters',
-              help=('Whether to generate a ".config" file that can be used in the platform. ' +
+              help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
                     'It will have the same basename as defined in "--output-basename". '),
               is_flag=True)
 @click.option('--verbose',
