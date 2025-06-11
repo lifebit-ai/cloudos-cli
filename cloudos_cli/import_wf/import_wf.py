@@ -137,3 +137,28 @@ class ImportGithub(WFImport):
         self.payload["repository"]["owner"]["id"] = r_data["owner"]["id"]
         self.payload["repository"]["owner"]["login"] = r_data["owner"]["login"]
         self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
+
+
+class ImportBitbucketServer(WFImport):
+    def get_repo(self):
+        get_repo_url = f"{self.cloudos_url}/api/v1/git/bitbucketServer/getPublicRepo"
+        #https://bitbucket.biscrum.com/scm/iudlgnt/iudlgnt-gwas-sumstats-utils.git
+        #https://bitbucket.biscrum.com/projects/IUDLGNT/repos/iudlgnt-data-visualisation-utils/browse
+        if self.parsed_url.path.endswith(".git"):
+            self.repo_name = self.parsed_url.path.split("/")[-1].strip(".git")
+        elif self.parsed_url.path.endswith("browse"):
+            self.repo_name = self.parsed_url.path.split("/")[-2]
+        self.repo_owner = self.parsed_url.path.split("/")[2]
+        self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
+        get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
+        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        if r.status_code == 404:
+            raise AccountNotLinkedException(self.workflow_url)
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        r_data = r.json()
+        self.payload["repository"]["repositoryId"] = r_data["id"]
+        self.payload["repository"]["name"] = r_data["name"]
+        self.payload["repository"]["owner"]["id"] = r_data["project"]["id"]
+        self.payload["repository"]["owner"]["login"] = r_data["project"]["key"]
+        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()

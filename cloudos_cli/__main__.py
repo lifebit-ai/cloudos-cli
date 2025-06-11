@@ -3,7 +3,7 @@
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub, ImportBitbucketServer
 from cloudos_cli.queue.queue import Queue
 import json
 import time
@@ -1059,8 +1059,8 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--platform", type=click.Choice(["github", "gitlab"]),
-              help=('Repository service where the workflow is located. Valid choices: github, gitlab. ' +
+@click.option("--platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help=('Repository service where the workflow is located. Valid choices: github, gitlab, bitbucketServer. ' +
                     'Default=github'),
               default="github")
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
@@ -1117,7 +1117,7 @@ def import_wf(ctx,
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
+    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub, "bitbucketServer": ImportBitbucketServer}
     repo_cls = repo_services[platform]
     repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
                              platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
