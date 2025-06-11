@@ -1896,7 +1896,7 @@ def list_files(ctx,
             table.add_column("Owner", style="white")
             table.add_column("Size", style="magenta")
             table.add_column("Last Updated", style="green")
-            table.add_column("Filepath", style="bold")
+            table.add_column("Filepath", style="bold", overflow="fold")
             table.add_column("S3 Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
 
             for item in contents:
