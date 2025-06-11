@@ -6,7 +6,7 @@ import requests
 import time
 import json
 from dataclasses import dataclass
-
+from cloudos_cli.utils.cloud import find_cloud
 from certifi import contents
 
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
@@ -137,45 +137,54 @@ class Cloudos:
                   f'\t\t--job-id {job_id}\n')
         return {'name': j_name, 'id': job_id, 'status': j_status_h}
 
-    def get_bucket_contents(self, bucket, path, workspace_id, verify):
+    def get_storage_contents(self,  cloud_name, cloud_meta, container, path, workspace_id, verify):
         """
-        Fetch the contents of a specified S3 bucket at a given path within a specific workspace.
+        Retrieves the contents of a storage container from the specified cloud service.
 
-        This method interacts with an API endpoint to retrieve the contents of an S3 bucket
-        by providing the bucket name, path, and workspace ID. Headers and parameters needed
-        for the request are set, and an HTTP GET request is performed using retry logic. If
-        the request fails with a status code indicating an error (400 or above), a
-        BadRequestException is raised. The JSON response is parsed, and the "contents" field
-        is returned.
+        This method fetches the contents of a specified path within a storage container
+        on a cloud service (e.g., AWS S3 or Azure Blob). The request is authenticated
+        using an API key and requires valid parameters such as the workspace ID and path.
 
         Parameters:
-            bucket: str
-                The name of the S3 bucket to retrieve contents from.
-
-            path: str
-                The specific path within the S3 bucket to retrieve contents from.
-
-            workspace_id: str
-                The workspace ID (teamId) associated with the bucket.
-
-            verify: bool
-                Whether to verify SSL certificates for the HTTP request.
+            cloud_name (str): The name of the cloud service (e.g., 'aws' or 'azure').
+            container (str): The name of the storage container or bucket.
+            path (str): The file path or directory within the storage container.
+            workspace_id (str): The identifier of the workspace or team.
+            verify (bool): Whether to verify SSL certificates for the request.
 
         Returns:
-            list
-                A list of contents within the specified S3 bucket and path.
+            list: A list of contents retrieved from the specified cloud storage.
 
         Raises:
-            BadRequestException
-                Raised if the request results in a status code of 400 or above.
+            BadRequestException: If the request to retrieve the contents fails with a
+            status code indicating an error.
         """
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        params = dict(bucket=bucket, path=path, teamId=workspace_id)
-        contents_req = retry_requests_get(f"{self.cloudos_url}/api/v1/data-access/s3/bucket-contents",
-                                          params=params, headers=headers, verify=verify)
+        cloud_data = {
+            "aws": {
+                "url": f"{self.cloudos_url}/api/v1/data-access/s3/bucket-contents",
+                "params": {
+                    "bucket": container,
+                    "path": path,
+                    "teamId": workspace_id
+                }
+            },
+            "azure": {
+                "url": f"{self.cloudos_url}/api/v1/data-access/azure/container-contents",
+                 "container": "containerName",
+                "params": {
+                    "containerName": container,
+                    "path": path + "/",
+                    "storageAccountName": cloud_meta["storage"]["storageAccount"],
+                    "teamId": workspace_id
+                }
+            }
+        }
+        params = cloud_data[cloud_name]["params"]
+        contents_req = retry_requests_get(cloud_data[cloud_name]["url"], params=params, headers=headers, verify=verify)
         if contents_req.status_code >= 400:
             raise BadRequestException(contents_req)
         return contents_req.json()["contents"]
@@ -184,25 +193,38 @@ class Cloudos:
         """
         Get the location of the logs for the specified job
         """
+        cloud_storage_names = {
+            "aws": {
+                "container": "s3BucketName",
+                "prefix": "s3Prefix",
+                "scheme": "s3"
+            },
+            "azure": {
+                "container": "blobContainerName",
+                "prefix": "blobPrefix",
+                "scheme": "az"
+            }
+        }
         cloudos_url = self.cloudos_url
         apikey = self.apikey
         headers = {
             "Content-type": "application/json",
             "apikey": apikey
         }
+        cloud_name, cloud_meta = find_cloud(self.cloudos_url, self.apikey, workspace_id)
+        container_name = cloud_storage_names[cloud_name]["container"]
+        prefix_name = cloud_storage_names[cloud_name]["prefix"]
         r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code >= 400:
             raise BadRequestException(r)
         logs_obj = r.json()["logs"]
-        logs_bucket = logs_obj["s3BucketName"]
-        logs_path = logs_obj["s3Prefix"]
-
-        contents_obj = self.get_bucket_contents(logs_bucket, logs_path, workspace_id, verify)
-
-        logs_uri = f"s3://{logs_bucket}/{logs_path}"
-        logs = {"Logs URI": logs_uri}
+        logs_bucket = logs_obj[container_name]
+        logs_path = logs_obj[prefix_name]
+        contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
+        logs = {}
+        cloude_scheme = cloud_storage_names[cloud_name]["scheme"]
         for item in contents_obj:
             if not item["isDir"]:
                 filename = item["name"]
@@ -212,7 +234,7 @@ class Cloudos:
                     filename = "Nextflow log"
                 if filename == "trace.txt":
                     filename = "Trace file"
-                logs[filename] = f"s3://{logs_bucket}/{item['path']}"
+                logs[filename] = f"{cloude_scheme}://{logs_bucket}/{item['path']}"
         return logs
 
     def get_job_results(self, j_id, workspace_id, verify=True):
@@ -238,7 +260,7 @@ class Cloudos:
         results_bucket = results_obj["s3BucketName"]
         results_path = results_obj["s3Prefix"]
 
-        contents_obj = self.get_bucket_contents(results_bucket, results_path, workspace_id, verify)
+        contents_obj = self.get_storage_contents(results_bucket, results_path, workspace_id, verify)
         results = dict()
         for item in contents_obj:
             if item["isDir"]:
