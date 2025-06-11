@@ -1847,7 +1847,6 @@ def list_files(ctx,
     profile = profile or ctx.default_map['datasets']['list'].get('profile')
 
     config_manager = ConfigurationProfile()
-
     required_dict = {
         'apikey': True,
         'workspace_id': True,
@@ -1855,7 +1854,6 @@ def list_files(ctx,
         'project_name': False
     }
 
-    # Unpack profile values first
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
         config_manager.load_profile_and_validate_data(
             ctx,
@@ -1888,16 +1886,23 @@ def list_files(ctx,
         result = datasets.list_folder_content(path)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
-            files = result.get("files", [])
-            folders = result.get("folders", [])
-            contents = files + folders
+            contents = result.get("files", []) + result.get("folders", [])
+
         if details:
-            ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-            headers = ["Type", "Owner", "Size", "Last Updated", "Filepath", "S3 Path"]
-            rows = []
+            console = Console(width=None)  # Avoid terminal width truncation
+
+            table = Table(show_header=True, header_style="bold white")
+            table.add_column("Type", style="cyan", no_wrap=True)
+            table.add_column("Owner", style="white")
+            table.add_column("Size", style="magenta")
+            table.add_column("Last Updated", style="green")
+            table.add_column("Filepath", style="bold")
+            table.add_column("S3 Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+
             for item in contents:
-                is_folder = "folderType" in item
+                is_folder = "folderType" in item or item.get("isDir", False)
                 type_ = "folder" if is_folder else "file"
+
                 user = item.get("user")
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
@@ -1912,10 +1917,13 @@ def list_files(ctx,
                         owner = "-"
                 else:
                     owner = "-"
+
                 raw_size = item.get("sizeInBytes", item.get("size"))
                 size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
-                updated = item.get("updatedAt", "-")
+
+                updated = item.get("updatedAt") or item.get("lastModified", "-")
                 filepath = item.get("name", "-")
+
                 if is_folder:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3Prefix")
@@ -1923,46 +1931,22 @@ def list_files(ctx,
                 else:
                     s3_bucket = item.get("s3BucketName")
                     s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    if s3_bucket and s3_key:
-                        s3_path = f"s3://{s3_bucket}/{s3_key}"
-                    else:
-                        s3_path = "-"
-                rows.append([type_, owner, size, updated, filepath, s3_path])
-            col_widths = [len(h) for h in headers]
-            for row in rows:
-                for i, val in enumerate(row):
-                    text = str(val)
-                    visible_length = len(ansi_escape.sub('', text))
-                    col_widths[i] = max(col_widths[i], visible_length)
-            # Print header
-            header_line = []
-            for i, h in enumerate(headers):
-                header_line.append(h.ljust(col_widths[i]))
-            click.echo("  ".join(header_line))
-            # Print separator
-            separator_line = []
-            for w in col_widths:
-                separator_line.append("-" * w)
-            click.echo("  ".join(separator_line))
-            # Print rows with styling and padding
-            for row in rows:
-                padded_row = []
-                is_folder_row = row[0] == "folder"
-                for i, val in enumerate(row):
-                    text = str(val)
-                    if is_folder_row:
-                        text = click.style(text, fg="blue", underline=True)
-                    # Pad the styled text to match visible length
-                    visible_len = len(ansi_escape.sub('', text))
-                    padding = col_widths[i] - visible_len
-                    padded_row.append(text + " " * padding)
-                click.echo("  ".join(padded_row))
+                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+
+                style = Style(color="blue", underline=True) if is_folder else None
+                table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
+
+            console.print(table)
+
         else:
+            console = Console()
             for item in contents:
                 name = item.get("name", "")
                 if item.get("isDir"):
-                    name = click.style(name, fg="blue", underline=True)
-                click.echo(name)
+                    console.print(f"[blue underline]{name}[/]")
+                else:
+                    console.print(name)
+
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
