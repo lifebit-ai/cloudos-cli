@@ -144,13 +144,20 @@ class ImportBitbucketServer(WFImport):
         get_repo_url = f"{self.cloudos_url}/api/v1/git/bitbucketServer/getPublicRepo"
         #https://bitbucket.biscrum.com/scm/iudlgnt/iudlgnt-gwas-sumstats-utils.git
         #https://bitbucket.biscrum.com/projects/IUDLGNT/repos/iudlgnt-data-visualisation-utils/browse
-        if self.parsed_url.path.endswith(".git"):
-            self.repo_name = self.parsed_url.path.split("/")[-1].strip(".git")
-        elif self.parsed_url.path.endswith("browse"):
+        if self.parsed_url.path.endswith("browse"):
             self.repo_name = self.parsed_url.path.split("/")[-2]
+        else:
+            self.repo_name = self.parsed_url.path.split("/")[-1]
         self.repo_owner = self.parsed_url.path.split("/")[2]
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
+        print("repo_name", self.repo_name)
+        print("repo_owner", self.repo_owner)
+        print("repo_host", self.repo_host)
+        print("get_repo_params", get_repo_params)
+        print("get_repo_url", get_repo_url)
+        print("headers", self.headers)
+        
         r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
         if r.status_code == 404:
             raise AccountNotLinkedException(self.workflow_url)
