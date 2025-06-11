@@ -6,7 +6,6 @@ import requests
 import time
 import json
 from dataclasses import dataclass
-
 from certifi import contents
 
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
