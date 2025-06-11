@@ -723,8 +723,18 @@ cloudos datasets ls <path> \
     --workspace-id $WORKSPACE_ID \
     --project-name $PROJEC_NAME
 ```
+
+
 The output of this command is a list of files and folders present in the specified project.
 If the `<path>` is left empty, the command will return the list of folders present in the selected project.
+
+If you require more information on the files and folder listed, you can use the `--details` flag that will output a table containing the following columns:
+- Type (folder or file)
+- Owner
+- Size in human readable format
+- Last updated
+- Filepath (the file or folder name)
+- S3 Path
 
 ### WDL pipeline support
 
