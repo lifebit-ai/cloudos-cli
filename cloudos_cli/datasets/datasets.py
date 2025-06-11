@@ -154,8 +154,9 @@ class Datasets(Cloudos):
 
         #  Normalize response
         for item in raw.get("datasets", []):
-            item ["folderType"]=True
+            item["folderType"] = True
         return raw
+
     def list_datasets_content(self, folder_name):
         """Uses
         ----------

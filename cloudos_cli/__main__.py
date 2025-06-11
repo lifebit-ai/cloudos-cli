@@ -11,11 +11,11 @@ import sys
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.datasets import Datasets
-import re
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -1952,4 +1952,3 @@ def list_files(ctx,
 
 if __name__ == "__main__":
     run_cloudos_cli()
-
