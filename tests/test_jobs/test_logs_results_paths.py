@@ -65,13 +65,22 @@ FIND_CLOUD_PAYLOAD = {
     }
 }
 
+LOGS = {
+    "aws": {
+        "s3BucketName": BUCKET
+    },
+    "azure": {
+        "blobContainerName": "a_container"
+    }
+}
 
-@pytest.mark.parametrize("cloud_provider,response_data", [
-    ("aws", FIND_CLOUD_PAYLOAD["aws"]),
-    ("azure", FIND_CLOUD_PAYLOAD["azure"])
+
+@pytest.mark.parametrize("cloud_provider,response_data,logs_obj", [
+    ("aws", FIND_CLOUD_PAYLOAD["aws"], LOGS["aws"]),
+    ("azure", FIND_CLOUD_PAYLOAD["azure"], LOGS["azure"])
 ])
 @responses.activate
-def test_cloud_providers(cloud_provider, response_data):
+def test_cloud_providers(cloud_provider, response_data, logs_obj):
     for provider in ["aws", "azure"]:
         responses.add(
             responses.GET,
@@ -80,10 +89,10 @@ def test_cloud_providers(cloud_provider, response_data):
                 matchers.query_param_matcher(dict(teamId=WS_ID)),
                 matchers.header_matcher(HEADER)
             ],
-            json=response_data if provider == cloud_provider else {}
+            json=response_data if provider == cloud_provider else ""
         )
 
-    cloud_name, cloud_meta = find_cloud(CLOUD_OS_URL, API_KEY, WS_ID)
+    cloud_name, cloud_meta, storage = find_cloud(CLOUD_OS_URL, API_KEY, WS_ID, logs_obj)
     assert cloud_name == cloud_provider
 
 
@@ -103,11 +112,11 @@ def test_cloud_no_provider():
         )
 
     with pytest.raises(NoCloudForWorkspaceException):
-        find_cloud(CLOUD_OS_URL, API_KEY, WS_ID)
+        find_cloud(CLOUD_OS_URL, API_KEY, WS_ID, {"logs": ""})
 
 
 @responses.activate
-def  test_bucket_contents():
+def test_bucket_contents():
     params = dict(bucket=BUCKET, path=OBJ_PREFIX, teamId=WS_ID)
     responses.add(
         responses.GET,
@@ -146,7 +155,7 @@ def test_job_logs():
             match=[
                 matchers.query_param_matcher(dict(teamId=WS_ID)),
             ],
-            json=dict(storage=1) if provider == "aws" else {}
+            json=dict(storage=1)
         )
 
     clos = Cloudos(CLOUD_OS_URL, "", None)

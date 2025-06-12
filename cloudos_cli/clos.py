@@ -177,11 +177,13 @@ class Cloudos:
                 "params": {
                     "containerName": container,
                     "path": path + "/",
-                    "storageAccountName": cloud_meta["storage"]["storageAccount"],
+                    "storageAccountName": "",
                     "teamId": workspace_id
                 }
             }
         }
+        if cloud_name == "azure":
+            cloud_data[cloud_name]["params"]["storageAccountName"] = cloud_meta["storage"]["storageAccount"]
         params = cloud_data[cloud_name]["params"]
         contents_req = retry_requests_get(cloud_data[cloud_name]["url"], params=params, headers=headers, verify=verify)
         if contents_req.status_code >= 400:
@@ -192,38 +194,26 @@ class Cloudos:
         """
         Get the location of the logs for the specified job
         """
-        cloud_storage_names = {
-            "aws": {
-                "container": "s3BucketName",
-                "prefix": "s3Prefix",
-                "scheme": "s3"
-            },
-            "azure": {
-                "container": "blobContainerName",
-                "prefix": "blobPrefix",
-                "scheme": "az"
-            }
-        }
         cloudos_url = self.cloudos_url
         apikey = self.apikey
         headers = {
             "Content-type": "application/json",
             "apikey": apikey
         }
-        cloud_name, cloud_meta = find_cloud(self.cloudos_url, self.apikey, workspace_id)
-        container_name = cloud_storage_names[cloud_name]["container"]
-        prefix_name = cloud_storage_names[cloud_name]["prefix"]
         r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code >= 400:
             raise BadRequestException(r)
         logs_obj = r.json()["logs"]
+        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+        container_name = cloud_storage["container"]
+        prefix_name = cloud_storage["prefix"]
         logs_bucket = logs_obj[container_name]
         logs_path = logs_obj[prefix_name]
         contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
         logs = {}
-        cloude_scheme = cloud_storage_names[cloud_name]["scheme"]
+        cloude_scheme = cloud_storage["scheme"]
         for item in contents_obj:
             if not item["isDir"]:
                 filename = item["name"]
@@ -250,26 +240,29 @@ class Cloudos:
         if status != JOB_COMPLETED:
             raise JoBNotCompletedException(j_id, status)
 
-        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
-                                                          j_id),
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}",
                                headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
         if r.status_code >= 400:
             raise BadRequestException(r)
         req_obj = r.json()
         job_workspace = req_obj["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-
+        cloud_name, meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, req_obj["logs"])
+        # cont_name
         results_obj = req_obj["results"]
-        results_bucket = results_obj["s3BucketName"]
-        results_path = results_obj["s3Prefix"]
-
-        contents_obj = self.get_storage_contents(results_bucket, results_path, workspace_id, verify)
+        results_container = results_obj[cloud_storage["container"]]
+        results_path = results_obj[cloud_storage["prefix"]]
+        scheme = cloud_storage["scheme"]
+        contents_obj = self.get_storage_contents(cloud_name, meta, results_container,
+                                                 results_path, workspace_id, verify)
         results = dict()
         for item in contents_obj:
             if item["isDir"]:
                 filename = item["name"]
-                results[filename] = f"s3://{results_bucket}/{item['path']}"
+                results[filename] = f"{scheme}://{results_container}/{item['path']}"
         return results
 
 
