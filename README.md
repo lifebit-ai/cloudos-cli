@@ -597,8 +597,8 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub or GitLab (specified by the option `--platform`. Available options: `github`, `gitlab`)
-- If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
+- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
+- If your repository is private, you have access to the repository and to have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS.
 
 #### Usage of the workflow import command
 
@@ -614,7 +614,7 @@ cloudos workflow import \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --platform github 
+    --platform github
 ```
 
 The expected output will be:
