@@ -5,6 +5,7 @@ import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
+from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
@@ -780,13 +781,35 @@ def job_details(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    j_details = cl.get_job_status(job_id, verify_ssl)
+
+    # check if the API gives a 403 error/forbidden error
+    try:
+        j_details = cl.get_job_status(job_id, verify_ssl)
+    except BadRequestException as e:
+        if '403' in str(e) or 'Forbidden' in str(e):
+            print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
+            sys.exit(1)
     j_details_h = json.loads(j_details.content)
 
     # Check if the job details contain parameters
     if j_details_h["parameters"] != []:
-        concat_string = '\n'.join(
-            [f"{param['prefix']}{param['name']}={param['textValue']}" for param in j_details_h["parameters"]])
+        param_kind_map = {
+            'textValue': 'textValue',
+            'arrayFileColumn': 'columnName',
+            'globPattern': 'globPattern',
+            'lustreFileSystem': 'fileSystem',
+        }
+        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
+        # get first the type of parameter, then the value based on the parameter kind
+        concats = []
+        for param in j_details_h["parameters"]:
+            if param['parameterKind'] == 'dataItem':
+                # For dataItem, we need to use specific nested keys
+                concats.append(f"{param['prefix']}{param['name']}={param['dataItem']['item']['name']}")
+            else:
+                # For other parameter kinds, we use the appropriate key from param_kind_map
+                concats.append(f"{param['prefix']}{param['name']}={param[param_kind_map[param['parameterKind']]]}")
+        concat_string = '\n'.join(concats)
         # If the user requested to save the parameters in a config file
         if parameters:
             # Create a config file with the parameters
@@ -828,6 +851,7 @@ def job_details(ctx,
         table.add_column("Field", style="cyan", no_wrap=True)
         table.add_column("Value", style="magenta", overflow="fold")
 
+        table.add_row("Job Status", str(j_details_h["status"]))
         table.add_row("Parameters", concat_string)
         if j_details_h["jobType"] == "dockerAWS":
             table.add_row("Command", str(j_details_h["command"]))
@@ -836,9 +860,18 @@ def job_details(ctx,
         table.add_row("Execution Platform", execution_platform)
         table.add_row("Profile", str(j_details_h.get("profile", "None")))
         table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
-        table.add_row("Storage", str(j_details_h["storageSizeInGb"]))
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
+            except KeyError:
+                table.add_row("Worker Node", "Not Specified")
+        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
         if j_details_h["jobType"] != "nextflowAzure":
-            table.add_row("Job Queue", str(j_details_h["batch"]["jobQueue"]["name"]))
+            try:
+                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
+                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
+            except KeyError:
+                table.add_row("Job Queue", "Master Node")
         table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
         table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
                                         f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
@@ -847,13 +880,14 @@ def job_details(ctx,
     else:
         # Create a JSON object with the key-value pairs
         job_details_json = {
+            "Job Status": str(j_details_h["status"]),
             "Parameters": ','.join(concat_string.split()),
             "Revision": str(revision),
             "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
             "Execution Platform": execution_platform,
             "Profile": str(j_details_h.get("profile", "None")),
             "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
-            "Storage": str(j_details_h["storageSizeInGb"]),
+            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
             "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
             "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
                               f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
@@ -866,7 +900,17 @@ def job_details(ctx,
 
         # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
         if j_details_h["jobType"] != "nextflowAzure":
-            job_details_json["Job Queue"] = str(j_details_h["batch"]["jobQueue"]["name"])
+            try:
+                job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
+                job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
+            except KeyError:
+                job_details_json["Job Queue"] = "Master Node"
+
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
+            except KeyError:
+                job_details_json["Worker Node"] = "Not Specified"
 
         # Write the JSON object to a file
         with open(f"{output_basename}.json", "w") as json_file:

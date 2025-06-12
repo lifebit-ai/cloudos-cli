@@ -560,6 +560,9 @@ params {
 
 This file can later be used when running a job with `cloudos job run --job-config job_details.config ...`.
 
+> [!NOTE]
+> Job details can only be retrieved for a single user, cannot see other user's job details.
+
 #### Get a list of your jobs from a CloudOS workspace
 
 You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
