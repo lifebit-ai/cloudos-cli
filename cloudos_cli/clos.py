@@ -8,7 +8,6 @@ import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
 from certifi import contents
-
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
@@ -256,7 +255,12 @@ class Cloudos:
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        results_obj = r.json()["results"]
+        req_obj = r.json()
+        job_workspace = req_obj["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+
+        results_obj = req_obj["results"]
         results_bucket = results_obj["s3BucketName"]
         results_path = results_obj["s3Prefix"]
 

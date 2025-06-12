@@ -755,6 +755,35 @@ Platform workflows, i.e., those provided by CloudOS in your workspace as modules
 Therefore, CloudOS will automatically assign the valid queue and the user should not specify any queue using the `--job-queue` paramater.
 Any attempt of using this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
 
+#### Explore files programmatically
+
+##### Listing files
+
+To list files present in File Explorer in a given project (whether they are analysis results, cohorts etc.), the user can run the following command:
+```
+cloudos datasets ls <path> --profile <profile name>
+```
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to provide the following commands:
+```bash
+cloudos datasets ls <path> \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
+
+
+The output of this command is a list of files and folders present in the specified project.
+If the `<path>` is left empty, the command will return the list of folders present in the selected project.
+
+If you require more information on the files and folder listed, you can use the `--details` flag that will output a table containing the following columns:
+- Type (folder or file)
+- Owner
+- Size in human readable format
+- Last updated
+- Filepath (the file or folder name)
+- S3 Path
+
 ### WDL pipeline support
 
 #### Cromwell server managing

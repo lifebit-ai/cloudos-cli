@@ -52,7 +52,8 @@ DETAILS = {
         "s3Bucket": BUCKET,
         "s3Prefix": f"{OBJ_PREFIX}/results"
     },
-    "status": "completed"
+    "status": "completed",
+    "team": WS_ID
 }
 
 FIND_CLOUD_PAYLOAD = {
