@@ -1,6 +1,6 @@
 from urllib.parse import urlsplit
 import responses
-from cloudos_cli.import_wf.import_wf import ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportWorflow
 from responses import matchers
 
 CLOUDOS_URL = "https://cloudos.lifebit.ai"
@@ -43,7 +43,7 @@ def test_fetch_correct_repo_data():
         json={"mainFile": main_file}
 
     )
-    gh = ImportGithub(cloudos_url="https://cloudos.lifebit.ai", cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID, platform="github", workflow_name=REPO_NAME, workflow_url=WF_MAIN_URL)
+    gh = ImportWorflow(cloudos_url="https://cloudos.lifebit.ai", cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID, platform="github", workflow_name=REPO_NAME, workflow_url=WF_MAIN_URL)
     gh.get_repo()
     assert gh.payload["repository"]["repositoryId"] == ex_repo_id
     assert gh.payload["repository"]["name"] == REPO_NAME
