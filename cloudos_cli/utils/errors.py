@@ -57,10 +57,3 @@ class NotAuthorisedException(Exception):
         msg = ("Not authorised to run this operation. Check your API key, and that the resource you request is "
                "in the same workspace as the workspace specified in the cloudOS cli")
         super(NotAuthorisedException, self).__init__(msg)
-
-
-class NoCloudForWorkspaceException(Exception):
-    def __init__(self, workspace_id):
-        msg = f"Workspace ID {workspace_id} is not associated with supported cloud providers. Check the workspace ID"
-        super(NoCloudForWorkspaceException, self).__init__(msg)
-        self.workspace_id = workspace_id
