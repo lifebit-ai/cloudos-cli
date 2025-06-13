@@ -500,6 +500,69 @@ Executing status...
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
 
+#### Check job details
+
+To check the details of a submitted job, the subcommand `details` of `job` can be used.
+
+For example, with explicit variable for required parameters:
+
+```bash
+cloudos job details \
+    --apikey $MY_API_KEY \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+Or with a defined profile:
+
+```bash
+cloudos job details \
+    --profile job-details \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:
+
+```console
+Executing details...
+                                             Job Details                                              
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Field                    ┃ Value                                                                   ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Parameters               │ -test=value                                                             │
+│                          │ --gaq=test                                                              │
+│                          │ cryo=yes                                                                │
+│ Command                  │ echo 'test' > new_file.txt                                              │
+│ Revision                 │ sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233 │
+│ Nextflow Version         │ None                                                                    │
+│ Execution Platform       │ Batch AWS                                                               │
+│ Profile                  │ None                                                                    │
+│ Master Instance          │ c5.xlarge                                                               │
+│ Storage                  │ 500                                                                     │
+│ Job Queue                │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee                        │
+│ Accelerated File Staging │ None                                                                    │
+│ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │
+└──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+```
+
+To change this behaviour and save the details into a local JSON, the parameter `--output-format` needs to be set as `--output-format=json`.
+
+By default, all details are saved in a file with the basename as `job_details`, for example `job_details.json` or `job_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
+
+The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nexflow configuration file, example:
+
+```console
+params {
+    parameter_one = value_one
+    parameter_two = value_two
+    parameter_three = value_three
+}
+```
+
+This file can later be used when running a job with `cloudos job run --job-config job_details.config ...`.
+
+> [!NOTE]
+> Job details can only be retrieved for a single user, cannot see other user's job details.
+
 #### Get a list of your jobs from a CloudOS workspace
 
 You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`

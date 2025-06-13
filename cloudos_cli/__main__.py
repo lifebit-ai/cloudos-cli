@@ -5,16 +5,20 @@ import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
 from cloudos_cli.queue.queue import Queue
+from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
+from rich.console import Console
+from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
+
 
 
 # GLOBAL VARS
@@ -59,6 +63,7 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -100,6 +105,7 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -694,6 +700,222 @@ def job_status(ctx,
     j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
     print(f'\tTo further check your job status you can either go to {j_url} ' +
           'or repeat the command you just used.')
+
+
+@job.command('details')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--output-format',
+              help='The desired display for the output, either directly in standard output or saved as file. Default=stdout.',
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--output-basename',
+              help=('Output file base name to save jobs details. ' +
+                    'Default=job_details'),
+              default='job_details',
+              required=False)
+@click.option('--parameters',
+              help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
+                    'It will have the same basename as defined in "--output-basename". '),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_details(ctx,
+               apikey,
+               cloudos_url,
+               job_id,
+               output_format,
+               output_basename,
+               parameters,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
+    """Retrieve job details in CloudOS."""
+    profile = profile or ctx.default_map['job']['details']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url
+        )
+    )
+
+    print('Executing details...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+
+    # check if the API gives a 403 error/forbidden error
+    try:
+        j_details = cl.get_job_status(job_id, verify_ssl)
+    except BadRequestException as e:
+        if '403' in str(e) or 'Forbidden' in str(e):
+            print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
+            sys.exit(1)
+    j_details_h = json.loads(j_details.content)
+
+    # Check if the job details contain parameters
+    if j_details_h["parameters"] != []:
+        param_kind_map = {
+            'textValue': 'textValue',
+            'arrayFileColumn': 'columnName',
+            'globPattern': 'globPattern',
+            'lustreFileSystem': 'fileSystem',
+        }
+        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
+        # get first the type of parameter, then the value based on the parameter kind
+        concats = []
+        for param in j_details_h["parameters"]:
+            if param['parameterKind'] == 'dataItem':
+                # For dataItem, we need to use specific nested keys
+                concats.append(f"{param['prefix']}{param['name']}={param['dataItem']['item']['name']}")
+            else:
+                # For other parameter kinds, we use the appropriate key from param_kind_map
+                concats.append(f"{param['prefix']}{param['name']}={param[param_kind_map[param['parameterKind']]]}")
+        concat_string = '\n'.join(concats)
+        # If the user requested to save the parameters in a config file
+        if parameters:
+            # Create a config file with the parameters
+            config_filename = f"{output_basename}.config"
+            with open(config_filename, 'w') as config_file:
+                config_file.write("params {\n")
+                for param in j_details_h["parameters"]:
+                    config_file.write(f"\t{param['name']} = {param['textValue']}\n")
+                config_file.write("}\n")
+            print(f"\tJob parameters have been saved to '{config_filename}'")
+    else:
+        concat_string = 'No parameters provided'
+        if parameters:
+            print("\tNo parameters found in the job details, no config file will be created.")
+
+    # Determine the execution platform based on jobType
+    executors = {
+        'nextflowAWS':'Batch AWS',
+        'nextflowAzure': 'Batch Azure',
+        'nextflowGcp': 'GCP',
+        'nextflowHpc': 'HPC',
+        'nextflowKubernetes': 'Kubernetes',
+        'dockerAWS': 'Batch AWS',
+        'cromwellAWS': 'Batch AWS'
+    }
+    execution_platform = executors.get(j_details_h["jobType"], "None")
+
+    # revision
+    if j_details_h["jobType"] == "dockerAWS":
+        revision = j_details_h["revision"]["digest"]
+    else:
+        revision = j_details_h["revision"]["commit"]
+
+    # Output the job details
+    if output_format == 'stdout':
+        console = Console()
+        table = Table(title="Job Details")
+
+        table.add_column("Field", style="cyan", no_wrap=True)
+        table.add_column("Value", style="magenta", overflow="fold")
+
+        table.add_row("Job Status", str(j_details_h["status"]))
+        table.add_row("Parameters", concat_string)
+        if j_details_h["jobType"] == "dockerAWS":
+            table.add_row("Command", str(j_details_h["command"]))
+        table.add_row("Revision", str(revision))
+        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
+        table.add_row("Execution Platform", execution_platform)
+        table.add_row("Profile", str(j_details_h.get("profile", "None")))
+        table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
+            except KeyError:
+                table.add_row("Worker Node", "Not Specified")
+        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
+        if j_details_h["jobType"] != "nextflowAzure":
+            try:
+                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
+                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
+            except KeyError:
+                table.add_row("Job Queue", "Master Node")
+        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
+        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
+                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
+
+        console.print(table)
+    else:
+        # Create a JSON object with the key-value pairs
+        job_details_json = {
+            "Job Status": str(j_details_h["status"]),
+            "Parameters": ','.join(concat_string.split()),
+            "Revision": str(revision),
+            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
+            "Execution Platform": execution_platform,
+            "Profile": str(j_details_h.get("profile", "None")),
+            "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
+            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
+            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
+            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
+                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
+
+        }
+
+        # Conditionally add the "Command" key if the jobType is "dockerAWS"
+        if j_details_h["jobType"] == "dockerAWS":
+            job_details_json["Command"] = str(j_details_h["command"])
+
+        # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
+        if j_details_h["jobType"] != "nextflowAzure":
+            try:
+                job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
+                job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
+            except KeyError:
+                job_details_json["Job Queue"] = "Master Node"
+
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
+            except KeyError:
+                job_details_json["Worker Node"] = "Not Specified"
+
+        # Write the JSON object to a file
+        with open(f"{output_basename}.json", "w") as json_file:
+            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
+        print(f"\tJob details have been saved to '{output_basename}.json'")
 
 
 @job.command('list')
