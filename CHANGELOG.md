@@ -6,6 +6,12 @@
 
 - Unify all workflow import platforms into a single child class
 
+## v2.28.0 (2025-06-11)
+
+### Feat
+
+- Adds new subcommand `details` for `job`, to retrieve and view job details either in stdout or json
+
 ## v2.27.0 (2025-06-10)
 
 ### Feat
