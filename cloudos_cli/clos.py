@@ -205,7 +205,11 @@ class Cloudos:
             raise NotAuthorisedException
         elif r.status_code >= 400:
             raise BadRequestException(r)
-        logs_obj = r.json()["logs"]
+        r_json = r.json()
+        logs_obj = r_json["logs"]
+        job_workspace = r_json["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
         cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
         container_name = cloud_storage["container"]
         prefix_name = cloud_storage["prefix"]
