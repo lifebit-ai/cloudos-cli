@@ -723,7 +723,7 @@ class Job(Cloudos):
             example_parameters = []
         headers = {"Content-type": "application/json", "apikey": self.apikey}
         params = dict(teamId=self.workspace_id)
-        url = f"{self.cloudos_url}/api/jobs/{job_id}/request-payload"
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload"
         r_previous_run = retry_requests_get(url, params=params, headers=headers)
         if r_previous_run.status_code == 401:
             raise NotAuthorisedException
@@ -745,7 +745,10 @@ class Job(Cloudos):
         new_save_logs = save_logs or previous_run_obj["saveProcessLogs"]
         new_batch = batch or previous_run_obj["batch"]["enabled"]
         exec_url = f"{self.cloudos_url}/api/v2/workflows/{new_workflow_id}/execution-configuration"
-        exec_r = retry_requests_get(exec_url, headers=headers, params=params)
+        bearer_head = {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGJiNWE0OGY0NjM0ZTcyNDY4NzU0NCIsIm9yZ2FuaXNhdGlvbnMiOlt7InNsdWciOiJsaWZlYml0LWludGVybmFsLXByb2R1Y3Rpb24iLCJjdXJyZW50QXV0aFR5cGUiOiJsb2NhbCJ9XSwiaWF0IjoxNzQ5NzkyMTY0LCJleHAiOjE3NDk4Nzg1NjR9.7cpJbigqGYJ7qaQzR1HXKwMeSKepXQMbm4zXMo5u1LM"
+        }
+        exec_r = retry_requests_get(exec_url, headers=bearer_head, params=params)
         if exec_r.status_code == 401:
             raise NotAuthorisedException
         elif exec_r.status_code >= 400:
@@ -763,7 +766,7 @@ class Job(Cloudos):
         new_storage_mode = storage_mode or previous_run_obj["storageMode"]
         new_execution_platform = execution_platform or cloud_name
         wf_url = f"{self.cloudos_url}/api/v2/workflows/{new_workflow_id}"
-        wf_r = retry_requests_get(wf_url, headers=headers, params=params)
+        wf_r = retry_requests_get(wf_url, headers=bearer_head, params=params)
         if wf_r.status_code == 401:
             raise NotAuthorisedException
         elif wf_r.status_code >= 400:
@@ -772,7 +775,7 @@ class Job(Cloudos):
         new_azure_worker_instance_type = (
             azure_worker_instance_type or exec_obj["azure"]["defaultInstanceType"]
         )
-        new_cost_limit = cost_limit or exec_obj["costLimitInUsd"]
+        new_cost_limit = cost_limit or exec_obj["costLimitsInUsd"]
         new_command = command or previous_run_obj["command"]
         new_cpus = cpus or previous_run_obj["resourceRequirements"]["cpu"]
         new_memory = memory or previous_run_obj["resourceRequirements"]["ram"]

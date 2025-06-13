@@ -9,10 +9,10 @@ class Param:
         return f"{self.name}={self.value}"
 
     def __repr__(self):
-        print(self.raw)
+        return self.raw
 
     def __str__(self):
-        print(f"Parameter: {self.name}. Vaule: {self.value}")
+        return f"Parameter: {self.name}. Vaule: {self.value}"
 
 
 class DisplayParams:
@@ -23,8 +23,4 @@ class DisplayParams:
         return [x.stringify() for x in self.params]
 
     def __repr__(self):
-        print("\n".join(self.params))
-
-    def __str__(self):
-        for param in self.params:
-            print(param)
+        return "\n".join([str(x) for x in self.params])
