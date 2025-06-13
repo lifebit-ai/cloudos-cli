@@ -73,7 +73,8 @@ def test_move_file_to_folder():
         workspace_id=WORKSPACE_ID,
         project_name=PROJECT_NAME,
         verify=True,
-        project_id=project_id
+        project_id=project_id,
+        cromwell_token=None
     )
 
     result = dataset.move_files_and_folders(
