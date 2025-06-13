@@ -79,7 +79,8 @@ def run_cloudos_cli(ctx):
                 'job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
     else:
@@ -120,7 +121,8 @@ def run_cloudos_cli(ctx):
                 'job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
 
@@ -1884,7 +1886,6 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             contents = result.get("files", []) + result.get("folders", [])
@@ -1975,7 +1976,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     'Data/folderA/file.txt' and 'Data/folderB'
     """
 
-    profile = profile or ctx.default_map.get('datasets', {}).get('move', {}).get('profile')
+    profile = profile or ctx.default_map['datasets']['move'].get('profile')
     destination_project_name = destination_project_name or project_name
 
     # Validate destination constraint
@@ -2082,7 +2083,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
         return
-    click.echo(f"Moving {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name} ...")
+    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
         response = source_client.move_files_and_folders(

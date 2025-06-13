@@ -1,4 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
+
+## v2.28.0 (2025-06-13)
+
+### Feat
+
+- Adds command to move files within and across project within the same workspace. `cloudos datasets mv cloudos datasets mv <source_path> <destiantion_path> --profile <profile_name> --destination-project-name <project_name>`
+
 ## v2.27.0 (2025-06-10)
 
 ### Feat
