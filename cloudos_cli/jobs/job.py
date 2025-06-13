@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post
+from cloudos_cli.utils.display import DisplayParams
+from cloudos_cli.utils.errors import BadRequestException, NotAuthorisedException
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 
 
 @dataclass
@@ -45,13 +46,14 @@ class Job(Cloudos):
     workflow_id : string
         The CloudOS workflow id for a given workflow_name.
     """
+
     workspace_id: str
     project_name: str
     workflow_name: str
     verify: Union[bool, str] = True
     mainfile: str = None
     importsfile: str = None
-    repository_platform: str = 'github'
+    repository_platform: str = "github"
     project_id: str = None
     workflow_id: str = None
 
@@ -66,10 +68,11 @@ class Job(Cloudos):
             self._project_id = self.fetch_cloudos_id(
                 self.apikey,
                 self.cloudos_url,
-                'projects',
+                "projects",
                 self.workspace_id,
                 self.project_name,
-                verify=self.verify)
+                verify=self.verify,
+            )
         else:
             # Let the user define the value.
             self._project_id = v
@@ -85,27 +88,30 @@ class Job(Cloudos):
             self._workflow_id = self.fetch_cloudos_id(
                 self.apikey,
                 self.cloudos_url,
-                'workflows',
+                "workflows",
                 self.workspace_id,
                 self.workflow_name,
                 self.mainfile,
                 self.importsfile,
                 self.repository_platform,
-                self.verify)
+                self.verify,
+            )
         else:
             # Let the user define the value.
             self._workflow_id = v
 
-    def fetch_cloudos_id(self,
-                         apikey,
-                         cloudos_url,
-                         resource,
-                         workspace_id,
-                         name,
-                         mainfile=None,
-                         importsfile=None,
-                         repository_platform='github',
-                         verify=True):
+    def fetch_cloudos_id(
+        self,
+        apikey,
+        cloudos_url,
+        resource,
+        workspace_id,
+        name,
+        mainfile=None,
+        importsfile=None,
+        repository_platform="github",
+        verify=True,
+    ):
         """Fetch the cloudos id for a given name.
 
         Parameters
@@ -139,72 +145,86 @@ class Job(Cloudos):
         project_id : string
             The CloudOS project id for a given project name.
         """
-        allowed_resources = ['projects', 'workflows']
+        allowed_resources = ["projects", "workflows"]
         if resource not in allowed_resources:
-            raise ValueError('Your specified resource is not supported. ' +
-                             f'Use one of the following: {allowed_resources}')
-        if resource == 'workflows':
+            raise ValueError(
+                "Your specified resource is not supported. "
+                + f"Use one of the following: {allowed_resources}"
+            )
+        if resource == "workflows":
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
-                if (element["name"] == name and element["workflowType"] == "docker" and
-                        not element["archived"]["status"]):
+                if (
+                    element["name"] == name
+                    and element["workflowType"] == "docker"
+                    and not element["archived"]["status"]
+                ):
                     return element["_id"]  # no mainfile or importsfile
-                if (element["name"] == name and
-                        element["repository"]["platform"] == repository_platform and
-                        not element["archived"]["status"]):
+                if (
+                    element["name"] == name
+                    and element["repository"]["platform"] == repository_platform
+                    and not element["archived"]["status"]
+                ):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
                         if importsfile is None and "importsFile" not in element.keys():
                             return element["_id"]
-                        elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
+                        elif (
+                            "importsFile" in element.keys()
+                            and element["importsFile"] == importsfile
+                        ):
                             return element["_id"]
-        elif resource == 'projects':
+        elif resource == "projects":
             content = self.get_project_list(workspace_id, verify=verify)
             # New API projects endpoint spec
             for element in content:
                 if element["name"] == name:
                     return element["_id"]
         if mainfile is not None:
-            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
-                             f' and an importsFile \'{importsfile}\' was not found')
+            raise ValueError(
+                f"[ERROR] A workflow named '{name}' with a mainFile '{mainfile}'"
+                + f" and an importsFile '{importsfile}' was not found"
+            )
         else:
-            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
+            raise ValueError(f"[ERROR] No {name} element in {resource} was found")
 
-    def convert_nextflow_to_json(self,
-                                 job_config,
-                                 parameter,
-                                 is_module,
-                                 example_parameters,
-                                 git_commit,
-                                 git_tag,
-                                 git_branch,
-                                 project_id,
-                                 workflow_id,
-                                 job_name,
-                                 resumable,
-                                 save_logs,
-                                 batch,
-                                 job_queue_id,
-                                 nextflow_profile,
-                                 nextflow_version,
-                                 instance_type,
-                                 instance_disk,
-                                 storage_mode,
-                                 lustre_size,
-                                 execution_platform,
-                                 hpc_id,
-                                 workflow_type,
-                                 cromwell_id,
-                                 azure_worker_instance_type,
-                                 azure_worker_instance_disk,
-                                 azure_worker_instance_spot,
-                                 cost_limit,
-                                 use_mountpoints,
-                                 docker_login,
-                                 command,
-                                 cpus,
-                                 memory):
+    def convert_nextflow_to_json(
+        self,
+        job_config,
+        parameter,
+        is_module,
+        example_parameters,
+        git_commit,
+        git_tag,
+        git_branch,
+        project_id,
+        workflow_id,
+        job_name,
+        resumable,
+        save_logs,
+        batch,
+        job_queue_id,
+        nextflow_profile,
+        nextflow_version,
+        instance_type,
+        instance_disk,
+        storage_mode,
+        lustre_size,
+        execution_platform,
+        hpc_id,
+        workflow_type,
+        cromwell_id,
+        azure_worker_instance_type,
+        azure_worker_instance_disk,
+        azure_worker_instance_spot,
+        cost_limit,
+        use_mountpoints,
+        docker_login,
+        command,
+        cpus,
+        memory,
+    ):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -290,112 +310,146 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
-        if workflow_type == 'wdl':
+        if workflow_type == "wdl":
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
         if (
-            nextflow_profile is None and
-            job_config is None and
-            len(parameter) == 0 and
-            len(example_parameters) == 0
+            nextflow_profile is None
+            and job_config is None
+            and len(parameter) == 0
+            and len(example_parameters) == 0
         ):
-            raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
-                             '--example_parameters were specified,' +
-                             '  please use at least one of these options.')
-        if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
-            raise ValueError('No --job-config or --parameter were provided. At least one of ' +
-                             'these are required for WDL workflows.')
-        if workflow_type == 'docker' and len(parameter) == 0:
-            raise ValueError('No --parameter were provided. At least one of ' +
-                             'these are required for bash workflows.')
+            raise ValueError(
+                "No --job-config, --nextflow_profile, --parameter or "
+                + "--example_parameters were specified,"
+                + "  please use at least one of these options."
+            )
+        if workflow_type == "wdl" and job_config is None and len(parameter) == 0:
+            raise ValueError(
+                "No --job-config or --parameter were provided. At least one of "
+                + "these are required for WDL workflows."
+            )
+        if workflow_type == "docker" and len(parameter) == 0:
+            raise ValueError(
+                "No --parameter were provided. At least one of "
+                + "these are required for bash workflows."
+            )
         if job_config is not None:
-            with open(job_config, 'r') as p:
+            with open(job_config, "r") as p:
                 reading = False
                 for p_l in p:
-                    if 'params' in p_l.lower():
+                    if "params" in p_l.lower():
                         reading = True
                     else:
                         if reading:
-                            if workflow_type == 'wdl':
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '')
+                            if workflow_type == "wdl":
+                                p_l_strip = p_l.strip().replace(" ", "")
                             else:
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '').replace('\"', '').replace('\'', '')
+                                p_l_strip = (
+                                    p_l.strip()
+                                    .replace(" ", "")
+                                    .replace('"', "")
+                                    .replace("'", "")
+                                )
                             if len(p_l_strip) == 0:
                                 continue
-                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
+                            elif p_l_strip[0] == "/" or p_l_strip[0] == "#":
                                 continue
-                            elif p_l_strip == '}':
+                            elif p_l_strip == "}":
                                 reading = False
                             else:
-                                p_list = p_l_strip.split('=')
+                                p_list = p_l_strip.split("=")
                                 p_name = p_list[0]
-                                p_value = '='.join(p_list[1:])
+                                p_value = "=".join(p_list[1:])
                                 if len(p_list) < 2:
-                                    raise ValueError('Please, specify your ' +
-                                                     'parameters in ' +
-                                                     f'{job_config} using ' +
-                                                     'the \'=\' as spacer. ' +
-                                                     'E.g: name = my_name')
-                                elif workflow_type == 'wdl':
-                                    param = {"prefix": "",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
+                                    raise ValueError(
+                                        "Please, specify your "
+                                        + "parameters in "
+                                        + f"{job_config} using "
+                                        + "the '=' as spacer. "
+                                        + "E.g: name = my_name"
+                                    )
+                                elif workflow_type == "wdl":
+                                    param = {
+                                        "prefix": "",
+                                        "name": p_name,
+                                        "parameterKind": "textValue",
+                                        "textValue": p_value,
+                                    }
                                     workflow_params.append(param)
                                 else:
-                                    param = {"prefix": "--",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
+                                    param = {
+                                        "prefix": "--",
+                                        "name": p_name,
+                                        "parameterKind": "textValue",
+                                        "textValue": p_value,
+                                    }
                                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f'The {job_config} file did not contain any ' +
-                                 'valid parameter')
+                raise ValueError(
+                    f"The {job_config} file did not contain any " + "valid parameter"
+                )
         if len(parameter) > 0:
             for p in parameter:
-                p_split = p.split('=')
+                p_split = p.split("=")
                 if len(p_split) < 2:
-                    raise ValueError('Please, specify -p / --parameter using a single \'=\' ' +
-                                     'as spacer. E.g: input=value')
+                    raise ValueError(
+                        "Please, specify -p / --parameter using a single '=' "
+                        + "as spacer. E.g: input=value"
+                    )
                 p_name = p_split[0]
-                p_value = '='.join(p_split[1:])
-                if workflow_type == 'docker':
-                    prefix = "--" if p_name.startswith('--') else ("-" if p_name.startswith('-') else '')
+                p_value = "=".join(p_split[1:])
+                if workflow_type == "docker":
+                    prefix = (
+                        "--"
+                        if p_name.startswith("--")
+                        else ("-" if p_name.startswith("-") else "")
+                    )
                     # leave defined for adding files later
                     parameter_kind = "textValue"
-                    param = {"prefix": prefix,
-                             "name": p_name.lstrip('-'),
-                             "parameterKind": parameter_kind,
-                             "textValue": p_value}
+                    param = {
+                        "prefix": prefix,
+                        "name": p_name.lstrip("-"),
+                        "parameterKind": parameter_kind,
+                        "textValue": p_value,
+                    }
                     workflow_params.append(param)
-                elif workflow_type == 'wdl':
-                    param = {"prefix": "",
-                             "name": p_name,
-                             "parameterKind": "textValue",
-                             "textValue": p_value}
+                elif workflow_type == "wdl":
+                    param = {
+                        "prefix": "",
+                        "name": p_name,
+                        "parameterKind": "textValue",
+                        "textValue": p_value,
+                    }
                     workflow_params.append(param)
                 else:
-                    param = {"prefix": "--",
-                             "name": p_name,
-                             "parameterKind": "textValue",
-                             "textValue": p_value}
+                    param = {
+                        "prefix": "--",
+                        "name": p_name,
+                        "parameterKind": "textValue",
+                        "textValue": p_value,
+                    }
                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f'The provided parameters are not valid: {parameter}')
+                raise ValueError(f"The provided parameters are not valid: {parameter}")
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
         if storage_mode == "lustre":
-            print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
-                  'storage is available in your CloudOS workspace.\n')
+            print(
+                "\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of "
+                + "storage is available in your CloudOS workspace.\n"
+            )
             if lustre_size % 1200:
-                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
-                                 f'{lustre_size} is not a valid number.')
-        if storage_mode not in ['lustre', 'regular']:
-            raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
-                             f'{storage_mode} is not allowed')
+                raise ValueError(
+                    "Please, specify a lustre storage size of 1200 or a multiple of it. "
+                    + f"{lustre_size} is not a valid number."
+                )
+        if storage_mode not in ["lustre", "regular"]:
+            raise ValueError(
+                "Please, use either 'lustre' or 'regular' for --storage-mode "
+                + f"{storage_mode} is not allowed"
+            )
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -406,95 +460,91 @@ class Job(Cloudos):
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
-            "execution": {
-                "computeCostLimit": cost_limit,
-                "optim": "test"
-            },
+            "execution": {"computeCostLimit": cost_limit, "optim": "test"},
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints
+            "usesFusionFileSystem": use_mountpoints,
         }
-        if workflow_type != 'docker':
+        if workflow_type != "docker":
             params["nextflowVersion"] = nextflow_version
-        if execution_platform != 'hpc':
-            params['masterInstance'] = {
-                "requestedInstance": {
-                    "type": instance_type
-                }
-            }
-            params['batch'] = {
-                "enabled": batch
-            }
+        if execution_platform != "hpc":
+            params["masterInstance"] = {"requestedInstance": {"type": instance_type}}
+            params["batch"] = {"enabled": batch}
         if job_queue_id is not None:
-            params['batch'] = {
+            params["batch"] = {
                 "dockerLogin": docker_login,
                 "enabled": batch,
-                "jobQueue": job_queue_id
+                "jobQueue": job_queue_id,
             }
-        if execution_platform == 'azure' and not is_module:
-            params['azureBatch'] = {
+        if execution_platform == "azure" and not is_module:
+            params["azureBatch"] = {
                 "vmType": azure_worker_instance_type,
                 "spot": azure_worker_instance_spot,
-                "diskSizeInGb": azure_worker_instance_disk
+                "diskSizeInGb": azure_worker_instance_disk,
             }
-        if workflow_type == 'docker':
-            params['command'] = command
-            params["resourceRequirements"] = {
-                "cpu": cpus,
-                "ram": memory
-            }
-        if workflow_type == 'wdl':
-            params['cromwellCloudResources'] = cromwell_id
+        if workflow_type == "docker":
+            params["command"] = command
+            params["resourceRequirements"] = {"cpu": cpus, "ram": memory}
+        if workflow_type == "wdl":
+            params["cromwellCloudResources"] = cromwell_id
         git_flag = [x is not None for x in [git_tag, git_commit, git_branch]]
         if sum(git_flag) > 1:
-            raise ValueError('Please, specify none or only one of --git-tag, ' +
-                             '--git-branch or --git-commit options.')
+            raise ValueError(
+                "Please, specify none or only one of --git-tag, "
+                + "--git-branch or --git-commit options."
+            )
         elif sum(git_flag) == 1:
-            revision_type = 'tag' if git_tag is not None else 'commit' if git_commit is not None else 'branch'
-            params['revision'] = {
+            revision_type = (
+                "tag"
+                if git_tag is not None
+                else "commit" if git_commit is not None else "branch"
+            )
+            params["revision"] = {
                 "revisionType": revision_type,
                 "tag": git_tag,
                 "commit": git_commit,
-                "branch": git_branch
+                "branch": git_branch,
             }
         if nextflow_profile is not None:
-            params['profile'] = nextflow_profile
+            params["profile"] = nextflow_profile
         return params
 
-    def send_job(self,
-                 job_config=None,
-                 parameter=(),
-                 is_module=False,
-                 example_parameters=[],
-                 git_commit=None,
-                 git_tag=None,
-                 git_branch=None,
-                 job_name='new_job',
-                 resumable=False,
-                 save_logs=True,
-                 batch=True,
-                 job_queue_id=None,
-                 nextflow_profile=None,
-                 nextflow_version='22.10.8',
-                 instance_type='c5.xlarge',
-                 instance_disk=500,
-                 storage_mode='regular',
-                 lustre_size=1200,
-                 execution_platform='aws',
-                 hpc_id=None,
-                 workflow_type='nextflow',
-                 cromwell_id=None,
-                 azure_worker_instance_type='Standard_D4as_v4',
-                 azure_worker_instance_disk=100,
-                 azure_worker_instance_spot=False,
-                 cost_limit=30.0,
-                 use_mountpoints=False,
-                 docker_login=False,
-                 verify=True,
-                 command=None,
-                 cpus=1,
-                 memory=4):
+    def send_job(
+        self,
+        job_config=None,
+        parameter=(),
+        is_module=False,
+        example_parameters=[],
+        git_commit=None,
+        git_tag=None,
+        git_branch=None,
+        job_name="new_job",
+        resumable=False,
+        save_logs=True,
+        batch=True,
+        job_queue_id=None,
+        nextflow_profile=None,
+        nextflow_version="22.10.8",
+        instance_type="c5.xlarge",
+        instance_disk=500,
+        storage_mode="regular",
+        lustre_size=1200,
+        execution_platform="aws",
+        hpc_id=None,
+        workflow_type="nextflow",
+        cromwell_id=None,
+        azure_worker_instance_type="Standard_D4as_v4",
+        azure_worker_instance_disk=100,
+        azure_worker_instance_spot=False,
+        cost_limit=30.0,
+        use_mountpoints=False,
+        docker_login=False,
+        verify=True,
+        command=None,
+        cpus=1,
+        memory=4,
+    ):
         """Send a job to CloudOS.
 
         Parameters
@@ -584,49 +634,182 @@ class Job(Cloudos):
         workflow_id = self.workflow_id
         project_id = self.project_id
         # Prepare api request for CloudOS to run a job
-        headers = {
-            "Content-type": "application/json",
-            "apikey": apikey
-        }
-        params = self.convert_nextflow_to_json(job_config,
-                                               parameter,
-                                               is_module,
-                                               example_parameters,
-                                               git_commit,
-                                               git_tag,
-                                               git_branch,
-                                               project_id,
-                                               workflow_id,
-                                               job_name,
-                                               resumable,
-                                               save_logs,
-                                               batch,
-                                               job_queue_id,
-                                               nextflow_profile,
-                                               nextflow_version,
-                                               instance_type,
-                                               instance_disk,
-                                               storage_mode,
-                                               lustre_size,
-                                               execution_platform,
-                                               hpc_id,
-                                               workflow_type,
-                                               cromwell_id,
-                                               azure_worker_instance_type,
-                                               azure_worker_instance_disk,
-                                               azure_worker_instance_spot,
-                                               cost_limit,
-                                               use_mountpoints,
-                                               docker_login,
-                                               command=command,
-                                               cpus=cpus,
-                                               memory=memory)
-        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
-                                                                  workspace_id),
-                                data=json.dumps(params), headers=headers, verify=verify)
+        headers = {"Content-type": "application/json", "apikey": apikey}
+        params = self.convert_nextflow_to_json(
+            job_config,
+            parameter,
+            is_module,
+            example_parameters,
+            git_commit,
+            git_tag,
+            git_branch,
+            project_id,
+            workflow_id,
+            job_name,
+            resumable,
+            save_logs,
+            batch,
+            job_queue_id,
+            nextflow_profile,
+            nextflow_version,
+            instance_type,
+            instance_disk,
+            storage_mode,
+            lustre_size,
+            execution_platform,
+            hpc_id,
+            workflow_type,
+            cromwell_id,
+            azure_worker_instance_type,
+            azure_worker_instance_disk,
+            azure_worker_instance_spot,
+            cost_limit,
+            use_mountpoints,
+            docker_login,
+            command=command,
+            cpus=cpus,
+            memory=memory,
+        )
+        r = retry_requests_post(
+            "{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id),
+            data=json.dumps(params),
+            headers=headers,
+            verify=verify,
+        )
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
-        print('\tJob successfully launched to CloudOS, please check the ' +
-              f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
+        print(
+            "\tJob successfully launched to CloudOS, please check the "
+            + f"following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}"
+        )
         return j_id
+
+    def clone_job(
+        self,
+        job_id,
+        job_config=None,
+        parameter=None,
+        is_module=False,
+        example_parameters=None,
+        git_commit=None,
+        git_tag=None,
+        git_branch=None,
+        job_name="",
+        resumable=False,
+        save_logs=False,
+        batch=False,
+        job_queue_id=None,
+        nextflow_profile=None,
+        nextflow_version="",
+        instance_type="",
+        instance_disk=0,
+        storage_mode="",
+        lustre_size=1200,
+        execution_platform="",
+        hpc_id=None,
+        cromwell_id=None,
+        azure_worker_instance_type="",
+        azure_worker_instance_disk=100,
+        azure_worker_instance_spot=False,
+        cost_limit=0,
+        use_mountpoints=False,
+        docker_login=False,
+        command=None,
+        cpus=0,
+        memory=0,
+    ):
+        if example_parameters is None:
+            example_parameters = []
+        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        params = dict(teamId=self.workspace_id)
+        url = f"{self.cloudos_url}/api/jobs/{job_id}/request-payload"
+        r_previous_run = retry_requests_get(url, params=params, headers=headers)
+        if r_previous_run.status_code == 401:
+            raise NotAuthorisedException
+        elif r_previous_run.status_code >= 400:
+            raise BadRequestException(r_previous_run)
+        previous_run_obj = r_previous_run.json()
+        previous_job_params = DisplayParams(previous_run_obj["parameters"])
+        previous_run_git = previous_run_obj["revision"]
+        print(f"Clonning Job {job_id} executed with the following parameters")
+        print(previous_job_params)
+        new_project_id = self.project_id or previous_run_obj["project"]
+        new_workflow_id = previous_run_obj["workflow"]
+        parameter = parameter if parameter else list()
+        new_parameter = parameter + previous_job_params.stringify()
+        new_branch = git_branch or previous_run_git["branch"]
+        new_commit = git_commit or previous_run_git["commit"]
+        new_name = job_name or f"cloned_{previous_run_obj['name']}"
+        new_resumable = resumable or previous_run_obj["resumable"]
+        new_save_logs = save_logs or previous_run_obj["saveProcessLogs"]
+        new_batch = batch or previous_run_obj["batch"]["enabled"]
+        exec_url = f"{self.cloudos_url}/api/v2/workflows/{new_workflow_id}/execution-configuration"
+        exec_r = retry_requests_get(exec_url, headers=headers, params=params)
+        if exec_r.status_code == 401:
+            raise NotAuthorisedException
+        elif exec_r.status_code >= 400:
+            raise BadRequestException(exec_r)
+        exec_obj = exec_r.json()
+        cloud_name = previous_run_obj["executionPlatform"]
+        new_job_queue_id = job_queue_id or exec_obj["aws"]["jobQueue"]
+        new_nextflow_profile = nextflow_profile or previous_run_obj["profile"]
+        new_nextflow_version = nextflow_version or previous_run_obj["nextflowVersion"]
+        new_instance_type = (
+            instance_type
+            or previous_run_obj["masterInstance"]["requestedInstance"]["type"]
+        )
+        new_instance_disk = instance_disk or previous_run_obj["storageSizeInGb"]
+        new_storage_mode = storage_mode or previous_run_obj["storageMode"]
+        new_execution_platform = execution_platform or cloud_name
+        wf_url = f"{self.cloudos_url}/api/v2/workflows/{new_workflow_id}"
+        wf_r = retry_requests_get(wf_url, headers=headers, params=params)
+        if wf_r.status_code == 401:
+            raise NotAuthorisedException
+        elif wf_r.status_code >= 400:
+            raise BadRequestException(wf_r)
+        wf_obj = wf_r.json()
+        new_azure_worker_instance_type = (
+            azure_worker_instance_type or exec_obj["azure"]["defaultInstanceType"]
+        )
+        new_cost_limit = cost_limit or exec_obj["costLimitInUsd"]
+        new_command = command or previous_run_obj["command"]
+        new_cpus = cpus or previous_run_obj["resourceRequirements"]["cpu"]
+        new_memory = memory or previous_run_obj["resourceRequirements"]["ram"]
+
+        job_params = self.convert_nextflow_to_json(
+            job_config=job_config,
+            parameter=new_parameter,
+            is_module=is_module,
+            example_parameters=example_parameters,
+            git_branch=new_branch,
+            git_tag=git_tag,
+            git_commit=new_commit,
+            project_id=new_project_id,
+            workflow_id=new_workflow_id,
+            job_name=new_name,
+            resumable=new_resumable,
+            save_logs=new_save_logs,
+            batch=new_batch,
+            job_queue_id=new_job_queue_id,
+            nextflow_profile=new_nextflow_profile,
+            nextflow_version=new_nextflow_version,
+            instance_type=new_instance_type,
+            instance_disk=new_instance_disk,
+            storage_mode=new_storage_mode,
+            lustre_size=lustre_size,
+            execution_platform=new_execution_platform,
+            hpc_id=hpc_id,
+            workflow_type=wf_obj["workflowType"],
+            cromwell_id=cromwell_id,
+            azure_worker_instance_type=new_azure_worker_instance_type,
+            azure_worker_instance_disk=azure_worker_instance_disk,
+            azure_worker_instance_spot=azure_worker_instance_spot,
+            cost_limit=new_cost_limit,
+            use_mountpoints=use_mountpoints,
+            docker_login=docker_login,
+            command=new_command,
+            cpus=new_cpus,
+            memory=new_memory,
+        )
+        return job_params
