@@ -1251,7 +1251,7 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+@click.option("--repository-platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help=('Repository service where the workflow is located. Valid choices: github, gitlab, bitbucketServer. ' +
                     'Default=github'),
               default="github")
@@ -1277,7 +1277,7 @@ def import_wf(ctx,
               workflow_docs_link,
               cost_limit,
               workflow_description,
-              platform,
+              repository_platform,
               disable_ssl_verification,
               ssl_cert,
               profile):
@@ -1305,7 +1305,7 @@ def import_wf(ctx,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
             workflow_name=workflow_name,
-            repository_platform=platform
+            repository_platform=repository_platform
         )
     )
 
