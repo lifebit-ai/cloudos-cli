@@ -290,7 +290,7 @@ def configure(ctx, profile, make_default):
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
                     'as apikey can be used instead, but maintained for backwards compatibility.'))
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -1865,7 +1865,7 @@ def remove_profile(ctx, profile):
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
