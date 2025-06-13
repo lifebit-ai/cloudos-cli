@@ -253,5 +253,6 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
       run: |
-        cloudos datasets mv --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name lm-test Data/test_mv
-        cloudos datasets mv --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME  Data/mv_test 
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME"  Data/mv_test 
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name lm-test Data/test_mv
+       
