@@ -1,5 +1,5 @@
 from urllib.parse import urlsplit
-from cloudos_cli.import_wf.import_wf import ImportGitlab
+from cloudos_cli.import_wf.import_wf import ImportWorflow
 import pytest
 import responses
 from responses import matchers
@@ -52,7 +52,7 @@ def test_fetch_correct_repo_data(repo_url, main_file, expected):
 
     )
 
-    GitlabImport = ImportGitlab(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
+    GitlabImport = ImportWorflow(cloudos_url=CLOUDOS_URL, cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID,
                                 platform="gitlab", workflow_url=repo_url, workflow_name=REPO_NAME, main_file=main_file,
                                 workflow_docs_link="", verify=True)
     GitlabImport.get_repo()
