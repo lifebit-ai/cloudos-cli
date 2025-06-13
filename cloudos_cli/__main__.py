@@ -1251,10 +1251,9 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--repository-platform", type=click.Choice(["github", "gitlab", "bitbucketServer"]),
-              help=('Repository service where the workflow is located. Valid choices: github, gitlab, bitbucketServer. ' +
-                    'Default=github'),
-              default="github")
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
