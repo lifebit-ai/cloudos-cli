@@ -1,4 +1,7 @@
 ## lifebit-ai/cloudos-cli: changelog
+## v2.28.0 (2025-06-13)
+
+- Adds command to show the path to logs and results of jobs
 ## v2.27.0 (2025-06-10)
 
 ### Feat
