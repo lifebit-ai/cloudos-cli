@@ -1082,13 +1082,14 @@ def import_wf(ctx,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            workflow_name=workflow_name
+            workflow_name=workflow_name,
+            repository_platform=platform
         )
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     repo_import = ImportWorflow(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+                             platform=repository_platform, workflow_name=workflow_name, workflow_url=workflow_url,
                              workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +

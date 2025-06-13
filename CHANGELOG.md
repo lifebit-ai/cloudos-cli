@@ -1,4 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
+
+## v2.29.0 (2025-06-13)
+
+### Feat
+
+- Unify all workflow import platforms into a single child class
+
 ## v2.27.0 (2025-06-10)
 
 ### Feat
