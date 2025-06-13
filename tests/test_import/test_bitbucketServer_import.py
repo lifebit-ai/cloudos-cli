@@ -49,8 +49,3 @@ def test_fetch_correct_repo_data():
     assert gh.payload["repository"]["name"] == REPO_NAME
     assert gh.payload["repository"]["owner"]["id"] == ex_group_id
     assert gh.payload["repository"]["owner"]["login"] == ex_group_name
-
-
-if __name__ == "__main__":
-    test_fetch_correct_repo_data()
-    print("Test passed!")
