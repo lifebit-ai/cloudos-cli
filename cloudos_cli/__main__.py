@@ -1889,6 +1889,23 @@ def remove_profile(ctx, profile):
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--array-file', 
+              help=('Path to a file containing an array of commands to run in the bash job. ' +
+                    'If this option is used, the --command option will be ignored.'),
+              default=None)
+@click.option('--separator',
+              help=('Separator to use in the array file. Default=",". ' +
+                    'This option is only used when --array-file is provided.'),
+              default=',',
+              type=click.Choice([',', ';', 'tab', 'space', '|']))
+@click.option('--list-columns',
+              help=('List of columns to use in the array file. ' +
+                    'This option is only used when --array-file is provided.'),
+              is_flag=True)
+@click.option('--array-file-project',
+            help=('Name of the project to use when running the array file. ' +
+                    'This option is only used when --array-file is provided.'),
+            default=None)
 @click.pass_context
 def run_bash_job(ctx,
                  apikey,
