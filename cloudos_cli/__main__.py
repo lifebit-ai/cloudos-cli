@@ -1986,6 +1986,13 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     click.echo('Loading configuration profile')
     # Load configuration profile
     config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
         config_manager.load_profile_and_validate_data(
             ctx,
@@ -2004,8 +2011,6 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-
-    click.echo('Initializing...')
     # Initialize Datasets clients
     source_client = Datasets(
         cloudos_url=cloudos_url,
@@ -2076,6 +2081,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             target_kind = "Dataset"
         else:
             raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
+
 
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
