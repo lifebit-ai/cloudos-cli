@@ -3,7 +3,7 @@
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.errors import BadRequestException
 import json
@@ -289,7 +289,7 @@ def configure(ctx, profile, make_default):
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
                     'as apikey can be used instead, but maintained for backwards compatibility.'))
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -1250,10 +1250,9 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--platform", type=click.Choice(["github", "gitlab"]),
-              help=('Repository service where the workflow is located. Valid choices: github, gitlab. ' +
-                    'Default=github'),
-              default="github")
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
@@ -1276,7 +1275,7 @@ def import_wf(ctx,
               workflow_docs_link,
               cost_limit,
               workflow_description,
-              platform,
+              repository_platform,
               disable_ssl_verification,
               ssl_cert,
               profile):
@@ -1303,15 +1302,14 @@ def import_wf(ctx,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            workflow_name=workflow_name
+            workflow_name=workflow_name,
+            repository_platform=repository_platform
         )
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
-    repo_cls = repo_services[platform]
-    repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+    repo_import = ImportWorflow(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                             platform=repository_platform, workflow_name=workflow_name, workflow_url=workflow_url,
                              workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
@@ -1865,7 +1863,7 @@ def remove_profile(ctx, profile):
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',

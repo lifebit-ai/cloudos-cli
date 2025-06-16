@@ -660,8 +660,8 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub or GitLab (specified by the option `--platform`. Available options: `github`, `gitlab`)
-- If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
+- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--repository-platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
+- If your repository is private, you have access to the repository and to have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS.
 
 #### Usage of the workflow import command
 
@@ -677,7 +677,7 @@ cloudos workflow import \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --platform github 
+    --repository-platform github
 ```
 
 The expected output will be:
@@ -702,7 +702,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --platform github
+    --repository-platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
