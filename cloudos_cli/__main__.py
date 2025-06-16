@@ -2315,7 +2315,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
            click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name}'.", fg="green", bold=True)
         else:
             click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
-        sys.exit(1)
+            sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
         sys.exit(1)
