@@ -2191,8 +2191,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     """
     Move a file or folder from a source path to a destination path within or across CloudOS projects.
 
-    SOURCE_PATH [path] : the full source path. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'
-    DESTINATION_PATH [path]: the full destination path. It must be a 'Data' folder path. E.g.: 'Data/folderB'
+    SOURCE_PATH [path] : the full path to the file to move. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path. E.g.: 'Data/folderB'
     """
 
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
