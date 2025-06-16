@@ -2201,10 +2201,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
-        return
+        sys.exit(1)
     if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
         click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
-        return
+        sys.exit(1)
     click.echo('Loading configuration profile')
     # Load configuration profile
     config_manager = ConfigurationProfile()
@@ -2261,7 +2261,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         source_contents = source_client.list_folder_content(source_parent_path)
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
-        return 1
+        sys.exit(1)
 
     found_source = None
     for collection in ["files", "folders"]:
@@ -2273,7 +2273,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             break
     if not found_source:
         click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'", err=True)
-        return 1
+        sys.exit(1)
 
     source_id = found_source["_id"]
     source_kind = "Folder" if "folderType" in found_source else "File"
@@ -2301,7 +2301,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
-        return 1
+        sys.exit(1)
     click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
@@ -2315,10 +2315,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
            click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name}'.", fg="green", bold=True)
         else:
             click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
-            return 1
+        sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
-        return 1
+        sys.exit(1)
 
 
 if __name__ == "__main__":
