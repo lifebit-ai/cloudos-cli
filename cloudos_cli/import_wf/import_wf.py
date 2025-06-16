@@ -117,8 +117,6 @@ class ImportWorflow(WFImport):
             r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
         except RetryError as e:
             # RetryError getting from missing BitBucket Server credentials
-            print(f"[Error] Missing credentials for {self.platform} repository: {self.workflow_url}. " + \
-                  f"Please make sure you have connected your {self.platform} account in the platform settings.")
             raise AccountNotLinkedException(self.workflow_url)
 
         # for Github and Gitlab the API gives very general errors on missing credentials
