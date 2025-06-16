@@ -45,7 +45,7 @@ def test_fetch_correct_repo_data():
     )
     gh = ImportWorflow(cloudos_url="https://cloudos.lifebit.ai", cloudos_apikey=CLOUDOS_TOKEN, workspace_id=WORKSPACE_ID, platform="bitbucketServer", workflow_name=REPO_NAME, workflow_url=WF_MAIN_URL)
     gh.get_repo()
-    assert gh.payload["repository"]["repositoryId"] == ex_repo_id
+    assert gh.payload["repository"]["repositoryId"] == REPO_NAME
     assert gh.payload["repository"]["name"] == REPO_NAME
     assert gh.payload["repository"]["owner"]["id"] == ex_group_id
     assert gh.payload["repository"]["owner"]["login"] == ex_group_name
