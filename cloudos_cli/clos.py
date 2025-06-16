@@ -7,7 +7,6 @@ import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
-from certifi import contents
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
