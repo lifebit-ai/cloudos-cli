@@ -801,7 +801,7 @@ If you require more information on the files and folder listed, you can use the 
 
 ##### Moving files
 
-Files and folders can be moved **from** `Data` or nay of its subfolders (i.e `Data`, `Data/folder/file.txt`) **to** `Data` or any of its subfolders programmatically.
+Files and folders can be moved **from** `Data` or any of its subfolders (i.e `Data`, `Data/folder/file.txt`) **to** `Data` or any of its subfolders programmatically.
 
 1. The move can happen **within the same project** running the following command:
 ```
@@ -815,7 +815,7 @@ cloudos datasets mv <source_path> <destiantion_path> --profile <profile_name> --
 ```
 In this case, only the source project is the one specified in the profile.
 
-Any of the `source_path ` must be a full paths, starting from the `Data` datasets and its folder; any `destination_path` must be a path starting with `Data` and finishing with the foldser where to move the file/folder. An example of such command is
+Any of the `source_path` must be a full path, starting from the `Data` datasets and its folder; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. An example of such command is:
 
 ```
 cloudos datasets mv Data/results/my_plot.png Data/plots 
