@@ -18,7 +18,9 @@ from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
-
+from pathlib import Path
+import base64
+from cloudos_cli.utils.requests import retry_requests_get
 
 
 # GLOBAL VARS
@@ -2200,20 +2202,86 @@ def run_bash_array_job(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     # Get project ID
-    cl = Cloudos(cloudos_url, apikey, None)
-    content = cl.get_project_list(workspace_id, verify=verify_ssl)
+    # cl = Cloudos(cloudos_url, apikey, None)
+    # content = cl.get_project_list(workspace_id, verify=verify_ssl)
 
-    # New API projects endpoint spec
-    for element in content:
-        if element["name"] == project_name:
-            project_id = element["_id"]
-        else:
-            project_id = None
+    # # New API projects endpoint spec
+    # for element in content:
+    #     if element["name"] == project_name:
+    #         project_id = element["_id"]
+    #         break
+    #     else:
+    #         project_id = None
     
-    if project_id is None:
-        raise ValueError(f'Project "{project_name}" not found in workspace "{workspace_id}".')
-    
+    # if project_id is None:
+    #     raise ValueError(f'Project "{project_name}" not found in workspace "{workspace_id}".')
+
+    # print("project_id: ", project_id)
+
     # Get all folder IDs in the project
+    # headers = {
+    #     "Content-type": "application/json",
+    #     "apikey": self.apikey
+    # }
+    # if archived:
+    #     archived_status = "true"
+    # else:
+    #     archived_status = "false"
+    # r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
+    #                         self.cloudos_url, workspace_id, page, archived_status),
+    #                         headers=headers, verify=verify)
+    # if r.status_code >= 400:
+    #     raise BadRequestException(r)
+    # content = json.loads(r.content)
+    ds = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    # folder_ids = ds.list_project_content()
+    # print("folder_ids: ", folder_ids)
+
+    # for folder in folder_ids["datasets"]:
+    #     name = folder.get("name", None)
+    #     id = folder.get("_id", None)
+    #     print(name, " -> ds.list_datasets_content(): ", ds.list_datasets_content(name))
+
+    p = Path(array_file)
+    directory = str(p.parent)
+    file_name = p.name
+
+    result = ds.list_folder_content(directory)
+
+    for file in result['files']:
+        if file.get("name") == file_name:
+            s3_bucket_name = file.get("s3BucketName")
+            s3_object_key = file.get("s3ObjectKey")
+            s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
+            break
+    else:
+        raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{project_name}".')
+
+    print("bucket_name: ", s3_bucket_name)
+    print("s3_object_key: ", s3_object_key)
+    print("s3_object_key_b64: ", s3_object_key_b64)
+
+    headers = {
+        "Content-type": "application/json",
+        "apikey": apikey
+    }
+    r = retry_requests_get("{}/api/v1/jobs/array-file/metadata?separator={}&s3BucketName={}&s3ObjectKey={}&teamId={}".format(cloudos_url,
+                                                                                                                             separator,
+                                                                                                                             s3_bucket_name,
+                                                                                                                             s3_object_key_b64,
+                                                                                                                             workspace_id),
+                           headers=headers, verify=verify_ssl)
+    if r.status_code >= 400:
+        raise BadRequestException(r)
+    print("content: ", r.content)
+
 
 @datasets.command(name="ls")
 @click.argument("path", required=False, nargs=1)
