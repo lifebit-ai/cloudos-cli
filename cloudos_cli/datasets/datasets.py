@@ -151,11 +151,15 @@ class Datasets(Cloudos):
                                                                                   self.workspace_id),
                                headers=headers, verify=self.verify)
         raw = r.json()
-
+        datasets = raw.get("datasets", [])
         #  Normalize response
-        for item in raw.get("datasets", []):
+        for item in datasets:
             item["folderType"] = True
-        return raw
+        response ={
+                "folders": datasets,
+                "files": []
+            }
+        return response
 
     def list_datasets_content(self, folder_name):
         """Uses
@@ -182,7 +186,7 @@ class Datasets(Cloudos):
         if folder_name == 'AnalysesResults':
             folder_name = 'Analyses Results'
 
-        for folder in pro_fol.get("datasets", []):
+        for folder in pro_fol.get("folders", []):
             if folder['name'] == folder_name:
                 folder_id = folder['_id']
         if not folder_id:
@@ -262,6 +266,7 @@ class Datasets(Cloudos):
                                                                                      self.workspace_id),
                                 headers=headers, verify=self.verify)
         return r.json()
+    
     def list_folder_content(self, path=None):
         """
         Wrapper to list contents of a CloudOS folder.
@@ -326,6 +331,42 @@ class Datasets(Cloudos):
                 raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
 
         return folder_content
+    
+    def move_files_and_folders(self, source_id: str, source_kind: str, target_id: str, target_kind: str):
+        """
+        Move a file to another dataset in CloudOS.
+
+        Parameters
+        ----------
+        file_id : str
+            The ID of the file to move.
+
+        target_dataset_id : str
+            The ID of the target dataset to move the file into.
+
+        Returns
+        -------
+        response : requests.Response
+            The response object from the CloudOS API.
+        """
+        url = f"{self.cloudos_url}/api/v1/dataItems/move?teamId={self.workspace_id}"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "ApiKey": self.apikey
+        }
+        payload = {
+            "dataItemToMove": {
+                "kind": source_kind,
+                "item": source_id
+            },
+            "toDataItemParent": {
+                "kind": target_kind,
+                "item": target_id
+            }
+        }
+        response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        return response
 
     def rename_item(self, item_id: str, new_name: str, kind: str):
         """
