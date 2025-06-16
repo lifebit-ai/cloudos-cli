@@ -387,7 +387,7 @@ Check `cloudos bash job --help` for more details.
 
 #### Get path to logs of job from CloudOS
 
-Get the path where Nextflow logs, Nextflow standard output, and trace files. It can be used on jobs with any status.
+Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
 
 Example
 ```console
