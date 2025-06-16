@@ -660,7 +660,7 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
+- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--repository-platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
 - If your repository is private, you have access to the repository and to have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS.
 
 #### Usage of the workflow import command
