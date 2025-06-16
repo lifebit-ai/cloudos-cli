@@ -113,19 +113,21 @@ class ImportWorflow(WFImport):
             self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        #try:
-        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
-        # except (RetryError, BadRequestException) as e:
-        #     # RetryError getting from missing BitBucket Server credentials
-        #     # BadRequestException getting from missing GitLab or GitHub credentials
-        #     print(f"[Error] Missing credentials for {self.platform} repository: {self.workflow_url}. " + \
-        #           f"Please make sure you have connected your {self.platform} account in the platform settings.")
-        #     sys.exit(1)
+        try:
+            r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        except RetryError as e:
+            # RetryError getting from missing BitBucket Server credentials
+            print(f"[Error] Missing credentials for {self.platform} repository: {self.workflow_url}. " + \
+                  f"Please make sure you have connected your {self.platform} account in the platform settings.")
+            raise AccountNotLinkedException(self.workflow_url)
 
+        # for Github and Gitlab the API gives very general errors on missing credentials
+        # therefore we only have these at the moment
         if r.status_code == 404:
             raise AccountNotLinkedException(self.workflow_url)
         elif r.status_code >= 400:
             raise BadRequestException(r)
+
         r_data = r.json()
         if self.platform == "bitbucketServer":
             self.payload["repository"]["repositoryId"] = r_data["name"]
