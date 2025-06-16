@@ -1,0 +1,584 @@
+{
+    "_id": "616ee9681b866a01d69fa1cd",
+    "user": {
+        "id": "kcjaioshfaysgasghakjsg8yas8",
+        "name": "John",
+        "surname": "Doe",
+        "email": "john@lifebit.ai",
+        "secondaryEmail": "john@lifebit.ai",
+        "organization": "Lifebit",
+        "isPredefined": false,
+        "isSuspended": false,
+        "favoritedPublicBuckets": [],
+        "favoritedPublicAzureContainers": [],
+        "adGroups": [],
+        "isApproved": true,
+        "isReviewed": true,
+        "isVerified": true,
+        "totalCreditsInCents": 998.4470530799999,
+        "dockerRegistriesCredentials": [
+            {
+                "server": "docker.io",
+                "username": "john"
+            }
+        ]
+    },
+    "jobType": "nextflowAWS",
+    "team": "5c6d3e9bd954e800b23f8c62",
+    "workflow": {
+        "_id": "b4b664c0b6f1823a651e451c",
+        "owner": {
+            "id": "5d72291a024bb8943d8f219a"
+        },
+        "name": "Common variant analysis (GWAS)",
+        "instanceType": "c5.xlarge",
+        "estimCost": 0.1,
+        "docsLink": "https://lifebit.atlassian.net/wiki/spaces/CD/pages/1502969897/Common+variant+analysis",
+        "description": "Conducts Genome-Wide Association Studies (GWAS) across one or multiple ancestries, with the option to perform trans-ancestry meta-analysis. Additionally, you can enable reporting and visualization for both GWAS and meta-analysis, as well as harmonize summary statistics.",
+        "category": "Common variant analysis",
+        "defaultContainer": null,
+        "isPredefined": true,
+        "isCurated": false,
+        "isFeatured": false,
+        "isModule": true,
+        "isPublic": false,
+        "isLifebitManaged": true,
+        "group": "drug-discovery",
+        "priceAmount": 200,
+        "priceUnit": "PER_SAMPLE",
+        "tags": [
+            "GWAS",
+            "Trans-ancestry",
+            "Meta-analysis"
+        ],
+        "overview": "Common variant analysis.\nPlease refer to the <a href=\"https://lifebit.atlassian.net/wiki/spaces/CD/pages/1502969897/Common+variant+analysis\" target=\"_blank\">documentation</a> for more information on the pipeline.",
+        "createdAt": "2025-05-27T08:31:42.170Z",
+        "updatedAt": "2025-05-27T08:31:42.170Z",
+        "imageUrl": "https://s3-eu-west-1.amazonaws.com/lifebit-data/images/generic.svg",
+        "parametersInfo": [],
+        "parametersProvider": "s3",
+        "archived": {
+            "status": false,
+            "archivalTimestamp": null
+        },
+        "workflowType": "nextflow",
+        "repository": {
+            "owner": {
+                "login": "lifebit-ai",
+                "id": "30871219"
+            },
+            "platform": "github",
+            "repositoryId": "820526317",
+            "name": "lifebit-platform-trans-ancestry-meta-analysis",
+            "isPrivate": true,
+            "url": "https://github.com/lifebit-ai/lifebit-platform-trans-ancestry-meta-analysis",
+            "commit": "",
+            "branch": ""
+        },
+        "mainFile": "main.nf",
+        "processes": []
+    },
+    "name": "commonVariantAn_xtiny2_chr1_4_6_10_and_1500participants_10KSNPs_3ancestries",
+    "parameters": [
+        {
+            "name": "genotypic_file_list",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "s3://lifebit-user-data-2087642a-0751-4368-9e57-afa3bd2c227f/deploit/teams/5c6d3e9bd954e800b23f8c62/users/60bf3b9b303ee601a69e4856/folder/684097004800ec25617fcb15/cloudos_genotype_list_chr1-4-6-10.csv"
+        },
+        {
+            "name": "phenofile",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "s3://lifebit-user-data-2087642a-0751-4368-9e57-afa3bd2c227f/deploit/teams/5c6d3e9bd954e800b23f8c62/users/60bf3b9b303ee601a69e4856/folder/684097004800ec25617fcb15/xtiny2_3ancestries_500pEach_QT.phe"
+        },
+        {
+            "name": "phenotype_colname",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "PHE"
+        },
+        {
+            "name": "ancestry_covariates_file",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "s3://lifebit-user-data-2087642a-0751-4368-9e57-afa3bd2c227f/deploit/teams/5c6d3e9bd954e800b23f8c62/users/60bf3b9b303ee601a69e4856/folder/684097004800ec25617fcb15/xtiny2_3_ancestries.phe"
+        },
+        {
+            "name": "ancestry_colname",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "Ancestry"
+        },
+        {
+            "name": "genome_build",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "GRCh38"
+        },
+        {
+            "name": "duplicate_samples_error_strategy",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "warning"
+        },
+        {
+            "name": "apply_rint",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "min_samples",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "100"
+        },
+        {
+            "name": "min_cases",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "100"
+        },
+        {
+            "name": "genotype_qc_maf",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.01"
+        },
+        {
+            "name": "genotype_qc_mac",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "10"
+        },
+        {
+            "name": "genotype_qc_geno",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.05"
+        },
+        {
+            "name": "genotype_qc_hwe",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5e-8"
+        },
+        {
+            "name": "genotype_qc_mind",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.05"
+        },
+        {
+            "name": "ld_prune_window_kbsize",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "1000"
+        },
+        {
+            "name": "ld_prune_step_size",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "100"
+        },
+        {
+            "name": "ld_prune_r2_threshold",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.2"
+        },
+        {
+            "name": "ld_prune_maf",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.05"
+        },
+        {
+            "name": "force_step1",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "regenie_step1_bsize",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "1000"
+        },
+        {
+            "name": "regenie_step1_loocv",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "regenie_step1_cv_folds",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5"
+        },
+        {
+            "name": "regenie_step2_bsize",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "1000"
+        },
+        {
+            "name": "regenie_min_mac",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5"
+        },
+        {
+            "name": "regenie_geno_model",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "additive"
+        },
+        {
+            "name": "regenie_pthresh",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "0.01"
+        },
+        {
+            "name": "meta_analysis",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "heterogeneity",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "gwas_results_harmonisation_and_qc",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "meta_analysis_harmonisation_and_qc",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "pos_se",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "effect_columns_nonzero",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "N_std",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5"
+        },
+        {
+            "name": "N_dropNA",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "chr_style",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "Ensembl"
+        },
+        {
+            "name": "rmv_chr",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "NULL"
+        },
+        {
+            "name": "on_ref_genome",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "infer_eff_direction",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "strand_ambig_filter",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "allele_flip_check",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "allele_flip_drop",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "allele_flip_z",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "allele_flip_frq",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "bi_allelic_filter",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "flip_frq_as_biallelic",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "remove_multi_rs_snp",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "frq_is_maf",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "drop_indels",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "check_dups",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "sort_coordinates",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "log_folder_ind",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "false"
+        },
+        {
+            "name": "log_mungesumstats_msgs",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "gwas_visualisation_and_report",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "gwas_report_pvalue_threshold",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5e-8"
+        },
+        {
+            "name": "meta_analysis_visualisation_and_report",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "meta_analysis_report_p_val_threshold",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5e-8"
+        },
+        {
+            "name": "annotate_closest_gene",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "generate_metadata",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "true"
+        },
+        {
+            "name": "metadata_signif_pval",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "5e-8"
+        }
+    ],
+    "project": {
+        "_id": "67c86f6e4fa22f20a0ca82c8",
+        "user": {
+            "id": "60bf3b9b303ee601a69e4856"
+        },
+        "team": {
+            "id": "5c6d3e9bd954e800b23f8c62"
+        },
+        "name": "target-id--johnd_testing",
+        "description": "",
+        "projectData": [],
+        "createdAt": "2025-03-05T15:36:14.934Z",
+        "updatedAt": "2025-05-26T13:14:05.538Z",
+        "directory": {}
+    },
+    "masterInstance": {
+        "requestedInstance": {
+            "type": "c5.xlarge",
+            "asSpot": false
+        },
+        "usedInstance": {
+            "asSpot": false,
+            "name": "ip-10-0-35-103",
+            "type": "c5.xlarge"
+        }
+    },
+    "spotInstances": {
+        "usedInstance": {},
+        "instances": []
+    },
+    "storageMode": "regular",
+    "storageSizeInGb": 500,
+    "status": "completed",
+    "error": {},
+    "logs": {
+        "s3BucketName": "lifebit-user-data-2087642a-0751-4368-9e57-afa3bd2c227f",
+        "s3Prefix": "deploit/teams/5c6d3e9bd954e800b23f8c62/users/60bf3b9b303ee601a69e4856/projects/67c86f6e4fa22f20a0ca82c8/jobs/6846b0f972fabce0f8a534ff/logs"
+    },
+    "results": {},
+    "saveProcessLogs": true,
+    "startTime": "2025-06-09T10:02:40.336Z",
+    "createdAt": "2025-06-09T10:01:29.666Z",
+    "updatedAt": "2025-06-09T10:03:41.848Z",
+    "computeCostSpent": 0.3253333333333333,
+    "realInstancesExecutionCost": 0.3253333333333333,
+    "instancesExecutionCostSavings": 0,
+    "masterInstanceOnDemandExecutionCost": 0.3253333333333333,
+    "masterInstanceSpotExecutionCost": 0,
+    "onDemandExecutionCost": 0,
+    "spotExecutionCost": 0,
+    "masterInstanceStorageCost": 0.15532407407407406,
+    "storageCost": 0,
+    "serviceFee": 0,
+    "additionalCost": 0,
+    "moduleExecutionCost": 0,
+    "isReportAvailable": false,
+    "monitor": {
+        "processDataList": [],
+        "processSummaryData": {},
+        "processesStatusesSummary": {
+            "submitted": 0,
+            "retried": 0,
+            "failed": 0,
+            "completed": 0,
+            "totalProcs": 0,
+            "completedProcs": 0,
+            "processNames": []
+        },
+        "workflowStatus": {
+            "runName": "",
+            "runId": "",
+            "runStatus": "",
+            "_id": "6846b0f972fabce0f8a53500"
+        },
+        "usesProcessMetricsService": true
+    },
+    "progress": {},
+    "revision": {
+        "tag": "",
+        "commit": "7c2067cb3af50cde06524b6f78a112e0801a0080",
+        "branch": "prod",
+        "revisionType": "branch"
+    },
+    "resourceRequirements": {
+        "cpu": 1,
+        "ram": 4
+    },
+    "resumeWorkDir": "6846b0fd7fa0203cbc02f951",
+    "usesFusionFileSystem": false,
+    "batch": {
+        "enabled": true,
+        "jobQueue": {
+            "id": "67179bf07d94c72e2c1349f5",
+            "name": "nextflow-job-queue-5c6d3e9bd954e800b23f8c62-5255",
+            "resourceType": "systemBatchJobQueue",
+            "executor": "nextflow",
+            "arn": "arn:aws:batch:eu-west-1:024947089814:job-queue/nextflow-job-queue-5c6d3e9bd954e800b23f8c62-5255",
+            "computeEnvironments": [
+                {
+                    "label": "lifebit_drug_discovery_compute_env",
+                    "environment": "67179bf07d94c72e2c1349ef",
+                    "status": "Ready",
+                    "createdAt": "2024-10-22T12:34:56.232Z",
+                    "updatedAt": "2025-06-02T15:53:59.670Z",
+                    "backup": null,
+                    "errorMessage": "Error executing request, Exception : Limits Error : Only 50 Managed Compute Environments allowed., RequestId: d1a88e97-b030-4b1c-95fc-9463287a02db"
+                }
+            ],
+            "status": "Ready",
+            "resource": "5c6d3e9bd954e800b23f8c62",
+            "label": "drug_discovery",
+            "description": "Lifebit managed AWS batch job queue used for running drug discovery factory pipelines."
+        },
+        "templateQueue": {
+            "id": "67179bf07d94c72e2c1349f5",
+            "name": "nextflow-job-queue-5c6d3e9bd954e800b23f8c62-5255",
+            "resourceType": "systemBatchJobQueue",
+            "executor": "nextflow",
+            "arn": "arn:aws:batch:eu-west-1:024947089814:job-queue/nextflow-job-queue-5c6d3e9bd954e800b23f8c62-5255",
+            "computeEnvironments": [
+                {
+                    "label": "lifebit_drug_discovery_compute_env",
+                    "environment": "67179bf07d94c72e2c1349ef",
+                    "status": "Ready",
+                    "createdAt": "2024-10-22T12:34:56.232Z",
+                    "updatedAt": "2025-06-02T15:53:59.670Z",
+                    "backup": null,
+                    "errorMessage": "Error executing request, Exception : Limits Error : Only 50 Managed Compute Environments allowed., RequestId: d1a88e97-b030-4b1c-95fc-9463287a02db"
+                }
+            ],
+            "status": "Ready",
+            "resource": "5c6d3e9bd954e800b23f8c62",
+            "label": "drug_discovery",
+            "description": "Lifebit managed AWS batch job queue used for running drug discovery factory pipelines."
+        },
+        "dockerLogin": false
+    },
+    "nextflowVersion": "22.10.8",
+    "isOptim": false,
+    "tags": []
+}

@@ -3,17 +3,18 @@
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.queue.queue import Queue
+from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
-from cloudos_cli.datasets import Datasets
-from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.console import Console
 from rich.table import Table
+from cloudos_cli.datasets import Datasets
+from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 
 
@@ -61,6 +62,7 @@ def run_cloudos_cli(ctx):
                 'list': shared_config,
                 'logs': shared_config,
                 'results': shared_config
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -81,7 +83,8 @@ def run_cloudos_cli(ctx):
                 'job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
     else:
@@ -104,6 +107,7 @@ def run_cloudos_cli(ctx):
                 'list': shared_config,
                 'logs': shared_config,
                 'results': shared_config
+                'details': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -124,7 +128,8 @@ def run_cloudos_cli(ctx):
                 'job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
 
@@ -288,7 +293,7 @@ def configure(ctx, profile, make_default):
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
                     'as apikey can be used instead, but maintained for backwards compatibility.'))
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -726,6 +731,7 @@ def job_status(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@job.command('details')
 def job_logs(ctx,
              apikey,
              cloudos_url,
@@ -844,6 +850,220 @@ def job_results(ctx,
     logs = cl.get_job_results(job_id, workspace_id, verify_ssl)
     for name, path in logs.items():
         print(f"{name}: {path}\n")
+
+
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--output-format',
+              help='The desired display for the output, either directly in standard output or saved as file. Default=stdout.',
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--output-basename',
+              help=('Output file base name to save jobs details. ' +
+                    'Default=job_details'),
+              default='job_details',
+              required=False)
+@click.option('--parameters',
+              help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
+                    'It will have the same basename as defined in "--output-basename". '),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_details(ctx,
+               apikey,
+               cloudos_url,
+               job_id,
+               output_format,
+               output_basename,
+               parameters,
+               verbose,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
+    """Retrieve job details in CloudOS."""
+    profile = profile or ctx.default_map['job']['details']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url
+        )
+    )
+
+    print('Executing details...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    # check if the API gives a 403 error/forbidden error
+    try:
+        j_details = cl.get_job_status(job_id, verify_ssl)
+    except BadRequestException as e:
+        if '403' in str(e) or 'Forbidden' in str(e):
+            print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
+            sys.exit(1)
+    j_details_h = json.loads(j_details.content)
+
+    # Check if the job details contain parameters
+    if j_details_h["parameters"] != []:
+        param_kind_map = {
+            'textValue': 'textValue',
+            'arrayFileColumn': 'columnName',
+            'globPattern': 'globPattern',
+            'lustreFileSystem': 'fileSystem',
+        }
+        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
+        # get first the type of parameter, then the value based on the parameter kind
+        concats = []
+        for param in j_details_h["parameters"]:
+            if param['parameterKind'] == 'dataItem':
+                # For dataItem, we need to use specific nested keys
+                concats.append(f"{param['prefix']}{param['name']}={param['dataItem']['item']['name']}")
+            else:
+                # For other parameter kinds, we use the appropriate key from param_kind_map
+                concats.append(f"{param['prefix']}{param['name']}={param[param_kind_map[param['parameterKind']]]}")
+        concat_string = '\n'.join(concats)
+        # If the user requested to save the parameters in a config file
+        if parameters:
+            # Create a config file with the parameters
+            config_filename = f"{output_basename}.config"
+            with open(config_filename, 'w') as config_file:
+                config_file.write("params {\n")
+                for param in j_details_h["parameters"]:
+                    config_file.write(f"\t{param['name']} = {param['textValue']}\n")
+                config_file.write("}\n")
+            print(f"\tJob parameters have been saved to '{config_filename}'")
+    else:
+        concat_string = 'No parameters provided'
+        if parameters:
+            print("\tNo parameters found in the job details, no config file will be created.")
+
+    # Determine the execution platform based on jobType
+    executors = {
+        'nextflowAWS':'Batch AWS',
+        'nextflowAzure': 'Batch Azure',
+        'nextflowGcp': 'GCP',
+        'nextflowHpc': 'HPC',
+        'nextflowKubernetes': 'Kubernetes',
+        'dockerAWS': 'Batch AWS',
+        'cromwellAWS': 'Batch AWS'
+    }
+    execution_platform = executors.get(j_details_h["jobType"], "None")
+
+    # revision
+    if j_details_h["jobType"] == "dockerAWS":
+        revision = j_details_h["revision"]["digest"]
+    else:
+        revision = j_details_h["revision"]["commit"]
+
+    # Output the job details
+    if output_format == 'stdout':
+        console = Console()
+        table = Table(title="Job Details")
+
+        table.add_column("Field", style="cyan", no_wrap=True)
+        table.add_column("Value", style="magenta", overflow="fold")
+
+        table.add_row("Job Status", str(j_details_h["status"]))
+        table.add_row("Parameters", concat_string)
+        if j_details_h["jobType"] == "dockerAWS":
+            table.add_row("Command", str(j_details_h["command"]))
+        table.add_row("Revision", str(revision))
+        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
+        table.add_row("Execution Platform", execution_platform)
+        table.add_row("Profile", str(j_details_h.get("profile", "None")))
+        table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
+            except KeyError:
+                table.add_row("Worker Node", "Not Specified")
+        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
+        if j_details_h["jobType"] != "nextflowAzure":
+            try:
+                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
+                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
+            except KeyError:
+                table.add_row("Job Queue", "Master Node")
+        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
+        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
+                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
+
+        console.print(table)
+    else:
+        # Create a JSON object with the key-value pairs
+        job_details_json = {
+            "Job Status": str(j_details_h["status"]),
+            "Parameters": ','.join(concat_string.split()),
+            "Revision": str(revision),
+            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
+            "Execution Platform": execution_platform,
+            "Profile": str(j_details_h.get("profile", "None")),
+            "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
+            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
+            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
+            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
+                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
+
+        }
+
+        # Conditionally add the "Command" key if the jobType is "dockerAWS"
+        if j_details_h["jobType"] == "dockerAWS":
+            job_details_json["Command"] = str(j_details_h["command"])
+
+        # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
+        if j_details_h["jobType"] != "nextflowAzure":
+            try:
+                job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
+                job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
+            except KeyError:
+                job_details_json["Job Queue"] = "Master Node"
+
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
+            except KeyError:
+                job_details_json["Worker Node"] = "Not Specified"
+
+        # Write the JSON object to a file
+        with open(f"{output_basename}.json", "w") as json_file:
+            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
+        print(f"\tJob details have been saved to '{output_basename}.json'")
 
 
 @job.command('list')
@@ -1179,10 +1399,9 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--platform", type=click.Choice(["github", "gitlab"]),
-              help=('Repository service where the workflow is located. Valid choices: github, gitlab. ' +
-                    'Default=github'),
-              default="github")
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
@@ -1205,7 +1424,7 @@ def import_wf(ctx,
               workflow_docs_link,
               cost_limit,
               workflow_description,
-              platform,
+              repository_platform,
               disable_ssl_verification,
               ssl_cert,
               profile):
@@ -1232,15 +1451,14 @@ def import_wf(ctx,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            workflow_name=workflow_name
+            workflow_name=workflow_name,
+            repository_platform=repository_platform
         )
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
-    repo_cls = repo_services[platform]
-    repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+    repo_import = ImportWorflow(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                             platform=repository_platform, workflow_name=workflow_name, workflow_url=workflow_url,
                              workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
@@ -1794,7 +2012,7 @@ def remove_profile(ctx, profile):
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -2092,13 +2310,163 @@ def list_files(ctx,
             console = Console()
             for item in contents:
                 name = item.get("name", "")
-                if item.get("isDir"):
+                is_folder = item.get("folderType") or item.get("isDir")
+                if is_folder:
                     console.print(f"[blue underline]{name}[/]")
                 else:
                     console.print(name)
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
+
+
+@datasets.command(name="mv")
+@click.argument("source_path", required=True)
+@click.argument("destination_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.')
+@click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspace_id,
+               project_name, destination_project_name,
+               disable_ssl_verification, ssl_cert, profile):
+    """
+    Move a file or folder from a source path to a destination path within or across CloudOS projects.
+
+    SOURCE_PATH [path] : the full path to the file or folder to move. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'\n
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path. E.g.: 'Data/folderB'
+    """
+
+    profile = profile or ctx.default_map['datasets']['move'].get('profile')
+    destination_project_name = destination_project_name or project_name
+
+    # Validate destination constraint
+    if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
+        click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
+        sys.exit(1)
+    if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
+        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
+        sys.exit(1)
+    click.echo('Loading configuration profile')
+    # Load configuration profile
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    # Initialize Datasets clients
+    source_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    dest_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=destination_project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    click.echo('Checking source path')
+    # === Resolve Source Item ===
+    source_parts = source_path.strip("/").split("/")
+    source_parent_path = "/".join(source_parts[:-1]) if len(source_parts) > 1 else None
+    source_item_name = source_parts[-1]
+
+    try:
+        source_contents = source_client.list_folder_content(source_parent_path)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
+        sys.exit(1)
+
+    found_source = None
+    for collection in ["files", "folders"]:
+        for item in source_contents.get(collection, []):
+            if item.get("name") == source_item_name:
+                found_source = item
+                break
+        if found_source:
+            break
+    if not found_source:
+        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'", err=True)
+        sys.exit(1)
+
+    source_id = found_source["_id"]
+    source_kind = "Folder" if "folderType" in found_source else "File"
+    click.echo("Checking destination path")
+    # === Resolve Destination Folder ===
+    dest_parts = destination_path.strip("/").split("/")
+    dest_folder_name = dest_parts[-1]
+    dest_parent_path = "/".join(dest_parts[:-1]) if len(dest_parts) > 1 else None
+
+    try:
+        dest_contents = dest_client.list_folder_content(dest_parent_path)
+        match = next((f for f in dest_contents.get("folders", []) if f.get("name") == dest_folder_name), None)
+        if not match:
+            raise ValueError(f"Could not resolve destination folder '{destination_path}'")
+
+        target_id = match["_id"]
+        folder_type = match.get("folderType")
+        # Normalize kind: top-level datasets are kind=Dataset, all other folders are kind=Folder
+        if folder_type in ("VirtualFolder", "S3Folder", "Folder"):
+            target_kind = "Folder"
+        elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
+            target_kind = "Dataset"
+        else:
+            raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
+
+    except Exception as e:
+        click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
+        sys.exit(1)
+    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' in project '{destination_project_name} ...")
+    # === Perform Move ===
+    try:
+        response = source_client.move_files_and_folders(
+            source_id=source_id,
+            source_kind=source_kind,
+            target_id=target_id,
+            target_kind=target_kind
+        )
+        if response.ok:
+           click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name}'.", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     run_cloudos_cli()
