@@ -702,7 +702,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --platform github
+    --repository-platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
