@@ -852,6 +852,7 @@ def job_results(ctx,
         print(f"{name}: {path}\n")
 
 
+@job.command('details')
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
