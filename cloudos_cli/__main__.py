@@ -82,7 +82,8 @@ def run_cloudos_cli(ctx):
             },
             'datasets': {
                 'ls': shared_config,
-                'mv': shared_config
+                'mv': shared_config,
+                'rename': shared_config
             }
         })
     else:
@@ -125,7 +126,8 @@ def run_cloudos_cli(ctx):
             },
             'datasets': {
                 'ls': shared_config,
-                'mv': shared_config
+                'mv': shared_config,
+                'rename': shared_config
             }
         })
 
