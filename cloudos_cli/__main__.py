@@ -731,7 +731,6 @@ def job_status(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-@job.command('details')
 def job_logs(ctx,
              apikey,
              cloudos_url,
