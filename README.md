@@ -409,7 +409,7 @@ Trace file: s3://path/to/location/of/logs/trace.txt
 
 #### Get path to result files of jobs from CloudOS
 
-Get the path where CloudOS stores the output files for a job. This can be used only for jobs with "completed" status
+Get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
 
 Example
 ```console
