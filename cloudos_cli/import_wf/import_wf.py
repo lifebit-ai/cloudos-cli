@@ -3,6 +3,8 @@ from urllib.parse import urlsplit
 from cloudos_cli.utils.errors import BadRequestException, AccountNotLinkedException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 import json
+from requests.exceptions import RetryError
+import sys
 
 
 class WFImport(ABC):
@@ -111,13 +113,24 @@ class ImportWorflow(WFImport):
             self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        try:
+            r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        except (RetryError, BadRequestException) as e:
+            # RetryError getting from missing BitBucket Server credentials
+            # BadRequestException getting from missing GitLab or GitHub credentials
+            print(f"[Error] Missing credentials for {self.platform} repository: {self.workflow_url}. " + \
+                  f"Please make sure you have connected your {self.platform} account in the platform settings.")
+            sys.exit(1)
+
         if r.status_code == 404:
             raise AccountNotLinkedException(self.workflow_url)
         elif r.status_code >= 400:
             raise BadRequestException(r)
         r_data = r.json()
-        self.payload["repository"]["repositoryId"] = r_data["id"]
+        if self.platform == "bitbucketServer":
+            self.payload["repository"]["repositoryId"] = r_data["name"]
+        else:
+            self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
         owner_data = {
             "bitbucketServer": ("project", "id", "key"),
