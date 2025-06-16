@@ -15,10 +15,7 @@ from rich.console import Console
 from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
-from rich.console import Console
-from rich.table import Table
 from rich.style import Style
-import fnmatch
 
 
 # GLOBAL VARS
@@ -2179,10 +2176,10 @@ def list_files(ctx,
 @datasets.command(name="mv")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
-@click.option('-k', '--apikey', required=False, help='Your CloudOS API key.')
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
 @click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
-@click.option('--workspace-id', required=False, help='The CloudOS workspace ID.')
-@click.option('--project-name', required=False, help='The source project name.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
@@ -2212,7 +2209,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': True
     }
 
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
@@ -2263,7 +2260,6 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 
     try:
         source_contents = source_client.list_folder_content(source_parent_path)
-        #print(source_contents)
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
         return
@@ -2304,7 +2300,6 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         else:
             raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
 
-
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
         return
@@ -2323,6 +2318,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
     except Exception as e:
         click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
+
 
 if __name__ == "__main__":
     run_cloudos_cli()
