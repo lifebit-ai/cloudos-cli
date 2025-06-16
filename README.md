@@ -677,7 +677,7 @@ cloudos workflow import \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --platform github
+    --repository-platform github
 ```
 
 The expected output will be:
