@@ -801,7 +801,7 @@ If you require more information on the files and folder listed, you can use the 
 
 ##### Moving files
 
-The files and folders present in file explorer can be moved to `Data` and its subfolders programmatically.
+Files and folders can be moved **from** `Data` or nay of its subfolders (i.e `Data`, `Data/folder/file.txt`) **to** `Data` or any of its subfolders programmatically.
 
 1. The move can happen **within the same project** running the following command:
 ```
@@ -815,6 +815,12 @@ cloudos datasets mv <source_path> <destiantion_path> --profile <profile_name> --
 ```
 In this case, only the source project is the one specified in the profile.
 
+Any of the `source_path ` must be a full paths, starting from the `Data` datasets and its folder; any `destination_path` must be a path starting with `Data` and finishing with the foldser where to move the file/folder. An example of such command is
+
+```
+cloudos datasets mv Data/results/my_plot.png Data/plots 
+```
+
 Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
 ```bash
     --cloudos-url $CLOUDOS \
@@ -822,7 +828,6 @@ Please, note that in the above example a preconfigured profile has been used. If
     --workspace-id $WORKSPACE_ID \
     --project-name $PROJEC_NAME
 ```
-
 
 ### WDL pipeline support
 

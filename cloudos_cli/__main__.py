@@ -2191,7 +2191,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     """
     Move a file or folder from a source path to a destination path within or across CloudOS projects.
 
-    SOURCE_PATH [path] : the full source path. E.g.: 'Data/folderA/file.txt'
+    SOURCE_PATH [path] : the full source path. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'
     DESTINATION_PATH [path]: the full destination path. It must be a 'Data' folder path. E.g.: 'Data/folderB'
     """
 
@@ -2201,6 +2201,9 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
+        return
+    if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
+        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
         return
     click.echo('Loading configuration profile')
     # Load configuration profile
@@ -2251,10 +2254,6 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     click.echo('Checking source path')
     # === Resolve Source Item ===
     source_parts = source_path.strip("/").split("/")
-    if not source_parts or not source_parts[0]:
-        click.echo("[ERROR] SOURCE_PATH must start with a dataset name like 'Data/'", err=True)
-        return
-
     source_parent_path = "/".join(source_parts[:-1]) if len(source_parts) > 1 else None
     source_item_name = source_parts[-1]
 
