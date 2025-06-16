@@ -2172,5 +2172,100 @@ def list_files(ctx,
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
+@datasets.command(name="rename")
+@click.argument("source_path", required=True)
+@click.argument("new_name", required=True)
+@click.option('-k', '--apikey', required=False, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
+@click.option('--workspace-id', required=False, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def rename_item_cli(ctx, source_path, new_name, apikey, cloudos_url,
+                    workspace_id, project_name,
+                    disable_ssl_verification, ssl_cert, profile):
+    """
+    Rename a file or folder in a CloudOS project.
+
+    SOURCE_PATH must be a full path like 'Data/folderA/old_name.txt'
+    NEW_NAME is the new name to assign.
+    """
+    click.echo("Loading configuration profile...")
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, _, _, _, project_name = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict={
+            'apikey': True,
+            'workspace_id': True,
+            'workflow_name': False,
+            'project_name': True
+        },
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=workspace_id,
+        workflow_name=None,
+        repository_platform=None,
+        execution_platform=None,
+        project_name=project_name
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    parts = source_path.strip("/").split("/")
+    if len(parts) == 0:
+        click.echo("[ERROR] Invalid source path.", err=True)
+        return
+
+    parent_path = "/".join(parts[:-1]) if len(parts) > 1 else None
+    target_name = parts[-1]
+
+    try:
+        contents = client.list_folder_content(parent_path)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
+        return
+
+    # Search for file/folder
+    found_item = None
+    for category in ["files", "folders"]:
+        for item in contents.get(category, []):
+            if item.get("name") == target_name:
+                found_item = item
+                break
+        if found_item:
+            break
+
+    if not found_item:
+        click.echo(f"[ERROR] Item '{target_name}' not found in '{parent_path or '[project root]'}'", err=True)
+        return
+
+    item_id = found_item["_id"]
+    kind = "Folder" if "folderType" in found_item else "File"
+
+    click.echo(f"Renaming {kind} '{target_name}' to '{new_name}'...")
+    try:
+        response = client.rename_item(item_id=item_id, new_name=new_name, kind=kind)
+        if response.ok:
+            click.secho(f"[SUCCESS] {kind} renamed to '{new_name}' in path '{source_path}'.", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Rename failed: {response.status_code} - {response.text}", err=True)
+    except Exception as e:
+        click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
+
+
 if __name__ == "__main__":
     run_cloudos_cli()

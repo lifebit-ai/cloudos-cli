@@ -5,8 +5,8 @@ This is the main class for file explorer (datasets).
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.requests import retry_requests_get
-
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put
+import json
 
 @dataclass
 class Datasets(Cloudos):
@@ -326,3 +326,40 @@ class Datasets(Cloudos):
                 raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
 
         return folder_content
+
+    def rename_item(self, item_id: str, new_name: str, kind: str):
+        """
+        Rename a file or folder in CloudOS.
+
+        Parameters
+        ----------
+        item_id : str
+            The ID of the file or folder to rename.
+        new_name : str
+            The new name to assign to the item.
+        kind : str
+            Either "File" or "Folder"
+
+        Returns
+        -------
+        response : requests.Response
+            The response object from the CloudOS API.
+        """
+        if kind not in ("File", "Folder"):
+            raise ValueError("Invalid kind provided. Must be 'File' or 'Folder'.")
+
+        endpoint = "files" if kind == "File" else "folders"
+        url = f"{self.cloudos_url}/api/v1/{endpoint}/{item_id}?teamId={self.workspace_id}"
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "ApiKey": self.apikey
+        }
+
+        payload = {
+            "name": new_name
+        }
+
+        response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        return response
