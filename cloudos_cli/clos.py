@@ -268,7 +268,6 @@ class Cloudos:
                 results[filename] = f"{scheme}://{results_container}/{item['path']}"
         return results
 
-
     def _create_cromwell_header(self):
         """Generates cromwell header.
 
