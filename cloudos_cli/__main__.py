@@ -930,6 +930,7 @@ def job_details(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
+
     # check if the API gives a 403 error/forbidden error
     try:
         j_details = cl.get_job_status(job_id, verify_ssl)
