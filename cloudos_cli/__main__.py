@@ -2505,28 +2505,32 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         sys.exit(1)
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, _, _, _, project_name = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict={
-            'apikey': True,
-            'workspace_id': True,
-            'workflow_name': False,
-            'project_name': True
-        },
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=workspace_id,
-        workflow_name=None,
-        repository_platform=None,
-        execution_platform=None,
-        project_name=project_name
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-
+    # Initialize Datasets clients
     client = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
