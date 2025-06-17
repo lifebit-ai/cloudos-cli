@@ -71,3 +71,4 @@ def test_rename_folder():
     response = datasets.rename_item(folder["_id"], "new_folder_name", "Folder")
 
     assert response.status_code == 200
+    assert response.json()["name"] == "new_folder_name"
