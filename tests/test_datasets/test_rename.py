@@ -21,9 +21,8 @@ def test_rename_folder():
     mock_dataset_contents = json.loads(load_json_file(INPUT_DATASET_CONTENT))
 
     project_id = mock_projects["projects"][0]["_id"]
-    dataset_id = mock_datasets["datasets"][0]["_id"]
     folder_id = mock_dataset_contents["folders"][0]["_id"]
-
+    dataset_id = next(d["_id"] for d in mock_datasets["datasets"] if d["name"] == "Data")
 
     responses.add(
         responses.GET,
