@@ -12,7 +12,7 @@ FOLDER_PATH = 'Data'
 
 INPUT_PROJECTS = "tests/test_data/projects.json"
 INPUT_DATASETS = "tests/test_data/datasets.json"
-INPUT_DATASET_CONTENT = "tests/test_data/dataset_folder_results.json"
+INPUT_DATASET_CONTENT = "tests/test_data/dataset_source_content.json"
 
 @responses.activate
 def test_rename_folder():
