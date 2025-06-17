@@ -3,7 +3,7 @@
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.import_wf.import_wf import ImportGitlab, ImportGithub
+from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.errors import BadRequestException
 import json
@@ -15,13 +15,10 @@ from rich.console import Console
 from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
-from rich.console import Console
-from rich.table import Table
 from rich.style import Style
 from pathlib import Path
 import base64
 from cloudos_cli.utils.requests import retry_requests_get
-
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -87,7 +84,8 @@ def run_cloudos_cli(ctx):
                 'array-job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
     else:
@@ -130,7 +128,8 @@ def run_cloudos_cli(ctx):
                 'array-job': shared_config
             },
             'datasets': {
-                'ls': shared_config
+                'ls': shared_config,
+                'mv': shared_config
             }
         })
 
@@ -294,7 +293,7 @@ def configure(ctx, profile, make_default):
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. Currently, not necessary ' +
                     'as apikey can be used instead, but maintained for backwards compatibility.'))
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -1255,10 +1254,9 @@ def list_workflows(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option("--platform", type=click.Choice(["github", "gitlab"]),
-              help=('Repository service where the workflow is located. Valid choices: github, gitlab. ' +
-                    'Default=github'),
-              default="github")
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
@@ -1281,7 +1279,7 @@ def import_wf(ctx,
               workflow_docs_link,
               cost_limit,
               workflow_description,
-              platform,
+              repository_platform,
               disable_ssl_verification,
               ssl_cert,
               profile):
@@ -1308,15 +1306,14 @@ def import_wf(ctx,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            workflow_name=workflow_name
+            workflow_name=workflow_name,
+            repository_platform=repository_platform
         )
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_services = {"gitlab": ImportGitlab, "github": ImportGithub}
-    repo_cls = repo_services[platform]
-    repo_import = repo_cls(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                             platform=platform, workflow_name=workflow_name, workflow_url=workflow_url,
+    repo_import = ImportWorflow(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
+                             platform=repository_platform, workflow_name=workflow_name, workflow_url=workflow_url,
                              workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
@@ -1870,7 +1867,7 @@ def remove_profile(ctx, profile):
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
@@ -2423,13 +2420,163 @@ def list_files(ctx,
             console = Console()
             for item in contents:
                 name = item.get("name", "")
-                if item.get("isDir"):
+                is_folder = item.get("folderType") or item.get("isDir")
+                if is_folder:
                     console.print(f"[blue underline]{name}[/]")
                 else:
                     console.print(name)
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
+
+
+@datasets.command(name="mv")
+@click.argument("source_path", required=True)
+@click.argument("destination_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.')
+@click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspace_id,
+               project_name, destination_project_name,
+               disable_ssl_verification, ssl_cert, profile):
+    """
+    Move a file or folder from a source path to a destination path within or across CloudOS projects.
+
+    SOURCE_PATH [path] : the full path to the file or folder to move. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'\n
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path. E.g.: 'Data/folderB'
+    """
+
+    profile = profile or ctx.default_map['datasets']['move'].get('profile')
+    destination_project_name = destination_project_name or project_name
+
+    # Validate destination constraint
+    if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
+        click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
+        sys.exit(1)
+    if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
+        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
+        sys.exit(1)
+    click.echo('Loading configuration profile')
+    # Load configuration profile
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    # Initialize Datasets clients
+    source_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    dest_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=destination_project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    click.echo('Checking source path')
+    # === Resolve Source Item ===
+    source_parts = source_path.strip("/").split("/")
+    source_parent_path = "/".join(source_parts[:-1]) if len(source_parts) > 1 else None
+    source_item_name = source_parts[-1]
+
+    try:
+        source_contents = source_client.list_folder_content(source_parent_path)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
+        sys.exit(1)
+
+    found_source = None
+    for collection in ["files", "folders"]:
+        for item in source_contents.get(collection, []):
+            if item.get("name") == source_item_name:
+                found_source = item
+                break
+        if found_source:
+            break
+    if not found_source:
+        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'", err=True)
+        sys.exit(1)
+
+    source_id = found_source["_id"]
+    source_kind = "Folder" if "folderType" in found_source else "File"
+    click.echo("Checking destination path")
+    # === Resolve Destination Folder ===
+    dest_parts = destination_path.strip("/").split("/")
+    dest_folder_name = dest_parts[-1]
+    dest_parent_path = "/".join(dest_parts[:-1]) if len(dest_parts) > 1 else None
+
+    try:
+        dest_contents = dest_client.list_folder_content(dest_parent_path)
+        match = next((f for f in dest_contents.get("folders", []) if f.get("name") == dest_folder_name), None)
+        if not match:
+            raise ValueError(f"Could not resolve destination folder '{destination_path}'")
+
+        target_id = match["_id"]
+        folder_type = match.get("folderType")
+        # Normalize kind: top-level datasets are kind=Dataset, all other folders are kind=Folder
+        if folder_type in ("VirtualFolder", "S3Folder", "Folder"):
+            target_kind = "Folder"
+        elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
+            target_kind = "Dataset"
+        else:
+            raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
+
+    except Exception as e:
+        click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
+        sys.exit(1)
+    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' in project '{destination_project_name} ...")
+    # === Perform Move ===
+    try:
+        response = source_client.move_files_and_folders(
+            source_id=source_id,
+            source_kind=source_kind,
+            target_id=target_id,
+            target_kind=target_kind
+        )
+        if response.ok:
+           click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name}'.", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     run_cloudos_cli()

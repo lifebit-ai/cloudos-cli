@@ -1,5 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.30.0 (2025-06-16)
+
+### Feat
+
+- Unify all workflow import platforms into a single child class
+
+## v2.29.0 (2025-06-13)
+
+### Feat
+
+- Adds command to move files within and across project within the same workspace.
+
 ## v2.28.0 (2025-06-11)
 
 ### Feat

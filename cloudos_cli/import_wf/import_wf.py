@@ -3,6 +3,8 @@ from urllib.parse import urlsplit
 from cloudos_cli.utils.errors import BadRequestException, AccountNotLinkedException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 import json
+from requests.exceptions import RetryError
+import sys
 
 
 class WFImport(ABC):
@@ -96,44 +98,46 @@ class WFImport(ABC):
         return content["_id"]
 
 
-# There are some duplicated lines here and on the github subclass. I did not put them in the abstract class because we
-# still don't know if the bitbucket data will come the same. If it does, then I will put as much as possible as part
-# of the abstract class
-class ImportGitlab(WFImport):
+class ImportWorflow(WFImport):
     def get_repo(self):
-        get_repo_url = f"{self.cloudos_url}/api/v1/git/gitlab/getPublicRepo"
-        self.repo_name = self.parsed_url.path.split("/")[-1]
-        self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
+        get_repo_url = f"{self.cloudos_url}/api/v1/git/{self.platform}/getPublicRepo"
+        if self.platform == "bitbucketServer":
+            # platform allows to add paths like /browse, so we need to check if the path ends with it
+            if self.parsed_url.path.endswith("browse"):
+                self.repo_name = self.parsed_url.path.split("/")[-2]
+            else:
+                self.repo_name = self.parsed_url.path.split("/")[-1]
+            self.repo_owner = self.parsed_url.path.split("/")[2]
+        else:
+            self.repo_name = self.parsed_url.path.split("/")[-1]
+            self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
         self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
         get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        try:
+            r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
+        except RetryError as e:
+            # RetryError getting from missing BitBucket Server credentials
+            raise AccountNotLinkedException(self.workflow_url)
+
+        # for Github and Gitlab the API gives very general errors on missing credentials
+        # therefore we only have these at the moment
         if r.status_code == 404:
             raise AccountNotLinkedException(self.workflow_url)
         elif r.status_code >= 400:
             raise BadRequestException(r)
-        r_data = r.json()
-        self.payload["repository"]["repositoryId"] = r_data["id"]
-        self.payload["repository"]["name"] = r_data["name"]
-        self.payload["repository"]["owner"]["id"] = r_data["namespace"]["id"]
-        self.payload["repository"]["owner"]["login"] = r_data["namespace"]["full_path"]
-        self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
 
-
-class ImportGithub(WFImport):
-    def get_repo(self):
-        get_repo_url = f"{self.cloudos_url}/api/v1/git/github/getPublicRepo"
-        self.repo_name = self.parsed_url.path.split("/")[-1]
-        self.repo_owner = "/".join(self.parsed_url.path.split("/")[1:-1])
-        self.repo_host = f"{self.parsed_url.scheme}://{self.parsed_url.netloc}"
-        get_repo_params = dict(repoName=self.repo_name, repoOwner=self.repo_owner, host=self.repo_host, teamId=self.workspace_id)
-        r = retry_requests_get(get_repo_url, params=get_repo_params, headers=self.headers)
-        if r.status_code == 404:
-            raise AccountNotLinkedException(self.workflow_url)
-        elif r.status_code >= 400:
-            raise BadRequestException(r)
         r_data = r.json()
-        self.payload["repository"]["repositoryId"] = r_data["id"]
+        if self.platform == "bitbucketServer":
+            self.payload["repository"]["repositoryId"] = r_data["name"]
+        else:
+            self.payload["repository"]["repositoryId"] = r_data["id"]
         self.payload["repository"]["name"] = r_data["name"]
-        self.payload["repository"]["owner"]["id"] = r_data["owner"]["id"]
-        self.payload["repository"]["owner"]["login"] = r_data["owner"]["login"]
+        owner_data = {
+            "bitbucketServer": ("project", "id", "key"),
+            "gitlab": ("namespace", "id", "full_path"),
+            "github": ("owner", "id", "login")
+        }
+        key, id_field, login_field = owner_data[self.platform]
+        self.payload["repository"]["owner"]["id"] = r_data[key][id_field]
+        self.payload["repository"]["owner"]["login"] = r_data[key][login_field]
         self.payload["mainFile"] = self.main_file or self.get_repo_main_file()
