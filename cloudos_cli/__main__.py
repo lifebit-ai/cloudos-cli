@@ -2500,9 +2500,8 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
     SOURCE_PATH must be a full path like 'Data/folderA/old_name.txt'
     NEW_NAME is the new name to assign.
     """
-    top_level_datasets = {"Data", "AnalysesResults", "Cohorts"}
-    if source_path.strip("/") in top_level_datasets:
-        click.echo(f"[ERROR] Renaming top-level dataset '{source_path}' is not allowed.", err=True)
+    if not source_path.strip("/").startswith("Data/"):
+        click.echo("[ERROR] SOURCE_PATH must start with  'Data/'.", err=True)
         sys.exit(1)
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()

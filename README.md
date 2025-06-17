@@ -869,14 +869,14 @@ Please, note that in the above example a preconfigured profile has been used. If
 
 #### Renaming files
 
-Files and folders can be renamed using the following command
+Files and folders within the `Data` dataset can be renamed using the following command
 
 ```
 cloudos datasets rename <path> <new_name>
 ```
 where `path` is the full path to the file/folder tho be renamed and `new_name` is just the name, no path required, as the file will not be moved.
 
-There are some folders that can not be renamed, such as `Data`, `Analyses Results` and `Cohort`.
+Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets.
 
 Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
 
