@@ -172,7 +172,7 @@ class Cloudos:
             },
             "azure": {
                 "url": f"{self.cloudos_url}/api/v1/data-access/azure/container-contents",
-                 "container": "containerName",
+                "container": "containerName",
                 "params": {
                     "containerName": container,
                     "path": path + "/",
