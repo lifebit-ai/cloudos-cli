@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.32.0 (2025-06-17)
+
+### Feat
+
+- Adds command to rename files.
+
 ## v2.29.0 (2025-06-13)
 
 ### Feat
