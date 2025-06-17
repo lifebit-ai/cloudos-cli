@@ -212,6 +212,7 @@ class Cloudos:
         cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
         container_name = cloud_storage["container"]
         prefix_name = cloud_storage["prefix"]
+        logs_bucket = logs_obj[container_name]
         logs_path = logs_obj[prefix_name]
         contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
         logs = {}
