@@ -153,7 +153,7 @@ class ConfigurationProfile:
                 f"Repository provider [{shared_config.get('repository_platform', profile_name)}]:\n" +
                 "\t1. github (default)\n" +
                 "\t2. gitlab\n" +
-                "\t3. bitBucketServer\n"
+                "\t3. bitbucketServer\n"
             ).strip()
             if repository_provider == "" and shared_config.get('repository_platform', None) is not None:
                 repository_provider = shared_config['repository_platform']
