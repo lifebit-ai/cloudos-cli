@@ -385,6 +385,17 @@ command.
 Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
 Check `cloudos bash job --help` for more details.
 
+#### Send a bash array-job to CloudOS (parallel sample processing)
+
+The subcommand `bash array-job` can list the columns of an array file by using the option `--list-columns` when adding `--array-file <CloudOS File Explorer Path>`. The columns will be listed one per line, example:
+
+```console
+Columns:
+    - column1
+    - column2
+    - column3
+```
+
 #### Abort single or multiple jobs from CloudOS
 
 Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.

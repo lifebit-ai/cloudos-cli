@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.31.0 (2025-06-17)
+
+### Feat
+
+- Retrieve columns from bash array files using the API
+
 ## v2.30.0 (2025-06-16)
 
 ### Feat
