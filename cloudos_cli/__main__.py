@@ -31,13 +31,14 @@ ABORT_JOB_STATES = ['running', 'initializing']
 CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
 
+
 @click.group()
 @click.version_option(__version__)
 @click.pass_context
 def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     ctx.ensure_object(dict)
-    if ctx.invoked_subcommand not in ['datasets'] and ctx.args and ctx.args[0] == 'ls':
+    if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
     config_manager = ConfigurationProfile()
@@ -60,6 +61,8 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'logs': shared_config,
+                'results': shared_config,
                 'details': shared_config
             },
             'workflow': {
@@ -103,6 +106,8 @@ def run_cloudos_cli(ctx):
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
+                'logs': shared_config,
+                'results': shared_config,
                 'details': shared_config
             },
             'workflow': {
@@ -515,9 +520,9 @@ def run(ctx,
         nextflow_version = '22.10.8'
         if execution_platform == 'azure':
             print(f'[Message] The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. For these workflows, worker nodes '+
-                  'are managed internally. For this reason, the options '+
-                  'azure-worker-instance-type, azure-worker-instance-disk and '+
+                  'is a CloudOS module. For these workflows, worker nodes ' +
+                  'are managed internally. For this reason, the options ' +
+                  'azure-worker-instance-type, azure-worker-instance-disk and ' +
                   'azure-worker-instance-spot are not taking effect.')
     else:
         queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
@@ -574,7 +579,7 @@ def run(ctx,
         print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
                       parameter=parameter,
-                      is_module =is_module,
+                      is_module=is_module,
                       git_commit=git_commit,
                       git_tag=git_tag,
                       git_branch=git_branch,
@@ -701,6 +706,152 @@ def job_status(ctx,
           'or repeat the command you just used.')
 
 
+@job.command('logs')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_logs(ctx,
+             apikey,
+             cloudos_url,
+             workspace_id,
+             job_id,
+             verbose,
+             disable_ssl_verification,
+             ssl_cert,
+             profile):
+    """Get the path to the logs of a specified job."""
+    profile = profile or ctx.default_map['job']['logs']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+
+    print('Executing logs...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+    for name, path in logs.items():
+        print(f"{name}: {path}\n")
+
+
+@job.command('results')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_results(ctx,
+                apikey,
+                cloudos_url,
+                workspace_id,
+                job_id,
+                verbose,
+                disable_ssl_verification,
+                ssl_cert,
+                profile):
+    """Get the path to the results of a specified job."""
+    profile = profile or ctx.default_map['job']['results']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+
+    print('Executing results...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    logs = cl.get_job_results(job_id, workspace_id, verify_ssl)
+    for name, path in logs.items():
+        print(f"{name}: {path}\n")
+
+
 @job.command('details')
 @click.option('-k',
               '--apikey',
@@ -714,7 +865,8 @@ def job_status(ctx,
               help='The job id in CloudOS to search for.',
               required=True)
 @click.option('--output-format',
-              help='The desired display for the output, either directly in standard output or saved as file. Default=stdout.',
+              help=('The desired display for the output, either directly in standard output or saved as file. ' +
+                    'Default=stdout.'),
               type=click.Choice(['stdout', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--output-basename',
@@ -738,16 +890,16 @@ def job_status(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def job_details(ctx,
-               apikey,
-               cloudos_url,
-               job_id,
-               output_format,
-               output_basename,
-               parameters,
-               verbose,
-               disable_ssl_verification,
-               ssl_cert,
-               profile):
+                apikey,
+                cloudos_url,
+                job_id,
+                output_format,
+                output_basename,
+                parameters,
+                verbose,
+                disable_ssl_verification,
+                ssl_cert,
+                profile):
     """Retrieve job details in CloudOS."""
     profile = profile or ctx.default_map['job']['details']['profile']
     # Create a dictionary with required and non-required params
@@ -826,7 +978,7 @@ def job_details(ctx,
 
     # Determine the execution platform based on jobType
     executors = {
-        'nextflowAWS':'Batch AWS',
+        'nextflowAWS': 'Batch AWS',
         'nextflowAzure': 'Batch Azure',
         'nextflowGcp': 'GCP',
         'nextflowHpc': 'HPC',
@@ -888,7 +1040,7 @@ def job_details(ctx,
             "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
             "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
             "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
-            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
+            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
                               f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
 
         }
@@ -1308,9 +1460,11 @@ def import_wf(ctx,
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    repo_import = ImportWorflow(cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id,
-                             platform=repository_platform, workflow_name=workflow_name, workflow_url=workflow_url,
-                             workflow_docs_link=workflow_docs_link, cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl)
+    repo_import = ImportWorflow(
+        cloudos_url=cloudos_url, cloudos_apikey=apikey, workspace_id=workspace_id, platform=repository_platform,
+        workflow_name=workflow_name, workflow_url=workflow_url, workflow_docs_link=workflow_docs_link,
+        cost_limit=cost_limit, workflow_description=workflow_description, verify=verify_ssl
+    )
     workflow_id = repo_import.import_workflow()
     print(f'\tWorkflow {workflow_name} was imported successfully with the ' +
           f'following ID: {workflow_id}')
@@ -2178,7 +2332,8 @@ def list_files(ctx,
 @click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
 @click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
 @click.option('--project-name', required=True, help='The source project name.')
-@click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
+@click.option('--destination-project-name', required=False,
+              help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
@@ -2189,8 +2344,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     """
     Move a file or folder from a source path to a destination path within or across CloudOS projects.
 
-    SOURCE_PATH [path] : the full path to the file or folder to move. It must be a 'Data' folder path. E.g.: 'Data/folderA/file.txt'\n
-    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path. E.g.: 'Data/folderB'
+    SOURCE_PATH [path]: the full path to the file or folder to move. It must be a 'Data' folder path.
+     E.g.: 'Data/folderA/file.txt'\n
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
+     E.g.: 'Data/folderB'
     """
 
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
@@ -2270,7 +2427,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if found_source:
             break
     if not found_source:
-        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'", err=True)
+        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'",
+                   err=True)
         sys.exit(1)
 
     source_id = found_source["_id"]
@@ -2300,7 +2458,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     except Exception as e:
         click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
         sys.exit(1)
-    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' in project '{destination_project_name} ...")
+    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
+               f"in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
         response = source_client.move_files_and_folders(
@@ -2310,7 +2469,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             target_kind=target_kind
         )
         if response.ok:
-           click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' in project '{destination_project_name}'.", fg="green", bold=True)
+            click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' " +
+                        f"in project '{destination_project_name}'.", fg="green", bold=True)
         else:
             click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)

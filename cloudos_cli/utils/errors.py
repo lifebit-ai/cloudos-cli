@@ -42,3 +42,25 @@ class AccountNotLinkedException(Exception):
                "has been linked in your cloudOS workspace")
         super(AccountNotLinkedException, self).__init__(msg)
         self.wf_url = wf_url
+
+
+class JoBNotCompletedException(Exception):
+    def __init__(self, job, status):
+        msg = f"Job {job} has status {status}. Results are only available for jobs with status \"completed\""
+        super(JoBNotCompletedException, self).__init__(msg)
+        self.job = job
+        self.status = status
+
+
+class NotAuthorisedException(Exception):
+    def __init__(self):
+        msg = ("Not authorised to run this operation. Check your API key, and that the resource you request is "
+               "in the same workspace as the workspace specified in the cloudOS cli")
+        super(NotAuthorisedException, self).__init__(msg)
+
+
+class NoCloudForWorkspaceException(Exception):
+    def __init__(self, workspace_id):
+        msg = f"Workspace ID {workspace_id} is not associated with supported cloud providers. Check the workspace ID"
+        super(NoCloudForWorkspaceException, self).__init__(msg)
+        self.workspace_id = workspace_id
