@@ -2198,38 +2198,16 @@ def run_bash_array_job(ctx,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    # Get project ID
-    # cl = Cloudos(cloudos_url, apikey, None)
-    # content = cl.get_project_list(workspace_id, verify=verify_ssl)
+    # setup separators for API
+    separators = {
+        ',': ',',
+        ';': '%3B',
+        'space': '+',
+        'tab': 'tab',
+        '|': '%7C'
+    }
 
-    # # New API projects endpoint spec
-    # for element in content:
-    #     if element["name"] == project_name:
-    #         project_id = element["_id"]
-    #         break
-    #     else:
-    #         project_id = None
-    
-    # if project_id is None:
-    #     raise ValueError(f'Project "{project_name}" not found in workspace "{workspace_id}".')
-
-    # print("project_id: ", project_id)
-
-    # Get all folder IDs in the project
-    # headers = {
-    #     "Content-type": "application/json",
-    #     "apikey": self.apikey
-    # }
-    # if archived:
-    #     archived_status = "true"
-    # else:
-    #     archived_status = "false"
-    # r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
-    #                         self.cloudos_url, workspace_id, page, archived_status),
-    #                         headers=headers, verify=verify)
-    # if r.status_code >= 400:
-    #     raise BadRequestException(r)
-    # content = json.loads(r.content)
+    # Setup datasets
     ds = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
@@ -2238,20 +2216,16 @@ def run_bash_array_job(ctx,
         verify=verify_ssl,
         cromwell_token=None
     )
-    # folder_ids = ds.list_project_content()
-    # print("folder_ids: ", folder_ids)
 
-    # for folder in folder_ids["datasets"]:
-    #     name = folder.get("name", None)
-    #     id = folder.get("_id", None)
-    #     print(name, " -> ds.list_datasets_content(): ", ds.list_datasets_content(name))
-
+    # Split the array_file path to get the directory and file name
     p = Path(array_file)
     directory = str(p.parent)
     file_name = p.name
 
+    # fetch the content of the directory
     result = ds.list_folder_content(directory)
 
+    # retrieve the S3 bucket name and object key for the specified file
     for file in result['files']:
         if file.get("name") == file_name:
             s3_bucket_name = file.get("s3BucketName")
@@ -2265,19 +2239,33 @@ def run_bash_array_job(ctx,
     print("s3_object_key: ", s3_object_key)
     print("s3_object_key_b64: ", s3_object_key_b64)
 
+    # retrieve the metadata of the array file
     headers = {
         "Content-type": "application/json",
         "apikey": apikey
     }
-    r = retry_requests_get("{}/api/v1/jobs/array-file/metadata?separator={}&s3BucketName={}&s3ObjectKey={}&teamId={}".format(cloudos_url,
-                                                                                                                             separator,
-                                                                                                                             s3_bucket_name,
-                                                                                                                             s3_object_key_b64,
-                                                                                                                             workspace_id),
-                           headers=headers, verify=verify_ssl)
+    url = (
+        f"{cloudos_url}/api/v1/jobs/array-file/metadata"
+        f"?separator={separators[separator]}"
+        f"&s3BucketName={s3_bucket_name}"
+        f"&s3ObjectKey={s3_object_key_b64}"
+        f"&teamId={workspace_id}"
+    )
+    r = retry_requests_get(url, headers=headers, verify=verify_ssl)
     if r.status_code >= 400:
         raise BadRequestException(r)
-    print("content: ", r.content)
+
+    if list_columns:
+        print("Available columns in the array file: ")
+        columns = json.loads(r.content).get("headers", None)
+        # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
+        if columns is None:
+            raise ValueError("No columns found in the array file metadata.")
+
+        for col in columns:
+            print(f"\tIndex: {col['index']}, Name: {col['name']}")
+
+        print("Header: ", f"{separator}".join([col['name'] for col in columns]))
 
 
 @datasets.command(name="ls")
