@@ -2235,10 +2235,6 @@ def run_bash_array_job(ctx,
     else:
         raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{project_name}".')
 
-    print("bucket_name: ", s3_bucket_name)
-    print("s3_object_key: ", s3_object_key)
-    print("s3_object_key_b64: ", s3_object_key_b64)
-
     # retrieve the metadata of the array file
     headers = {
         "Content-type": "application/json",
@@ -2256,16 +2252,13 @@ def run_bash_array_job(ctx,
         raise BadRequestException(r)
 
     if list_columns:
-        print("Available columns in the array file: ")
         columns = json.loads(r.content).get("headers", None)
         # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
         if columns is None:
             raise ValueError("No columns found in the array file metadata.")
-
+        print("Columns: ")
         for col in columns:
-            print(f"\tIndex: {col['index']}, Name: {col['name']}")
-
-        print("Header: ", f"{separator}".join([col['name'] for col in columns]))
+            print(f"\t- {col['name']}")
 
 
 @datasets.command(name="ls")
