@@ -103,7 +103,7 @@ jobs:
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --platform gitlab
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repository-platform gitlab
   import_github:
     runs-on: ubuntu-latest
     strategy:
@@ -127,9 +127,11 @@ jobs:
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --platform github
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
   job_run_and_status:
     runs-on: ubuntu-latest
+    outputs:
+      job_id: ${{ steps.get-job-id.outputs.job_id }}
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -145,6 +147,7 @@ jobs:
       run: |
         pip install -e .
     - name: Run tests
+      id: get-job-id
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
@@ -158,9 +161,36 @@ jobs:
         INSTANCE_TYPE: "c5.large"
       run: |
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
-        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
         cloudos job status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  logs_results_aws:
+    needs: job_run_and_status
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+        feature: ["logs", "results"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
   workflow_list:
     runs-on: ubuntu-latest
     strategy:
@@ -279,4 +309,3 @@ jobs:
       run: |
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME"  Data/mv_test 
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name lm-test Data/test_mv
-       

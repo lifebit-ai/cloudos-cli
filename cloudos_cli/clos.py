@@ -6,7 +6,8 @@ import requests
 import time
 import json
 from dataclasses import dataclass
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.cloud import find_cloud
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 
@@ -133,6 +134,145 @@ class Cloudos:
                   f'\t\t--cloudos-url {self.cloudos_url} \\\n' +
                   f'\t\t--job-id {job_id}\n')
         return {'name': j_name, 'id': job_id, 'status': j_status_h}
+
+    def get_storage_contents(self,  cloud_name, cloud_meta, container, path, workspace_id, verify):
+        """
+        Retrieves the contents of a storage container from the specified cloud service.
+
+        This method fetches the contents of a specified path within a storage container
+        on a cloud service (e.g., AWS S3 or Azure Blob). The request is authenticated
+        using an API key and requires valid parameters such as the workspace ID and path.
+
+        Parameters:
+            cloud_name (str): The name of the cloud service (e.g., 'aws' or 'azure').
+            container (str): The name of the storage container or bucket.
+            path (str): The file path or directory within the storage container.
+            workspace_id (str): The identifier of the workspace or team.
+            verify (bool): Whether to verify SSL certificates for the request.
+
+        Returns:
+            list: A list of contents retrieved from the specified cloud storage.
+
+        Raises:
+            BadRequestException: If the request to retrieve the contents fails with a
+            status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        cloud_data = {
+            "aws": {
+                "url": f"{self.cloudos_url}/api/v1/data-access/s3/bucket-contents",
+                "params": {
+                    "bucket": container,
+                    "path": path,
+                    "teamId": workspace_id
+                }
+            },
+            "azure": {
+                "url": f"{self.cloudos_url}/api/v1/data-access/azure/container-contents",
+                "container": "containerName",
+                "params": {
+                    "containerName": container,
+                    "path": path + "/",
+                    "storageAccountName": "",
+                    "teamId": workspace_id
+                }
+            }
+        }
+        if cloud_name == "azure":
+            cloud_data[cloud_name]["params"]["storageAccountName"] = cloud_meta["storage"]["storageAccount"]
+        params = cloud_data[cloud_name]["params"]
+        contents_req = retry_requests_get(cloud_data[cloud_name]["url"], params=params, headers=headers, verify=verify)
+        if contents_req.status_code >= 400:
+            raise BadRequestException(contents_req)
+        return contents_req.json()["contents"]
+
+    def get_job_logs(self, j_id, workspace_id, verify=True):
+        """
+        Get the location of the logs for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        logs_obj = r_json["logs"]
+        job_workspace = r_json["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+        container_name = cloud_storage["container"]
+        prefix_name = cloud_storage["prefix"]
+        logs_bucket = logs_obj[container_name]
+        logs_path = logs_obj[prefix_name]
+        contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
+        logs = {}
+        cloude_scheme = cloud_storage["scheme"]
+        storage_account_prefix = ''
+        if cloude_scheme == 'az':
+            storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
+        for item in contents_obj:
+            if not item["isDir"]:
+                filename = item["name"]
+                if filename == "stdout.txt":
+                    filename = "Nextflow standard output"
+                if filename == ".nextflow.log":
+                    filename = "Nextflow log"
+                if filename == "trace.txt":
+                    filename = "Trace file"
+                logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
+        return logs
+
+    def get_job_results(self, j_id, workspace_id, verify=True):
+        """
+        Get the location of the results for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        status = self.get_job_status(j_id, verify).json()["status"]
+        if status != JOB_COMPLETED:
+            raise JoBNotCompletedException(j_id, status)
+
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}",
+                               headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        req_obj = r.json()
+        job_workspace = req_obj["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        cloud_name, meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, req_obj["logs"])
+        # cont_name
+        results_obj = req_obj["results"]
+        results_container = results_obj[cloud_storage["container"]]
+        results_path = results_obj[cloud_storage["prefix"]]
+        scheme = cloud_storage["scheme"]
+        contents_obj = self.get_storage_contents(cloud_name, meta, results_container,
+                                                 results_path, workspace_id, verify)
+        storage_account_prefix = ''
+        if scheme == 'az':
+            storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
+        results = dict()
+        for item in contents_obj:
+            if item["isDir"]:
+                filename = item["name"]
+                results[filename] = f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
+        return results
 
     def _create_cromwell_header(self):
         """Generates cromwell header.

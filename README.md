@@ -385,6 +385,44 @@ command.
 Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
 Check `cloudos bash job --help` for more details.
 
+#### Get path to logs of job from CloudOS
+
+Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
+
+Example
+```console
+cloudos job logs --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --job-id "12345678910"
+    
+
+Executing logs...
+Logs URI: s3://path/to/location/of/logs
+
+Nextflow log: s3://path/to/location/of/logs/.nextflow.log
+
+Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
+
+Trace file: s3://path/to/location/of/logs/trace.txt
+```
+
+#### Get path to result files of jobs from CloudOS
+
+Get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
+
+Example
+```console
+cloudos job logs --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --job-id "12345678910"
+    
+
+Executing results...
+results: s3://path/to/location/of/results/results/
+```
+
 #### Abort single or multiple jobs from CloudOS
 
 Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.
@@ -660,8 +698,8 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub or GitLab (specified by the option `--platform`. Available options: `github`, `gitlab`)
-- If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
+- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--repository-platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
+- If your repository is private, you have access to the repository and to have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS.
 
 #### Usage of the workflow import command
 
@@ -677,7 +715,7 @@ cloudos workflow import \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --platform github 
+    --repository-platform github
 ```
 
 The expected output will be:
@@ -702,7 +740,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --platform github
+    --repository-platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
