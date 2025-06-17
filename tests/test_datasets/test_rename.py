@@ -24,20 +24,12 @@ def test_rename_folder():
     dataset_id = mock_datasets["datasets"][0]["_id"]
     folder_id = mock_dataset_contents["folders"][0]["_id"]
 
-    params_projects = {"teamId": WORKSPACE_ID}
-    params_datasets = {"projectId": project_id, "teamId": WORKSPACE_ID}
-    params_items = {"teamId": WORKSPACE_ID}
-
-    headers = {
-        "Content-type": "application/json",
-        "apikey": APIKEY
-    }
 
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}",
         body=json.dumps(mock_projects),
-        match=[matchers.query_param_matcher(params_projects)],
+        match=[matchers.query_param_matcher( {"teamId": WORKSPACE_ID})],
         status=200
     )
 
@@ -45,7 +37,7 @@ def test_rename_folder():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={project_id}&teamId={WORKSPACE_ID}",
         body=json.dumps(mock_datasets),
-        match=[matchers.query_param_matcher(params_datasets)],
+        match=[matchers.query_param_matcher({"projectId": project_id, "teamId": WORKSPACE_ID})],
         status=200
     )
 
@@ -53,7 +45,7 @@ def test_rename_folder():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{dataset_id}/items?teamId={WORKSPACE_ID}",
         body=json.dumps(mock_dataset_contents),
-        match=[matchers.query_param_matcher(params_items)],
+        match=[matchers.query_param_matcher({"teamId": WORKSPACE_ID})],
         status=200
     )
 
