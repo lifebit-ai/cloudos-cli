@@ -2031,8 +2031,7 @@ def run_bash_job(ctx,
               help='Your CloudOS API key',
               required=True)
 @click.option('--command',
-              help='The command to run in the bash job.',
-              required=True)
+              help='The command to run in the bash job.')
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -2121,11 +2120,11 @@ def run_bash_job(ctx,
 @click.option('--array-file', 
               help=('Path to a file containing an array of commands to run in the bash job. ' +
                     'If this option is used, the --command option will be ignored.'),
-              default=None)
+              default=None,
+              required=True)
 @click.option('--separator',
               help=('Separator to use in the array file. Default=",". ' +
                     'This option is only used when --array-file is provided.'),
-              default=',',
               type=click.Choice([',', ';', 'tab', 'space', '|']),
               required=True)
 @click.option('--list-columns',
@@ -2195,6 +2194,12 @@ def run_bash_array_job(ctx,
             project_name=project_name
         )
     )
+
+    if not list_columns and not command:
+        raise click.UsageError("Must provide --command if --list-columns is not set.")
+
+    if array_file_project is not None:
+        project_name = array_file_project
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
