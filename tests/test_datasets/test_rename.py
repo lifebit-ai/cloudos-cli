@@ -75,7 +75,7 @@ def test_rename_folder():
     )
 
     content = datasets.list_folder_content(FOLDER_PATH)
-    folder = next(f for f in content["folders"] if f["name"] == "results")
+    folder = next(f for f in content["folders"] if f["name"] == "my_folder")
     response = datasets.rename_item(folder["_id"], "new_folder_name", "Folder")
 
     assert response.status_code == 200
