@@ -394,6 +394,43 @@ Columns:
     - column1
     - column2
     - column3
+
+#### Get path to logs of job from CloudOS
+
+Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
+
+Example
+```console
+cloudos job logs --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --job-id "12345678910"
+    
+
+Executing logs...
+Logs URI: s3://path/to/location/of/logs
+
+Nextflow log: s3://path/to/location/of/logs/.nextflow.log
+
+Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
+
+Trace file: s3://path/to/location/of/logs/trace.txt
+```
+
+#### Get path to result files of jobs from CloudOS
+
+Get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
+
+Example
+```console
+cloudos job logs --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --job-id "12345678910"
+    
+
+Executing results...
+results: s3://path/to/location/of/results/results/
 ```
 
 #### Abort single or multiple jobs from CloudOS

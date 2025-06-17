@@ -1,10 +1,22 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.31.0 (2025-06-17)
+## v2.32.0 (2025-06-17)
 
 ### Feat
 
 - Retrieve columns from bash array files using the API
+
+## v2.31.1 (2025-06-17)
+
+### Patch
+
+- Make repository platform consistent in configuration
+
+## v2.31.0 (2025-06-17)
+
+### Feat
+
+- Adds command to show the path to logs and results of jobs
 
 ## v2.30.0 (2025-06-16)
 
