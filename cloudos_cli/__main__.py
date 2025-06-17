@@ -2325,15 +2325,15 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @datasets.command(name="rename")
 @click.argument("source_path", required=True)
 @click.argument("new_name", required=True)
-@click.option('-k', '--apikey', required=False, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
-@click.option('--workspace-id', required=False, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
 @click.option('--project-name', required=True, help='The project name.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def rename_item_cli(ctx, source_path, new_name, apikey, cloudos_url,
+def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
                     workspace_id, project_name,
                     disable_ssl_verification, ssl_cert, profile):
     """
@@ -2342,8 +2342,9 @@ def rename_item_cli(ctx, source_path, new_name, apikey, cloudos_url,
     SOURCE_PATH must be a full path like 'Data/folderA/old_name.txt'
     NEW_NAME is the new name to assign.
     """
-    if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
-        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
+    top_level_datasets = {"Data", "AnalysesResults", "Cohorts"}
+    if source_path.strip("/") in top_level_datasets:
+        click.echo(f"[ERROR] Renaming top-level dataset '{source_path}' is not allowed.", err=True)
         sys.exit(1)
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
@@ -2413,7 +2414,11 @@ def rename_item_cli(ctx, source_path, new_name, apikey, cloudos_url,
     try:
         response = client.rename_item(item_id=item_id, new_name=new_name, kind=kind)
         if response.ok:
-            click.secho(f"[SUCCESS] {kind} renamed to '{new_name}' in path '{source_path}'.", fg="green", bold=True)
+            click.secho(
+                f"[SUCCESS] {kind} '{target_name}' renamed to '{new_name}' in folder '{parent_path}'.",
+                fg="green",
+                bold=True
+            )
         else:
             click.echo(f"[ERROR] Rename failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)
