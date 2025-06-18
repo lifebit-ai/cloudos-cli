@@ -16,7 +16,9 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
-
+from pathlib import Path
+import base64
+from cloudos_cli.utils.requests import retry_requests_get
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -81,7 +83,8 @@ def run_cloudos_cli(ctx):
                 'list': shared_config
             },
             'bash': {
-                'job': shared_config
+                'job': shared_config,
+                'array-job': shared_config
             },
             'datasets': {
                 'ls': shared_config,
@@ -126,7 +129,8 @@ def run_cloudos_cli(ctx):
                 'list': shared_config
             },
             'bash': {
-                'job': shared_config
+                'job': shared_config,
+                'array-job': shared_config
             },
             'datasets': {
                 'ls': shared_config,
@@ -2173,6 +2177,254 @@ def run_bash_job(ctx,
               '\t\t--apikey $MY_API_KEY \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--job-id {j_id}\n')
+
+
+@bash.command('array-job')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('--command',
+              help='The command to run in the bash job.')
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=True)
+@click.option('--workflow-name',
+              help='The name of a CloudOS workflow or pipeline.',
+              required=True)
+@click.option('-p',
+              '--parameter',
+              multiple=True,
+              help=('A single parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p --test=value or -p -test=value or -p test=value. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--job-name',
+              help='The name of the job. Default=new_job.',
+              default='new_job')
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
+@click.option('--instance-type',
+              help=('The type of compute instance to use as master node. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
+@click.option('--instance-disk',
+              help='The disk space of the master node instance, in GB. Default=500.',
+              type=int,
+              default=500)
+@click.option('--cpus',
+              help='The number of CPUs to use for the task\'s master node. Default=1.',
+              type=int,
+              default=1)
+@click.option('--memory',
+              help='The amount of memory, in GB, to use for the task\'s master node. Default=4.',
+              type=int,
+              default=4)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--repository-platform',
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              default='aws')
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float,
+              default=30.0)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--array-file', 
+              help=('Path to a file containing an array of commands to run in the bash job. ' +
+                    'If this option is used, the --command option will be ignored.'),
+              default=None,
+              required=True)
+@click.option('--separator',
+              help=('Separator to use in the array file. Default=",". ' +
+                    'This option is only used when --array-file is provided.'),
+              type=click.Choice([',', ';', 'tab', 'space', '|']),
+              required=True)
+@click.option('--list-columns',
+              help=('List of columns to use in the array file. ' +
+                    'This option is only used when --array-file is provided.'),
+              is_flag=True)
+@click.option('--array-file-project',
+            help=('Name of the project to use when running the array file. ' +
+                    'This option is only used when --array-file is provided.'),
+            default=None)
+@click.pass_context
+def run_bash_array_job(ctx,
+                 apikey,
+                 command,
+                 cloudos_url,
+                 workspace_id,
+                 project_name,
+                 workflow_name,
+                 parameter,
+                 job_name,
+                 do_not_save_logs,
+                 job_queue,
+                 instance_type,
+                 instance_disk,
+                 cpus,
+                 memory,
+                 storage_mode,
+                 lustre_size,
+                 wait_completion,
+                 wait_time,
+                 repository_platform,
+                 execution_platform,
+                 cost_limit,
+                 request_interval,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile,
+                 array_file,
+                 separator,
+                 list_columns,
+                 array_file_project):
+    """Run a bash array job in CloudOS."""
+    profile = profile or ctx.default_map['bash']['array-job']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': True,
+        'project_name': True
+    }
+
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=workflow_name,
+            repository_platform=repository_platform,
+            execution_platform=execution_platform,
+            project_name=project_name
+        )
+    )
+
+    if not list_columns and not command:
+        raise click.UsageError("Must provide --command if --list-columns is not set.")
+
+    if array_file_project is not None:
+        project_name = array_file_project
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # setup separators for API
+    separators = {
+        ',': ',',
+        ';': '%3B',
+        'space': '+',
+        'tab': 'tab',
+        '|': '%7C'
+    }
+
+    # Setup datasets
+    try:
+        ds = Datasets(
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            workspace_id=workspace_id,
+            project_name=project_name,
+            verify=verify_ssl,
+            cromwell_token=None
+        )
+    except BadRequestException as e:
+        if 'Forbidden' in str(e):
+            print('[Error] It seems your call is not authorised. Please check if ' +
+                                'your workspace is restricted by Airlock and if your API key is valid.')
+            sys.exit(1)
+
+
+    # Split the array_file path to get the directory and file name
+    p = Path(array_file)
+    directory = str(p.parent)
+    file_name = p.name
+
+    # fetch the content of the directory
+    result = ds.list_folder_content(directory)
+
+    # retrieve the S3 bucket name and object key for the specified file
+    for file in result['files']:
+        if file.get("name") == file_name:
+            s3_bucket_name = file.get("s3BucketName")
+            s3_object_key = file.get("s3ObjectKey")
+            s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
+            break
+    else:
+        raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{project_name}".')
+
+    # retrieve the metadata of the array file
+    headers = {
+        "Content-type": "application/json",
+        "apikey": apikey
+    }
+    url = (
+        f"{cloudos_url}/api/v1/jobs/array-file/metadata"
+        f"?separator={separators[separator]}"
+        f"&s3BucketName={s3_bucket_name}"
+        f"&s3ObjectKey={s3_object_key_b64}"
+        f"&teamId={workspace_id}"
+    )
+    r = retry_requests_get(url, headers=headers, verify=verify_ssl)
+    if r.status_code >= 400:
+        raise BadRequestException(r)
+
+    if list_columns:
+        columns = json.loads(r.content).get("headers", None)
+        # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
+        if columns is None:
+            raise ValueError("No columns found in the array file metadata.")
+        print("Columns: ")
+        for col in columns:
+            print(f"\t- {col['name']}")
 
 
 @datasets.command(name="ls")

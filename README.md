@@ -385,6 +385,16 @@ command.
 Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
 Check `cloudos bash job --help` for more details.
 
+#### Send a bash array-job to CloudOS (parallel sample processing)
+
+The subcommand `bash array-job` can list the columns of an array file by using the option `--list-columns` when adding `--array-file <CloudOS File Explorer Path>`. The columns will be listed one per line, example:
+
+```console
+Columns:
+    - column1
+    - column2
+    - column3
+
 #### Get path to logs of job from CloudOS
 
 Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
