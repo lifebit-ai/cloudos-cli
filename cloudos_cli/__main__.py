@@ -2367,14 +2367,21 @@ def run_bash_array_job(ctx,
     }
 
     # Setup datasets
-    ds = Datasets(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        project_name=project_name,
-        verify=verify_ssl,
-        cromwell_token=None
-    )
+    try:
+        ds = Datasets(
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            workspace_id=workspace_id,
+            project_name=project_name,
+            verify=verify_ssl,
+            cromwell_token=None
+        )
+    except BadRequestException as e:
+        if 'Forbidden' in str(e):
+            print('[Error] It seems your call is not authorised. Please check if ' +
+                                'your workspace is restricted by Airlock and if your API key is valid.')
+            sys.exit(1)
+
 
     # Split the array_file path to get the directory and file name
     p = Path(array_file)
