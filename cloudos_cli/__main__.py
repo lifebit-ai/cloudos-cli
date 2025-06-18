@@ -2289,6 +2289,22 @@ def run_bash_job(ctx,
             help=('Name of the project to use when running the array file. ' +
                     'This option is only used when --array-file is provided.'),
             default=None)
+@click.option('--disable-column-check',
+              help=('Disable the check for the columns in the array file. ' +
+                    'This option is only used when --array-file is provided.'),
+              is_flag=True)
+@click.option('-a', '--array-parameter',
+              multiple=True,
+              help=('A single parameter to pass to the job call only for specifying array parameter. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-a --test=value or -a -test=value or -a test=value. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--custom-script-path',
+              help=('Path of a custom script to run in the bash array job instead of a command.'),
+              default=None)
+@click.option('--custom-script-project',
+              help=('Path of a custom script to run in the bash array job instead of a command.'),
+              default=None)
 @click.pass_context
 def run_bash_array_job(ctx,
                  apikey,
@@ -2319,7 +2335,11 @@ def run_bash_array_job(ctx,
                  array_file,
                  separator,
                  list_columns,
-                 array_file_project):
+                 array_file_project,
+                 disable_column_check,
+                 array_parameter,
+                 custom_script_path,
+                 custom_script_project):
     """Run a bash array job in CloudOS."""
     profile = profile or ctx.default_map['bash']['array-job']['profile']
     # Create a dictionary with required and non-required params
@@ -2349,11 +2369,14 @@ def run_bash_array_job(ctx,
         )
     )
 
-    if not list_columns and not command:
-        raise click.UsageError("Must provide --command if --list-columns is not set.")
+    if not list_columns and not (command or custom_script_path):
+        raise click.UsageError("Must provide --command or --custom-script-path if --list-columns is not set.")
 
     if array_file_project is not None:
         project_name = array_file_project
+
+    if custom_script_project is None:
+        custom_script_project = project_name
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -2376,12 +2399,25 @@ def run_bash_array_job(ctx,
             verify=verify_ssl,
             cromwell_token=None
         )
+        if custom_script_project is not None:
+            # If a custom script project is specified, create a new Datasets object for it
+            # This allows the user to run custom scripts in a different project
+            print(f'Using custom script project: {custom_script_project}')
+            ds_custom = Datasets(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                workspace_id=workspace_id,
+                project_name=custom_script_project,
+                verify=verify_ssl,
+                cromwell_token=None
+            )
     except BadRequestException as e:
         if 'Forbidden' in str(e):
             print('[Error] It seems your call is not authorised. Please check if ' +
                                 'your workspace is restricted by Airlock and if your API key is valid.')
             sys.exit(1)
-
+        else:
+            raise e
 
     # Split the array_file path to get the directory and file name
     p = Path(array_file)
@@ -2390,6 +2426,7 @@ def run_bash_array_job(ctx,
 
     # fetch the content of the directory
     result = ds.list_folder_content(directory)
+    #print("result: ", result)
 
     # retrieve the S3 bucket name and object key for the specified file
     for file in result['files']:
@@ -2417,14 +2454,56 @@ def run_bash_array_job(ctx,
     if r.status_code >= 400:
         raise BadRequestException(r)
 
-    if list_columns:
+    if not disable_column_check:
         columns = json.loads(r.content).get("headers", None)
+        # pass this to the SEND JOB API call
         # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
         if columns is None:
             raise ValueError("No columns found in the array file metadata.")
-        print("Columns: ")
-        for col in columns:
-            print(f"\t- {col['name']}")
+        if list_columns:
+            print("Columns: ")
+            for col in columns:
+                print(f"\t- {col['name']}")
+
+    # setup parameters for the job
+    #command
+    if custom_script_path is not None:
+        command_path = Path(custom_script_path)
+        command_dir = str(command_path.parent)
+        command_name = command_path.name
+        result_script = ds_custom.list_folder_content(command_dir)
+        #print("result_script: ", result_script)
+        for file in result_script['files']:
+            if file.get("name") == command_name:
+                custom_script_item = file.get("'_id'")
+                break
+        c = {"command":f"{command_name}", "customScriptFile":{"dataItem":{"kind":"File","item":f"{custom_script_item}"}}}
+    else:
+        c = {"command": command}
+    
+    #parameter
+    # if array_parameter is provided, we pass it with the parameter
+    #processing is done in job.py
+    #we need "columnName":"id","columnIndex":0 to get from columns
+    
+
+    # check columns in the array file vs parameters added
+    if not disable_column_check:
+        print("\nChecking columns in the array file vs parameters added...\n")
+        for ap in array_parameter:
+            ap_split = ap.split('=')
+            ap_value = '='.join(ap_split[1:])
+            for col in columns:
+                if col['name'] == ap_value:
+                    print(f"Found column '{ap_value}' in the array file.")
+                    break
+            else:
+                raise ValueError(f"Column '{ap_value}' not found in the array file. Please, check your parameters.")
+
+    # setup previous important options for the job
+
+
+    # send job
 
 
 @datasets.command(name="ls")
