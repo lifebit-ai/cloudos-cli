@@ -174,6 +174,8 @@ class Job(Cloudos):
     def convert_nextflow_to_json(self,
                                  job_config,
                                  parameter,
+                                 array_parameter,
+                                 array_file_header,
                                  is_module,
                                  example_parameters,
                                  git_commit,
@@ -214,6 +216,15 @@ class Job(Cloudos):
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        array_parameter : tuple
+            Tuple of strings indicating the parameters to pass to the pipeline call
+            for array jobs. They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        array_file_header : string
+            The header of the file containing the array parameters. It is used to
+            add the necessary column index for array file columns.
+        is_module : bool
+            Whether the job is a module or not. If True, the job will be
+            submitted as a module.
         example_parameters : list
             A list of dicts, with the parameters required for the API request in JSON format.
             It is typically used to run curated pipelines using the already available
@@ -353,6 +364,25 @@ class Job(Cloudos):
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')
+        # array file specific parameters
+        if len(array_parameter) > 0:
+            for ap in array_parameter:
+                ap_split = ap.split('=')
+                if len(ap_split) < 2:
+                    raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
+                                     'as spacer. E.g: input=value')
+                ap_name = ap_split[0]
+                ap_value = '='.join(ap_split[1:])
+                if workflow_type == 'docker':
+                    ap_prefix = "--" if ap_name.startswith('--') else ("-" if ap_name.startswith('-') else '')
+                    ap_param = {
+                        "prefix": ap_prefix,
+                        "name": ap_name.lstrip('-'),
+                        "parameterKind": "arrayFileColumn",
+                        "columnName": ap_value,
+                        "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
+                    }
+                    workflow_params.append(ap_param)
         if len(parameter) > 0:
             for p in parameter:
                 p_split = p.split('=')
@@ -439,7 +469,7 @@ class Job(Cloudos):
                 "diskSizeInGb": azure_worker_instance_disk
             }
         if workflow_type == 'docker':
-            params['command'] = command
+            params = params | command # add command to params as dict (python 3.9+)
             params["resourceRequirements"] = {
                 "cpu": cpus,
                 "ram": memory
@@ -465,6 +495,8 @@ class Job(Cloudos):
     def send_job(self,
                  job_config=None,
                  parameter=(),
+                 array_parameter=(),
+                 array_file_header=None,
                  is_module=False,
                  example_parameters=[],
                  git_commit=None,
@@ -504,6 +536,12 @@ class Job(Cloudos):
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        array_parameter : tuple
+            Tuple of strings indicating the parameters to pass to the pipeline call
+            for array jobs. They are in the following form: ('param1=param1val', 'param2=param2val', ...)
+        array_file_header : string
+            The header of the file containing the array parameters. It is used to
+            add the necessary column index for array file columns.
         example_parameters : list
             A list of dicts, with the parameters required for the API request in JSON format.
             It is typically used to run curated pipelines using the already available
@@ -590,6 +628,8 @@ class Job(Cloudos):
         }
         params = self.convert_nextflow_to_json(job_config,
                                                parameter,
+                                               array_parameter,
+                                               array_file_header,
                                                is_module,
                                                example_parameters,
                                                git_commit,

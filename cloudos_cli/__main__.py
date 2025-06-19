@@ -2379,12 +2379,18 @@ def run_bash_array_job(ctx,
     if array_file_project is not None:
         project_name = array_file_project
 
-    # this needs to be in another call to datasets, by default it used the global project name
+    # this needs to be in another call to datasets, by default it uses the global project name
     if custom_script_project is None:
         custom_script_project = project_name
 
-    # setup separators for API
-    separators = { ',': ',', ';': '%3B', 'space': '+', 'tab': 'tab', '|': '%7C' }
+    # setup separators for API and array file (the're different)
+    separators = {
+        ",": { "api": ",", "file": "," },
+        ";": { "api": "%3B", "file": ";" },
+        "space": { "api": "+", "file": " " },
+        "tab": { "api": "tab", "file": "tab" },
+        "|": { "api": "%7C", "file": "|" }
+    }
 
     # Setup datasets
     try:
@@ -2441,7 +2447,7 @@ def run_bash_array_job(ctx,
     }
     url = (
         f"{cloudos_url}/api/v1/jobs/array-file/metadata"
-        f"?separator={separators[separator]}"
+        f"?separator={separators[separator]['api']}"
         f"&s3BucketName={s3_bucket_name}"
         f"&s3ObjectKey={s3_object_key_b64}"
         f"&teamId={workspace_id}"
@@ -2462,7 +2468,6 @@ def run_bash_array_job(ctx,
                 print(f"\t- {col['name']}")
 
     # setup parameters for the job
-    #command
     if custom_script_path is not None:
         command_path = Path(custom_script_path)
         command_dir = str(command_path.parent)
@@ -2472,13 +2477,27 @@ def run_bash_array_job(ctx,
             if file.get("name") == command_name:
                 custom_script_item = file.get("_id")
                 break
-        cmd = {"command":f"{command_name}", "customScriptFile": { "dataItem": { "kind": "File", "item": f"{custom_script_item}" }}}
+        # use this in case the command is in a custom script
+        cmd = {
+            "command": f"{command_name}",
+            "customScriptFile": {
+            "dataItem": {
+                "kind": "File",
+                "item": f"{custom_script_item}"
+            }
+            }
+        }
     else:
-        cmd = {"command": command}
+        # use this for text commands
+        cmd = {"command": command }
 
     # add array-file
-    sep_map = {"space": " ", "tab": "tab", ",": ",", ";": ";", "|": "|"}
-    cmd = cmd | { "arrayFile": { "dataItem": {"kind": "File", "item": f"{array_file_id}" }, "separator": f"{sep_map[separator]}"} }
+    cmd = cmd | {
+        "arrayFile": {
+            "dataItem": {"kind": "File", "item": f"{array_file_id}"},
+            "separator": f"{separators[separator]['file']}"
+        }
+    }
 
     # check columns in the array file vs parameters added
     if not disable_column_check and array_parameter:
@@ -2494,7 +2513,7 @@ def run_bash_array_job(ctx,
                 raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
                                  "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
 
-    # setup previous important options for the job
+    # setup important options for the job
     if do_not_save_logs:
         save_logs = False
     else:
