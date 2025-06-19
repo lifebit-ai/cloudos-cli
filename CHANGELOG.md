@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+
+## v2.33.0 (2025-06-19)
+
+### Feat
+
+- Send bash array-jobs to the platform
+
 ## v2.32.0 (2025-06-17)
 
 ### Feat
