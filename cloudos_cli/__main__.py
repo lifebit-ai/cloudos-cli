@@ -2286,8 +2286,8 @@ def run_bash_job(ctx,
                     'This option is only used when --array-file is provided.'),
               is_flag=True)
 @click.option('--array-file-project',
-            help=('Name of the project to use when running the array file. ' +
-                    'This option is only used when --array-file is provided.'),
+            help=('Name of the project to use when running the array file, if ' +
+                  'different than --project-name.'),
             default=None)
 @click.option('--disable-column-check',
               help=('Disable the check for the columns in the array file. ' +
@@ -2303,7 +2303,8 @@ def run_bash_job(ctx,
               help=('Path of a custom script to run in the bash array job instead of a command.'),
               default=None)
 @click.option('--custom-script-project',
-              help=('Path of a custom script to run in the bash array job instead of a command.'),
+              help=('Name of the project to use when running the custom command script, if ' +
+                    'different than --project-name.'),
               default=None)
 @click.pass_context
 def run_bash_array_job(ctx,
@@ -2342,6 +2343,7 @@ def run_bash_array_job(ctx,
                  custom_script_project):
     """Run a bash array job in CloudOS."""
     profile = profile or ctx.default_map['bash']['array-job']['profile']
+
     # Create a dictionary with required and non-required params
     required_dict = {
         'apikey': True,
@@ -2368,26 +2370,21 @@ def run_bash_array_job(ctx,
             project_name=project_name
         )
     )
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):
         raise click.UsageError("Must provide --command or --custom-script-path if --list-columns is not set.")
 
+    # when not set, use the global project name
     if array_file_project is not None:
         project_name = array_file_project
 
+    # this needs to be in another call to datasets, by default it used the global project name
     if custom_script_project is None:
         custom_script_project = project_name
 
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-
     # setup separators for API
-    separators = {
-        ',': ',',
-        ';': '%3B',
-        'space': '+',
-        'tab': 'tab',
-        '|': '%7C'
-    }
+    separators = { ',': ',', ';': '%3B', 'space': '+', 'tab': 'tab', '|': '%7C' }
 
     # Setup datasets
     try:
@@ -2402,7 +2399,6 @@ def run_bash_array_job(ctx,
         if custom_script_project is not None:
             # If a custom script project is specified, create a new Datasets object for it
             # This allows the user to run custom scripts in a different project
-            print(f'Using custom script project: {custom_script_project}')
             ds_custom = Datasets(
                 cloudos_url=cloudos_url,
                 apikey=apikey,
@@ -2426,11 +2422,11 @@ def run_bash_array_job(ctx,
 
     # fetch the content of the directory
     result = ds.list_folder_content(directory)
-    #print("result: ", result)
 
     # retrieve the S3 bucket name and object key for the specified file
     for file in result['files']:
         if file.get("name") == file_name:
+            array_file_id = file.get("_id")
             s3_bucket_name = file.get("s3BucketName")
             s3_object_key = file.get("s3ObjectKey")
             s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
@@ -2472,23 +2468,20 @@ def run_bash_array_job(ctx,
         command_dir = str(command_path.parent)
         command_name = command_path.name
         result_script = ds_custom.list_folder_content(command_dir)
-        #print("result_script: ", result_script)
         for file in result_script['files']:
             if file.get("name") == command_name:
-                custom_script_item = file.get("'_id'")
+                custom_script_item = file.get("_id")
                 break
-        c = {"command":f"{command_name}", "customScriptFile":{"dataItem":{"kind":"File","item":f"{custom_script_item}"}}}
+        cmd = {"command":f"{command_name}", "customScriptFile": { "dataItem": { "kind": "File", "item": f"{custom_script_item}" }}}
     else:
-        c = {"command": command}
-    
-    #parameter
-    # if array_parameter is provided, we pass it with the parameter
-    #processing is done in job.py
-    #we need "columnName":"id","columnIndex":0 to get from columns
-    
+        cmd = {"command": command}
+
+    # add array-file
+    sep_map = {"space": " ", "tab": "tab", ",": ",", ";": ";", "|": "|"}
+    cmd = cmd | { "arrayFile": { "dataItem": {"kind": "File", "item": f"{array_file_id}" }, "separator": f"{sep_map[separator]}"} }
 
     # check columns in the array file vs parameters added
-    if not disable_column_check:
+    if not disable_column_check and array_parameter:
         print("\nChecking columns in the array file vs parameters added...\n")
         for ap in array_parameter:
             ap_split = ap.split('=')
@@ -2498,12 +2491,94 @@ def run_bash_array_job(ctx,
                     print(f"Found column '{ap_value}' in the array file.")
                     break
             else:
-                raise ValueError(f"Column '{ap_value}' not found in the array file. Please, check your parameters.")
+                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
+                                 "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
 
     # setup previous important options for the job
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
 
+    if instance_type == 'NONE_SELECTED':
+        if execution_platform == 'aws':
+            instance_type = 'c5.xlarge'
+        elif execution_platform == 'azure':
+            instance_type = 'Standard_D4as_v4'
+        else:
+            instance_type = None
+
+    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
+               mainfile=None, importsfile=None,
+               repository_platform=repository_platform, verify=verify_ssl)
+
+    if job_queue is not None:
+        batch = True
+        queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None,
+                      workspace_id=workspace_id, verify=verify_ssl)
+        # I have to add 'nextflow', other wise the job queue id is not found
+        job_queue_id = queue.fetch_job_queue_id(workflow_type='nextflow', batch=batch,
+                                                job_queue=job_queue)
+    else:
+        job_queue_id = None
+        batch = False
 
     # send job
+    j_id = j.send_job(job_config=None,
+                      parameter=parameter,
+                      array_parameter=array_parameter,
+                      array_file_header=columns,
+                      git_commit=None,
+                      git_tag=None,
+                      git_branch=None,
+                      job_name=job_name,
+                      resumable=False,
+                      save_logs=save_logs,
+                      batch=batch,
+                      job_queue_id=job_queue_id,
+                      workflow_type='docker',
+                      nextflow_profile=None,
+                      nextflow_version=None,
+                      instance_type=instance_type,
+                      instance_disk=instance_disk,
+                      storage_mode=storage_mode,
+                      lustre_size=lustre_size,
+                      execution_platform=execution_platform,
+                      hpc_id=None,
+                      cost_limit=cost_limit,
+                      verify=verify_ssl,
+                      command=cmd,
+                      cpus=cpus,
+                      memory=memory)
+
+    print(f'\tYour assigned job id is: {j_id}\n')
+    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{j_id}'
+    if wait_completion:
+        print('\tPlease, wait until job completion (max wait time of ' +
+              f'{wait_time} seconds).\n')
+        j_status = j.wait_job_completion(job_id=j_id,
+                                         wait_time=wait_time,
+                                         request_interval=request_interval,
+                                         verbose=False,
+                                         verify=verify_ssl)
+        j_name = j_status['name']
+        j_final_s = j_status['status']
+        if j_final_s == JOB_COMPLETED:
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
+            sys.exit(0)
+        else:
+            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
+            sys.exit(1)
+    else:
+        j_status = j.get_job_status(j_id, verify_ssl)
+        j_status_h = json.loads(j_status.content)["status"]
+        print(f'\tYour current job status is: {j_status_h}')
+        print('\tTo further check your job status you can either go to ' +
+              f'{j_url} or use the following command:\n' +
+              '\tcloudos job status \\\n' +
+              '\t\t--apikey $MY_API_KEY \\\n' +
+              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--job-id {j_id}\n')
 
 
 @datasets.command(name="ls")
