@@ -2271,19 +2271,18 @@ def run_bash_job(ctx,
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
-@click.option('--array-file', 
-              help=('Path to a file containing an array of commands to run in the bash job. ' +
-                    'If this option is used, the --command option will be ignored.'),
+@click.option('--array-file',
+              help=('Path to a file containing a set of columns useful in running the bash job. '),
               default=None,
               required=True)
 @click.option('--separator',
-              help=('Separator to use in the array file. Default=",". ' +
+              help=('Separator to use in the array file. ' +
                     'This option is only used when --array-file is provided.'),
               type=click.Choice([',', ';', 'tab', 'space', '|']),
               required=True)
 @click.option('--list-columns',
               help=('List of columns to use in the array file. ' +
-                    'This option is only used when --array-file is provided.'),
+                    'This flag disables sending the job, it just prints the column list.'),
               is_flag=True)
 @click.option('--array-file-project',
             help=('Name of the project to use when running the array file, if ' +

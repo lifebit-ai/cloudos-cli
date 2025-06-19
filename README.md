@@ -394,6 +394,44 @@ Columns:
     - column1
     - column2
     - column3
+```
+
+When running a bash array job, the following options are available to customize the behavior:
+
+##### Array File
+- **`--array-file`**: Specifies the path to a file containing a set of columns useful in running the bash job. This option is **required** when using the command `bash array-job`.
+
+##### Separator
+- **`--separator`**: Defines the separator to use in the array file. Supported separators include:
+    - `,` (comma)
+    - `;` (semicolon)
+    - `tab`
+    - `space`
+    - `|` (pipe)
+This option is only applicable when `--array-file` is provided and is **required**.
+
+##### List Columns
+- **`--list-columns`**: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list.
+
+##### Array File Project
+- **`--array-file-project`**: Specifies the name of the project to use when running the array file, if it is different from the project specified by `--project-name`.
+
+##### Disable Column Check
+- **`--disable-column-check`**: Disables the validation of columns in the array file. 
+
+##### Array Parameter
+- **`-a` / `--array-parameter`**: Allows passing individual parameters to the job call specifically for array parameters, specifying the column names present in the header. Each parameter should be in the format `parameter_name=parameter_value`. For example:
+    - `-a --test=value` or
+    - `--array-parameter -test=value`
+specify a column named 'value' in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed.
+
+##### Custom Script Path
+- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored.
+
+##### Custom Script Project
+- **`--custom-script-project`**: Specifies the name of the project to use when running the custom script, if it is different from the project specified by `--project-name`.
+
+These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.
 
 #### Get path to logs of job from CloudOS
 
