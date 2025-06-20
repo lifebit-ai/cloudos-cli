@@ -2465,6 +2465,9 @@ def run_bash_array_job(ctx,
             print("Columns: ")
             for col in columns:
                 print(f"\t- {col['name']}")
+            return
+    else:
+        columns = []
 
     # setup parameters for the job
     if custom_script_path is not None:
