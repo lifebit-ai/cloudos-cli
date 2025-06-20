@@ -2564,7 +2564,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
     except Exception as e:
         click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
         sys.exit(1)
-    print(dest_content)
+
     # Find the source item
     source_item = None
     for group in ["files", "folders"]:
@@ -2608,7 +2608,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
             destination_kind = "Dataset"
         else:
             destination_kind = "Folder"
-            
+
         response = source_client.copy_item(
             item=source_item,
             destination_id=destination_folder["_id"],
