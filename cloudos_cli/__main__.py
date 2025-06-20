@@ -2259,7 +2259,7 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        print(result)
+        #print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             contents = result.get("files", []) + result.get("folders", [])
@@ -2487,13 +2487,14 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
 @click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
 @click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
-@click.option('--project-name', required=True, help='The project name.')
+@click.option('--project-name', required=True, help='The source project name.')
+@click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
 def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
-                  workspace_id, project_name,
+                  workspace_id, project_name, destination_project_name,
                   disable_ssl_verification, ssl_cert, profile):
     """
     Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
@@ -2519,9 +2520,11 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         project_name=project_name
     )
 
+    destination_project_name = destination_project_name or project_name
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    client = Datasets(
+    # Initialize clients
+    source_client = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
         workspace_id=workspace_id,
@@ -2530,26 +2533,39 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         cromwell_token=None
     )
 
+    dest_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=destination_project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    # Validate paths
+    for label, path in [("SOURCE_PATH", source_path), ("DESTINATION_PATH", destination_path)]:
+        parts = path.strip("/").split("/")
+        if not parts or parts[0] != "Data":
+            click.echo(f"[ERROR] {label} must start with 'Data/'.", err=True)
+            sys.exit(1)
+
+    # Parse source and destination
     source_parts = source_path.strip("/").split("/")
-    if not source_parts or source_parts[0] != "Data":
-        click.echo("[ERROR] SOURCE_PATH must start with 'Data/'.", err=True)
-        sys.exit(1)
     dest_parts = destination_path.strip("/").split("/")
-    if not dest_parts or dest_parts[0] != "Data":
-        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
-        sys.exit(1)
 
     source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
     source_name = source_parts[-1]
-    dest_parent = "/".join(dest_parts)
+    dest_folder_name = dest_parts[-1]
+    dest_parent = "/".join(dest_parts[:-1]) if len(dest_parts) > 1 else ""
 
     try:
-        source_content = client.list_folder_content(source_parent)
-        destination_content = client.list_folder_content(dest_parent)
+        source_content = source_client.list_folder_content(source_parent)
+        dest_content = dest_client.list_folder_content(dest_parent)
     except Exception as e:
         click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
         sys.exit(1)
-
+    print(dest_content)
+    # Find the source item
     source_item = None
     for group in ["files", "folders"]:
         for item in source_content.get(group, []):
@@ -2560,33 +2576,43 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
             break
 
     if not source_item:
-        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent}'.", err=True)
+        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent or '[project root]'}'", err=True)
         sys.exit(1)
 
-    destination_folder = destination_content.get("folder")
+    # Find the destination folder
+    destination_folder = None
+    for folder in dest_content.get("folders", []):
+        if folder.get("name") == dest_folder_name:
+            destination_folder = folder
+            break
+
     if not destination_folder:
-        click.echo(f"[ERROR] Destination folder '{dest_parent}' not found.", err=True)
+        click.echo(f"[ERROR] Destination folder '{destination_path}' not found.", err=True)
         sys.exit(1)
 
     try:
-        item_type = None
+        # Determine item type
         if "fileType" in source_item:
             item_type = "file"
         elif source_item.get("folderType") == "VirtualFolder":
             item_type = "virtual_folder"
-        elif "s3BucketName" in source_item:
+        elif "s3BucketName" in source_item and source_item.get("folderType") == "S3Folder":
             item_type = "s3_folder"
-
-        if not item_type:
+        else:
             click.echo("[ERROR] Could not determine item type.", err=True)
             sys.exit(1)
 
-        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{dest_parent}'...")
+        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
 
-        response = client.copy_item(
+        if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
+            destination_kind = "Dataset"
+        else:
+            destination_kind = "Folder"
+            
+        response = source_client.copy_item(
             item=source_item,
             destination_id=destination_folder["_id"],
-            destination_kind="Folder"
+            destination_kind=destination_kind
         )
 
         if response.ok:

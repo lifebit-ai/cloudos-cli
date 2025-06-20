@@ -370,7 +370,6 @@ class Datasets(Cloudos):
     
     def copy_item(self, item, destination_id, destination_kind):
         """Copy a file or folder (S3 or Virtual) to a destination in CloudOS."""
-
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
@@ -386,18 +385,16 @@ class Datasets(Cloudos):
                 "parent": parent
             }
             url = f"{self.cloudos_url}/api/v1/folders/virtual?teamId={self.workspace_id}"
-
         # S3 folder
         elif item.get("folderType") == "S3Folder":
             payload = {
                 "s3BucketName": item["s3BucketName"],
-                "s3ObjectKey": item["s3ObjectKey"],
+                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
                 "name": item["name"],
                 "parent": parent,
                 "isManagedByLifebit": item.get("isManagedByLifebit", False)
             }
             url = f"{self.cloudos_url}/api/v1/folders/s3?teamId={self.workspace_id}"
-
         # S3 file
         elif item.get("fileType") == "S3File":
             payload = {
@@ -409,7 +406,6 @@ class Datasets(Cloudos):
                 "sizeInBytes": item.get("sizeInBytes", 0)
             }
             url = f"{self.cloudos_url}/api/v1/files/s3?teamId={self.workspace_id}"
-
         else:
             raise ValueError(f"Unknown item type for copy: {item.get('name')}")
         response = retry_requests_post(url, headers=headers, json=payload)
