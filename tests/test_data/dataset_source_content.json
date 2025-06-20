@@ -1,5 +1,10 @@
 {
-    "folders": [],
+    "folders": [
+        {
+            "_id": "folder-id-123abc",
+            "name": "my_folder"
+        }
+    ],
     "files": [
         {
             "_id": "file-id-abc123",
