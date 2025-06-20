@@ -85,7 +85,8 @@ def run_cloudos_cli(ctx):
             },
             'datasets': {
                 'ls': shared_config,
-                'mv': shared_config
+                'mv': shared_config,
+                'cp': shared_config
             }
         })
     else:
@@ -130,7 +131,8 @@ def run_cloudos_cli(ctx):
             },
             'datasets': {
                 'ls': shared_config,
-                'mv': shared_config
+                'mv': shared_config,
+                'cp': shared_config
             }
         })
 
@@ -2257,6 +2259,7 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
+        print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             contents = result.get("files", []) + result.get("folders", [])
@@ -2476,6 +2479,124 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
+@datasets.command(name="cp")
+@click.argument("source_path", required=True)
+@click.argument("destination_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
+                  workspace_id, project_name,
+                  disable_ssl_verification, ssl_cert, profile):
+    """
+    Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
+    """
+    click.echo("Loading configuration profile...")
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, _, _, project_name = config_manager.load_profile_and_validate_data(
+        ctx, INIT_PROFILE, CLOUDOS_URL, profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=workspace_id,
+        workflow_name=None,
+        repository_platform=None,
+        execution_platform=None,
+        project_name=project_name
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    source_parts = source_path.strip("/").split("/")
+    if not source_parts or source_parts[0] != "Data":
+        click.echo("[ERROR] SOURCE_PATH must start with 'Data/'.", err=True)
+        sys.exit(1)
+    dest_parts = destination_path.strip("/").split("/")
+    if not dest_parts or dest_parts[0] != "Data":
+        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
+        sys.exit(1)
+
+    source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
+    source_name = source_parts[-1]
+    dest_parent = "/".join(dest_parts)
+
+    try:
+        source_content = client.list_folder_content(source_parent)
+        destination_content = client.list_folder_content(dest_parent)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
+        sys.exit(1)
+
+    source_item = None
+    for group in ["files", "folders"]:
+        for item in source_content.get(group, []):
+            if item.get("name") == source_name:
+                source_item = item
+                break
+        if source_item:
+            break
+
+    if not source_item:
+        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent}'.", err=True)
+        sys.exit(1)
+
+    destination_folder = destination_content.get("folder")
+    if not destination_folder:
+        click.echo(f"[ERROR] Destination folder '{dest_parent}' not found.", err=True)
+        sys.exit(1)
+
+    try:
+        item_type = None
+        if "fileType" in source_item:
+            item_type = "file"
+        elif source_item.get("folderType") == "VirtualFolder":
+            item_type = "virtual_folder"
+        elif "s3BucketName" in source_item:
+            item_type = "s3_folder"
+
+        if not item_type:
+            click.echo("[ERROR] Could not determine item type.", err=True)
+            sys.exit(1)
+
+        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{dest_parent}'...")
+
+        response = client.copy_item(
+            item=source_item,
+            destination_id=destination_folder["_id"],
+            destination_kind="Folder"
+        )
+
+        if response.ok:
+            click.secho("[SUCCESS] Item copied successfully.", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Copy failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+
+    except Exception as e:
+        click.echo(f"[ERROR] Copy operation failed: {str(e)}", err=True)
         sys.exit(1)
 
 
