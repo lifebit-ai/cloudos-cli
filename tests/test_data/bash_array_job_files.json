@@ -1,0 +1,47 @@
+{
+    "files": [
+        {
+            "_id": "681dca152ca0d3c603f19bd3",
+            "user": {
+                "id": "6329e3bd3c0e00014641eeea",
+                "name": "Daniel",
+                "surname": "Boloc",
+                "email": "dboloc@lifebit.ai",
+                "secondaryEmail": "dboloc@lifebit.ai",
+                "organization": "Lifebit",
+                "isPredefined": false,
+                "isSuspended": false,
+                "favoritedPublicBuckets": [],
+                "favoritedPublicAzureContainers": [],
+                "adGroups": [],
+                "isApproved": true,
+                "isReviewed": true,
+                "isVerified": true,
+                "totalCreditsInCents": 998.68164422,
+                "dockerRegistriesCredentials": []
+            },
+            "team": {
+                "id": "5c6d3e9bd954e800b23f8c62"
+            },
+            "parent": {
+                "kind": "Dataset",
+                "id": "681dc9f121cd5b935168d143"
+            },
+            "name": "sampleArray.csv",
+            "createdAt": "2025-05-09T09:25:41.083Z",
+            "updatedAt": "2025-05-09T09:25:41.083Z",
+            "sizeInBytes": 1060,
+            "isManagedByLifebit": true,
+            "fileType": "S3File",
+            "isBeingRenamed": false,
+            "s3BucketName": "lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c",
+            "s3ObjectKey": "deploit/teams/5c6d3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/dataset/681dc9f121cd5b935168d143/sampleArray.csv"
+        }
+    ],
+    "folders": [],
+    "paginationMetadata": {
+        "Pagination-Count": 1,
+        "Pagination-Page": 1,
+        "Pagination-Limit": 1
+    }
+}
