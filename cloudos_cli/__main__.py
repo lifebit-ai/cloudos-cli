@@ -2353,8 +2353,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     """
 
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
-    destination_project_name = destination_project_name or project_name
-
+    
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
@@ -2390,6 +2389,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     )
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    destination_project_name = destination_project_name or project_name
     # Initialize Datasets clients
     source_client = Datasets(
         cloudos_url=cloudos_url,
