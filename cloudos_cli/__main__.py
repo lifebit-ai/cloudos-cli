@@ -2481,6 +2481,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
         sys.exit(1)
 
+
 @datasets.command(name="rename")
 @click.argument("source_path", required=True)
 @click.argument("new_name", required=True)
@@ -2498,11 +2499,12 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
     """
     Rename a file or folder in a CloudOS project.
 
-    SOURCE_PATH must be a full path like 'Data/folderA/old_name.txt'
-    NEW_NAME is the new name to assign.
+    SOURCE_PATH [path]: the full path to the file or folder to rename. It must be a 'Data' folder path.
+     E.g.: 'Data/folderA/old_name.txt'\n
+    NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
     if not source_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] SOURCE_PATH must start with  'Data/'.", err=True)
+        click.echo("[ERROR] SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.", err=True)
         sys.exit(1)
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
@@ -2542,11 +2544,8 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
     )
 
     parts = source_path.strip("/").split("/")
-    if len(parts) == 0:
-        click.echo("[ERROR] Invalid source path.", err=True)
-        sys.exit(1)
 
-    parent_path = "/".join(parts[:-1]) if len(parts) > 1 else None
+    parent_path = "/".join(parts[:-1])
     target_name = parts[-1]
 
     try:

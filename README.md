@@ -874,7 +874,7 @@ Files and folders within the `Data` dataset can be renamed using the following c
 ```
 cloudos datasets rename <path> <new_name>
 ```
-where `path` is the full path to the file/folder tho be renamed and `new_name` is just the name, no path required, as the file will not be moved.
+where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
 
 Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets.
 
