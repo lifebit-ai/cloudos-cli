@@ -876,7 +876,7 @@ cloudos datasets rename <path> <new_name>
 ```
 where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
 
-Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets.
+Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets and that were created or uploaded by your user.
 
 Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
 
