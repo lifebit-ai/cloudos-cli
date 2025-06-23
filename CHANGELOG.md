@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.33.0 (2025-06-17)
+
+### Feat
+
+- Adds command to copy files and folders within and across projects within the same workspace.
+
 ## v2.32.0 (2025-06-17)
 
 ### Feat
