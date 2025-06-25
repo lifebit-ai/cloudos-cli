@@ -959,6 +959,26 @@ Please, note that in the above example a preconfigured profile has been used. If
     --project-name $PROJEC_NAME
 ```
 
+#### Renaming files
+
+Files and folders within the `Data` dataset can be renamed using the following command
+
+```
+cloudos datasets rename <path> <new_name>
+```
+where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
+
+Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets and that were created or uploaded by your user.
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
+
 ### WDL pipeline support
 
 #### Cromwell server managing
