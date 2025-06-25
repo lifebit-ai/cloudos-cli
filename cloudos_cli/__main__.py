@@ -1016,7 +1016,6 @@ def job_details(ctx,
         used_instance = master_instance.get("usedInstance", {})
         instance_type = used_instance.get("type", "N/A")
         table.add_row("Master Instance", str(instance_type))
-        #table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
         if j_details_h["jobType"] == "nextflowAzure":
             try:
                 table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
@@ -1043,7 +1042,6 @@ def job_details(ctx,
             "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
             "Execution Platform": execution_platform,
             "Profile": str(j_details_h.get("profile", "None")),
-            #"Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
             "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
             "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
             "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
