@@ -8,7 +8,7 @@ from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
-import sys
+import sys, os
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -2393,27 +2393,55 @@ def run_bash_array_job(ctx,
         "|": { "api": "%7C", "file": "|" }
     }
 
+    # projects
+    used_projects = set()
+    param_and_prop = dict()
+
+    used_projects.add(project_name)
+    if custom_script_project is not None:
+        used_projects.add(custom_script_project)
+        param_and_prop["custom_script"] = {'project': custom_script_project, 'file_path': custom_script_path}
+
+    for param in parameter:
+        name, rest = param.split('=', 1)
+        project, file_path = rest.split('/', 1)
+        command_path = Path(file_path)
+        command_name = command_path.name
+        _, ext = os.path.splitext(command_name)
+        if '*' in rest:
+            param_and_prop[name] = {'project': project, 'file_path': file_path, 'globPattern': command_name}
+        elif ext:
+            param_and_prop[name] = {'project': project, 'file_path': file_path, "dataItem": { "kind" : "File"}}
+        else:
+            param_and_prop[name] = {'project': project, 'file_path': file_path, "textValue": rest}
+
+        if project is not '':
+            # add it to list of projects
+            used_projects.add(project)
+            param_and_prop[name] = {'project': project, 'file_path': file_path}
+        else:
+            param_and_prop[name] = {'project': project_name, 'file_path': file_path}
+
+        # command_path = Path(file_path)
+        # command_path = Path(custom_script_path)
+        # command_dir = str(command_path.parent)
+        # command_name = command_path.name
+
+
     # Setup datasets
     try:
-        ds = Datasets(
-            cloudos_url=cloudos_url,
-            apikey=apikey,
-            workspace_id=workspace_id,
-            project_name=project_name,
-            verify=verify_ssl,
-            cromwell_token=None
-        )
-        if custom_script_project is not None:
-            # If a custom script project is specified, create a new Datasets object for it
-            # This allows the user to run custom scripts in a different project
-            ds_custom = Datasets(
+        datasets_by_project = {
+            pname: Datasets(
                 cloudos_url=cloudos_url,
                 apikey=apikey,
                 workspace_id=workspace_id,
-                project_name=custom_script_project,
+                project_name=pname,
                 verify=verify_ssl,
                 cromwell_token=None
             )
+            for pname in used_projects
+        }
+        #ds = datasets_by_project[project]
     except BadRequestException as e:
         if 'Forbidden' in str(e):
             print('[Error] It seems your call is not authorised. Please check if ' +
@@ -2421,6 +2449,12 @@ def run_bash_array_job(ctx,
             sys.exit(1)
         else:
             raise e
+
+    # identify only those parameters that need a folder or file ID (dataItem, globPattern)
+    for param in parameter:
+        name, rest = param.split('=', 1)
+
+
 
     # setup important options for the job
     if do_not_save_logs:
@@ -2441,7 +2475,7 @@ def run_bash_array_job(ctx,
                repository_platform=repository_platform, verify=verify_ssl)
 
     # retrieve columns
-    r = j.retrieve_cols_from_array_file(array_file, ds, separators[separator]['api'], verify_ssl)
+    r = j.retrieve_cols_from_array_file(array_file, datasets_by_project[project_name], separators[separator]['api'], verify_ssl)
 
     if not disable_column_check:
         columns = json.loads(r.content).get("headers", None)
@@ -2458,7 +2492,7 @@ def run_bash_array_job(ctx,
         columns = []
 
     # setup parameters for the job
-    cmd = j.setup_params_array_file(custom_script_path, ds_custom, command, separators[separator]['file'])
+    cmd = j.setup_params_array_file(custom_script_path, datasets_by_project[custom_script_project], command, separators[separator]['file'])
 
     # check columns in the array file vs parameters added
     if not disable_column_check and array_parameter:
