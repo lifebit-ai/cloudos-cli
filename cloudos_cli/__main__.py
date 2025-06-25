@@ -959,7 +959,10 @@ def job_details(ctx,
         for param in j_details_h["parameters"]:
             value = param[param_kind_map[param['parameterKind']]]
             if param['parameterKind'] == 'dataItem':
-                value = value['item']['name']
+                s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
+                value = value['item']['s3BucketName'] + '/' + s3_object_key
+            elif param['parameterKind'] == 'globPattern':
+                value = param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
             concats.append(f"{param['prefix']}{param['name']}={value}")
         concat_string = '\n'.join(concats)
         # If the user requested to save the parameters in a config file
@@ -971,7 +974,10 @@ def job_details(ctx,
                 for param in j_details_h["parameters"]:
                     value = param[param_kind_map[param['parameterKind']]]
                     if param['parameterKind'] == 'dataItem':
-                        value = value['item']['name']
+                        s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
+                        value = value['item']['s3BucketName'] + '/' + s3_object_key
+                    elif param['parameterKind'] == 'globPattern':
+                        value = param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
                     config_file.write(f"\t{param['name']} = {value}\n")
                 config_file.write("}\n")
             print(f"\tJob parameters have been saved to '{config_filename}'")
