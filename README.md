@@ -415,7 +415,7 @@ Columns:
 - **`--array-file-project`**: Specifies the name of the project in which the array file is placed, if it is different from the project specified by `--project-name`.
 
 ##### Disable Column Check
-- **`--disable-column-check`**: Disables the validation of columns in the array file. 
+- **`--disable-column-check`**: Disables the validation of columns in the array file. This implies that each `--array-parameter` value needs to be checked that exists in the `--array-file`. For example, `--array-parameter --bar=foo`, without `--disable-column-check`, expects the array file to have column 'foo' inside the file header.
 
 ##### Array Parameter
 - **`-a` / `--array-parameter`**: Allows passing individual parameters to the job call specifically for array parameters, specifying the column names present in the header. Each parameter should be in the format `parameter_name=parameter_value`. For example:
