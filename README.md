@@ -387,15 +387,6 @@ Check `cloudos bash job --help` for more details.
 
 #### Send a bash array-job to CloudOS (parallel sample processing)
 
-The subcommand `bash array-job` can list the columns of an array file by using the option `--list-columns` when adding `--array-file <CloudOS File Explorer Path>`. The columns will be listed one per line, example:
-
-```console
-Columns:
-    - column1
-    - column2
-    - column3
-```
-
 When running a bash array job, the following options are available to customize the behavior:
 
 ##### Array File
