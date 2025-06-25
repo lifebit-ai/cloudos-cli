@@ -421,10 +421,10 @@ Columns:
 > Adding `--disable-column-check` will make the CLI command run without errors, but the errors might appear when checking the job in the platform, if the columns in the array file do not exists, as depicted with `--array-parameter`.
 
 ##### Array Parameter
-- **`-a` / `--array-parameter`**: Allows passing individual parameters to the job call specifically for array parameters, specifying the column names present in the header. Each parameter should be in the format `parameter_name=parameter_value`. For example:
+- **`-a` / `--array-parameter`**: Allows specifying the column name present in the header of the array file. Each parameter should be in the format `arary_parameter_name=array_file_column`. For example:
     - `-a --test=value` or
     - `--array-parameter -test=value`
-specify a column named 'value' in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed.
+specify a column named 'value' in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed. This type of parameter is similar to `-p, --parameter`, both parameters can be interpolated in the bash array job command (either with `--command` or `--custom-script-path`), but this parameter can only be used to name the column present in the header of the array file.
 
 ##### Custom Script Path
 - **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored.
