@@ -412,7 +412,7 @@ Columns:
 ```
 
 ##### Array File Project
-- **`--array-file-project`**: Specifies the name of the project to use when running the array file, if it is different from the project specified by `--project-name`.
+- **`--array-file-project`**: Specifies the name of the project in which the array file is placed, if it is different from the project specified by `--project-name`.
 
 ##### Disable Column Check
 - **`--disable-column-check`**: Disables the validation of columns in the array file. 
