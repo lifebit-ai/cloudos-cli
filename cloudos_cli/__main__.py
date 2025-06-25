@@ -2250,11 +2250,12 @@ def run_bash_job(ctx,
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
               help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
@@ -2274,21 +2275,20 @@ def run_bash_job(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.option('--array-file',
-              help=('Path to a file containing a set of columns useful in running the bash job. '),
+              help=('Path to a file containing an array of commands to run in the bash job.'),
               default=None,
               required=True)
 @click.option('--separator',
-              help=('Separator to use in the array file. ' +
-                    'This option is only used when --array-file is provided.'),
+              help=('Separator to use in the array file. Default=",".'),
               type=click.Choice([',', ';', 'tab', 'space', '|']),
+              default=",",
               required=True)
 @click.option('--list-columns',
-              help=('List of columns to use in the array file. ' +
-                    'This flag disables sending the job, it just prints the column list.'),
+              help=('List columns present in the array file. ' +
+                    'This option will not run any job.'),
               is_flag=True)
 @click.option('--array-file-project',
-            help=('Name of the project to use when running the array file, if ' +
-                  'different than --project-name.'),
+            help=('Name of the project in which the array file is placed, if different from --project-name.'),
             default=None)
 @click.option('--disable-column-check',
               help=('Disable the check for the columns in the array file. ' +
