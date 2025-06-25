@@ -951,17 +951,16 @@ def job_details(ctx,
             'arrayFileColumn': 'columnName',
             'globPattern': 'globPattern',
             'lustreFileSystem': 'fileSystem',
+            'dataItem': 'dataItem'
         }
         # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
         # get first the type of parameter, then the value based on the parameter kind
         concats = []
         for param in j_details_h["parameters"]:
+            value = param[param_kind_map[param['parameterKind']]]
             if param['parameterKind'] == 'dataItem':
-                # For dataItem, we need to use specific nested keys
-                concats.append(f"{param['prefix']}{param['name']}={param['dataItem']['item']['name']}")
-            else:
-                # For other parameter kinds, we use the appropriate key from param_kind_map
-                concats.append(f"{param['prefix']}{param['name']}={param[param_kind_map[param['parameterKind']]]}")
+                value = value['item']['name']
+            concats.append(f"{param['prefix']}{param['name']}={value}")
         concat_string = '\n'.join(concats)
         # If the user requested to save the parameters in a config file
         if parameters:
@@ -970,7 +969,10 @@ def job_details(ctx,
             with open(config_filename, 'w') as config_file:
                 config_file.write("params {\n")
                 for param in j_details_h["parameters"]:
-                    config_file.write(f"\t{param['name']} = {param['textValue']}\n")
+                    value = param[param_kind_map[param['parameterKind']]]
+                    if param['parameterKind'] == 'dataItem':
+                        value = value['item']['name']
+                    config_file.write(f"\t{param['name']} = {value}\n")
                 config_file.write("}\n")
             print(f"\tJob parameters have been saved to '{config_filename}'")
     else:
