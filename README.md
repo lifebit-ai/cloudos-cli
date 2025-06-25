@@ -408,7 +408,7 @@ When running a bash array job, the following options are available to customize 
     - `tab`
     - `space`
     - `|` (pipe)
-This option is only applicable when `--array-file` is provided and is **required**.
+This option is **required** when using the command `bash array-job`.
 
 ##### List Columns
 - **`--list-columns`**: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list.
