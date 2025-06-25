@@ -86,7 +86,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'mkdir': shared_config
             }
         })
     else:
@@ -132,7 +133,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'mkdir': shared_config
             }
         })
 
@@ -2585,6 +2587,110 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
             sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
+@datasets.command(name="mkdir")
+@click.argument("parent_path", required=True)
+@click.argument("folder_name", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
+               workspace_id, project_name,
+               disable_ssl_verification, ssl_cert, profile):
+    """
+    Create a virtual folder in a CloudOS project.
+
+    PARENT_PATH [path]: the full path to the parent folder. It must begin with 'Data'.
+    FOLDER_NAME [name]: the name of the new folder to create.
+    """
+    if not parent_path.strip("/").startswith("Data"):
+        click.echo("[ERROR] PARENT_PATH must start with 'Data'.", err=True)
+        sys.exit(1)
+
+    click.echo("Loading configuration profile...")
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    parent_parts = parent_path.strip("/").split("/")
+    parent_name = parent_parts[-1]
+    parent_of_parent_path = "/".join(parent_parts[:-1]) if len(parent_parts) > 1 else None
+
+    try:
+        contents = client.list_folder_content(parent_of_parent_path)
+        print(contents)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not list contents at '{parent_of_parent_path or '[root]'}': {str(e)}", err=True)
+        sys.exit(1)
+
+    folder_info = next(
+        (f for f in contents.get("folders", []) if f.get("name") == parent_name),
+        None
+    )
+
+    if not folder_info:
+        click.echo(f"[ERROR] No folder found at '{parent_path}'", err=True)
+        sys.exit(1)
+
+    parent_id = folder_info.get("_id")
+    folder_type = folder_info.get("folderType")
+
+    if folder_type is True:
+        parent_kind = "Dataset"
+    elif isinstance(folder_type, str):
+        parent_kind = "Folder"
+    else:
+        click.echo(f"[ERROR] Unrecognized folderType for parent at '{parent_path}'", err=True)
+        sys.exit(1)
+
+    click.echo(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
+    try:
+        response = client.create_virtual_folder(name=folder_name, parent_id=parent_id, parent_kind=parent_kind)
+        if response.ok:
+            click.secho(f"[SUCCESS] Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Folder creation failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Folder creation failed: {str(e)}", err=True)
         sys.exit(1)
 
 
