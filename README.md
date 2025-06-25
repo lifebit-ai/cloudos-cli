@@ -441,7 +441,7 @@ and in the command there is need to go over the `bgen` column, this can be speci
 - **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored.
 
 ##### Custom Script Project
-- **`--custom-script-project`**: Specifies the name of the project to use when running the custom script, if it is different from the project specified by `--project-name`.
+- **`--custom-script-project`**: Specifies the name of the project in which the custom script is placed, if it is different from the project specified by `--project-name`.
 
 These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.
 
