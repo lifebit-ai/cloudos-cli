@@ -7,7 +7,9 @@ from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
+from pathlib import Path
+import base64
 
 
 @dataclass
@@ -364,25 +366,12 @@ class Job(Cloudos):
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')
-        # array file specific parameters
-        if len(array_parameter) > 0:
-            for ap in array_parameter:
-                ap_split = ap.split('=')
-                if len(ap_split) < 2:
-                    raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                     'as spacer. E.g: input=value')
-                ap_name = ap_split[0]
-                ap_value = '='.join(ap_split[1:])
-                if workflow_type == 'docker':
-                    ap_prefix = "--" if ap_name.startswith('--') else ("-" if ap_name.startswith('-') else '')
-                    ap_param = {
-                        "prefix": ap_prefix,
-                        "name": ap_name.lstrip('-'),
-                        "parameterKind": "arrayFileColumn",
-                        "columnName": ap_value,
-                        "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
-                    }
-                    workflow_params.append(ap_param)
+
+        # array file specific parameters (from --array-parameter)
+        ap_param = self.split_array_file_params(array_parameter, workflow_type, array_file_header)
+        workflow_params.append(ap_param)
+
+        # general parameters (from --parameter)
         if len(parameter) > 0:
             for p in parameter:
                 p_split = p.split('=')
@@ -670,3 +659,177 @@ class Job(Cloudos):
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
+
+    def retrieve_cols_from_array_file(self, array_file, ds, separator, verify_ssl):
+        """
+        Retrieve metadata for columns from an array file stored in a directory.
+
+        This method fetches the metadata of an array file by interacting with a directory service
+        and making an API call to retrieve the file's metadata.
+
+        Parameters
+        ----------
+        array_file : str
+            The path to the array file whose metadata is to be retrieved.
+        ds : object
+            The directory service object used to list folder content.
+        separator : str
+            The separator used in the array file.
+        verify_ssl : bool
+            Whether to verify SSL certificates during the API request.
+
+        Raises
+        ------
+        ValueError
+            If the specified file is not found in the directory.
+        BadRequestException
+            If the API request to retrieve metadata fails with a status code >= 400.
+
+        Returns
+        -------
+        Response
+            The HTTP response object containing the metadata of the array file.
+        """
+        # Split the array_file path to get the directory and file name
+        p = Path(array_file)
+        directory = str(p.parent)
+        file_name = p.name
+
+        # fetch the content of the directory
+        result = ds.list_folder_content(directory)
+
+        # retrieve the S3 bucket name and object key for the specified file
+        for file in result['files']:
+            if file.get("name") == file_name:
+                self.array_file_id = file.get("_id")
+                s3_bucket_name = file.get("s3BucketName")
+                s3_object_key = file.get("s3ObjectKey")
+                s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
+                break
+        else:
+            raise ValueError(f'File "{file_name}" not found in the "{directory}" folder of the project "{self.project_name}".')
+
+        # retrieve the metadata of the array file
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = (
+            f"{self.cloudos_url}/api/v1/jobs/array-file/metadata"
+            f"?separator={separator}"
+            f"&s3BucketName={s3_bucket_name}"
+            f"&s3ObjectKey={s3_object_key_b64}"
+            f"&teamId={self.workspace_id}"
+        )
+        r = retry_requests_get(url, headers=headers, verify=verify_ssl)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        return r
+
+    def setup_params_array_file(self, custom_script_path, ds_custom, command, separator):
+        """
+        Sets up a dictionary representing command parameters, including support for custom scripts 
+        and array files, to be used in job execution.
+
+        Parameters
+        ----------
+        custom_script_path : str
+            Path to the custom script file. If None, the command is treated as text.
+        ds_custom : object
+            An object providing access to folder content listing functionality.
+        command : str
+            The command to be executed, either as text or the name of a custom script.
+        separator : str
+            The separator to be used for the array file.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the command parameters, including:
+                - "command": The command name or text.
+                - "customScriptFile" (optional): Details of the custom script file if provided.
+                - "arrayFile": Details of the array file and its separator.
+        """
+        if custom_script_path is not None:
+            command_path = Path(custom_script_path)
+            command_dir = str(command_path.parent)
+            command_name = command_path.name
+            result_script = ds_custom.list_folder_content(command_dir)
+            for file in result_script['files']:
+                if file.get("name") == command_name:
+                    custom_script_item = file.get("_id")
+                    break
+            # use this in case the command is in a custom script
+            cmd = {
+                "command": f"{command_name}",
+                "customScriptFile": {
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{custom_script_item}"
+                }
+                }
+            }
+        else:
+            # use this for text commands
+            cmd = {"command": command }
+
+        # add array-file
+        cmd = cmd | {
+            "arrayFile": {
+                "dataItem": {"kind": "File", "item": f"{self.array_file_id}"},
+                "separator": f"{separator}"
+            }
+        }
+
+        return cmd
+
+    @staticmethod
+    def split_array_file_params(array_parameter, workflow_type, array_file_header):
+        """
+        Splits and processes array parameters for a given workflow type and array file header.
+
+        Parameters
+        ----------
+        array_parameter :   list
+            A list of strings representing array parameters in the format "key=value".
+        workflow_type : str
+            The type of workflow, e.g., 'docker'.
+        array_file_header : list
+            A list of dictionaries representing the header of the array file.
+            Each dictionary should contain "name" and "index" keys.
+
+        Returns
+        -------
+        dict
+            A dictionary containing processed parameter details, including:
+                - prefix (str): The prefix for the parameter (e.g., "--" or "-").
+                - name (str): The name of the parameter with leading dashes stripped.
+                - parameterKind (str): The kind of parameter, set to "arrayFileColumn".
+                - columnName (str): The name of the column derived from the parameter value.
+                - columnIndex (int): The index of the column in the array file header.
+
+        Raises
+        ------
+        ValueError
+            If an array parameter does not contain a '=' character or is improperly formatted.
+        """
+        if len(array_parameter) > 0:
+            for ap in array_parameter:
+                ap_split = ap.split('=')
+                if len(ap_split) < 2:
+                    raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
+                                     'as spacer. E.g: input=value')
+                ap_name = ap_split[0]
+                ap_value = '='.join(ap_split[1:])
+                if workflow_type == 'docker':
+                    ap_prefix = "--" if ap_name.startswith('--') else ("-" if ap_name.startswith('-') else '')
+                    ap_param = {
+                        "prefix": ap_prefix,
+                        "name": ap_name.lstrip('-'),
+                        "parameterKind": "arrayFileColumn",
+                        "columnName": ap_value,
+                        "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
+                    }
+
+        return ap_param

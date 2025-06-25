@@ -2420,101 +2420,6 @@ def run_bash_array_job(ctx,
         else:
             raise e
 
-    # Split the array_file path to get the directory and file name
-    p = Path(array_file)
-    directory = str(p.parent)
-    file_name = p.name
-
-    # fetch the content of the directory
-    result = ds.list_folder_content(directory)
-
-    # retrieve the S3 bucket name and object key for the specified file
-    for file in result['files']:
-        if file.get("name") == file_name:
-            array_file_id = file.get("_id")
-            s3_bucket_name = file.get("s3BucketName")
-            s3_object_key = file.get("s3ObjectKey")
-            s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
-            break
-    else:
-        raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{project_name}".')
-
-    # retrieve the metadata of the array file
-    headers = {
-        "Content-type": "application/json",
-        "apikey": apikey
-    }
-    url = (
-        f"{cloudos_url}/api/v1/jobs/array-file/metadata"
-        f"?separator={separators[separator]['api']}"
-        f"&s3BucketName={s3_bucket_name}"
-        f"&s3ObjectKey={s3_object_key_b64}"
-        f"&teamId={workspace_id}"
-    )
-    r = retry_requests_get(url, headers=headers, verify=verify_ssl)
-    if r.status_code >= 400:
-        raise BadRequestException(r)
-
-    if not disable_column_check:
-        columns = json.loads(r.content).get("headers", None)
-        # pass this to the SEND JOB API call
-        # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
-        if columns is None:
-            raise ValueError("No columns found in the array file metadata.")
-        if list_columns:
-            print("Columns: ")
-            for col in columns:
-                print(f"\t- {col['name']}")
-            return
-    else:
-        columns = []
-
-    # setup parameters for the job
-    if custom_script_path is not None:
-        command_path = Path(custom_script_path)
-        command_dir = str(command_path.parent)
-        command_name = command_path.name
-        result_script = ds_custom.list_folder_content(command_dir)
-        for file in result_script['files']:
-            if file.get("name") == command_name:
-                custom_script_item = file.get("_id")
-                break
-        # use this in case the command is in a custom script
-        cmd = {
-            "command": f"{command_name}",
-            "customScriptFile": {
-            "dataItem": {
-                "kind": "File",
-                "item": f"{custom_script_item}"
-            }
-            }
-        }
-    else:
-        # use this for text commands
-        cmd = {"command": command }
-
-    # add array-file
-    cmd = cmd | {
-        "arrayFile": {
-            "dataItem": {"kind": "File", "item": f"{array_file_id}"},
-            "separator": f"{separators[separator]['file']}"
-        }
-    }
-
-    # check columns in the array file vs parameters added
-    if not disable_column_check and array_parameter:
-        print("\nChecking columns in the array file vs parameters added...\n")
-        for ap in array_parameter:
-            ap_split = ap.split('=')
-            ap_value = '='.join(ap_split[1:])
-            for col in columns:
-                if col['name'] == ap_value:
-                    print(f"Found column '{ap_value}' in the array file.")
-                    break
-            else:
-                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
-                                 "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
-
     # setup important options for the job
     if do_not_save_logs:
         save_logs = False
@@ -2532,6 +2437,40 @@ def run_bash_array_job(ctx,
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
                repository_platform=repository_platform, verify=verify_ssl)
+
+    # retrieve columns
+    r = j.retrieve_cols_from_array_file(array_file, ds, separators[separator]['api'], verify_ssl)
+
+    if not disable_column_check:
+        columns = json.loads(r.content).get("headers", None)
+        # pass this to the SEND JOB API call
+        # b'{"headers":[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"filename"},{"index":3,"name":"file2name"}]}'
+        if columns is None:
+            raise ValueError("No columns found in the array file metadata.")
+        if list_columns:
+            print("Columns: ")
+            for col in columns:
+                print(f"\t- {col['name']}")
+            return
+    else:
+        columns = []
+
+    # setup parameters for the job
+    cmd = j.setup_params_array_file(custom_script_path, ds_custom, command, separators[separator]['file'])
+
+    # check columns in the array file vs parameters added
+    if not disable_column_check and array_parameter:
+        print("\nChecking columns in the array file vs parameters added...\n")
+        for ap in array_parameter:
+            ap_split = ap.split('=')
+            ap_value = '='.join(ap_split[1:])
+            for col in columns:
+                if col['name'] == ap_value:
+                    print(f"Found column '{ap_value}' in the array file.")
+                    break
+            else:
+                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
+                                 "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
 
     if job_queue is not None:
         batch = True
