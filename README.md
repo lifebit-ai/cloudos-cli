@@ -426,6 +426,17 @@ Columns:
     - `--array-parameter -test=value`
 specify a column named 'value' in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed. This type of parameter is similar to `-p, --parameter`, both parameters can be interpolated in the bash array job command (either with `--command` or `--custom-script-path`), but this parameter can only be used to name the column present in the header of the array file.
 
+For example, the array file has the following header:
+
+```console
+id,bgen,csv
+1,s3://data/adipose.bgen,s3://data/adipose.csv
+2,s3://data/blood.bgen,s3://data/blood.csv
+3,s3://data/brain.bgen,s3://data/brain.csv
+...
+```
+and in the command there is need to go over the `bgen` column, this can be specified as `--array-parameter file=bgen`, refering to the column in the header.
+
 ##### Custom Script Path
 - **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored.
 
