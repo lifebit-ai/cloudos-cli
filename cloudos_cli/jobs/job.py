@@ -368,8 +368,9 @@ class Job(Cloudos):
                                  'valid parameter')
 
         # array file specific parameters (from --array-parameter)
-        ap_param = self.split_array_file_params(array_parameter, workflow_type, array_file_header)
-        workflow_params.append(ap_param)
+        if len(array_parameter) > 0:
+            ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
+            workflow_params.append(ap_param)
 
         # general parameters (from --parameter)
         if len(parameter) > 0:
@@ -814,22 +815,22 @@ class Job(Cloudos):
         ValueError
             If an array parameter does not contain a '=' character or is improperly formatted.
         """
-        if len(array_parameter) > 0:
-            for ap in array_parameter:
-                ap_split = ap.split('=')
-                if len(ap_split) < 2:
-                    raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                     'as spacer. E.g: input=value')
-                ap_name = ap_split[0]
-                ap_value = '='.join(ap_split[1:])
-                if workflow_type == 'docker':
-                    ap_prefix = "--" if ap_name.startswith('--') else ("-" if ap_name.startswith('-') else '')
-                    ap_param = {
-                        "prefix": ap_prefix,
-                        "name": ap_name.lstrip('-'),
-                        "parameterKind": "arrayFileColumn",
-                        "columnName": ap_value,
-                        "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
-                    }
+        ap_param = dict()
+        for ap in array_parameter:
+            ap_split = ap.split('=')
+            if len(ap_split) < 2:
+                raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
+                                    'as spacer. E.g: input=value')
+            ap_name = ap_split[0]
+            ap_value = '='.join(ap_split[1:])
+            if workflow_type == 'docker':
+                ap_prefix = "--" if ap_name.startswith('--') else ("-" if ap_name.startswith('-') else '')
+                ap_param = {
+                    "prefix": ap_prefix,
+                    "name": ap_name.lstrip('-'),
+                    "parameterKind": "arrayFileColumn",
+                    "columnName": ap_value,
+                    "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
+                }
 
         return ap_param
