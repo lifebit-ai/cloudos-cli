@@ -16,6 +16,7 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
+from cloudos_cli.utils.details import get_path 
 
 
 # GLOBAL VARS
@@ -955,6 +956,7 @@ def job_details(ctx,
         'cromwellAWS': 'Batch AWS'
     }
     execution_platform = executors.get(j_details_h["jobType"], "None")
+    storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
 
     # Check if the job details contain parameters
     if j_details_h["parameters"] != []:
@@ -969,29 +971,17 @@ def job_details(ctx,
         # get first the type of parameter, then the value based on the parameter kind
         concats = []
         for param in j_details_h["parameters"]:
-            value = param[param_kind_map[param['parameterKind']]]
-            if param['parameterKind'] == 'dataItem':
-                s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
-                value = value['item']['s3BucketName'] + '/' + s3_object_key
-            elif param['parameterKind'] == 'globPattern':
-                value = param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
-            concats.append(f"{param['prefix']}{param['name']}={value}")
+            concats.append(f"{param['prefix']}{param['name']}={get_path(param, param_kind_map, execution_platform, storage_provider, 'asis')}")
         concat_string = '\n'.join(concats)
+
         # If the user requested to save the parameters in a config file
         if parameters:
             # Create a config file with the parameters
             config_filename = f"{output_basename}.config"
-            storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
             with open(config_filename, 'w') as config_file:
                 config_file.write("params {\n")
                 for param in j_details_h["parameters"]:
-                    value = param[param_kind_map[param['parameterKind']]]
-                    if param['parameterKind'] == 'dataItem':
-                        s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
-                        value = storage_provider + value['item']['s3BucketName'] + '/' + s3_object_key
-                    elif param['parameterKind'] == 'globPattern':
-                        value = storage_provider + param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
-                    config_file.write(f"\t{param['name']} = {value}\n")
+                    config_file.write(f"\t{param['name']} = {get_path(param, param_kind_map, execution_platform, storage_provider)}\n")
                 config_file.write("}\n")
             print(f"\tJob parameters have been saved to '{config_filename}'")
     else:
