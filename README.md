@@ -438,7 +438,39 @@ id,bgen,csv
 and in the command there is need to go over the `bgen` column, this can be specified as `--array-parameter file=bgen`, refering to the column in the header.
 
 ##### Custom Script Path
-- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored.
+- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored. To ensure the script runs successfully, you must either:
+
+1. Use a Shebang Line at the Top of the Script
+
+The shebang (#!) tells the system which interpreter to use to run the script. The path should match absolute path to python or other interpreter installed inside the docker container.
+
+Examples:
+`#!/usr/bin/python3` –-> for Python scripts
+`#!/usr/bin/Rscript` –-> for R scripts
+`#!/bin/bash`        –-> for Bash scripts
+
+Example Python Script:
+
+```python
+#!/usr/bin/python3
+print("Hello world")
+```
+ 
+2. Or use an interpreter command in the executable field
+
+If your script doesn’t have a shebang line, you can execute it by explicitly specifying the interpreter in the executable command:
+
+```console
+python my_script.py
+Rscript my_script.R
+bash my_script.sh
+```
+This assumes the interpreter is available on the container’s $PATH. If not, you can use the full absolute path instead:
+
+```console
+/usr/bin/python3 my_script.py
+/usr/local/bin/Rscript my_script.R
+```
 
 ##### Custom Script Project
 - **`--custom-script-project`**: Specifies the name of the project in which the custom script is placed, if it is different from the project specified by `--project-name`.
