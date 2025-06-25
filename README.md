@@ -402,7 +402,14 @@ When running a bash array job, the following options are available to customize 
 This option is **required** when using the command `bash array-job`.
 
 ##### List Columns
-- **`--list-columns`**: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list.
+- **`--list-columns`**: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list, one per line:
+
+```console
+Columns:
+    - column1
+    - column2
+    - column3
+```
 
 ##### Array File Project
 - **`--array-file-project`**: Specifies the name of the project to use when running the array file, if it is different from the project specified by `--project-name`.
