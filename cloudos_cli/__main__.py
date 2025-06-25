@@ -944,6 +944,18 @@ def job_details(ctx,
             sys.exit(1)
     j_details_h = json.loads(j_details.content)
 
+    # Determine the execution platform based on jobType
+    executors = {
+        'nextflowAWS': 'Batch AWS',
+        'nextflowAzure': 'Batch Azure',
+        'nextflowGcp': 'GCP',
+        'nextflowHpc': 'HPC',
+        'nextflowKubernetes': 'Kubernetes',
+        'dockerAWS': 'Batch AWS',
+        'cromwellAWS': 'Batch AWS'
+    }
+    execution_platform = executors.get(j_details_h["jobType"], "None")
+
     # Check if the job details contain parameters
     if j_details_h["parameters"] != []:
         param_kind_map = {
@@ -969,15 +981,16 @@ def job_details(ctx,
         if parameters:
             # Create a config file with the parameters
             config_filename = f"{output_basename}.config"
+            storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
             with open(config_filename, 'w') as config_file:
                 config_file.write("params {\n")
                 for param in j_details_h["parameters"]:
                     value = param[param_kind_map[param['parameterKind']]]
                     if param['parameterKind'] == 'dataItem':
                         s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
-                        value = value['item']['s3BucketName'] + '/' + s3_object_key
+                        value = storage_provider + value['item']['s3BucketName'] + '/' + s3_object_key
                     elif param['parameterKind'] == 'globPattern':
-                        value = param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
+                        value = storage_provider + param['folder']['s3BucketName'] + '/' + param['folder']['s3Prefix'] + '/' + param['globPattern']
                     config_file.write(f"\t{param['name']} = {value}\n")
                 config_file.write("}\n")
             print(f"\tJob parameters have been saved to '{config_filename}'")
@@ -985,18 +998,6 @@ def job_details(ctx,
         concat_string = 'No parameters provided'
         if parameters:
             print("\tNo parameters found in the job details, no config file will be created.")
-
-    # Determine the execution platform based on jobType
-    executors = {
-        'nextflowAWS': 'Batch AWS',
-        'nextflowAzure': 'Batch Azure',
-        'nextflowGcp': 'GCP',
-        'nextflowHpc': 'HPC',
-        'nextflowKubernetes': 'Kubernetes',
-        'dockerAWS': 'Batch AWS',
-        'cromwellAWS': 'Batch AWS'
-    }
-    execution_platform = executors.get(j_details_h["jobType"], "None")
 
     # revision
     if j_details_h["jobType"] == "dockerAWS":
