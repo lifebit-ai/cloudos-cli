@@ -2606,7 +2606,7 @@ def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
     """
     Create a virtual folder in a CloudOS project.
 
-    PARENT_PATH [path]: the full path to the parent folder. It must begin with 'Data'.
+    PARENT_PATH [path]: the full path to the parent folder. It must begin with 'Data'.\n
     FOLDER_NAME [name]: the name of the new folder to create.
     """
     if not parent_path.strip("/").startswith("Data"):
@@ -2656,7 +2656,6 @@ def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
 
     try:
         contents = client.list_folder_content(parent_of_parent_path)
-        print(contents)
     except Exception as e:
         click.echo(f"[ERROR] Could not list contents at '{parent_of_parent_path or '[root]'}': {str(e)}", err=True)
         sys.exit(1)

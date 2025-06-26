@@ -1,4 +1,7 @@
 ## lifebit-ai/cloudos-cli: changelog
+## v2.34.0 (2025-06-25)
+
+-  Adds command to create new folders
 
 ## v2.32.0 (2025-06-17)
 
