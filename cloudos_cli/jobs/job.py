@@ -773,7 +773,7 @@ class Job(Cloudos):
             }
         else:
             # use this for text commands
-            cmd = {"command": command }
+            cmd = {"command": command}
 
         # add array-file
         cmd = cmd | {
