@@ -765,10 +765,10 @@ class Job(Cloudos):
             cmd = {
                 "command": f"{command_name}",
                 "customScriptFile": {
-                "dataItem": {
-                    "kind": "File",
-                    "item": f"{custom_script_item}"
-                }
+                    "dataItem": {
+                        "kind": "File",
+                        "item": f"{custom_script_item}"
+                    }
                 }
             }
         else:
