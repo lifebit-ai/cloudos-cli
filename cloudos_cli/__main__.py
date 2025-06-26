@@ -19,6 +19,8 @@ from rich.style import Style
 from pathlib import Path
 import base64
 from cloudos_cli.utils.requests import retry_requests_get
+from cloudos_cli.utils.array_job import classify_pattern
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -2398,29 +2400,38 @@ def run_bash_array_job(ctx,
     param_and_prop = dict()
 
     used_projects.add(project_name)
-    if custom_script_project is not None:
+
+    if custom_script_project is not None and custom_script_project != project_name:
         used_projects.add(custom_script_project)
         param_and_prop["custom_script"] = {'project': custom_script_project, 'file_path': custom_script_path}
 
     for param in parameter:
         name, rest = param.split('=', 1)
-        project, file_path = rest.split('/', 1)
-        command_path = Path(file_path)
-        command_name = command_path.name
-        _, ext = os.path.splitext(command_name)
-        if '*' in rest:
-            param_and_prop[name] = {'project': project, 'file_path': file_path, 'globPattern': command_name}
-        elif ext:
-            param_and_prop[name] = {'project': project, 'file_path': file_path, "dataItem": { "kind" : "File"}}
-        else:
-            param_and_prop[name] = {'project': project, 'file_path': file_path, "textValue": rest}
+        try:
+            project, file_path = rest.split('/', 1)
+            #used_projects.add(project)
+            print("rest: ", rest, " project: ", rest.split('/', 1))
+            command_path = Path(file_path)
+            command_dir = str(command_path.parent)
+            command_name = command_path.name
+            _, ext = os.path.splitext(command_name)
+            if classify_pattern(rest) in ["regex", "glob"]:
+                param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, 'globPattern': command_name}
+            elif ext:
+                param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, "dataItem": { "kind" : "File"}}
 
-        if project is not '':
-            # add it to list of projects
-            used_projects.add(project)
-            param_and_prop[name] = {'project': project, 'file_path': file_path}
-        else:
-            param_and_prop[name] = {'project': project_name, 'file_path': file_path}
+#            if project == '':
+#                param_and_prop[name] = {'project': project_name, 'file_path': file_path}
+            #     param_and_prop[name] = {'project': project, 'file_path': file_path}
+            # else:
+            #     param_and_prop[name] = {'project': project_name, 'file_path': file_path}
+
+        except ValueError:
+            param_and_prop[name] = {'project': project_name, "textValue": rest}
+
+    print("used_projects: ", used_projects)
+    print("param_and_prop: ", param_and_prop)
+    sys.exit(0)
 
         # command_path = Path(file_path)
         # command_path = Path(custom_script_path)
