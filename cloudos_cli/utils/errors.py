@@ -64,3 +64,24 @@ class NoCloudForWorkspaceException(Exception):
         msg = f"Workspace ID {workspace_id} is not associated with supported cloud providers. Check the workspace ID"
         super(NoCloudForWorkspaceException, self).__init__(msg)
         self.workspace_id = workspace_id
+
+
+class CantResumeRunningJob(Exception):
+    def __init__(self, workflow):
+        msg = f"Cannot resume job {workflow} because it is still running."
+        super(CantResumeRunningJob, self).__init__(msg)
+        self.workflow = workflow
+
+
+class CantResumeNonResumableJob(Exception):
+    def __init__(self, workflow):
+        msg = f"Job {workflow} is non-resumable."
+        super(CantResumeNonResumableJob).__init__(msg)
+        self.workflow = workflow
+
+
+def cloud_os_request_error(request):
+    if request.status_code == 401:
+        raise NotAuthorisedException
+    elif request.status_code >= 400:
+        raise BadRequestException(request)
