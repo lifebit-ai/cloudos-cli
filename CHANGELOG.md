@@ -1,19 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-<<<<<<< array-jobs
 ## v2.33.0 (2025-06-25)
 
 ### Feat
 
 - Send bash array-jobs to the platform
 - Retrieve columns from bash array files using the API
-=======
+
 ## v2.32.1 (2025-06-25)
 
 ### Patch
 
 - Fixes how data items and glob patterns are identified in job details.
->>>>>>> main
 
 ## v2.32.0 (2025-06-17)
 
