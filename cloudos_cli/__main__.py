@@ -19,7 +19,7 @@ from rich.style import Style
 from pathlib import Path
 import base64
 from cloudos_cli.utils.requests import retry_requests_get
-from cloudos_cli.utils.array_job import classify_pattern
+from cloudos_cli.utils.array_job import classify_pattern, get_datasets_file_id
 
 
 # GLOBAL VARS
@@ -2416,7 +2416,9 @@ def run_bash_array_job(ctx,
             command_name = command_path.name
             _, ext = os.path.splitext(command_name)
             if classify_pattern(rest) in ["regex", "glob"]:
-                param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, 'globPattern': command_name}
+                param_and_prop[name] = {'project': project if project != '' else project_name, 'globPattern': command_name, "parameterKind": "globPattern", "folder":"67d9439ad887df22cb8a88ed"}
+                param_and_prop[name][]
+            
             elif ext:
                 param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, "dataItem": { "kind" : "File"}}
 
