@@ -2423,7 +2423,7 @@ def run_bash_array_job(ctx,
     except BadRequestException as e:
         if 'Forbidden' in str(e):
             print('[Error] It seems your call is not authorised. Please check if ' +
-                                'your workspace is restricted by Airlock and if your API key is valid.')
+                  'your workspace is restricted by Airlock and if your API key is valid.')
             sys.exit(1)
         else:
             raise e
