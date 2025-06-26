@@ -19,7 +19,7 @@ from rich.style import Style
 from pathlib import Path
 import base64
 from cloudos_cli.utils.requests import retry_requests_get
-from cloudos_cli.utils.array_job import classify_pattern, get_datasets_file_id
+from cloudos_cli.utils.array_job import classify_pattern, get_file_id
 
 
 # GLOBAL VARS
@@ -2411,14 +2411,17 @@ def run_bash_array_job(ctx,
             project, file_path = rest.split('/', 1)
             #used_projects.add(project)
             print("rest: ", rest, " project: ", rest.split('/', 1))
+            print("classify_pattern: ", classify_pattern(rest))
             command_path = Path(file_path)
             command_dir = str(command_path.parent)
             command_name = command_path.name
             _, ext = os.path.splitext(command_name)
             if classify_pattern(rest) in ["regex", "glob"]:
-                param_and_prop[name] = {'project': project if project != '' else project_name, 'globPattern': command_name, "parameterKind": "globPattern", "folder":"67d9439ad887df22cb8a88ed"}
-                param_and_prop[name][]
-            
+                print("project: ", project if project != '' else project_name)
+                param_and_prop[name] = {'project': project if project != '' else project_name, 'globPattern': command_name, "parameterKind": "globPattern"}
+                fil, fol = get_file_id(cloudos_url, apikey, workspace_id, project if project != '' else project_name, verify_ssl, command_dir, command_name)
+                #param_and_prop[name]['folder'] = folder_id
+                print("im here")
             elif ext:
                 param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, "dataItem": { "kind" : "File"}}
 

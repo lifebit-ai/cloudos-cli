@@ -1,5 +1,5 @@
-import re
-from cloudos_cli.datasets import Datasets
+import re, sys
+from cloudos_cli.utils.errors import BadRequestException
 
 
 def is_valid_regex(s):
@@ -32,15 +32,34 @@ def classify_pattern(s):
         return "exact"
 
 def generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl):
-    
-    return Datasets(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        project_name=project_name,
-        verify=verify_ssl,
-        cromwell_token=None
-    )
+
+    # this avoids circular import error if import is added at the top
+    from cloudos_cli.datasets import Datasets
+    try:
+        ds = Datasets(
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            workspace_id=workspace_id,
+            project_name=project_name,
+            verify=verify_ssl,
+            cromwell_token=None
+        )
+    except ValueError:
+        print(f"[ERROR] No {project_name} element in projects was found")
+        sys.exit(1)
+    except BadRequestException as e:
+        if 'Forbidden' in str(e):
+            print('[Error] It seems your call is not authorised. Please check if ' +
+                                'your workspace is restricted by Airlock and if your API key is valid.')
+            sys.exit(1)
+        else:
+            raise e
+
+
+    # Optional: check if it has expected data
+    if hasattr(ds, 'datasets') and not ds.datasets:
+        print("[Warning] ds.datasets is empty")
+    return ds
 
 def get_file_id(cloudos_url, apikey, workspace_id, project_name, verify_ssl, directory_name, file_name):
     """Retrieve the ID of a specific file and its parent folder ID within a CloudOS workspace.
@@ -85,13 +104,18 @@ def get_file_id(cloudos_url, apikey, workspace_id, project_name, verify_ssl, dir
     ds = generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl)
 
     # get all files from a folder
+
     content = ds.list_folder_content(directory_name)
+    print("content: ", content['files'][0].get("parent", '').get("id", ''))
+
+    # get folder ID of the first file (all files will have the same folder ID)
+    # "parent":{"kind":"Dataset","id":"681dc9f121cd5b935168d143"}
+    folder_id = content['files'][0].get("parent", '').get("id", '')
 
     # get the ID only of the desired file or folder
-    # "parent":{"kind":"Dataset","id":"681dc9f121cd5b935168d143"}
     for file in content['files']:
         if file.get("name") == file_name:
-            file_id = file.get("_id")
-            folder_id = file.get("parent").get("_id")
+            file_id = file.get("_id", '')
             return file_id, folder_id
-
+    else:
+        return "file", "folder"
