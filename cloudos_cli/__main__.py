@@ -86,7 +86,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'rm': shared_config
             }
         })
     else:
@@ -132,7 +133,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'rm': shared_config
             }
         })
 
@@ -2585,6 +2587,108 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
             sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
+@datasets.command(name="rm")
+@click.argument("target_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def rm_item(ctx, target_path, apikey, cloudos_url,
+            workspace_id, project_name,
+            disable_ssl_verification, ssl_cert, profile):
+    """
+    Delete a file or folder in a CloudOS project.
+
+    TARGET_PATH [path]: the full path to the file or folder to delete. Must be in the 'Data' folder.
+    E.g.: 'Data/folderA/file.txt' or 'Data/folderB'
+    """
+    if not target_path.strip("/").startswith("Data/"):
+        click.echo("[ERROR] TARGET_PATH must start with 'Data/', pointing to a file or folder.", err=True)
+        sys.exit(1)
+
+    click.echo("Loading configuration profile...")
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=None,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    parts = target_path.strip("/").split("/")
+    parent_path = "/".join(parts[:-1])
+    item_name = parts[-1]
+
+    try:
+        contents = client.list_folder_content(parent_path)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
+        sys.exit(1)
+
+    found_item = None
+    for category in ["files", "folders"]:
+        for item in contents.get(category, []):
+            if item.get("name") == item_name:
+                found_item = item
+                break
+        if found_item:
+            break
+
+    if not found_item:
+        click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
+        sys.exit(1)
+
+    item_id = found_item["_id"]
+    kind = "Folder" if "folderType" in found_item else "File"
+
+    click.echo(f"Deleting {kind} '{item_name}' from '{parent_path or '[root]'}'...")
+    try:
+        response = client.delete_item(item_id=item_id, kind=kind)
+        if response.ok:
+            click.secho(
+                f"[SUCCESS] {kind} '{item_name}' was deleted from '{parent_path or '[root]'}'.",
+                fg="green", bold=True
+            )
+            click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
+        else:
+            click.echo(f"[ERROR] Deletion failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Delete operation failed: {str(e)}", err=True)
         sys.exit(1)
 
 

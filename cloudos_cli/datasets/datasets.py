@@ -5,7 +5,7 @@ This is the main class for file explorer (datasets).
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_delete
 import json
 
 @dataclass
@@ -403,4 +403,34 @@ class Datasets(Cloudos):
         }
 
         response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        return response
+    
+    def delete_item(self, item_id: str, kind: str):
+        """
+        Delete a file or folder in CloudOS.
+
+        Parameters
+        ----------
+        item_id : str
+            The ID of the file or folder to delete.
+        kind : str
+            Must be either "File" or "Folder".
+
+        Returns
+        -------
+        response : requests.Response
+            The response object from the CloudOS API.
+        """
+        if kind not in ("File", "Folder"):
+            raise ValueError("Invalid kind provided. Must be 'File' or 'Folder'.")
+
+        endpoint = "files" if kind == "File" else "folders"
+        url = f"{self.cloudos_url}/api/v1/{endpoint}/{item_id}?teamId={self.workspace_id}"
+
+        headers = {
+            "accept": "application/json",
+            "ApiKey": self.apikey
+        }
+
+        response = retry_requests_delete(url, headers=headers, verify=self.verify)
         return response

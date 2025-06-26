@@ -107,3 +107,38 @@ def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
     # Make a request using the session object
     response = session.put(url, **kwargs)
     return response
+
+
+def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+    """
+    Wrap normal requests DELETE with an error retry strategy.
+
+    Parameters
+    ----------
+    url : str
+        The request URL.
+    total : int
+        Total number of retry attempts.
+    status_forcelist : list of int
+        HTTP status codes that should trigger a retry.
+    **kwargs :
+        Additional keyword arguments passed to `requests.delete`.
+
+    Returns
+    -------
+    requests.Response
+        The Response object returned by the API server.
+    """
+    retry_strategy = Retry(
+        total=total,
+        status_forcelist=status_forcelist,
+        allowed_methods=["DELETE"]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    session = requests.Session()
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+
+    response = session.delete(url, **kwargs)
+    return response
