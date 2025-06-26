@@ -820,7 +820,7 @@ class Job(Cloudos):
             ap_split = ap.split('=')
             if len(ap_split) < 2:
                 raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                    'as spacer. E.g: input=value')
+                                'as spacer. E.g: input=value')
             ap_name = ap_split[0]
             ap_value = '='.join(ap_split[1:])
             if workflow_type == 'docker':
