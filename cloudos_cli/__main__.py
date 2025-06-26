@@ -2294,8 +2294,8 @@ def run_bash_job(ctx,
                     'This option will not run any job.'),
               is_flag=True)
 @click.option('--array-file-project',
-            help=('Name of the project in which the array file is placed, if different from --project-name.'),
-            default=None)
+              help=('Name of the project in which the array file is placed, if different from --project-name.'),
+              default=None)
 @click.option('--disable-column-check',
               help=('Disable the check for the columns in the array file. ' +
                     'This option is only used when --array-file is provided.'),
