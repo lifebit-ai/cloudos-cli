@@ -459,7 +459,7 @@ class Job(Cloudos):
                 "diskSizeInGb": azure_worker_instance_disk
             }
         if workflow_type == 'docker':
-            params = params | command # add command to params as dict (python 3.9+)
+            params = params | command  # add command to params as dict (python 3.9+)
             params["resourceRequirements"] = {
                 "cpu": cpus,
                 "ram": memory
