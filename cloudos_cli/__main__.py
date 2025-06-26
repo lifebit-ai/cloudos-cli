@@ -2383,8 +2383,8 @@ def run_bash_array_job(ctx,
         raise click.UsageError("Must provide --command or --custom-script-path if --list-columns is not set.")
 
     # when not set, use the global project name
-    if array_file_project is not None:
-        project_name = array_file_project
+    if array_file_project is None:
+        array_file_project = project_name
 
     # this needs to be in another call to datasets, by default it uses the global project name
     if custom_script_project is None:
@@ -2405,7 +2405,7 @@ def run_bash_array_job(ctx,
             cloudos_url=cloudos_url,
             apikey=apikey,
             workspace_id=workspace_id,
-            project_name=project_name,
+            project_name=array_file_project,
             verify=verify_ssl,
             cromwell_token=None
         )

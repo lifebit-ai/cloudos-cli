@@ -368,7 +368,7 @@ class Job(Cloudos):
                                  'valid parameter')
 
         # array file specific parameters (from --array-parameter)
-        if len(array_parameter) > 0:
+        if array_parameter is not None and len(array_parameter) > 0:
             ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
             workflow_params.append(ap_param)
 
