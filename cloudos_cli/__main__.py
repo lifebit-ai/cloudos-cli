@@ -16,9 +16,7 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
-from pathlib import Path
-import base64
-from cloudos_cli.utils.details import get_path 
+from cloudos_cli.utils.details import get_path
 
 
 # GLOBAL VARS
