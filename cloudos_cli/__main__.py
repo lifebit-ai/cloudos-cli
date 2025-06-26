@@ -2477,7 +2477,7 @@ def run_bash_array_job(ctx,
                     print(f"Found column '{ap_value}' in the array file.")
                     break
             else:
-                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
+                raise ValueError(f"Column '{ap_value}' not found in the array file. " +
                                  "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
 
     if job_queue is not None:
