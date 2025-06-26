@@ -730,7 +730,7 @@ class Job(Cloudos):
 
     def setup_params_array_file(self, custom_script_path, ds_custom, command, separator):
         """
-        Sets up a dictionary representing command parameters, including support for custom scripts 
+        Sets up a dictionary representing command parameters, including support for custom scripts
         and array files, to be used in job execution.
 
         Parameters
