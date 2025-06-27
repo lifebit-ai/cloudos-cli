@@ -375,4 +375,4 @@ jobs:
           --separator "," \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
-          --parameter --file=ci-testing/Data/input.csv
+          --parameter --file=ci-testing/Data/bash_array/input.csv
