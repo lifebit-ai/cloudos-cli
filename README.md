@@ -979,6 +979,36 @@ Please, note that in the above example a preconfigured profile has been used. If
     --project-name $PROJEC_NAME
 ```
 
+#### Copying files and folders
+
+Files and folders can be copied **from** anywhere in the project **to** `Data` or any of its subfolders programmatically (i.e `Data`, `Data/folder/file.txt`).
+
+1. The copy can happen **within the same project** running the following command:
+```
+cloudos datasets cp <souce_path> <destination_path> --profile <profile name>
+```
+where the source project as well as the destination one is the one defined in the profile.
+
+2. The move can also happen **across different projects**  within the same workspace by running the following command
+```
+cloudos datasets cp <source_path> <destiantion_path> --profile <profile_name> --destination-project-name <project_name>
+```
+In this case, only the source project is the one specified in the profile.
+
+Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. An example of such command is:
+
+```
+cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots 
+```
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
+
 ### WDL pipeline support
 
 #### Cromwell server managing
