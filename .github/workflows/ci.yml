@@ -374,4 +374,5 @@ jobs:
           --array-file Data/bash_array/sampleArray.csv \
           --separator "," \
           --apikey "$CLOUDOS_TOKEN" \
+          --cloudos-url "$CLOUDOS_URL" \
           --parameter --file=ci-testing/Data/input.csv
