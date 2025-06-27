@@ -2605,12 +2605,9 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     """
     Delete a file or folder in a CloudOS project.
 
-    TARGET_PATH [path]: the full path to the file or folder to delete. Must be in the 'Data' folder.
-    E.g.: 'Data/folderA/file.txt' or 'Data/folderB'
+    TARGET_PATH [path]: the full path to the file or folder to delete. \n
+    E.g.: 'Data/folderA/file.txt' or 'AnalysesResults/my_analysis/results/folderB'
     """
-    if not target_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] TARGET_PATH must start with 'Data/', pointing to a file or folder.", err=True)
-        sys.exit(1)
 
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
