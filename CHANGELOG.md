@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.34.0 (2025-06-30)
+
+### Feat
+
+- Allows to specify different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
+
 ## v2.33.0 (2025-06-25)
 
 ### Feat
