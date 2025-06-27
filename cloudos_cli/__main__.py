@@ -8,6 +8,8 @@ from cloudos_cli.queue.queue import Queue
 import json
 import time
 import sys
+
+from cloudos_cli.utils.setup_job_run import JobSetup
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.datasets import Datasets
@@ -56,6 +58,8 @@ def run_cloudos_cli(ctx):
         ctx.default_map = dict({
             'job': {
                 'run': shared_config,
+                "resume": shared_config,
+                "clone": shared_config,
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
@@ -99,6 +103,8 @@ def run_cloudos_cli(ctx):
         ctx.default_map = dict({
             'job': {
                 'run': shared_config,
+                "resume": shared_config,
+                "clone": shared_config,
                 'abort': shared_config,
                 'status': shared_config,
                 'list': shared_config,
@@ -319,7 +325,7 @@ def configure(ctx, profile, make_default):
               is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
-                    'account has to be already linked to CloudOS.'),
+         'account has to be already linked to CloudOS.'),
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -406,227 +412,434 @@ def run(ctx,
         )
     )
 
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    if do_not_save_logs:
-        save_logs = False
-    else:
-        save_logs = True
-    if instance_type == 'NONE_SELECTED':
-        if execution_platform == 'aws':
-            instance_type = 'c5.xlarge'
-        elif execution_platform == 'azure':
-            instance_type = 'Standard_D4as_v4'
-        else:
-            instance_type = None
-    if execution_platform == 'azure' or execution_platform == 'hpc':
-        batch = False
-    else:
-        batch = True
-    if execution_platform == 'hpc':
-        print('\n[Message] HPC execution platform selected')
-        if hpc_id is None:
-            raise ValueError('Please, specify your HPC ID using --hpc parameter')
-        print('[Message] Please, take into account that HPC execution do not support ' +
-              'the following parameters and all of them will be ignored:\n' +
-              '\t--job-queue\n' +
-              '\t--resumable | --do-not-save-logs\n' +
-              '\t--instance-type | --instance-disk | --cost-limit\n' +
-              '\t--storage-mode | --lustre-size\n' +
-              '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
-        wdl_mainfile = None
-        wdl_importsfile = None
-        storage_mode = 'regular'
-        save_logs = False
-    if accelerate_file_staging:
-        if execution_platform != 'aws':
-            print('[Message] You have selected accelerate file staging, but this function is ' +
-                  'only available when execution platform is AWS. The accelerate file staging ' +
-                  'will not be applied')
-            use_mountpoints = False
-        else:
-            use_mountpoints = True
-            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
-                  'Please, take into consideration the following:\n' +
-                  '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
-                  '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t- This is still a CloudOS BETA feature.\n')
-    else:
-        use_mountpoints = False
-    if verbose:
-        print('\t...Detecting workflow type')
-    cl = Cloudos(cloudos_url, apikey, cromwell_token)
-    workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
-    is_module = cl.is_module(workflow_name, workspace_id, verify_ssl)
-    if execution_platform == 'hpc' and workflow_type == 'wdl':
-        raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
-                         'WDL is not supported on HPC execution platform.')
-    if workflow_type == 'wdl':
-        print('[Message] WDL workflow detected')
-        if wdl_mainfile is None:
-            raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
-        c_status_h = json.loads(c_status.content)["status"]
-        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
-        if c_status_h == 'Stopped':
-            print('\tStarting Cromwell server...\n')
-            cl.cromwell_switch(workspace_id, 'restart', verify_ssl)
-            elapsed = 0
-            while elapsed < 300 and c_status_h != 'Running':
-                c_status_old = c_status_h
-                time.sleep(REQUEST_INTERVAL_CROMWELL)
-                elapsed += REQUEST_INTERVAL_CROMWELL
-                c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
-                c_status_h = json.loads(c_status.content)["status"]
-                if c_status_h != c_status_old:
-                    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
-        if c_status_h != 'Running':
-            raise Exception('Cromwell server did not restarted properly.')
-        cromwell_id = json.loads(c_status.content)["_id"]
-        print('\t' + ('*' * 80) + '\n' +
-              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
-              'your\n' + '\tjob finishes. You can use the following command:\n' +
-              '\tcloudos cromwell stop \\\n' +
-              '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
-              f'\t\t--workspace-id {workspace_id}\n' +
-              '\t' + ('*' * 80) + '\n')
-    else:
-        cromwell_id = None
-    if verbose:
-        print('\t...Preparing objects')
-    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
-               mainfile=wdl_mainfile, importsfile=wdl_importsfile,
-               repository_platform=repository_platform, verify=verify_ssl)
-    if verbose:
-        print('\tThe following Job object was created:')
-        print('\t' + str(j))
-        print('\t...Sending job to CloudOS\n')
-    if is_module:
-        if job_queue is not None:
-            print(f'[Message] Ignoring job queue "{job_queue}" for ' +
-                  f'Platform Workflow "{workflow_name}". Platform Workflows ' +
-                  'use their own predetermined queues.')
-        job_queue_id = None
-        if nextflow_version != '22.10.8':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. CloudOS modules only work with ' +
-                  'Nextflow version 22.10.8. Switching to use 22.10.8')
-        nextflow_version = '22.10.8'
-        if execution_platform == 'azure':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. For these workflows, worker nodes '+
-                  'are managed internally. For this reason, the options '+
-                  'azure-worker-instance-type, azure-worker-instance-disk and '+
-                  'azure-worker-instance-spot are not taking effect.')
-    else:
-        queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
-                      workspace_id=workspace_id, verify=verify_ssl)
-        job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
-                                                job_queue=job_queue)
-    if use_private_docker_repository:
-        if is_module:
-            print(f'[Message] Workflow "{workflow_name}" is a CloudOS module. ' +
-                  'Option --use-private-docker-repository will be ignored.')
-            docker_login = False
-        else:
-            me = j.get_user_info(verify=verify_ssl)['dockerRegistriesCredentials']
-            if len(me) == 0:
-                raise Exception('User private Docker repository has been selected but your user ' +
-                                'credentials have not been configured yet. Please, link your ' +
-                                'Docker account to CloudOS before using ' +
-                                '--use-private-docker-repository option.')
-            print('[Message] Use private Docker repository has been selected. A custom job ' +
-                  'queue to support private Docker containers and/or Lustre FSx will be created for ' +
-                  'your job. The selected job queue will serve as a template.')
-            docker_login = True
-    else:
-        docker_login = False
-    if nextflow_version == 'latest':
-        if execution_platform == 'aws':
-            nextflow_version = AWS_NEXTFLOW_LATEST
-        elif execution_platform == 'azure':
-            nextflow_version = AZURE_NEXTFLOW_LATEST
-        else:
-            nextflow_version = HPC_NEXTFLOW_LATEST
-        print('[Message] You have specified Nextflow version \'latest\' for execution platform ' +
-              f'\'{execution_platform}\'. The workflow will use the ' +
-              f'latest version available on CloudOS: {nextflow_version}.')
-    if execution_platform == 'aws':
-        if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'aws\', the workflow will use the default ' +
-                  '\'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
-    if execution_platform == 'azure':
-        if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
-                  'version on CloudOS.')
-            nextflow_version = '22.11.1-edge'
-    if execution_platform == 'hpc':
-        if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
-    if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
-        print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-              'to be written in DSL2 and does not support DSL1.')
-    print('\nExecuting run...')
-    if workflow_type == 'nextflow':
-        print(f'\tNextflow version: {nextflow_version}')
-    j_id = j.send_job(job_config=job_config,
-                      parameter=parameter,
-                      is_module =is_module,
-                      git_commit=git_commit,
-                      git_tag=git_tag,
-                      git_branch=git_branch,
-                      job_name=job_name,
-                      resumable=resumable,
-                      save_logs=save_logs,
-                      batch=batch,
-                      job_queue_id=job_queue_id,
-                      nextflow_profile=nextflow_profile,
-                      nextflow_version=nextflow_version,
-                      instance_type=instance_type,
-                      instance_disk=instance_disk,
-                      storage_mode=storage_mode,
-                      lustre_size=lustre_size,
-                      execution_platform=execution_platform,
-                      hpc_id=hpc_id,
-                      workflow_type=workflow_type,
-                      cromwell_id=cromwell_id,
-                      azure_worker_instance_type=azure_worker_instance_type,
-                      azure_worker_instance_disk=azure_worker_instance_disk,
-                      azure_worker_instance_spot=azure_worker_instance_spot,
-                      cost_limit=cost_limit,
-                      use_mountpoints=use_mountpoints,
-                      docker_login=docker_login,
-                      verify=verify_ssl)
-    print(f'\tYour assigned job id is: {j_id}\n')
-    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{j_id}'
-    if wait_completion:
-        print('\tPlease, wait until job completion (max wait time of ' +
-              f'{wait_time} seconds).\n')
-        j_status = j.wait_job_completion(job_id=j_id,
-                                         wait_time=wait_time,
-                                         request_interval=request_interval,
-                                         verbose=verbose,
-                                         verify=verify_ssl)
-        j_name = j_status['name']
-        j_final_s = j_status['status']
-        if j_final_s == JOB_COMPLETED:
-            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
-            sys.exit(0)
-        else:
-            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
-            sys.exit(1)
-    else:
-        j_status = j.get_job_status(j_id, verify_ssl)
-        j_status_h = json.loads(j_status.content)["status"]
-        print(f'\tYour current job status is: {j_status_h}')
-        print('\tTo further check your job status you can either go to ' +
-              f'{j_url} or use the following command:\n' +
-              '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
-              f'\t\t--job-id {j_id}\n')
+    job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id, 
+                         cromwell_token=cromwell_token, disable_ssl_verification=disable_ssl_verification, 
+                         ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
+                         execution_platform=execution_platform, hpc_id=hpc_id, wdl_mainfile=wdl_mainfile, 
+                         use_private_docker_repository=use_private_docker_repository, nextflow_version=nextflow_version,
+                         wdl_importsfile=wdl_importsfile, storage_mode=storage_mode, accelerate_file_staging=accelerate_file_staging, 
+                         workflow_name=workflow_name, project_name=project_name, repository_platform=repository_platform, job_config=job_config, parameters=parameter,
+                         commit=git_commit, branch=git_branch, git_tag=git_tag, name=job_name, resumable=resumable, nextflow_profile=nextflow_profile, instance_disk=instance_disk,
+                         lustre_size=lustre_size, azure_worker_instance_type=azure_worker_instance_type, azure_worker_instance_disk=azure_worker_instance_disk,
+                         azure_worker_instance_spot=azure_worker_instance_spot, cost_limit=cost_limit, wait_completion=wait_completion, wait_time=wait_time,
+                         request_interval=request_interval, verbose=verbose, run_type="run")
+    job_setup.run()
+
+
+@job.command('clone')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=True)
+@click.option('--job-id',
+              help='The ID of the job to be cloned or resumed.',
+              required=True)
+@click.option('--job-config',
+              help=('A config file similar to a nextflow.config file, ' +
+                    'but only with the parameters to use with your job.'))
+@click.option('-p',
+              '--parameter',
+              multiple=True,
+              help=('A single parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p input=s3://path_to_my_file. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--nextflow-profile',
+              help=('A comma separated string indicating the nextflow profile/s ' +
+                    'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
+              default='22.10.8')
+@click.option('--git-commit',
+              help=('The git commit hash to run for ' +
+                    'the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--git-tag',
+              help=('The tag to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--git-branch',
+              help=('The branch to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--job-name',
+              help='The name of the job. Default=new_job.',
+              default='new_job')
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
+@click.option('--instance-type',
+              help=('The type of compute instance to use as master node. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
+@click.option('--instance-disk',
+              help='The disk space of the master node instance, in GB. Default=500.',
+              type=int,
+              default=500)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--repository-platform',
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
+@click.option('--hpc-id',
+              help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
+                    'Default=660fae20f93358ad61e0104b'),
+              default='660fae20f93358ad61e0104b')
+@click.option('--azure-worker-instance-type',
+              help=('The worker node instance type to be used in azure. ' +
+                    'Default=Standard_D4as_v4'),
+              default='Standard_D4as_v4')
+@click.option('--azure-worker-instance-disk',
+              help='The disk size in GB for the worker node to be used in azure. Default=100',
+              type=int,
+              default=100)
+@click.option('--azure-worker-instance-spot',
+              help='Whether the azure worker nodes have to be spot instances or not.',
+              is_flag=True)
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float,
+              default=30.0)
+@click.option('--accelerate-file-staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
+@click.option('--use-private-docker-repository',
+              help=('Allows to use private docker repository for running jobs. The Docker user ' +
+                    'account has to be already linked to CloudOS.'),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def clone(ctx,
+          apikey,
+          cloudos_url,
+          workspace_id,
+          project_name,
+          job_id,
+          job_config,
+          parameter,
+          git_commit,
+          git_tag,
+          git_branch,
+          job_name,
+          do_not_save_logs,
+          job_queue,
+          nextflow_profile,
+          nextflow_version,
+          instance_type,
+          instance_disk,
+          storage_mode,
+          lustre_size,
+          wait_completion,
+          wait_time,
+          repository_platform,
+          hpc_id,
+          azure_worker_instance_type,
+          azure_worker_instance_disk,
+          azure_worker_instance_spot,
+          cost_limit,
+          accelerate_file_staging,
+          use_private_docker_repository,
+          verbose,
+          request_interval,
+          disable_ssl_verification,
+          ssl_cert,
+          profile):
+    """Clone a job in CloudOS."""
+    profile = profile or ctx.default_map['job']['resume']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'job_id': True,
+        'project_name': True,
+        "workflow_name": False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=repository_platform,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id, 
+                         cromwell_token="", disable_ssl_verification=disable_ssl_verification, 
+                         ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
+                         hpc_id=hpc_id, wdl_mainfile="", job_id=job_id, 
+                         use_private_docker_repository=use_private_docker_repository, nextflow_version=nextflow_version,
+                         wdl_importsfile="", storage_mode=storage_mode, accelerate_file_staging=accelerate_file_staging, 
+                         workflow_name=workflow_name, project_name=project_name, repository_platform=repository_platform, job_config=job_config, parameters=parameter,
+                         commit=git_commit, branch=git_branch, git_tag=git_tag, name=job_name, resumable=None, nextflow_profile=nextflow_profile, instance_disk=instance_disk,
+                         lustre_size=lustre_size, azure_worker_instance_type=azure_worker_instance_type, azure_worker_instance_disk=azure_worker_instance_disk,
+                         azure_worker_instance_spot=azure_worker_instance_spot, cost_limit=cost_limit, wait_completion=wait_completion, wait_time=wait_time,
+                         request_interval=request_interval, verbose=verbose, run_type="clone")
+    
+    job_setup.run_again(resume=False)
+
+
+@job.command('resume')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=True)
+@click.option('--job-id',
+              help='The ID of the job to be cloned or resumed.',
+              required=True)
+@click.option('--job-config',
+              help=('A config file similar to a nextflow.config file, ' +
+                    'but only with the parameters to use with your job.'))
+@click.option('-p',
+              '--parameter',
+              multiple=True,
+              help=('A single parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p input=s3://path_to_my_file. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--nextflow-profile',
+              help=('A comma separated string indicating the nextflow profile/s ' +
+                    'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
+              default='22.10.8')
+@click.option('--git-commit',
+              help=('The git commit hash to run for ' +
+                    'the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--git-tag',
+              help=('The tag to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--git-branch',
+              help=('The branch to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--job-name',
+              help='The name of the job. Default=new_job.',
+              default='new_job')
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
+@click.option('--instance-type',
+              help=('The type of compute instance to use as master node. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
+              default='NONE_SELECTED')
+@click.option('--instance-disk',
+              help='The disk space of the master node instance, in GB. Default=500.',
+              type=int,
+              default=500)
+@click.option('--storage-mode',
+              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
+                    'regular or lustre storage. Default=regular.'),
+              default='regular')
+@click.option('--lustre-size',
+              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
+                    'be 1200 or a multiple of it. Default=1200.'),
+              type=int,
+              default=1200)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--repository-platform',
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
+@click.option('--hpc-id',
+              help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
+                    'Default=660fae20f93358ad61e0104b'),
+              default='660fae20f93358ad61e0104b')
+@click.option('--azure-worker-instance-type',
+              help=('The worker node instance type to be used in azure. ' +
+                    'Default=Standard_D4as_v4'),
+              default='Standard_D4as_v4')
+@click.option('--azure-worker-instance-disk',
+              help='The disk size in GB for the worker node to be used in azure. Default=100',
+              type=int,
+              default=100)
+@click.option('--azure-worker-instance-spot',
+              help='Whether the azure worker nodes have to be spot instances or not.',
+              is_flag=True)
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float,
+              default=30.0)
+@click.option('--accelerate-file-staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
+@click.option('--use-private-docker-repository',
+              help=('Allows to use private docker repository for running jobs. The Docker user ' +
+                    'account has to be already linked to CloudOS.'),
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def resume(ctx,
+        apikey,
+        cloudos_url,
+        workspace_id,
+        project_name,
+        job_id,
+        job_config,
+        parameter,
+        git_commit,
+        git_tag,
+        git_branch,
+        job_name,
+        do_not_save_logs,
+        job_queue,
+        nextflow_profile,
+        nextflow_version,
+        instance_type,
+        instance_disk,
+        storage_mode,
+        lustre_size,
+        wait_completion,
+        wait_time,
+        repository_platform,
+        hpc_id,
+        azure_worker_instance_type,
+        azure_worker_instance_disk,
+        azure_worker_instance_spot,
+        cost_limit,
+        accelerate_file_staging,
+        use_private_docker_repository,
+        verbose,
+        request_interval,
+        disable_ssl_verification,
+        ssl_cert,
+        profile):
+    """Resume a job in CloudOS."""
+    profile = profile or ctx.default_map['job']['resume']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'job_id': True,
+        'project_name': True,
+        "workflow_name": False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            workflow_name=None,
+            repository_platform=repository_platform,
+            execution_platform=None,
+            project_name=project_name
+        )
+    )
+
+    job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id, 
+                         cromwell_token="", disable_ssl_verification=disable_ssl_verification, 
+                         ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
+                         hpc_id=hpc_id, wdl_mainfile="", job_id=job_id, 
+                         use_private_docker_repository=use_private_docker_repository, nextflow_version=nextflow_version,
+                         wdl_importsfile="", storage_mode=storage_mode, accelerate_file_staging=accelerate_file_staging, 
+                         workflow_name=workflow_name, project_name=project_name, repository_platform=repository_platform, job_config=job_config, parameters=parameter,
+                         commit=git_commit, branch=git_branch, git_tag=git_tag, name=job_name, resumable=None, nextflow_profile=nextflow_profile, instance_disk=instance_disk,
+                         lustre_size=lustre_size, azure_worker_instance_type=azure_worker_instance_type, azure_worker_instance_disk=azure_worker_instance_disk,
+                         azure_worker_instance_spot=azure_worker_instance_spot, cost_limit=cost_limit, wait_completion=wait_completion, wait_time=wait_time,
+                         request_interval=request_interval, verbose=verbose, run_type="resume")
+    
+    job_setup.run_again(resume=True)
 
 
 @job.command('status')

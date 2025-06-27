@@ -76,7 +76,7 @@ class CantResumeRunningJob(Exception):
 class CantResumeNonResumableJob(Exception):
     def __init__(self, workflow):
         msg = f"Job {workflow} is non-resumable."
-        super(CantResumeNonResumableJob).__init__(msg)
+        super(CantResumeNonResumableJob, self).__init__(msg)
         self.workflow = workflow
 
 

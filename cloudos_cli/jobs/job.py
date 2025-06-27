@@ -229,7 +229,7 @@ class Job(Cloudos):
         cpus,
         memory,
     ):
-        """Converts a nextflow.config file into a json formatted dict.
+        """Converts a nextflow.config fie into a json formatted dict.
 
         Parameters
         ----------
@@ -492,7 +492,7 @@ class Job(Cloudos):
             params["resourceRequirements"] = {"cpu": cpus, "ram": memory}
         if workflow_type == "wdl":
             params["cromwellCloudResources"] = cromwell_id
-        git_flag = [x is not None for x in [git_tag, git_commit, git_branch]]
+        git_flag = [1 for x in [git_tag, git_commit, git_branch] if x]
         if sum(git_flag) > 1:
             raise ValueError(
                 "Please, specify none or only one of --git-tag, "
@@ -551,7 +551,7 @@ class Job(Cloudos):
         command=None,
         cpus=1,
         memory=4,
-        resume_job_work_dir=""
+        resume_job_work_dir="",
     ):
         """Send a job to CloudOS.
 
@@ -687,8 +687,7 @@ class Job(Cloudos):
         # specifying the resumeWorkDir slot, makes the job resumed.
         if resume_job_work_dir:
             params["resumeWorkDir"] = resume_job_work_dir
-
-        breakpoint()
+        from pprint import pprint
         r = retry_requests_post(
             "{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id),
             data=json.dumps(params),
@@ -811,7 +810,7 @@ class Job(Cloudos):
         parameters=None,
         is_module=False,
         example_parameters=[],
-        cost_limit=0,
+        cost_limit=0.0,
         project="",
         instance_type="",
         resumable=None,
@@ -823,7 +822,6 @@ class Job(Cloudos):
         instance_disk=0,
         storage_mode="",
         lustre_size=1200,
-        execution_platform="",
         hpc_id=None,
         workflow_type="nextflow",
         cromwell_id=None,
@@ -832,13 +830,12 @@ class Job(Cloudos):
         azure_worker_instance_spot=False,
         docker_login=False,
         verify=True,
-        command=None,
         cpus=1,
         memory=4,
-        resume_job=False
+        resume_job=False,
     ):
-        # In order to give precedence to arguments passed to the clone function, they have to be initialized 
-        # as None. However, in Azure endpoints, the payload-request endpoint does not return the nextflow version. 
+        # In order to give precedence to arguments passed to the clone function, they have to be initialized
+        # as None. However, in Azure endpoints, the payload-request endpoint does not return the nextflow version.
         # For that reason, we have to add logic to set the nextflow version inside the method itself.
         DEFAULT_NF_V = "22.11.1-edge"
         headers = {"Content-type": "application/json", "apikey": self.apikey}
@@ -857,6 +854,7 @@ class Job(Cloudos):
         )
         cloud_os_request_error(job_data_r)
         job_data_d = job_data_r.json()
+        self.workflow_name = job_data_d["name"]
         # This if statement is the only difference between the
         # clone and resume funcionality
         if resume_job:
@@ -868,33 +866,35 @@ class Job(Cloudos):
             new_resume_work_dir = job_data_d["resumeWorkDir"]
         else:
             new_resume_work_dir = ""
-
-        if sum([bool(x) for x in [commit, branch, git_tag]]) > 1:
+        specified_revision = sum([bool(x) for x in [commit, branch, git_tag]])
+        if specified_revision > 1:
             raise ValueError("Only one of commit, branch, or tag should be specified")
-        new_branch = job_payload_d["revision"]["branch"] if not any([git_tag, commit]) else None
-        branch_commit = None
-        # repository_data = job_data_d["workflow"]["repository"]
-        # repository_id = repository_data["repositoryId"]
-        # repository_owner_data = repository_data["owner"]
-        # repository_owner = repository_owner_data["login"]
-        # worflow_owner_id = job_data_d["workflow"]["owner"]["id"]
-        # repository_platform = repository_data["platform"]
+        if not job_payload_d["revision"]:
+            job_payload_d["revision"] = job_data_d["revision"]
+        
+            
+        new_branch = (
+            job_payload_d["revision"]["branch"] if not any([git_tag, commit]) else None
+        )
+        repository_data = job_data_d["workflow"]["repository"]
+        repository_id = repository_data["repositoryId"]
+        repository_owner_data = repository_data["owner"]
+        repository_owner = repository_owner_data["login"]
+        worflow_owner_id = job_data_d["workflow"]["owner"]["id"]
+        repository_platform = repository_data["platform"]
+        new_commit = None
         if branch:
-            # branch_exists, branch_commit = self.check_branch(
-            #     self.workspace_id,
-            #     repository_platform,
-            #     repository_id,
-            #     repository_owner,
-            #     worflow_owner_id,
-            #     branch,
-            #     verify=verify,
-            # )
-            # if not branch_exists:
-            #     raise ValueError(f"Branch {branch} does not exist in the repository.")
-            new_branch = branch
-        elif commit:
-            branch_commit = commit 
-        new_commit = branch_commit or job_payload_d["revision"]["commit"] if not any([git_tag, branch]) else None
+            branch_exists, branch_commit = self.check_branch(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                branch,
+                verify=verify,
+            )
+            if not branch_exists:
+                raise ValueError(f"Branch {branch} does not exist in the repository.")
         if commit:
             # commit_exists = self.check_commit(
             #     self.workspace_id,
@@ -908,7 +908,10 @@ class Job(Cloudos):
             # if not commit_exists:
             #     raise ValueError(f"Commit {commit} does not exist in the repository.")
             new_commit = commit
-        new_git_tag = git_tag if git_tag and not any([commit, branch]) else job_payload_d["revision"].get("tag", None)
+        if git_tag and not any([commit, branch]):
+            new_git_tag = git_tag
+        else:
+            new_git_tag = job_payload_d["revision"]["tag"] if job_payload_d["revision"]["tag"] else None
 
 
         new_profile = job_payload_d["profile"]
@@ -923,7 +926,6 @@ class Job(Cloudos):
             #     )
             new_profile = profile
 
-
         new_project = job_payload_d["project"]
         if project:
             project_exists, new_project = self.check_project(
@@ -932,7 +934,9 @@ class Job(Cloudos):
             if not project_exists:
                 raise ValueError(f"The project {project} does not exist.")
 
-        new_parameters = [f"{x['name']}={x['textValue']}" for x in job_payload_d["parameters"]]
+        new_parameters = [
+            f"{x['name']}={x['textValue']}" for x in job_payload_d["parameters"]
+        ]
         if parameters:
             old_params_names = [x.split("=")[0] for x in new_parameters]
             for new_param in parameters:
@@ -953,7 +957,8 @@ class Job(Cloudos):
         new_is_module = is_module
         new_example_parameters = example_parameters
         new_instance_type = (
-            instance_type or job_payload_d["masterInstance"]["requestedInstance"]["type"]
+            instance_type
+            or job_payload_d["masterInstance"]["requestedInstance"]["type"]
         )
         if not cost_limit:
             cost_limit = -1
@@ -963,11 +968,13 @@ class Job(Cloudos):
         new_batch = batch or job_payload_d["batch"]["enabled"]
         new_job_queue_id = job_queue_id
         # Necessary, as azure payload endpoint does not return a nextflow version.
-        new_nextflow_version = nextflow_version or job_payload_d.get("nextflowVersion", DEFAULT_NF_V)
+        new_nextflow_version = nextflow_version or job_payload_d.get(
+            "nextflowVersion", DEFAULT_NF_V
+        )
         new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
         new_storage_mode = storage_mode or job_payload_d["storageMode"]
         new_lustre_size = lustre_size
-        new_execution_platform = execution_platform or job_payload_d["executionPlatform"]
+        new_execution_platform = job_payload_d["executionPlatform"]
         new_hpc_id = hpc_id
         new_workflow_type = workflow_type
         new_cromwell_id = cromwell_id
@@ -975,10 +982,8 @@ class Job(Cloudos):
         new_azure_worker_instance_disk = azure_worker_instance_disk
         new_azure_worker_instance_spot = azure_worker_instance_spot
         new_docker_login = docker_login
-        new_command = command
         new_cpus = cpus
         new_memory = memory
-
         new_job_id = self.send_job(
             job_config=new_job_config,
             project_id=new_project,
@@ -1010,10 +1015,8 @@ class Job(Cloudos):
             use_mountpoints=new_use_mountpoints,
             docker_login=new_docker_login,
             verify=verify,
-            command=new_command,
             cpus=new_cpus,
             memory=new_memory,
-            resume_job_work_dir=new_resume_work_dir
+            resume_job_work_dir=new_resume_work_dir,
         )
         return new_job_id
-
