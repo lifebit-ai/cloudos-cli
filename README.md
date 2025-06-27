@@ -886,6 +886,25 @@ Please, note that in the above example a preconfigured profile has been used. If
     --workspace-id $WORKSPACE_ID \
     --project-name $PROJEC_NAME
 ```
+#### Create a (virtual) folder
+
+New folders can be created within the `Data` dataset  and its subfolders using the following command
+
+```
+cloudos datasets mkdir <parent_path> <new_folder_name>
+```
+where `parent_path` is the path to the folder where to create the new one, and `new_folder_name` is just the name of the folder to be created, no path required.
+
+Please, be aware that the folder creation can only happen in `Data` or its sub-folders.
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
 
 ### WDL pipeline support
 
