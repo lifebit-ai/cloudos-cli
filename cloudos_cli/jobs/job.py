@@ -412,7 +412,6 @@ class Job(Cloudos):
         if storage_mode not in ['lustre', 'regular']:
             raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
                              f'{storage_mode} is not allowed')
-        print("workflow_params: ", workflow_params)
         params = {
             "parameters": workflow_params,
             "project": project_id,
