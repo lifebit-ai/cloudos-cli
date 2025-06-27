@@ -19,7 +19,7 @@ from rich.style import Style
 from pathlib import Path
 import base64
 from cloudos_cli.utils.requests import retry_requests_get
-from cloudos_cli.utils.array_job import classify_pattern, get_file_id
+from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project, generate_datasets_for_project
 
 
 # GLOBAL VARS
@@ -2395,83 +2395,6 @@ def run_bash_array_job(ctx,
         "|": { "api": "%7C", "file": "|" }
     }
 
-    # projects
-    used_projects = set()
-    param_and_prop = dict()
-
-    used_projects.add(project_name)
-
-    if custom_script_project is not None and custom_script_project != project_name:
-        used_projects.add(custom_script_project)
-        param_and_prop["custom_script"] = {'project': custom_script_project, 'file_path': custom_script_path}
-
-    for param in parameter:
-        name, rest = param.split('=', 1)
-        try:
-            project, file_path = rest.split('/', 1)
-            #used_projects.add(project)
-            print("rest: ", rest, " project: ", rest.split('/', 1))
-            print("classify_pattern: ", classify_pattern(rest))
-            command_path = Path(file_path)
-            command_dir = str(command_path.parent)
-            command_name = command_path.name
-            _, ext = os.path.splitext(command_name)
-            if classify_pattern(rest) in ["regex", "glob"]:
-                print("project: ", project if project != '' else project_name)
-                param_and_prop[name] = {'project': project if project != '' else project_name, 'globPattern': command_name, "parameterKind": "globPattern"}
-                fil, fol = get_file_id(cloudos_url, apikey, workspace_id, project if project != '' else project_name, verify_ssl, command_dir, command_name)
-                #param_and_prop[name]['folder'] = folder_id
-                print("im here")
-            elif ext:
-                param_and_prop[name] = {'project': project if project != '' else project_name, 'file_path': file_path, "dataItem": { "kind" : "File"}}
-
-#            if project == '':
-#                param_and_prop[name] = {'project': project_name, 'file_path': file_path}
-            #     param_and_prop[name] = {'project': project, 'file_path': file_path}
-            # else:
-            #     param_and_prop[name] = {'project': project_name, 'file_path': file_path}
-
-        except ValueError:
-            param_and_prop[name] = {'project': project_name, "textValue": rest}
-
-    print("used_projects: ", used_projects)
-    print("param_and_prop: ", param_and_prop)
-    sys.exit(0)
-
-        # command_path = Path(file_path)
-        # command_path = Path(custom_script_path)
-        # command_dir = str(command_path.parent)
-        # command_name = command_path.name
-
-
-    # Setup datasets
-    try:
-        datasets_by_project = {
-            pname: Datasets(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                workspace_id=workspace_id,
-                project_name=pname,
-                verify=verify_ssl,
-                cromwell_token=None
-            )
-            for pname in used_projects
-        }
-        #ds = datasets_by_project[project]
-    except BadRequestException as e:
-        if 'Forbidden' in str(e):
-            print('[Error] It seems your call is not authorised. Please check if ' +
-                                'your workspace is restricted by Airlock and if your API key is valid.')
-            sys.exit(1)
-        else:
-            raise e
-
-    # identify only those parameters that need a folder or file ID (dataItem, globPattern)
-    for param in parameter:
-        name, rest = param.split('=', 1)
-
-
-
     # setup important options for the job
     if do_not_save_logs:
         save_logs = False
@@ -2491,7 +2414,12 @@ def run_bash_array_job(ctx,
                repository_platform=repository_platform, verify=verify_ssl)
 
     # retrieve columns
-    r = j.retrieve_cols_from_array_file(array_file, datasets_by_project[project_name], separators[separator]['api'], verify_ssl)
+    r = j.retrieve_cols_from_array_file(
+        array_file, 
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl),
+        separators[separator]['api'],
+        verify_ssl
+    )
 
     if not disable_column_check:
         columns = json.loads(r.content).get("headers", None)
@@ -2508,7 +2436,12 @@ def run_bash_array_job(ctx,
         columns = []
 
     # setup parameters for the job
-    cmd = j.setup_params_array_file(custom_script_path, datasets_by_project[custom_script_project], command, separators[separator]['file'])
+    cmd = j.setup_params_array_file(
+        custom_script_path,
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, custom_script_project, verify_ssl),
+        command,
+        separators[separator]['file']
+    )
 
     # check columns in the array file vs parameters added
     if not disable_column_check and array_parameter:
