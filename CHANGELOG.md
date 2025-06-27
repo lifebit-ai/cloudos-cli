@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.36.0 (2025-06-27)
+
+### Feat
+
+- Adds command to remove files.
+
 ## v2.32.0 (2025-06-17)
 
 ### Feat
