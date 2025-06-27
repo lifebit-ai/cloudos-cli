@@ -1,11 +1,23 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.34.0 (2025-06-30)
+
+### Feat
+
+- Allows to specify different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
+
 ## v2.33.0 (2025-06-25)
 
 ### Feat
 
 - Send bash array-jobs to the platform
 - Retrieve columns from bash array files using the API
+
+## v2.32.1 (2025-06-25)
+
+### Patch
+
+- Fixes how data items and glob patterns are identified in job details.
 
 ## v2.32.0 (2025-06-17)
 

@@ -370,7 +370,7 @@ class Job(Cloudos):
                                  'valid parameter')
 
         # array file specific parameters (from --array-parameter)
-        if len(array_parameter) > 0:
+        if array_parameter is not None and len(array_parameter) > 0:
             ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
             workflow_params.append(ap_param)
 
@@ -726,7 +726,7 @@ class Job(Cloudos):
 
     def setup_params_array_file(self, custom_script_path, ds_custom, command, separator):
         """
-        Sets up a dictionary representing command parameters, including support for custom scripts 
+        Sets up a dictionary representing command parameters, including support for custom scripts
         and array files, to be used in job execution.
 
         Parameters
@@ -761,15 +761,15 @@ class Job(Cloudos):
             cmd = {
                 "command": f"{command_name}",
                 "customScriptFile": {
-                "dataItem": {
-                    "kind": "File",
-                    "item": f"{custom_script_item}"
-                }
+                    "dataItem": {
+                        "kind": "File",
+                        "item": f"{custom_script_item}"
+                    }
                 }
             }
         else:
             # use this for text commands
-            cmd = {"command": command }
+            cmd = {"command": command}
 
         # add array-file
         cmd = cmd | {
@@ -816,7 +816,7 @@ class Job(Cloudos):
             ap_split = ap.split('=')
             if len(ap_split) < 2:
                 raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                    'as spacer. E.g: input=value')
+                                'as spacer. E.g: input=value')
             ap_name = ap_split[0]
             ap_value = '='.join(ap_split[1:])
             if workflow_type == 'docker':
