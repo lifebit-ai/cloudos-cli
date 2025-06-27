@@ -3,6 +3,12 @@
 
 -  Adds command to create new folders
 
+## v2.32.1 (2025-06-25)
+
+### Patch
+
+- Fixes how data items and glob patterns are identified in job details.
+
 ## v2.32.0 (2025-06-17)
 
 ### Feat

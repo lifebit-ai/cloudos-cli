@@ -7,5 +7,6 @@ from .requests import retry_requests_get, retry_requests_post, retry_requests_pu
 from .resources import format_bytes, ssl_selector
 from .cloud import find_cloud
 from .cloud import find_cloud
+from .details import get_path
 
-__all__ = ['errors', 'requests', 'resources', 'cloud']
+__all__ = ['errors', 'requests', 'resources', 'cloud', 'details']

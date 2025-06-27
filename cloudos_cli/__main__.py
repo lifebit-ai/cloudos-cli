@@ -16,6 +16,7 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
+from cloudos_cli.utils.details import get_path 
 
 
 # GLOBAL VARS
@@ -946,40 +947,6 @@ def job_details(ctx,
             sys.exit(1)
     j_details_h = json.loads(j_details.content)
 
-    # Check if the job details contain parameters
-    if j_details_h["parameters"] != []:
-        param_kind_map = {
-            'textValue': 'textValue',
-            'arrayFileColumn': 'columnName',
-            'globPattern': 'globPattern',
-            'lustreFileSystem': 'fileSystem',
-        }
-        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
-        # get first the type of parameter, then the value based on the parameter kind
-        concats = []
-        for param in j_details_h["parameters"]:
-            if param['parameterKind'] == 'dataItem':
-                # For dataItem, we need to use specific nested keys
-                concats.append(f"{param['prefix']}{param['name']}={param['dataItem']['item']['name']}")
-            else:
-                # For other parameter kinds, we use the appropriate key from param_kind_map
-                concats.append(f"{param['prefix']}{param['name']}={param[param_kind_map[param['parameterKind']]]}")
-        concat_string = '\n'.join(concats)
-        # If the user requested to save the parameters in a config file
-        if parameters:
-            # Create a config file with the parameters
-            config_filename = f"{output_basename}.config"
-            with open(config_filename, 'w') as config_file:
-                config_file.write("params {\n")
-                for param in j_details_h["parameters"]:
-                    config_file.write(f"\t{param['name']} = {param['textValue']}\n")
-                config_file.write("}\n")
-            print(f"\tJob parameters have been saved to '{config_filename}'")
-    else:
-        concat_string = 'No parameters provided'
-        if parameters:
-            print("\tNo parameters found in the job details, no config file will be created.")
-
     # Determine the execution platform based on jobType
     executors = {
         'nextflowAWS': 'Batch AWS',
@@ -991,6 +958,38 @@ def job_details(ctx,
         'cromwellAWS': 'Batch AWS'
     }
     execution_platform = executors.get(j_details_h["jobType"], "None")
+    storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
+
+    # Check if the job details contain parameters
+    if j_details_h["parameters"] != []:
+        param_kind_map = {
+            'textValue': 'textValue',
+            'arrayFileColumn': 'columnName',
+            'globPattern': 'globPattern',
+            'lustreFileSystem': 'fileSystem',
+            'dataItem': 'dataItem'
+        }
+        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
+        # get first the type of parameter, then the value based on the parameter kind
+        concats = []
+        for param in j_details_h["parameters"]:
+            concats.append(f"{param['prefix']}{param['name']}={get_path(param, param_kind_map, execution_platform, storage_provider, 'asis')}")
+        concat_string = '\n'.join(concats)
+
+        # If the user requested to save the parameters in a config file
+        if parameters:
+            # Create a config file with the parameters
+            config_filename = f"{output_basename}.config"
+            with open(config_filename, 'w') as config_file:
+                config_file.write("params {\n")
+                for param in j_details_h["parameters"]:
+                    config_file.write(f"\t{param['name']} = {get_path(param, param_kind_map, execution_platform, storage_provider)}\n")
+                config_file.write("}\n")
+            print(f"\tJob parameters have been saved to '{config_filename}'")
+    else:
+        concat_string = 'No parameters provided'
+        if parameters:
+            print("\tNo parameters found in the job details, no config file will be created.")
 
     # revision
     if j_details_h["jobType"] == "dockerAWS":
@@ -1014,7 +1013,11 @@ def job_details(ctx,
         table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
         table.add_row("Execution Platform", execution_platform)
         table.add_row("Profile", str(j_details_h.get("profile", "None")))
-        table.add_row("Master Instance", str(j_details_h["masterInstance"]["usedInstance"]["type"]))
+        # when the job is just running this value might not be present
+        master_instance = j_details_h.get("masterInstance", {})
+        used_instance = master_instance.get("usedInstance", {})
+        instance_type = used_instance.get("type", "N/A")
+        table.add_row("Master Instance", str(instance_type))
         if j_details_h["jobType"] == "nextflowAzure":
             try:
                 table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
@@ -1041,13 +1044,18 @@ def job_details(ctx,
             "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
             "Execution Platform": execution_platform,
             "Profile": str(j_details_h.get("profile", "None")),
-            "Master Instance": str(j_details_h["masterInstance"]["usedInstance"]["type"]),
             "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
             "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
             "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
                               f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
 
         }
+
+        # when the job is just running this value might not be present
+        master_instance = j_details_h.get("masterInstance", {})
+        used_instance = master_instance.get("usedInstance", {})
+        instance_type = used_instance.get("type", "N/A")
+        job_details_json["Master Instance"] = str(instance_type)
 
         # Conditionally add the "Command" key if the jobType is "dockerAWS"
         if j_details_h["jobType"] == "dockerAWS":
