@@ -8,6 +8,8 @@ actual_json_file = "tests/test_data/convert_nextflow_to_json_params.json"
 param_dict = {
     "config": "cloudos_cli/examples/rnatoy.config",
     "parameter": (),
+    "array_parameter": (),
+    "array_file_header": None,
     "is_module": False,
     "example_parameters": [],
     "git_commit": None,
@@ -46,6 +48,8 @@ def test_convert_nextflow_to_json_output_correct():
     job_json = Job.convert_nextflow_to_json(
         1, param_dict["config"],
         parameter=param_dict["parameter"],
+        array_parameter=param_dict["array_parameter"],
+        array_file_header=param_dict["array_file_header"],
         is_module=param_dict["is_module"],
         example_parameters=param_dict["example_parameters"],
         git_commit=param_dict["git_commit"],
@@ -89,6 +93,8 @@ def test_convert_nextflow_to_json_badly_formed_config():
         Job.convert_nextflow_to_json(
             1, no_equals_config,
             parameter=param_dict["parameter"],
+            array_parameter=param_dict["array_parameter"],
+            array_file_header=param_dict["array_file_header"],
             is_module=param_dict["is_module"],
             example_parameters=param_dict["example_parameters"],
             git_commit=param_dict["git_commit"],
