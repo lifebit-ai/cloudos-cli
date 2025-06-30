@@ -206,28 +206,6 @@ def configure(ctx, profile, make_default):
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
 
-def run():
-    try:
-        run_cloudos_cli()
-    except click.UsageError as e:
-        msg = str(e)
-        for param in [
-            "--apikey", "--cloudos-url", "--workspace-id",
-            "--workflow-name", "--repository-platform",
-            "--execution-platform", "--project-name"
-        ]:
-            if param in msg:
-                click.echo(
-                    f"Error: Missing option --{param}.\n"
-                    "You can configure --apikey, --cloudos-url, --workspace-id, "
-                    "--workflow-name, --repository-platform, --execution-platform, "
-                    "--project-name persistently by running cloudos configure",
-                    err=True
-                )
-                sys.exit(1)
-        raise
-
-    
 @job.command('run')
 @click.option('-k',
               '--apikey',
@@ -3130,4 +3108,4 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
 
 
 if __name__ == "__main__":
-    run()
+    run_cloudos_cli()
