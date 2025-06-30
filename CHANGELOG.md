@@ -3,6 +3,25 @@
 
 -  Adds command to create new folders
 
+## v2.34.0 (2025-06-27)
+
+### Feat
+
+- Adds command to copy files and folders within and across projects within the same workspace.
+
+## v2.33.0 (2025-06-25)
+
+### Feat
+
+- Send bash array-jobs to the platform
+- Retrieve columns from bash array files using the API
+
+## v2.32.1 (2025-06-25)
+
+### Patch
+
+- Fixes how data items and glob patterns are identified in job details.
+
 ## v2.32.0 (2025-06-17)
 
 ### Feat
@@ -11,9 +30,13 @@
 
 ## v2.31.1 (2025-06-17)
 
+### Patch
+
 - Make repository platform consistent in configuration
 
 ## v2.31.0 (2025-06-17)
+
+### Feat
 
 - Adds command to show the path to logs and results of jobs
 
