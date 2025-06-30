@@ -2633,7 +2633,6 @@ def list_files(ctx,
 
     try:
         result = datasets.list_folder_content(path)
-        #print(result)
         contents = result.get("contents") or result.get("datasets", [])
         if not contents:
             contents = result.get("files", []) + result.get("folders", [])
@@ -2962,6 +2961,7 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
         sys.exit(1)
 
+
 @datasets.command(name="cp")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
@@ -2979,6 +2979,11 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
                   disable_ssl_verification, ssl_cert, profile):
     """
     Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
+
+    SOURCE_PATH [path]: the full path to the file or folder to copy.
+     E.g.: AnalysesResults/my_analysis/results/my_plot.png\n
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
+     E.g.: Data/plots
     """
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
@@ -3019,13 +3024,12 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         cromwell_token=None
     )
     # Validate paths
-    parts = destination_path.strip("/").split("/")
-    if not parts or parts[0] != "Data":
-        click.echo(f"[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
+    dest_parts = destination_path.strip("/").split("/")
+    if not dest_parts or dest_parts[0] != "Data":
+        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
         sys.exit(1)
     # Parse source and destination
     source_parts = source_path.strip("/").split("/")
-    dest_parts = destination_path.strip("/").split("/")
     source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
     source_name = source_parts[-1]
     dest_folder_name = dest_parts[-1]
@@ -3038,12 +3042,9 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         sys.exit(1)
     # Find the source item
     source_item = None
-    for group in ["files", "folders"]:
-        for item in source_content.get(group, []):
-            if item.get("name") == source_name:
-                source_item = item
-                break
-        if source_item:
+    for item in source_content.get('files' or 'folders', {}):
+        if item.get("name") == source_name:
+            source_item = item
             break
     if not source_item:
         click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent or '[project root]'}'", err=True)
