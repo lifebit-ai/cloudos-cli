@@ -2157,7 +2157,7 @@ def run_bash_job(ctx,
                       hpc_id=None,
                       cost_limit=cost_limit,
                       verify=verify_ssl,
-                      command=command,
+                      command={"command": command},
                       cpus=cpus,
                       memory=memory)
 
