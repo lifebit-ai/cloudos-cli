@@ -497,6 +497,22 @@ cloudos bash array-job \
 ```
 for parameter `exp` it will point to a project named `PROJECT_EXPRESSION` in the File Explorer, and `data` parameter will be found in the global project `ADIPOSE`.
 
+Apart from files, the parameter can also take glob patterns, for example:
+
+```console
+cloudos bash array-job \
+    -p data=Data/input.csv
+    -p exp=PROJECT_EXPRESSION/Data/*.csv \
+    --project-name "ADIPOSE"
+...
+```
+will take all `csv` file extensions in the specified folder.
+
+> [!NOTE]
+> When specifying glob patterns, depending on the terminal is best to add it in double quotes to avoid the terminal searching for the glob pattern locally, e.g. `-p exp="PROJECT_EXPRESSION/Data/*.csv"`.
+
+> [!NOTE]
+> Project names in the `--parameter` option can start with either forward slash `/` or without. The following are the same `-p data=/PROJECT1/Data/input.csv` and `-p data=PROJECT1/Data/input.csv`.
 
 #### Get path to logs of job from CloudOS
 
