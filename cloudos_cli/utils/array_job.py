@@ -206,11 +206,20 @@ def get_file_or_folder_id(cloudos_url, apikey, workspace_id, project_name, verif
         raise ValueError(f"File '{command_name}' not found in directory '{command_dir}'.")
     else:
         # get all folders from the project
-        folders = ds.list_project_content()
+        # check if the command_dir has a sub-folder
+        if len(command_dir.split("/")) > 1:
+            # get the first folder which is just below the project
+            folders = ds.list_folder_content(command_dir.split("/")[0])
+            # use the last folder as is listed in the first folder
+            folder_to_search = command_dir.split("/")[-1]
+        else:
+            folders = ds.list_project_content()
+            folder_to_search = command_dir
+
         for folder in folders['folders']:
-            if folder.get("name") == command_dir:
+            if folder.get("name") == folder_to_search:
                 return folder.get("_id", '')
-        raise ValueError(f"Folder '{command_dir}' not found in project.")
+        raise ValueError(f"Folder '{folder_to_search}' not found in project.")
 
 def extract_project(path):
     """
@@ -234,7 +243,10 @@ def extract_project(path):
     # Strip slashes and split the path
     parts = path.strip("/").split("/")
     # A "project" exists only if there are at least 3 parts
-    if len(parts) >= 3:
+    # globs needs more than 3 parts i.e. PROJECT/Data/Downloads/*.csv
+    if (len(parts) >= 3 and not is_glob_pattern(path)) or \
+       (len(parts) > 3 and is_glob_pattern(path)):
+        # Return the first part as project name and the rest as remaining path
         return parts[0], "/".join(parts[1:])
     else:
         # project is empty, use the project_name of the function
