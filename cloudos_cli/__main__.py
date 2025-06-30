@@ -18,14 +18,6 @@ from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.details import get_path
 
-class APIRequiredOption(click.Option):
-    def handle_parse_result(self, ctx, opts, args):
-        value = opts.get(self.name)
-        if self.required and (value is None or value == ''):
-            raise click.UsageError(
-                f"Error: Missing option --{self.name}.\n You can configure --apikey, --cloudos_url, --workspace_id, --workflow_name, --repository_platform, --execution_platform, --project_name persistently by running `cloudos configure`"
-            )
-        return super().handle_parse_result(ctx, opts, args)
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -214,31 +206,47 @@ def configure(ctx, profile, make_default):
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
 
+def run():
+    try:
+        run_cloudos_cli()
+    except click.UsageError as e:
+        msg = str(e)
+        for param in [
+            "--apikey", "--cloudos-url", "--workspace-id",
+            "--workflow-name", "--repository-platform",
+            "--execution-platform", "--project-name"
+        ]:
+            if param in msg:
+                click.echo(
+                    f"Error: Missing option --{param}.\n"
+                    "You can configure --apikey, --cloudos-url, --workspace-id, "
+                    "--workflow-name, --repository-platform, --execution-platform, "
+                    "--project-name persistently by running cloudos configure",
+                    err=True
+                )
+                sys.exit(1)
+        raise
 
+    
 @job.command('run')
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--project-name',
               help='The name of a CloudOS project.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-config',
               help=('A config file similar to a nextflow.config file, ' +
                     'but only with the parameters to use with your job.'))
@@ -660,14 +668,12 @@ def run(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -734,18 +740,15 @@ def job_status(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -811,18 +814,15 @@ def job_logs(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -888,14 +888,12 @@ def job_results(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -1115,18 +1113,15 @@ def job_details(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--output-basename',
               help=('Output file base name to save jobs list. ' +
                     'Default=joblist'),
@@ -1249,18 +1244,15 @@ def list_jobs(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--job-ids',
               help=('One or more job ids to abort. If more than ' +
                     'one is provided, they must be provided as ' +
@@ -1346,18 +1338,15 @@ def abort_jobs(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--output-basename',
               help=('Output file base name to save workflow list. ' +
                     'Default=workflow_list'),
@@ -1447,19 +1436,16 @@ def list_workflows(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
                     f'Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
@@ -1532,18 +1518,15 @@ def import_wf(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--output-basename',
               help=('Output file base name to save project list. ' +
                     'Default=project_list'),
@@ -1655,8 +1638,7 @@ def list_projects(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
@@ -1665,12 +1647,10 @@ def list_projects(ctx,
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1735,8 +1715,7 @@ def cromwell_status(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key.', 
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
@@ -1745,12 +1724,10 @@ def cromwell_status(ctx,
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--wait-time',
               help=('Max time to wait (in seconds) to Cromwell restart. ' +
                     'Default=300.'),
@@ -1842,8 +1819,7 @@ def cromwell_restart(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
@@ -1852,12 +1828,10 @@ def cromwell_restart(ctx,
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1923,18 +1897,15 @@ def cromwell_stop(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--output-basename',
               help=('Output file base name to save job queue list. ' +
                     'Default=job_queue_list'),
@@ -2032,8 +2003,7 @@ def remove_profile(ctx, profile):
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--command',
               help='The command to run in the bash job.',
               required=True)
@@ -2041,20 +2011,16 @@ def remove_profile(ctx, profile):
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--project-name',
               help='The name of a CloudOS project.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -2266,28 +2232,23 @@ def run_bash_job(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--command',
               help='The command to run in the bash job.')
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--project-name',
               help='The name of a CloudOS project.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -2635,18 +2596,15 @@ def run_bash_array_job(ctx,
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
-              required=True,
-              cls=APIRequiredOption)
+              required=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -2786,10 +2744,10 @@ def list_files(ctx,
 @datasets.command(name="mv")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.',cls=APIRequiredOption)
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.',cls=APIRequiredOption)
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.', cls=APIRequiredOption)
-@click.option('--project-name', required=True, help='The source project name.', cls=APIRequiredOption)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.', )
+@click.option('--project-name', required=True, help='The source project name.', )
 @click.option('--destination-project-name', required=False,
               help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
@@ -2941,10 +2899,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @datasets.command(name="rename")
 @click.argument("source_path", required=True)
 @click.argument("new_name", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.',cls=APIRequiredOption)
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.',cls=APIRequiredOption)
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.',cls=APIRequiredOption)
-@click.option('--project-name', required=True, help='The project name.',cls=APIRequiredOption)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
@@ -3047,10 +3005,10 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
 @datasets.command(name="cp")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.',cls=APIRequiredOption)
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.',cls=APIRequiredOption)
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.',cls=APIRequiredOption)
-@click.option('--project-name', required=True, help='The source project name.', cls=APIRequiredOption)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.', )
 @click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
@@ -3172,4 +3130,4 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
 
 
 if __name__ == "__main__":
-    run_cloudos_cli()
+    run()
