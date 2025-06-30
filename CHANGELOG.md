@@ -6,6 +6,12 @@
 
 - Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
 
+## v2.34.0 (2025-06-27)
+
+### Feat
+
+- Adds command to copy files and folders within and across projects within the same workspace.
+
 ## v2.33.0 (2025-06-25)
 
 ### Feat

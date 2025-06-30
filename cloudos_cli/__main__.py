@@ -92,7 +92,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'cp': shared_config
             }
         })
     else:
@@ -139,7 +140,8 @@ def run_cloudos_cli(ctx):
             'datasets': {
                 'ls': shared_config,
                 'mv': shared_config,
-                'rename': shared_config
+                'rename': shared_config,
+                'cp': shared_config
             }
         })
 
@@ -2942,6 +2944,133 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
             sys.exit(1)
     except Exception as e:
         click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
+        sys.exit(1)
+
+
+@datasets.command(name="cp")
+@click.argument("source_path", required=True)
+@click.argument("destination_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.')
+@click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.pass_context
+def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
+                  workspace_id, project_name, destination_project_name,
+                  disable_ssl_verification, ssl_cert, profile):
+    """
+    Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
+
+    SOURCE_PATH [path]: the full path to the file or folder to copy.
+     E.g.: AnalysesResults/my_analysis/results/my_plot.png\n
+    DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
+     E.g.: Data/plots
+    """
+    click.echo("Loading configuration profile...")
+    config_manager = ConfigurationProfile()
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+    apikey, cloudos_url, workspace_id, workflow_name, _, _, project_name = config_manager.load_profile_and_validate_data(
+        ctx, INIT_PROFILE, CLOUDOS_URL, profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=workspace_id,
+        workflow_name=None,
+        repository_platform=None,
+        execution_platform=None,
+        project_name=project_name
+    )
+    destination_project_name = destination_project_name or project_name
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    # Initialize clients
+    source_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    dest_client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=destination_project_name,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    # Validate paths
+    dest_parts = destination_path.strip("/").split("/")
+    if not dest_parts or dest_parts[0] != "Data":
+        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
+        sys.exit(1)
+    # Parse source and destination
+    source_parts = source_path.strip("/").split("/")
+    source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
+    source_name = source_parts[-1]
+    dest_folder_name = dest_parts[-1]
+    dest_parent = "/".join(dest_parts[:-1]) if len(dest_parts) > 1 else ""
+    try:
+        source_content = source_client.list_folder_content(source_parent)
+        dest_content = dest_client.list_folder_content(dest_parent)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
+        sys.exit(1)
+    # Find the source item
+    source_item = None
+    for item in source_content.get('files' or 'folders', {}):
+        if item.get("name") == source_name:
+            source_item = item
+            break
+    if not source_item:
+        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent or '[project root]'}'", err=True)
+        sys.exit(1)
+    # Find the destination folder
+    destination_folder = None
+    for folder in dest_content.get("folders", []):
+        if folder.get("name") == dest_folder_name:
+            destination_folder = folder
+            break
+    if not destination_folder:
+        click.echo(f"[ERROR] Destination folder '{destination_path}' not found.", err=True)
+        sys.exit(1)
+    try:
+        # Determine item type
+        if "fileType" in source_item:
+            item_type = "file"
+        elif source_item.get("folderType") == "VirtualFolder":
+            item_type = "virtual_folder"
+        elif "s3BucketName" in source_item and source_item.get("folderType") == "S3Folder":
+            item_type = "s3_folder"
+        else:
+            click.echo("[ERROR] Could not determine item type.", err=True)
+            sys.exit(1)
+        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
+        if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
+            destination_kind = "Dataset"
+        else:
+            destination_kind = "Folder"
+        response = source_client.copy_item(
+            item=source_item,
+            destination_id=destination_folder["_id"],
+            destination_kind=destination_kind
+        )
+        if response.ok:
+            click.secho("[SUCCESS] Item copied successfully.", fg="green", bold=True)
+        else:
+            click.echo(f"[ERROR] Copy failed: {response.status_code} - {response.text}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Copy operation failed: {str(e)}", err=True)
         sys.exit(1)
 
 
