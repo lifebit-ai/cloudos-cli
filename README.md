@@ -385,6 +385,31 @@ command.
 Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
 Check `cloudos bash job --help` for more details.
 
+#### Resume a job in CloudOS
+
+Resume a job in CloudOS. This feature allows to resume a non-running job (completed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
+
+Example
+
+```console
+cloudos job resume --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
+  --job-id $ID_OF_JOB_TO_RESUME --param new_parameter=newValue --job-name resumed_with_extra_parameters
+```
+
+In the example above, the job with ID `$ID_OF_JOB_TO_RESUME` will be resumed, including the parameter `new_parameter` with value `newValue`. Only processes that have not been executed or processes that depend on the `new_parameter` parameter will be executed. All other processes will be cached.
+
+#### Clone a job in CloudOS
+Clone a job in CloudOs. Run a job again. Cloned jobs can be executed even when then job they were cloned from is still running. New parameters can be set for the cloned job. The difference between cloning and resuming, is that cloned jobs run all the processes of the cloned job, even if they have already been completed in the original job.
+
+Example
+
+```console
+cloudos job clone --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
+  --job-id $ID_OF_JOB_TO_CLONE --param new_parameter=newValue --job-name cloned_with_extra_parameters
+```
+
+In this example, all the processes of the job with id `ID_OF_JOB_TO_CONE` will be executed with the additional parameter `new_parameter` with value `newValue`
+
 #### Get path to logs of job from CloudOS
 
 Get the path where Nextflow logs, Nextflow standard output, and trace files. It can be used on jobs with any status.
