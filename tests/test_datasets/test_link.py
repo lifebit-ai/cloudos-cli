@@ -86,7 +86,7 @@ def test_link_s3_folder_success():
         method=responses.POST,
         url=url,
         headers=headers,
-        json={}, # does not give a response body
+        json={"status": "success"},
         match=[responses.json_params_matcher(expected_payload)],
         status=204
     )
