@@ -439,8 +439,7 @@ def run(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
-              required=True)
+              help='The name of a CloudOS project.')
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
@@ -647,8 +646,7 @@ def clone(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
-              required=True)
+              help='The name of a CloudOS project.')
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
