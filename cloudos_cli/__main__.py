@@ -3046,7 +3046,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         sys.exit(1)
     # Find the source item
     source_item = None
-    for item in source_content.get('files' or 'folders', {}):
+    for item in source_content.get('files', []) + source_content.get('folders', []):
         if item.get("name") == source_name:
             source_item = item
             break
@@ -3278,7 +3278,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         sys.exit(1)
 
     found_item = None
-    for item in contents.get('files' or 'folders', {}):
+    for item in contents.get('files', []) + contents.get('folders', []):
         if item.get("name") == item_name:
             found_item = item
             break
