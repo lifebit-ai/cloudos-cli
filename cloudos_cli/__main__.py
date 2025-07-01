@@ -3207,6 +3207,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Folder creation failed: {str(e)}", err=True)
         sys.exit(1)
 
+
 @datasets.command(name="rm")
 @click.argument("target_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
@@ -3223,7 +3224,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     """
     Delete a file or folder in a CloudOS project.
 
-    TARGET_PATH [path]: the full path to the file or folder to delete. \n
+    TARGET_PATH [path]: the full path to the file or folder to delete. Must start with 'Data'. \n
     E.g.: 'Data/folderA/file.txt' or 'Data/my_analysis/results/folderB'
     """
     if not target_path.strip("/").startswith("Data/"):
@@ -3277,12 +3278,9 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         sys.exit(1)
 
     found_item = None
-    for category in ["files", "folders"]:
-        for item in contents.get(category, []):
-            if item.get("name") == item_name:
-                found_item = item
-                break
-        if found_item:
+    for item in contents.get('files' or 'folders', {}):
+        if item.get("name") == item_name:
+            found_item = item
             break
 
     if not found_item:
