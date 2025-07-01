@@ -92,11 +92,8 @@ def run_cloudos_cli(ctx):
                 'mv': shared_config,
                 'rename': shared_config,
                 'cp': shared_config,
-<<<<<<< HEAD
-                'link': shared_config
-=======
+                'link': shared_config,
                 'mkdir': shared_config
->>>>>>> main
             }
         })
     else:
@@ -146,11 +143,8 @@ def run_cloudos_cli(ctx):
                 'mv': shared_config,
                 'rename': shared_config,
                 'cp': shared_config,
-<<<<<<< HEAD
-                'link': shared_config
-=======
+                'link': shared_config,
                 'mkdir': shared_config
->>>>>>> main
             }
         })
 
