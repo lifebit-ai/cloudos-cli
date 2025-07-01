@@ -5,7 +5,7 @@ This is the main class for file explorer (datasets).
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_delete
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_post, retry_requests_delete
 import json
 
 @dataclass
@@ -403,6 +403,90 @@ class Datasets(Cloudos):
         }
 
         response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        return response
+    
+    def copy_item(self, item, destination_id, destination_kind):
+        """Copy a file or folder (S3 or Virtual) to a destination in CloudOS."""
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "ApiKey": self.apikey
+        }
+        parent = {"kind": destination_kind, "id": destination_id}
+
+        # Virtual folder
+        if item.get("folderType") == "VirtualFolder":
+            payload = {
+                "copyContentsFrom": item["_id"],
+                "name": item["name"],
+                "parent": parent
+            }
+            url = f"{self.cloudos_url}/api/v1/folders/virtual?teamId={self.workspace_id}"
+        # S3 folder
+        elif item.get("folderType") == "S3Folder":
+            payload = {
+                "s3BucketName": item["s3BucketName"],
+                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
+                "name": item["name"],
+                "parent": parent,
+                "isManagedByLifebit": item.get("isManagedByLifebit", False)
+            }
+            url = f"{self.cloudos_url}/api/v1/folders/s3?teamId={self.workspace_id}"
+        # S3 file
+        elif item.get("fileType") == "S3File":
+            payload = {
+                "s3BucketName": item["s3BucketName"],
+                "s3ObjectKey": item["s3ObjectKey"],
+                "name": item["name"],
+                "parent": parent,
+                "isManagedByLifebit": item.get("isManagedByLifebit", False),
+                "sizeInBytes": item.get("sizeInBytes", 0)
+            }
+            url = f"{self.cloudos_url}/api/v1/files/s3?teamId={self.workspace_id}"
+        else:
+            raise ValueError(f"Unknown item type for copy: {item.get('name')}")
+        response = retry_requests_post(url, headers=headers, json=payload)
+
+        return response
+    
+    def create_virtual_folder(self, name: str, parent_id: str, parent_kind: str):
+        """
+        Create a new virtual folder in CloudOS under a given parent.
+
+        Parameters
+        ----------
+        name : str
+            The name of the new folder.
+        parent_id : str
+            The ID of the parent (can be a Dataset or a Folder).
+        parent_kind : str
+            The type of the parent: either "Dataset" or "Folder".
+
+        Returns
+        -------
+        response : requests.Response
+            The response object from the CloudOS API.
+        """
+        if parent_kind not in ("Dataset", "Folder"):
+            raise ValueError("Invalid parent_kind. Must be 'Dataset' or 'Folder'.")
+
+        url = f"{self.cloudos_url}/api/v1/folders/virtual?teamId={self.workspace_id}"
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "ApiKey": self.apikey
+        }
+
+        payload = {
+            "name": name,
+            "parent": {
+                "kind": parent_kind,
+                "id": parent_id
+            }
+        }
+
+        response = retry_requests_post(url, headers=headers, json=payload, verify=self.verify)
         return response
     
     def delete_item(self, item_id: str, kind: str):
