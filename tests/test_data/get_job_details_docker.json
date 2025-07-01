@@ -1,0 +1,195 @@
+{
+    "_id": "616ee9681b866a01d69fa1cd",
+    "user": {
+        "id": "6329e3bd3c0e00014641eeea",
+        "name": "John",
+        "surname": "Doe",
+        "email": "johnd@lifebit.ai",
+        "secondaryEmail": "johnd@lifebit.ai",
+        "organization": "Lifebit",
+        "isPredefined": false,
+        "isSuspended": false,
+        "favoritedPublicBuckets": [],
+        "favoritedPublicAzureContainers": [],
+        "adGroups": [],
+        "isApproved": true,
+        "isReviewed": true,
+        "isVerified": true,
+        "totalCreditsInCents": 998.68164422,
+        "dockerRegistriesCredentials": []
+    },
+    "jobType": "dockerAWS",
+    "team": "5c6d3e9bd954e800b23f8c62",
+    "workflow": {
+        "_id": "67bf34d27f56d721d1b120ea",
+        "owner": {
+            "id": "60a77a0d02378e019a100bf7"
+        },
+        "name": "ubuntu",
+        "docsLink": "",
+        "description": "",
+        "isPredefined": false,
+        "isCurated": false,
+        "isFeatured": false,
+        "isModule": false,
+        "isPublic": false,
+        "isLifebitManaged": false,
+        "group": "user",
+        "priceAmount": 0,
+        "priceUnit": "PER_SAMPLE",
+        "tags": [],
+        "overview": "",
+        "createdAt": "2025-02-26T15:35:46.585Z",
+        "updatedAt": "2025-02-26T15:35:46.585Z",
+        "imageUrl": null,
+        "parametersInfo": [],
+        "archived": {
+            "status": false,
+            "archivalTimestamp": null
+        },
+        "workflowType": "docker",
+        "containerName": "library/ubuntu",
+        "defaultCommand": ""
+    },
+    "name": "ubunutu_cloudoscli_auto_new_queue",
+    "parameters": [
+        {
+            "name": "test",
+            "prefix": "-",
+            "parameterKind": "textValue",
+            "textValue": "value"
+        },
+        {
+            "name": "gaq",
+            "prefix": "--",
+            "parameterKind": "textValue",
+            "textValue": "test"
+        },
+        {
+            "name": "cryo",
+            "prefix": "",
+            "parameterKind": "textValue",
+            "textValue": "yes"
+        }
+    ],
+    "project": {
+        "_id": "681dc9f121cd5b935168d13f",
+        "user": {
+            "id": "6329e3bd3c0e00014641eeea"
+        },
+        "team": {
+            "id": "5c6d3e9bd954e800b23f8c62"
+        },
+        "name": "JD-bash",
+        "description": "",
+        "projectData": [],
+        "createdAt": "2025-05-09T09:25:05.262Z",
+        "updatedAt": "2025-05-16T14:39:15.164Z",
+        "directory": {}
+    },
+    "masterInstance": {
+        "requestedInstance": {
+            "type": "c5.xlarge",
+            "asSpot": false
+        },
+        "usedInstance": {
+            "asSpot": false,
+            "name": "ip-10-0-80-148",
+            "type": "c5.xlarge"
+        }
+    },
+    "instanceType": "c5.xlarge",
+    "spotInstances": {
+        "usedInstance": {},
+        "instances": []
+    },
+    "storageMode": "regular",
+    "storageSizeInGb": 500,
+    "status": "completed",
+    "error": {},
+    "logs": {
+        "s3BucketName": "lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c",
+        "s3Prefix": "deploit/teams/5c6d3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/681dc9f121cd5b935168d13f/jobs/68274e1361017f52bc2d803e/logs"
+    },
+    "results": {
+        "s3BucketName": "lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c",
+        "s3Bucket": "lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c",
+        "s3Prefix": "deploit/teams/5c6d3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/681dc9f121cd5b935168d13f/jobs/68274e1361017f52bc2d803e/results"
+    },
+    "saveProcessLogs": false,
+    "startTime": "2025-05-16T14:40:08.025Z",
+    "endTime": "2025-05-16T14:44:50.332Z",
+    "createdAt": "2025-05-16T14:39:15.154Z",
+    "updatedAt": "2025-05-16T14:44:51.696Z",
+    "computeCostSpent": 1.6136666666666666,
+    "realInstancesExecutionCost": 1.6136666666666666,
+    "instancesExecutionCostSavings": 0.13733333333333334,
+    "masterInstanceOnDemandExecutionCost": 1.504,
+    "masterInstanceSpotExecutionCost": 0,
+    "onDemandExecutionCost": 0.247,
+    "spotExecutionCost": 0.10966666666666666,
+    "masterInstanceStorageCost": 0.6948924731182795,
+    "storageCost": 0,
+    "serviceFee": 0,
+    "additionalCost": 0,
+    "moduleExecutionCost": 0,
+    "isReportAvailable": false,
+    "monitor": {
+        "processDataList": [],
+        "processSummaryData": {},
+        "processesStatusesSummary": {
+            "submitted": 0,
+            "retried": 0,
+            "failed": 0,
+            "completed": 0,
+            "totalProcs": 0,
+            "completedProcs": 0,
+            "processNames": []
+        },
+        "workflowStatus": {
+            "runName": "",
+            "runId": "",
+            "runStatus": "",
+            "_id": "68274e1361017f52bc2d803f"
+        },
+        "usesProcessMetricsService": true
+    },
+    "progress": {},
+    "computeCostLimit": 3000,
+    "resourceRequirements": {
+        "cpu": 1,
+        "ram": 4
+    },
+    "command": "echo 'test' > new_file.txt",
+    "revision": {
+        "digest": "sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233",
+        "tag": ""
+    },
+    "batch": {
+        "enabled": true,
+        "jobQueue": {
+            "id": "67cf27d1c6c59bd74ae74b21",
+            "resource": "5c6d3e9bd954e800b23f8c62",
+            "name": "nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee",
+            "label": "New_standard_cost_saving",
+            "description": "standard cost saving",
+            "isDefault": false,
+            "resourceType": "teamBatchJobQueue",
+            "executor": "nextflow",
+            "arn": "arn:aws:batch:eu-west-1:024947089814:job-queue/nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee",
+            "computeEnvironments": [
+                {
+                    "label": "Spot_Optimised",
+                    "environment": "67cf27d1c6c59bd74ae74b16",
+                    "status": "MarkedForDeletion",
+                    "createdAt": "2025-03-10T17:56:33.211Z",
+                    "updatedAt": "2025-05-27T14:25:03.149Z",
+                    "backup": null
+                }
+            ],
+            "status": "Deleted"
+        }
+    },
+    "isOptim": true,
+    "tags": []
+}

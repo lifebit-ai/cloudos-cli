@@ -30,12 +30,19 @@ param_dict = {
         }
     }
 }
-command = {"command": 'echo "Hello World"'}
+custom_cmd = {"command": 'command.sh', "customScriptFile": {"dataItem": {"kind": "File", "item": "12345"}}}
+cmd_w_array_file = custom_cmd | {
+        "arrayFile": {
+            "dataItem": {"kind": "File", "item": "9876"},
+            "separator": ","
+        }
+    }
+
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_send_bash_job():
+def test_send_bash_array_job():
     """
     Test 'send_bash_job' to work as intended
     API request is mocked and replicated with json files
@@ -88,12 +95,15 @@ def test_send_bash_job():
               workflow_name=WORKFLOW_NAME)
     output = StringIO()
     sys.stdout = output
+
     job_json = job.send_job(
         job_config=None,
         parameter=('--test=testValue', '-test2=testValue2', 'test3=testValue3'),
+        array_parameter=('--new_var=title', '-array-flag=flag_col'),
+        array_file_header=[{"index":0,"name":"id"},{"index":1,"name":"title"},{"index":2,"name":"flag_col"}],
         job_name="test_bash_job",
         workflow_type='docker',
-        command=command
+        command=cmd_w_array_file
     )
     result_string = output.getvalue().rstrip()
 

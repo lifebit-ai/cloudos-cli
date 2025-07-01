@@ -385,6 +385,98 @@ command.
 Other options like `--wait-completion` are also available and work in the same way as for the `cloudos job run` command.
 Check `cloudos bash job --help` for more details.
 
+#### Send a bash array-job to CloudOS (parallel sample processing)
+
+When running a bash array job, the following options are available to customize the behavior:
+
+##### Array File
+- **`--array-file`**: Specifies the path to a file containing a set of columns useful in running the bash job. This option is **required** when using the command `bash array-job`.
+
+##### Separator
+- **`--separator`**: Defines the separator to use in the array file. Supported separators include:
+    - `,` (comma)
+    - `;` (semicolon)
+    - `tab`
+    - `space`
+    - `|` (pipe)
+This option is **required** when using the command `bash array-job`.
+
+##### List Columns
+- **`--list-columns`**: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list, one per line:
+
+```console
+Columns:
+    - column1
+    - column2
+    - column3
+```
+
+##### Array File Project
+- **`--array-file-project`**: Specifies the name of the project in which the array file is placed, if it is different from the project specified by `--project-name`.
+
+##### Disable Column Check
+- **`--disable-column-check`**: Disables the validation of columns in the array file. This implies that each `--array-parameter` value is not checked against the header of the `--array-file`. For example, `--array-parameter --bar=foo`, without `--disable-column-check`, expects the array file to have column 'foo' inside the file header. If the column is not present, the CLI will throw an error. When `--disable-column-check` flag is added, the column check is not performed and the bash array job is sent to the platform.
+
+> [!NOTE]
+> Adding `--disable-column-check` will make the CLI command run without errors, but the errors might appear when checking the job in the platform, if the columns in the array file do not exists, as depicted with `--array-parameter`.
+
+##### Array Parameter
+- **`-a` / `--array-parameter`**: Allows specifying the column name present in the header of the array file. Each parameter should be in the format `arary_parameter_name=array_file_column`. For example:
+    - `-a --test=value` or
+    - `--array-parameter -test=value`
+specify a column named 'value' in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed. This type of parameter is similar to `-p, --parameter`, both parameters can be interpolated in the bash array job command (either with `--command` or `--custom-script-path`), but this parameter can only be used to name the column present in the header of the array file.
+
+For example, the array file has the following header:
+
+```console
+id,bgen,csv
+1,s3://data/adipose.bgen,s3://data/adipose.csv
+2,s3://data/blood.bgen,s3://data/blood.csv
+3,s3://data/brain.bgen,s3://data/brain.csv
+...
+```
+and in the command there is need to go over the `bgen` column, this can be specified as `--array-parameter file=bgen`, refering to the column in the header.
+
+##### Custom Script Path
+- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored. To ensure the script runs successfully, you must either:
+
+1. Use a Shebang Line at the Top of the Script
+
+The shebang (#!) tells the system which interpreter to use to run the script. The path should match absolute path to python or other interpreter installed inside the docker container.
+
+Examples:
+`#!/usr/bin/python3` –-> for Python scripts
+`#!/usr/bin/Rscript` –-> for R scripts
+`#!/bin/bash`        –-> for Bash scripts
+
+Example Python Script:
+
+```python
+#!/usr/bin/python3
+print("Hello world")
+```
+ 
+2. Or use an interpreter command in the executable field
+
+If your script doesn’t have a shebang line, you can execute it by explicitly specifying the interpreter in the executable command:
+
+```console
+python my_script.py
+Rscript my_script.R
+bash my_script.sh
+```
+This assumes the interpreter is available on the container’s $PATH. If not, you can use the full absolute path instead:
+
+```console
+/usr/bin/python3 my_script.py
+/usr/local/bin/Rscript my_script.R
+```
+
+##### Custom Script Project
+- **`--custom-script-project`**: Specifies the name of the project in which the custom script is placed, if it is different from the project specified by `--project-name`.
+
+These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.
+
 #### Resume a job in CloudOS
 
 Resume a job in CloudOS. This feature allows to resume a non-running job (completed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
@@ -573,6 +665,69 @@ Executing status...
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
 
+#### Check job details
+
+To check the details of a submitted job, the subcommand `details` of `job` can be used.
+
+For example, with explicit variable for required parameters:
+
+```bash
+cloudos job details \
+    --apikey $MY_API_KEY \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+Or with a defined profile:
+
+```bash
+cloudos job details \
+    --profile job-details \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:
+
+```console
+Executing details...
+                                             Job Details                                              
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Field                    ┃ Value                                                                   ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Parameters               │ -test=value                                                             │
+│                          │ --gaq=test                                                              │
+│                          │ cryo=yes                                                                │
+│ Command                  │ echo 'test' > new_file.txt                                              │
+│ Revision                 │ sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233 │
+│ Nextflow Version         │ None                                                                    │
+│ Execution Platform       │ Batch AWS                                                               │
+│ Profile                  │ None                                                                    │
+│ Master Instance          │ c5.xlarge                                                               │
+│ Storage                  │ 500                                                                     │
+│ Job Queue                │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee                        │
+│ Accelerated File Staging │ None                                                                    │
+│ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │
+└──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+```
+
+To change this behaviour and save the details into a local JSON, the parameter `--output-format` needs to be set as `--output-format=json`.
+
+By default, all details are saved in a file with the basename as `job_details`, for example `job_details.json` or `job_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
+
+The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nexflow configuration file, example:
+
+```console
+params {
+    parameter_one = value_one
+    parameter_two = value_two
+    parameter_three = value_three
+}
+```
+
+This file can later be used when running a job with `cloudos job run --job-config job_details.config ...`.
+
+> [!NOTE]
+> Job details can only be retrieved for a single user, cannot see other user's job details.
+
 #### Get a list of your jobs from a CloudOS workspace
 
 You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
@@ -670,8 +825,8 @@ The collected workflows are those that can be found in "WORKSPACE TOOLS" section
 You can import new workflows to your CloudOS workspaces. The only requirements are:
 
 - The workflow is a Nextflow pipeline.
-- The workflow repository is located at GitHub or GitLab (specified by the option `--platform`. Available options: `github`, `gitlab`)
-- If your repository is private, you have access to the repository and you have linked your GitHub or Bitbucket server accounts to CloudOS.
+- The workflow repository is located at GitHub, GitLab or BitBucket Server (specified by the option `--repository-platform`. Available options: `github`, `gitlab` and `bitbucketServer`)
+- If your repository is private, you have access to the repository and to have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS.
 
 #### Usage of the workflow import command
 
@@ -687,7 +842,7 @@ cloudos workflow import \
     --workspace-id $WORKSPACE_ID \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
-    --platform github 
+    --repository-platform github
 ```
 
 The expected output will be:
@@ -712,7 +867,7 @@ cloudos workflow import \
     --workflow-url $WORKFLOW_URL \
     --workflow-name "new_name_for_the_github_workflow" \
     --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" \
-    --platform github
+    --repository-platform github
 ```
 
 > NOTE: please, take into account that importing workflows using cloudos-cli is not yet available in all the CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
@@ -808,6 +963,86 @@ If you require more information on the files and folder listed, you can use the 
 - Last updated
 - Filepath (the file or folder name)
 - S3 Path
+
+##### Moving files
+
+Files and folders can be moved **from** `Data` or any of its subfolders (i.e `Data`, `Data/folder/file.txt`) **to** `Data` or any of its subfolders programmatically.
+
+1. The move can happen **within the same project** running the following command:
+```
+cloudos datasets mv <souce_path> <destination_path> --profile <profile name>
+```
+where the source project as well as the destination one is the one defined in the profile.
+
+2. The move can also happen **across different projects**  within the same workspace by running the following command
+```
+cloudos datasets mv <source_path> <destiantion_path> --profile <profile_name> --destination-project-name <project_name>
+```
+In this case, only the source project is the one specified in the profile.
+
+Any of the `source_path` must be a full path, starting from the `Data` datasets and its folder; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. An example of such command is:
+
+```
+cloudos datasets mv Data/results/my_plot.png Data/plots 
+```
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
+
+#### Renaming files
+
+Files and folders within the `Data` dataset can be renamed using the following command
+
+```
+cloudos datasets rename <path> <new_name>
+```
+where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
+
+Please, be aware that renaming can only happen in files and folders that are present in the `Data` datasets and that were created or uploaded by your user.
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
+
+#### Copying files and folders
+
+Files and folders can be copied **from** anywhere in the project **to** `Data` or any of its subfolders programmatically (i.e `Data`, `Data/folder/file.txt`).
+
+1. The copy can happen **within the same project** running the following command:
+```
+cloudos datasets cp <souce_path> <destination_path> --profile <profile name>
+```
+where the source project as well as the destination one is the one defined in the profile.
+
+2. The move can also happen **across different projects**  within the same workspace by running the following command
+```
+cloudos datasets cp <source_path> <destiantion_path> --profile <profile_name> --destination-project-name <project_name>
+```
+In this case, only the source project is the one specified in the profile.
+
+Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. An example of such command is:
+
+```
+cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots 
+```
+
+Please, note that in the above example a preconfigured profile has been used. If no profile is provided and there is no default profile, the user will need to also provide the following flags
+```bash
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --project-name $PROJEC_NAME
+```
 
 ### WDL pipeline support
 

@@ -7,6 +7,8 @@ import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
+from cloudos_cli.utils.cloud import find_cloud
 from certifi import contents
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
@@ -173,7 +175,7 @@ class Cloudos:
             },
             "azure": {
                 "url": f"{self.cloudos_url}/api/v1/data-access/azure/container-contents",
-                 "container": "containerName",
+                "container": "containerName",
                 "params": {
                     "containerName": container,
                     "path": path + "/",
@@ -218,6 +220,9 @@ class Cloudos:
         contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
         logs = {}
         cloude_scheme = cloud_storage["scheme"]
+        storage_account_prefix = ''
+        if cloude_scheme == 'az':
+            storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
         for item in contents_obj:
             if not item["isDir"]:
                 filename = item["name"]
@@ -227,7 +232,7 @@ class Cloudos:
                     filename = "Nextflow log"
                 if filename == "trace.txt":
                     filename = "Trace file"
-                logs[filename] = f"{cloude_scheme}://{logs_bucket}/{item['path']}"
+                logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
         return logs
 
     def get_job_results(self, j_id, workspace_id, verify=True):
@@ -262,13 +267,15 @@ class Cloudos:
         scheme = cloud_storage["scheme"]
         contents_obj = self.get_storage_contents(cloud_name, meta, results_container,
                                                  results_path, workspace_id, verify)
+        storage_account_prefix = ''
+        if scheme == 'az':
+            storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
         results = dict()
         for item in contents_obj:
             if item["isDir"]:
                 filename = item["name"]
-                results[filename] = f"{scheme}://{results_container}/{item['path']}"
+                results[filename] = f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
         return results
-
 
     def _create_cromwell_header(self):
         """Generates cromwell header.

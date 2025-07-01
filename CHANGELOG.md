@@ -1,4 +1,60 @@
 ## lifebit-ai/cloudos-cli: changelog
+
+## v2.34.0 (2025-06-27)
+
+### Feat
+
+- Adds command to copy files and folders within and across projects within the same workspace.
+
+## v2.33.0 (2025-06-25)
+
+### Feat
+
+- Send bash array-jobs to the platform
+- Retrieve columns from bash array files using the API
+
+## v2.32.1 (2025-06-25)
+
+### Patch
+
+- Fixes how data items and glob patterns are identified in job details.
+
+## v2.32.0 (2025-06-17)
+
+### Feat
+
+- Adds command to rename files.
+
+## v2.31.1 (2025-06-17)
+
+### Patch
+
+- Make repository platform consistent in configuration
+
+## v2.31.0 (2025-06-17)
+
+### Feat
+
+- Adds command to show the path to logs and results of jobs
+
+## v2.30.0 (2025-06-16)
+
+### Feat
+
+- Unify all workflow import platforms into a single child class
+
+## v2.29.0 (2025-06-13)
+
+### Feat
+
+- Adds command to move files within and across project within the same workspace.
+
+## v2.28.0 (2025-06-11)
+
+### Feat
+
+- Adds new subcommand `details` for `job`, to retrieve and view job details either in stdout or json
+
 ## v2.27.0 (2025-06-10)
 
 ### Feat

@@ -1,0 +1,23 @@
+{
+    "folders": [
+        {
+            "_id": "folder-id-123abc",
+            "name": "my_folder",
+            "fileType": "S3Folder",
+            "s3BucketName": "lifebit-user-data-xxxx",
+            "s3ObjectKey": "teams/.../dataset/.../flowchart.png",
+            "isManagedByLifebit": false
+        }
+    ],
+    "files": [
+        {
+            "_id": "file-id-abc123",
+            "name": "flowchart.png",
+            "fileType": "S3File",
+            "s3BucketName": "lifebit-user-data-xxxx",
+            "s3ObjectKey": "teams/.../dataset/.../flowchart.png",
+            "sizeInBytes": 123456,
+            "isManagedByLifebit": false
+        }
+    ]
+}

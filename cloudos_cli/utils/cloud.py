@@ -25,7 +25,7 @@ def find_cloud(cloudos_url, apikey, workspace_id, logs):
         if r.status_code >= 400:
             raise BadRequestException(r)
         if r.json() and r.text != "null":
-            cloud_data =  r.json()
+            cloud_data = r.json()
             cloud_name = "azure"
             storage = {
                 "container": "blobContainerName",
