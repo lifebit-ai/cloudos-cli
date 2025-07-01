@@ -5,6 +5,8 @@
 ### Feat
 
 - Adds command to remove files.
+- Adds ci tests for cp and mkdir
+- Patch s3 folders listing files
 
 ## v2.35.0 (2025-06-27)
 

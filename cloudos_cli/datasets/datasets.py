@@ -237,7 +237,7 @@ class Datasets(Cloudos):
             else:
                 item["s3Prefix"] = item['path']
                 item["s3BucketName"] = s3_bucket_name
-
+                item["fileType"] = "S3File"
                 normalized["files"].append(item)
 
         return normalized
@@ -436,7 +436,7 @@ class Datasets(Cloudos):
         elif item.get("fileType") == "S3File":
             payload = {
                 "s3BucketName": item["s3BucketName"],
-                "s3ObjectKey": item["s3ObjectKey"],
+                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
                 "name": item["name"],
                 "parent": parent,
                 "isManagedByLifebit": item.get("isManagedByLifebit", False),
