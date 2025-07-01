@@ -137,7 +137,7 @@ def run_cloudos_cli(ctx):
 
 @run_cloudos_cli.group()
 def job():
-    """CloudOS job functionality: run, check and abort jobs in CloudOS."""
+    """CloudOS job functionality: run, resume, clone, check, and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 

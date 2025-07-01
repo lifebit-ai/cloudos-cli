@@ -320,8 +320,6 @@ def test_clone(payload, job_id, job_params, resume):
 
     new_job_id = BASE_JOB.clone_or_resume_job(job_id, parameters=job_params, resume_job=resume)
     assert new_job_id == NEW_JOB_ID
-    if job_params and resume:
-        breakpoint()
 
 @pytest.mark.parametrize("payload", [(PAYLOAD_BRANCH_AWS)])
 @responses.activate
