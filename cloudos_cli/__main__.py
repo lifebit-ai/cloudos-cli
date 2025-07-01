@@ -55,7 +55,8 @@ def run_cloudos_cli(ctx):
             'workflow_name': '',
             'repository_platform': 'github',
             'execution_platform': 'aws',
-            'profile': INIT_PROFILE
+            'profile': INIT_PROFILE,
+            'session_id': '',
         })
         ctx.default_map = dict({
             'job': {
@@ -90,9 +91,9 @@ def run_cloudos_cli(ctx):
                 'ls': shared_config,
                 'mv': shared_config,
                 'rename': shared_config,
-                'cp': shared_config
-            },
-            'link': shared_config
+                'cp': shared_config,
+                'link': shared_config
+            }
         })
     else:
         profile_data = config_manager.load_profile(profile_name=profile_to_use)
@@ -104,7 +105,8 @@ def run_cloudos_cli(ctx):
             'workflow_name': profile_data.get('workflow_name', ""),
             'repository_platform': profile_data.get('repository_platform', ""),
             'execution_platform': profile_data.get('execution_platform', ""),
-            'profile': profile_to_use
+            'profile': profile_to_use,
+            'session_id': profile_data.get('session_id', "")
         })
         ctx.default_map = dict({
             'job': {
@@ -139,9 +141,9 @@ def run_cloudos_cli(ctx):
                 'ls': shared_config,
                 'mv': shared_config,
                 'rename': shared_config,
-                'cp': shared_config
-            },
-            'link': shared_config
+                'cp': shared_config,
+                'link': shared_config
+            }
         })
 
 
@@ -179,58 +181,6 @@ def queue():
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
-
-
-@run_cloudos_cli.group(invoke_without_command=True)
-@click.argument("s3_path", required=False, nargs=1)
-@click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
-@click.option('-c', '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
-@click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
-@click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
-@click.option('--profile', help='Profile to use from the config file', default='default')
-@click.pass_context
-def link(ctx, apikey, cloudos_url, workspace_id, session_id, s3_path, profile):
-    """CloudOS link files/folders functionality."""
-    if ctx.invoked_subcommand is None:
-        print(link.__doc__ + '\n')
-        profile = profile or ctx.default_map['link']['profile']
-
-        # Create a dictionary with required and non-required params
-        required_dict = {
-            'apikey': True,
-            'workspace_id': True,
-            'workflow_name': False,
-            'project_name': True,
-            'session_id': True
-        }
-        # determine if the user provided all required parameters
-        config_manager = ConfigurationProfile()
-        apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name, session_id = (
-            config_manager.load_profile_and_validate_data(
-                ctx,
-                INIT_PROFILE,
-                CLOUDOS_URL,
-                profile=profile,
-                required_dict=required_dict,
-                apikey=apikey,
-                cloudos_url=cloudos_url,
-                workspace_id=workspace_id,
-                session_id=session_id
-            )
-        )
-
-        #verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-        link_p = Link(
-            cloudos_url=cloudos_url,
-            apikey=apikey,
-            workspace_id=workspace_id,
-            cromwell_token=None,
-            project_name=None,
-            verify=False
-        )
-        link_p.link_S3_folder(s3_path, session_id)
 
 
 @run_cloudos_cli.group()
@@ -2658,7 +2608,7 @@ def list_files(ctx,
         'project_name': False
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2674,6 +2624,11 @@ def list_files(ctx,
             project_name=project_name
         )
     )
+    # Setup only the required parameters
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3144,6 +3099,63 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         sys.exit(1)
 
 
+@datasets.command(name="link")
+@click.argument("s3_path", required=True)
+@click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
+@click.option('-c', '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
+@click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default='default')
+@click.pass_context
+def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+    """Link files/folders to interactive analysis."""
+    print(link.__doc__ + '\n')
+
+    profile = profile or ctx.default_map['datasets']['link']['profile']
+
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': True
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    #apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name, session_id = (
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            session_id=session_id
+        )
+    )
+    # Unpack the user options
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    session_id = user_options['session_id']
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    link_p = Link(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token=None,
+        project_name=None,
+        verify=verify_ssl
+    )
+    link_p.link_S3_folder(s3_path, session_id)
 
 
 if __name__ == "__main__":

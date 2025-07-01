@@ -485,8 +485,7 @@ class ConfigurationProfile:
                                                       profile_data['execution_platform'])
             project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
                                                 required=required_dict['project_name'], missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data.get('session_id', None),
-                                                required=required_dict['session_id'], missing_required_params=missing)
+            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data.get('session_id', None))
         else:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
@@ -504,13 +503,20 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id,
-                                                required=required_dict['session_id'],
-                                                missing_required_params=missing)
+            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id)
         cloudos_url = cloudos_url.rstrip('/')
 
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
             raise click.UsageError(f"Missing required option/s: {formatted}")
-        return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name, session_id
+        return {
+            'apikey': apikey,
+            'cloudos_url': cloudos_url,
+            'workspace_id': workspace_id,
+            'workflow_name': workflow_name,
+            'repository_platform': repository_platform,
+            'execution_platform': execution_platform,
+            'project_name': project_name,
+            'session_id': session_id
+        }

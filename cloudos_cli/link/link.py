@@ -68,8 +68,20 @@ class Link(Cloudos):
             "apikey": self.apikey
         }
         data = self.parse_s3_path(s3_folder)
-        print("data: ", data)
-        #r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
+        r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
+        print("content: ", r.content)
+        print("status: ", r.status_code)
+        if r.status_code == 403:
+            raise ValueError(f"Provided folder already exists with 'mounted' status")
+        elif r.status_code == 401:
+            raise ValueError(f"Frobidden: Invalid API key or insufficient permissions")
+        elif r.status_code == 204:
+            full_path = (
+                f"s3://{data['dataItem']['data']['s3BucketName']}/"
+                f"{data['dataItem']['data']['s3Prefix']}"
+            )
+            print(f"Succesfully linked S3 folder: {full_path}")
+
 
     def parse_s3_path(self, s3_url):
         if not s3_url.startswith("s3://"):
@@ -77,16 +89,25 @@ class Link(Cloudos):
 
         parsed = urlparse(s3_url)
         bucket = parsed.netloc
-        key = parsed.path.lstrip('/') # Remove leading slash
+        prefix = parsed.path.lstrip('/') # Remove leading slash
 
-        if not key:
+        if not prefix:
             raise ValueError("S3 URL must include a key after the bucket")
 
-        parts = key.rstrip('/').split('/')
+        parts = prefix.rstrip('/').split('/')
         base = parts[-1] # Last segment (file or folder)
-
         return {
-            "bucket": bucket,
-            "key": key + ('' if s3_url.endswith('/') else '/'),
-            "base": base
+            "dataItem":
+                {
+                "type":"S3Folder",
+                    "data":{
+                        "name":f"{base}",
+                        "s3BucketName":f"{bucket}",
+                        "s3Prefix":f"{prefix}"
+                    }
+                }
         }
+#     raise ValueError(f"Failed to link S3 folder: {r.content.decode('utf-8')}")
+# ValueError: Failed to link S3 folder: {"statusCode":403,"code":"Forbidden","message":"Given DataItem is already exists with 'mounted' status","time":"2025-07-01T12:07:36.270Z"}
+#     raise ValueError(f"Failed to link S3 folder: {r.content.decode('utf-8')}")
+# ValueError: Failed to link S3 folder:
