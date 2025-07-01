@@ -5,7 +5,7 @@
             "name": "my_folder",
             "folderType": "S3Folder",
             "s3BucketName": "lifebit-user-data-xxxx",
-            "s3ObjectKey": "teams/.../dataset/.../flowchart.png",
+            "s3Prefix": "teams/.../dataset/.../flowchart.png",
             "isManagedByLifebit": false
         }
     ],
