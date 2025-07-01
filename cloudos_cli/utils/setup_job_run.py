@@ -28,7 +28,7 @@ class JobSetup:
         use_private_docker_repository=False,
         cromwell_token=None,
         disable_ssl_verification=False,
-        ssl_cert="",
+        ssl_cert=None,
         nextflow_version="22.10.8",
         cloudos_url=CLOUDOS_URL,
         workflow_name="",
@@ -66,7 +66,7 @@ class JobSetup:
         self.AWS_NEXTFLOW_VERSIONS = ["22.10.8", "24.04.4"]
         self.AZURE_NEXTFLOW_VERSIONS = ["22.11.1-edge"]
         self.HPC_NEXTFLOW_VERSIONS = ["22.10.8"]
-        self.headers = {"apikey": apikey, "Content-type": "application/json"}
+        self.headers = {"apikey": apikey}
         self.request_params = {"teamId": workspace_id}
 
         self.cloudos_url = cloudos_url
@@ -315,7 +315,7 @@ class JobSetup:
                     + "use their own predetermined queues."
                 )
             self.job_queue_id = None
-            if self.nextflow_version != "22.10.8":
+            if self.nextflow_version != "22.10.8" and self.execution_platform != "azure":
                 print(
                     f"[Message] The selected worflow '{self.workflow_name}' "
                     + "is a CloudOS module. CloudOS modules only work with "

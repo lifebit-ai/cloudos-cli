@@ -713,6 +713,17 @@ class Job(Cloudos):
         branch,
         verify,
     ):
+        """
+        Checks if a given branch exists in a target repository.
+        :param workspace_id: CloudOS workkspace ID.
+        :param git_platform: Repository platform (Github, Gitlab).
+        :param repository ID: Repository ID.
+        :param repository owner: Owner of repository.
+        :param workflow_owner_id: Workflow owner ID.
+        :param branch: Branch to check.
+        :param verify: SSL verification option.
+        :return: bool
+        """
         params = {
             "teamId": workspace_id,
             "repositoryIdentifier": repository_id,
@@ -729,7 +740,7 @@ class Job(Cloudos):
         cloud_os_request_error(branches_r)
         branches_d = branches_r.json()
 
-        return bool(branches_d["branches"]), branches_d["branches"][0]["commit"]["sha"]
+        return bool(branches_d["branches"])
 
     def check_commit(
         self,
@@ -741,6 +752,15 @@ class Job(Cloudos):
         commit,
         verify,
     ):
+        """
+        Checks if a given commit exists in a repository.
+        :param workspace_id: Workspace ID.
+        :param git_platform: Git platform (Github, Gitlab).
+        :param repository_owner: Repository owner.
+        :param workflow_owner_id: Workflow owner ID.
+        :param commit: Commit to be checked.
+        :verify: SSL verification option.
+        """
         params = {
             "teamId": workspace_id,
             "repositoryIdentifier": repository_id,
@@ -764,7 +784,16 @@ class Job(Cloudos):
         return bool(commits_d["commits"])
 
     def check_profile(self, workflow_id, commit, workspace_id, profile, verify):
-        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        """
+        Checks if a Nextflow profile exists in a Workflow repository.
+        :param workflow_id: Workflow ID.
+        :param commit: Current commit of the repository.
+        :param workspace_id: Workspace ID.
+        :param profile: Profile to be checked.
+        :param verify: SSL verification option.
+        :return bool:
+        """
+        headers = {"apikey": self.apikey}
         params = {
             "teamId": workspace_id,
             "workflowId": workflow_id,
@@ -781,7 +810,13 @@ class Job(Cloudos):
         return profile in profile_d
 
     def check_project(self, workspace_id, project, verify):
-        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        """
+        Check if a CloudOS project exists.
+        :param workspace_id: Workspace ID.
+        :param project: Project name.
+        :verify: SSL verification option.
+        """
+        headers = {"apikey": self.apikey}
         params = {"teamId": workspace_id, "search": project}
         project_url = f"{self.cloudos_url}/api/v2/projects"
         project_r = retry_requests_get(
@@ -834,11 +869,7 @@ class Job(Cloudos):
         memory=4,
         resume_job=False,
     ):
-        # In order to give precedence to arguments passed to the clone function, they have to be initialized
-        # as None. However, in Azure endpoints, the payload-request endpoint does not return the nextflow version.
-        # For that reason, we have to add logic to set the nextflow version inside the method itself.
-        DEFAULT_NF_V = "22.11.1-edge"
-        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        headers = {"apikey": self.apikey}
 
         params = {"teamId": self.workspace_id}
         job_payload_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload"
@@ -880,11 +911,11 @@ class Job(Cloudos):
         repository_id = repository_data["repositoryId"]
         repository_owner_data = repository_data["owner"]
         repository_owner = repository_owner_data["login"]
-        worflow_owner_id = job_data_d["workflow"]["owner"]["id"]
+        worflow_owner_id = repository_owner_data["id"]
         repository_platform = repository_data["platform"]
         new_commit = None
         if branch:
-            branch_exists, branch_commit = self.check_branch(
+            branch_exists = self.check_branch(
                 self.workspace_id,
                 repository_platform,
                 repository_id,
@@ -896,34 +927,34 @@ class Job(Cloudos):
             if not branch_exists:
                 raise ValueError(f"Branch {branch} does not exist in the repository.")
         if commit:
-            # commit_exists = self.check_commit(
-            #     self.workspace_id,
-            #     repository_platform,
-            #     repository_id,
-            #     repository_owner,
-            #     worflow_owner_id,
-            #     commit,
-            #     verify=verify,
-            # )
-            # if not commit_exists:
-            #     raise ValueError(f"Commit {commit} does not exist in the repository.")
+            commit_exists = self.check_commit(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                commit,
+                verify=verify,
+            )
+            if not commit_exists:
+                raise ValueError(f"Commit {commit} does not exist in the repository.")
             new_commit = commit
         if git_tag and not any([commit, branch]):
             new_git_tag = git_tag
         else:
-            new_git_tag = job_payload_d["revision"]["tag"] if job_payload_d["revision"]["tag"] else None
+            new_git_tag = job_payload_d["revision"].get("tag", None)
 
 
         new_profile = job_payload_d["profile"]
         if profile:
-            # workflow_id = job_payload_d["workflow"]
-            # profile_exists = self.check_profile(
-            #     workflow_id, new_commit, self.workspace_id, profile, verify=verify
-            # )
-            # if not profile_exists:
-            #     raise ValueError(
-            #         f"the profile {profile} does not exist in the commit {new_commit} of the workflow."
-            #     )
+            workflow_id = job_payload_d["workflow"]
+            profile_exists = self.check_profile(
+                workflow_id, new_commit, self.workspace_id, profile, verify=verify
+            )
+            if not profile_exists:
+                raise ValueError(
+                    f"the profile {profile} does not exist in the commit {new_commit} of the workflow."
+                )
             new_profile = profile
 
         new_project = job_payload_d["project"]
@@ -967,10 +998,7 @@ class Job(Cloudos):
         new_job_config = job_config
         new_batch = batch or job_payload_d["batch"]["enabled"]
         new_job_queue_id = job_queue_id
-        # Necessary, as azure payload endpoint does not return a nextflow version.
-        new_nextflow_version = nextflow_version or job_payload_d.get(
-            "nextflowVersion", DEFAULT_NF_V
-        )
+        new_nextflow_version = nextflow_version or job_payload_d["nextflowVersion"]
         new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
         new_storage_mode = storage_mode or job_payload_d["storageMode"]
         new_lustre_size = lustre_size
