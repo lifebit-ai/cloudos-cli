@@ -491,5 +491,5 @@ class ConfigurationProfile:
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure --apikey, --cloudos-url, --workspace-id, --workflow-name, --repository-platform, --execution-platform, --project-name persistently by running cloudos configure.")
+            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name\n For more information on the usage of the command, please run cloudos configure --help")
         return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name
