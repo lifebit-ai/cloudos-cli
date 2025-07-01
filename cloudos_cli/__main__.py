@@ -677,6 +677,10 @@ def clone(ctx,
                     'following form: parameter_name=parameter_value. E.g.: ' +
                     '-p input=s3://path_to_my_file. You can use this option as many ' +
                     'times as parameters you want to include.'))
+@click.option('-t',
+              '--cromwell-token',
+              help=('Specific Cromwell server authentication token. Currently, not necessary ' +
+                    'as apikey can be used instead, but maintained for backwards compatibility.'))
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
@@ -783,6 +787,7 @@ def resume(ctx,
         cloudos_url,
         workspace_id,
         project_name,
+        cromwell_token,
         job_id,
         job_config,
         parameter,
@@ -843,7 +848,7 @@ def resume(ctx,
     )
 
     job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id,
-                         cromwell_token="", disable_ssl_verification=disable_ssl_verification,
+                         cromwell_token=cromwell_token, disable_ssl_verification=disable_ssl_verification,
                          ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
                          hpc_id=hpc_id, wdl_mainfile="", job_id=job_id,
                          use_private_docker_repository=use_private_docker_repository, nextflow_version=nextflow_version,
@@ -855,227 +860,6 @@ def resume(ctx,
                          request_interval=request_interval, verbose=verbose, run_type="resume")
 
     job_setup.run_again(resume=True)
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    if do_not_save_logs:
-        save_logs = False
-    else:
-        save_logs = True
-    if instance_type == 'NONE_SELECTED':
-        if execution_platform == 'aws':
-            instance_type = 'c5.xlarge'
-        elif execution_platform == 'azure':
-            instance_type = 'Standard_D4as_v4'
-        else:
-            instance_type = None
-    if execution_platform == 'azure' or execution_platform == 'hpc':
-        batch = False
-    else:
-        batch = True
-    if execution_platform == 'hpc':
-        print('\n[Message] HPC execution platform selected')
-        if hpc_id is None:
-            raise ValueError('Please, specify your HPC ID using --hpc parameter')
-        print('[Message] Please, take into account that HPC execution do not support ' +
-              'the following parameters and all of them will be ignored:\n' +
-              '\t--job-queue\n' +
-              '\t--resumable | --do-not-save-logs\n' +
-              '\t--instance-type | --instance-disk | --cost-limit\n' +
-              '\t--storage-mode | --lustre-size\n' +
-              '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
-        wdl_mainfile = None
-        wdl_importsfile = None
-        storage_mode = 'regular'
-        save_logs = False
-    if accelerate_file_staging:
-        if execution_platform != 'aws':
-            print('[Message] You have selected accelerate file staging, but this function is ' +
-                  'only available when execution platform is AWS. The accelerate file staging ' +
-                  'will not be applied')
-            use_mountpoints = False
-        else:
-            use_mountpoints = True
-            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
-                  'Please, take into consideration the following:\n' +
-                  '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
-                  '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t- This is still a CloudOS BETA feature.\n')
-    else:
-        use_mountpoints = False
-    if verbose:
-        print('\t...Detecting workflow type')
-    cl = Cloudos(cloudos_url, apikey, cromwell_token)
-    workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
-    is_module = cl.is_module(workflow_name, workspace_id, verify_ssl)
-    if execution_platform == 'hpc' and workflow_type == 'wdl':
-        raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
-                         'WDL is not supported on HPC execution platform.')
-    if workflow_type == 'wdl':
-        print('[Message] WDL workflow detected')
-        if wdl_mainfile is None:
-            raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
-        c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
-        c_status_h = json.loads(c_status.content)["status"]
-        print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
-        if c_status_h == 'Stopped':
-            print('\tStarting Cromwell server...\n')
-            cl.cromwell_switch(workspace_id, 'restart', verify_ssl)
-            elapsed = 0
-            while elapsed < 300 and c_status_h != 'Running':
-                c_status_old = c_status_h
-                time.sleep(REQUEST_INTERVAL_CROMWELL)
-                elapsed += REQUEST_INTERVAL_CROMWELL
-                c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
-                c_status_h = json.loads(c_status.content)["status"]
-                if c_status_h != c_status_old:
-                    print(f'\tCurrent Cromwell server status is: {c_status_h}\n')
-        if c_status_h != 'Running':
-            raise Exception('Cromwell server did not restarted properly.')
-        cromwell_id = json.loads(c_status.content)["_id"]
-        print('\t' + ('*' * 80) + '\n' +
-              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
-              'your\n' + '\tjob finishes. You can use the following command:\n' +
-              '\tcloudos cromwell stop \\\n' +
-              '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
-              f'\t\t--workspace-id {workspace_id}\n' +
-              '\t' + ('*' * 80) + '\n')
-    else:
-        cromwell_id = None
-    if verbose:
-        print('\t...Preparing objects')
-    j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
-               mainfile=wdl_mainfile, importsfile=wdl_importsfile,
-               repository_platform=repository_platform, verify=verify_ssl)
-    if verbose:
-        print('\tThe following Job object was created:')
-        print('\t' + str(j))
-        print('\t...Sending job to CloudOS\n')
-    if is_module:
-        if job_queue is not None:
-            print(f'[Message] Ignoring job queue "{job_queue}" for ' +
-                  f'Platform Workflow "{workflow_name}". Platform Workflows ' +
-                  'use their own predetermined queues.')
-        job_queue_id = None
-        if nextflow_version != '22.10.8':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. CloudOS modules only work with ' +
-                  'Nextflow version 22.10.8. Switching to use 22.10.8')
-        nextflow_version = '22.10.8'
-        if execution_platform == 'azure':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. For these workflows, worker nodes ' +
-                  'are managed internally. For this reason, the options ' +
-                  'azure-worker-instance-type, azure-worker-instance-disk and ' +
-                  'azure-worker-instance-spot are not taking effect.')
-    else:
-        queue = Queue(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=cromwell_token,
-                      workspace_id=workspace_id, verify=verify_ssl)
-        job_queue_id = queue.fetch_job_queue_id(workflow_type=workflow_type, batch=batch,
-                                                job_queue=job_queue)
-    if use_private_docker_repository:
-        if is_module:
-            print(f'[Message] Workflow "{workflow_name}" is a CloudOS module. ' +
-                  'Option --use-private-docker-repository will be ignored.')
-            docker_login = False
-        else:
-            me = j.get_user_info(verify=verify_ssl)['dockerRegistriesCredentials']
-            if len(me) == 0:
-                raise Exception('User private Docker repository has been selected but your user ' +
-                                'credentials have not been configured yet. Please, link your ' +
-                                'Docker account to CloudOS before using ' +
-                                '--use-private-docker-repository option.')
-            print('[Message] Use private Docker repository has been selected. A custom job ' +
-                  'queue to support private Docker containers and/or Lustre FSx will be created for ' +
-                  'your job. The selected job queue will serve as a template.')
-            docker_login = True
-    else:
-        docker_login = False
-    if nextflow_version == 'latest':
-        if execution_platform == 'aws':
-            nextflow_version = AWS_NEXTFLOW_LATEST
-        elif execution_platform == 'azure':
-            nextflow_version = AZURE_NEXTFLOW_LATEST
-        else:
-            nextflow_version = HPC_NEXTFLOW_LATEST
-        print('[Message] You have specified Nextflow version \'latest\' for execution platform ' +
-              f'\'{execution_platform}\'. The workflow will use the ' +
-              f'latest version available on CloudOS: {nextflow_version}.')
-    if execution_platform == 'aws':
-        if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'aws\', the workflow will use the default ' +
-                  '\'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
-    if execution_platform == 'azure':
-        if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
-                  'version on CloudOS.')
-            nextflow_version = '22.11.1-edge'
-    if execution_platform == 'hpc':
-        if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
-    if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
-        print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-              'to be written in DSL2 and does not support DSL1.')
-    print('\nExecuting run...')
-    if workflow_type == 'nextflow':
-        print(f'\tNextflow version: {nextflow_version}')
-    j_id = j.send_job(job_config=job_config,
-                      parameter=parameter,
-                      is_module=is_module,
-                      git_commit=git_commit,
-                      git_tag=git_tag,
-                      git_branch=git_branch,
-                      job_name=job_name,
-                      resumable=resumable,
-                      save_logs=save_logs,
-                      batch=batch,
-                      job_queue_id=job_queue_id,
-                      nextflow_profile=nextflow_profile,
-                      nextflow_version=nextflow_version,
-                      instance_type=instance_type,
-                      instance_disk=instance_disk,
-                      storage_mode=storage_mode,
-                      lustre_size=lustre_size,
-                      execution_platform=execution_platform,
-                      hpc_id=hpc_id,
-                      workflow_type=workflow_type,
-                      cromwell_id=cromwell_id,
-                      azure_worker_instance_type=azure_worker_instance_type,
-                      azure_worker_instance_disk=azure_worker_instance_disk,
-                      azure_worker_instance_spot=azure_worker_instance_spot,
-                      cost_limit=cost_limit,
-                      use_mountpoints=use_mountpoints,
-                      docker_login=docker_login,
-                      verify=verify_ssl)
-    print(f'\tYour assigned job id is: {j_id}\n')
-    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{j_id}'
-    if wait_completion:
-        print('\tPlease, wait until job completion (max wait time of ' +
-              f'{wait_time} seconds).\n')
-        j_status = j.wait_job_completion(job_id=j_id,
-                                         wait_time=wait_time,
-                                         request_interval=request_interval,
-                                         verbose=verbose,
-                                         verify=verify_ssl)
-        j_name = j_status['name']
-        j_final_s = j_status['status']
-        if j_final_s == JOB_COMPLETED:
-            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
-            sys.exit(0)
-        else:
-            print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
-            sys.exit(1)
-    else:
-        j_status = j.get_job_status(j_id, verify_ssl)
-        j_status_h = json.loads(j_status.content)["status"]
-        print(f'\tYour current job status is: {j_status_h}')
-        print('\tTo further check your job status you can either go to ' +
-              f'{j_url} or use the following command:\n' +
-              '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
-              f'\t\t--job-id {j_id}\n')
 
 
 @job.command('status')
