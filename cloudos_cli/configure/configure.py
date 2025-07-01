@@ -376,6 +376,7 @@ class ConfigurationProfile:
             'workflow_name': config[profile_name].get('workflow_name', ""),
             'execution_platform': config[profile_name].get('execution_platform', ""),
             'repository_platform': config[profile_name].get('repository_platform', ""),
+            'session_id': config[profile_name].get('session_id', "")
         }
 
     def check_if_profile_exists(self, profile_name):
