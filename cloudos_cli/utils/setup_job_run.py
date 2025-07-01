@@ -118,13 +118,11 @@ class JobSetup:
 
         self.cl = Cloudos(self.cloudos_url, self.apikey, self.cromwell_token)
 
-        if run_type == "run":
-            wf_name = self.workflow_name
-        else:
-            wf_name = self.get_workflow_name(self.job_id)
+        if run_type != "run":
+            self._workflow_name = self.get_workflow_name(self.job_id)
 
         self.workflow_type = self.cl.detect_workflow(
-            wf_name, self.workspace_id, self.verify_ssl
+            self.workflow_name, self.workspace_id, self.verify_ssl
         )
 
         self.is_module = self.cl.is_module(
