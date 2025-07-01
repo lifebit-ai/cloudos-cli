@@ -66,7 +66,18 @@ def test_create_virtual_folder_for_new_path():
         },
         status=201
     )
-
+    #mock for the S3 bucket contents 
+    responses.add(
+    responses.GET,
+    url=(
+        f"{CLOUDOS_URL}/api/v1/data-access/s3/bucket-contents"
+        f"?bucket=lifebit-user-data-xxxx"
+        f"&path=teams/.../dataset/.../flowchart.png"
+        f"&teamId={WORKSPACE_ID}"
+    ),
+    json={"files": [], "folders": []},
+    status=200
+)
     # Instantiate client
     dataset_client = Datasets(
         cloudos_url=CLOUDOS_URL,
