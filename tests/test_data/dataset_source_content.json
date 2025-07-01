@@ -3,7 +3,7 @@
         {
             "_id": "folder-id-123abc",
             "name": "my_folder",
-            "fileType": "S3Folder",
+            "folderType": "S3Folder",
             "s3BucketName": "lifebit-user-data-xxxx",
             "s3ObjectKey": "teams/.../dataset/.../flowchart.png",
             "isManagedByLifebit": false
