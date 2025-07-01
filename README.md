@@ -980,12 +980,12 @@ Please, note that in the above example a preconfigured profile has been used. If
 ```
 #### Create a (virtual) folder
 
-New folders can be created within the `Data` dataset  and its subfolders using the following command
+New folders can be created within the `Data` dataset and its subfolders using the following command
 
 ```
-cloudos datasets mkdir <parent_path> <new_folder_name>
+cloudos datasets mkdir <new_folder_path>
 ```
-where `parent_path` is the path to the folder where to create the new one, and `new_folder_name` is just the name of the folder to be created, no path required.
+where ` new_folder_path` is the path to the folder to be created.
 
 Please, be aware that the folder creation can only happen in `Data` or its sub-folders.
 

@@ -3090,9 +3090,9 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Copy operation failed: {str(e)}", err=True)
         sys.exit(1)
 
+
 @datasets.command(name="mkdir")
-@click.argument("parent_path", required=True)
-@click.argument("folder_name", required=True)
+@click.argument("new_folder_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
 @click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
 @click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
@@ -3101,19 +3101,25 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
+def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
                workspace_id, project_name,
                disable_ssl_verification, ssl_cert, profile):
     """
     Create a virtual folder in a CloudOS project.
 
-    PARENT_PATH [path]: the full path to the parent folder. It must begin with 'Data'.\n
-    FOLDER_NAME [name]: the name of the new folder to create.
+    NEW_FOLDER_PATH [path]: Full path to the new folder including its name. It must begin with 'Data'.
     """
-    if not parent_path.strip("/").startswith("Data"):
-        click.echo("[ERROR] PARENT_PATH must start with 'Data'.", err=True)
+    new_folder_path = new_folder_path.strip("/")
+    if not new_folder_path.startswith("Data"):
+        click.echo("[ERROR] NEW_FOLDER_PATH must start with 'Data'.", err=True)
         sys.exit(1)
-
+    # Extract parent path and folder name
+    path_parts = new_folder_path.split("/")
+    if len(path_parts) < 2:
+        click.echo("[ERROR] Path must include at least one parent folder and the new folder name.", err=True)
+        sys.exit(1)
+    parent_path = "/".join(path_parts[:-1])
+    folder_name = path_parts[-1]
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
@@ -3122,7 +3128,6 @@ def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
         'workflow_name': False,
         'project_name': True
     }
-
     apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
         config_manager.load_profile_and_validate_data(
             ctx,
@@ -3139,9 +3144,7 @@ def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
             project_name=project_name
         )
     )
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-
     client = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
@@ -3150,37 +3153,25 @@ def mkdir_item(ctx, parent_path, folder_name, apikey, cloudos_url,
         verify=verify_ssl,
         cromwell_token=None
     )
-
-    parent_parts = parent_path.strip("/").split("/")
-    parent_name = parent_parts[-1]
-    parent_of_parent_path = "/".join(parent_parts[:-1]) if len(parent_parts) > 1 else None
-
+    # Resolve parent folder info
     try:
-        contents = client.list_folder_content(parent_of_parent_path)
+        contents = client.list_folder_content(parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_of_parent_path or '[root]'}': {str(e)}", err=True)
+        click.echo(f"[ERROR] Could not list contents at '{parent_path}': {str(e)}", err=True)
         sys.exit(1)
-
-    folder_info = next(
-        (f for f in contents.get("folders", []) if f.get("name") == parent_name),
-        None
-    )
-
+    folder_info = contents.get("folder")
     if not folder_info:
-        click.echo(f"[ERROR] No folder found at '{parent_path}'", err=True)
+        click.echo(f"[ERROR] Could not resolve parent folder at '{parent_path}'.", err=True)
         sys.exit(1)
-
     parent_id = folder_info.get("_id")
     folder_type = folder_info.get("folderType")
-
     if folder_type is True:
         parent_kind = "Dataset"
     elif isinstance(folder_type, str):
         parent_kind = "Folder"
     else:
-        click.echo(f"[ERROR] Unrecognized folderType for parent at '{parent_path}'", err=True)
+        click.echo(f"[ERROR] Unrecognized folderType for '{parent_path}'.", err=True)
         sys.exit(1)
-
     click.echo(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
     try:
         response = client.create_virtual_folder(name=folder_name, parent_id=parent_id, parent_kind=parent_kind)
