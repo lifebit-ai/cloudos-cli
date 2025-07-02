@@ -357,9 +357,9 @@ jobs:
               PROJECT_NAME: "cloudos-cli-tests"
               CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
             run: |
-              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/ 
-              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/diffexpr-results.csv
-  dataset_mkdir_and_remove:
+              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy 
+              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv
+            dataset_mkdir_and_remove:
                 runs-on: ubuntu-latest
                 strategy:
                   matrix:
