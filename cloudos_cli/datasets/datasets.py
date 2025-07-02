@@ -448,3 +448,43 @@ class Datasets(Cloudos):
         response = retry_requests_post(url, headers=headers, json=payload)
 
         return response
+    
+    def create_virtual_folder(self, name: str, parent_id: str, parent_kind: str):
+        """
+        Create a new virtual folder in CloudOS under a given parent.
+
+        Parameters
+        ----------
+        name : str
+            The name of the new folder.
+        parent_id : str
+            The ID of the parent (can be a Dataset or a Folder).
+        parent_kind : str
+            The type of the parent: either "Dataset" or "Folder".
+
+        Returns
+        -------
+        response : requests.Response
+            The response object from the CloudOS API.
+        """
+        if parent_kind not in ("Dataset", "Folder"):
+            raise ValueError("Invalid parent_kind. Must be 'Dataset' or 'Folder'.")
+
+        url = f"{self.cloudos_url}/api/v1/folders/virtual?teamId={self.workspace_id}"
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "ApiKey": self.apikey
+        }
+
+        payload = {
+            "name": name,
+            "parent": {
+                "kind": parent_kind,
+                "id": parent_id
+            }
+        }
+
+        response = retry_requests_post(url, headers=headers, json=payload, verify=self.verify)
+        return response

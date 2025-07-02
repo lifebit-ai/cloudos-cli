@@ -1,12 +1,18 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.34.1 (2025-07-01)
+## v2.36.1 (2025-07-01)
 
 ### Fix
 
 - Change error messaging for missing parameters that could be configured in profiles
 
-## v2.34.0 (2025-06-27)
+## v2.35.0 (2025-06-27)
+
+### Feat
+
+-  Adds command to create new folders
+
+## v2.34.0 (2025-06-25)
 
 ### Feat
 
