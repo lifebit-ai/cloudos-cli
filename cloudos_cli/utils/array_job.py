@@ -226,7 +226,7 @@ def extract_project(path):
     Extracts the project name and the remaining path from a given file path.
 
     The function assumes that a "project" exists if the path contains at least three parts
-    when split by slashes. If the path has fewer than three parts, the project name is 
+    when split by slashes. If the path has fewer than three parts, the project name is
     considered empty, and the entire path is returned as the remaining path.
 
     Parameters
