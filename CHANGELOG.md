@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.37.0 (2025-07-02)
+
+### Feat
+
+- Links S3 folder to Interactive Analysis (`cloudos datasets link`)
+
 ## v2.36.0 (2025-06-27)
 
 ### Feat
