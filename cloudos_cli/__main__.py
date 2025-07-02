@@ -8,7 +8,7 @@ from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
-import sys, os
+import sys
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
