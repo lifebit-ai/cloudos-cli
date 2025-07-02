@@ -16,6 +16,7 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
+from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 
 
@@ -2159,7 +2160,7 @@ def run_bash_job(ctx,
                       hpc_id=None,
                       cost_limit=cost_limit,
                       verify=verify_ssl,
-                      command=command,
+                      command={"command": command},
                       cpus=cpus,
                       memory=memory)
 
@@ -2219,7 +2220,12 @@ def run_bash_job(ctx,
               help=('A single parameter to pass to the job call. It should be in the ' +
                     'following form: parameter_name=parameter_value. E.g.: ' +
                     '-p --test=value or -p -test=value or -p test=value. You can use this option as many ' +
-                    'times as parameters you want to include.'))
+                    'times as parameters you want to include. ' +
+                    'For parameters pointing to a file, the format expected is ' +
+                    'parameter_name=<project>/Data/parameter_value. The parameter value must be a ' +
+                    'file located in the `Data` subfolder. If no <project> is specified, it defaults to ' +
+                    'the project specified by the profile or --project-name parameter. ' +
+                    'E.g.: -p "--file=Data/file.txt" or "--file=<project>/Data/folder/file.txt"'))
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
@@ -2405,35 +2411,6 @@ def run_bash_array_job(ctx,
         "|": { "api": "%7C", "file": "|" }
     }
 
-    # Setup datasets
-    try:
-        ds = Datasets(
-            cloudos_url=cloudos_url,
-            apikey=apikey,
-            workspace_id=workspace_id,
-            project_name=array_file_project,
-            verify=verify_ssl,
-            cromwell_token=None
-        )
-        if custom_script_project is not None:
-            # If a custom script project is specified, create a new Datasets object for it
-            # This allows the user to run custom scripts in a different project
-            ds_custom = Datasets(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                workspace_id=workspace_id,
-                project_name=custom_script_project,
-                verify=verify_ssl,
-                cromwell_token=None
-            )
-    except BadRequestException as e:
-        if 'Forbidden' in str(e):
-            print('[Error] It seems your call is not authorised. Please check if ' +
-                  'your workspace is restricted by Airlock and if your API key is valid.')
-            sys.exit(1)
-        else:
-            raise e
-
     # setup important options for the job
     if do_not_save_logs:
         save_logs = False
@@ -2453,7 +2430,12 @@ def run_bash_array_job(ctx,
                repository_platform=repository_platform, verify=verify_ssl)
 
     # retrieve columns
-    r = j.retrieve_cols_from_array_file(array_file, ds, separators[separator]['api'], verify_ssl)
+    r = j.retrieve_cols_from_array_file(
+        array_file,
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl),
+        separators[separator]['api'],
+        verify_ssl
+    )
 
     if not disable_column_check:
         columns = json.loads(r.content).get("headers", None)
@@ -2470,7 +2452,12 @@ def run_bash_array_job(ctx,
         columns = []
 
     # setup parameters for the job
-    cmd = j.setup_params_array_file(custom_script_path, ds_custom, command, separators[separator]['file'])
+    cmd = j.setup_params_array_file(
+        custom_script_path,
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, custom_script_project, verify_ssl),
+        command,
+        separators[separator]['file']
+    )
 
     # check columns in the array file vs parameters added
     if not disable_column_check and array_parameter:

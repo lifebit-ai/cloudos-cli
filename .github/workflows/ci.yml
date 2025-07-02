@@ -334,6 +334,86 @@ jobs:
       run: |
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_rename new_renamed_folder
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/new_renamed_folder test_rename
+  bash_job:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      id: run-bash-job
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        WORKFLOW: "plink2"
+        JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job"
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
+        PR_NUMBER: ${{ github.event.number }}
+      run: |
+        cloudos bash job \
+          --parameter -test=value \
+          --parameter --gaq=test \
+          --job-name "$JOB_NAME_BASE" \
+          --command "echo 'test' > new_file.txt" \
+          --workspace-id "$CLOUDOS_WORKSPACE_ID" \
+          --project-name "$PROJECT_NAME" \
+          --workflow-name plink2 \
+          --apikey "$CLOUDOS_TOKEN" \
+          --cloudos-url "$CLOUDOS_URL"
+  bash_array_job_run_and_multiple_projects:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      id: run-bash-array-job
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        WORKFLOW: "plink2"
+        JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job"
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
+        PR_NUMBER: ${{ github.event.number }}
+      run: |
+        cloudos bash array-job \
+          --parameter -test=value \
+          --parameter --gaq=test \
+          --array-parameter --array_var=title \
+          --job-name "$JOB_NAME_BASE" \
+          --command "echo 'test' > new_file.txt" \
+          --workspace-id "$CLOUDOS_WORKSPACE_ID" \
+          --project-name "$PROJECT_NAME" \
+          --workflow-name plink2 \
+          --array-file Data/bash_array/sampleArray.csv \
+          --separator "," \
+          --apikey "$CLOUDOS_TOKEN" \
+          --cloudos-url "$CLOUDOS_URL" \
+          --parameter --file=ci-testing/Data/bash_array/input.csv
   dataset_copy_and_remove:
           runs-on: ubuntu-latest
           strategy:
@@ -357,8 +437,8 @@ jobs:
               PROJECT_NAME: "cloudos-cli-tests"
               CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
             run: |
-              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/ 
-              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/diffexpr-results.csv
+              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy
+              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv
   dataset_mkdir_and_remove:
                 runs-on: ubuntu-latest
                 strategy:
