@@ -892,6 +892,9 @@ class Job(Cloudos):
         _, ext = os.path.splitext(command_name)
         prefix = "--" if name.startswith('--') else ("-" if name.startswith('-') else "")
         if classify_pattern(rest) in ["regex", "glob"]:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
             folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
             return {
                 "name": f"{name.lstrip('-')}",
@@ -901,6 +904,9 @@ class Job(Cloudos):
                 "folder": f"{folder}"
             }
         elif ext:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
             file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
             return {
                 "name": f"{name.lstrip('-')}",

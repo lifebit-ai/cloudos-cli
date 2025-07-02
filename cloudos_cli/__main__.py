@@ -2218,9 +2218,13 @@ def run_bash_job(ctx,
               '--parameter',
               multiple=True,
               help=('A single parameter to pass to the job call. It should be in the ' +
-                    'following form: parameter_name=parameter_value. E.g.: ' +
-                    '-p --test=value or -p -test=value or -p test=value. You can use this option as many ' +
-                    'times as parameters you want to include.'))
+                    'following form: parameter_name=parameter_value, for parameters ' +
+                    'located in the same --project-name. E.g.: -p --test=value or ' + 
+                    '-p -test=value or -p file=Data/input.csv. You can use this option as many ' +
+                    'times as parameters you want to include. ' +
+                    'For parameters outside the --project-name, the form is: ' +
+                    'parameter_name=<project>/Data/parameter_value, always located in the `Data` subfolder. ' +
+                    'E.g.: -p "--file=<project>/Data/file.txt" or "--file=<project>/Data/folder/file.txt"'))
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
