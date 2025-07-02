@@ -63,7 +63,7 @@ def is_probably_regex(s):
 
     Notes
     -----
-    The function assumes the existence of `is_valid_regex(s)` which 
+    The function assumes the existence of `is_valid_regex(s)` which
         validates whether the input string is a valid regex.
     """
     if not is_valid_regex(s):
