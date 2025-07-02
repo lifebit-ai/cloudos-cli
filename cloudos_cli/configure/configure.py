@@ -472,7 +472,7 @@ class ConfigurationProfile:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
                                           missing_required_params=missing)
-            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url
+            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url,
                                           missing_required_params=missing) 
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
                                                 required=required_dict['workspace_id'],
