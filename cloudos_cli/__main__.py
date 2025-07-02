@@ -16,10 +16,7 @@ from rich.table import Table
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
-from pathlib import Path
-import base64
-from cloudos_cli.utils.requests import retry_requests_get
-from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project, generate_datasets_for_project
+from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 
 
@@ -2429,7 +2426,7 @@ def run_bash_array_job(ctx,
 
     # retrieve columns
     r = j.retrieve_cols_from_array_file(
-        array_file, 
+        array_file,
         generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl),
         separators[separator]['api'],
         verify_ssl

@@ -10,7 +10,7 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from pathlib import Path
 import base64
-from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project, generate_datasets_for_project
+from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
 
 
@@ -455,7 +455,7 @@ class Job(Cloudos):
                 "diskSizeInGb": azure_worker_instance_disk
             }
         if workflow_type == 'docker':
-            params = params | command # add command to params as dict (python 3.9+)
+            params = params | command  # add command to params as dict (python 3.9+)
             params["resourceRequirements"] = {
                 "cpu": cpus,
                 "ram": memory
@@ -894,27 +894,27 @@ class Job(Cloudos):
         if classify_pattern(rest) in ["regex", "glob"]:
             folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
             return {
-                "name":f"{name.lstrip('-')}",
-                "prefix":f"{prefix}",
-                'globPattern':command_name,
-                "parameterKind":"globPattern",
-                "folder":f"{folder}"
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                'globPattern': command_name,
+                "parameterKind": "globPattern",
+                "folder": f"{folder}"
             }
         elif ext:
             file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
             return {
-                "name":f"{name.lstrip('-')}",
-                "prefix":f"{prefix}",
-                "parameterKind":"dataItem",
-                "dataItem":{
-                    "kind":"File",
-                    "item":f"{file}"
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "dataItem",
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{file}"
                 }
             }
         else:
             return {
-                "name":f"{name.lstrip('-')}",
-                "prefix":f"{prefix}",
-                "parameterKind":"textValue",
-                "textValue":f"{rest}"
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "textValue",
+                "textValue": f"{rest}"
             }

@@ -1,4 +1,5 @@
-import re, sys
+import re
+import sys
 from cloudos_cli.utils.errors import BadRequestException
 
 
