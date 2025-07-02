@@ -479,7 +479,15 @@ These options provide flexibility for configuring and running bash array jobs, a
 
 #### Use multiple projects for files in `--parameter` option
 
-The option `--parameter`, could specify a file input located in a different project than option `--project-name`. The project, should be specified at the beginning of the file path. For example:
+The option `--parameter`, could specify a file input located in a different project than option `--project-name`. The files can only be located inside the project's `Data` subfolder, not `Cohorts` or `Analyses Results`. The accepted structures for different parameter projects are:
+- `-p/--parameter "--file=<project>/Data/file.txt"`
+- `-p/--parameter "--file=<project>/Data/subfolder/file.txt"`
+- `-p/--parameter "--file=Data/subfolder/file.txt"` (the same project as `--project-name`)
+- `-p/--parameter "--file=<project>/Data/subfolder/*.txt"`
+- `-p/--parameter "--file=<project>/Data/*.txt"`
+- `-p/--parameter "--file=Data/*.txt"` (the same project as `--project-name`)
+
+The project, should be specified at the beginning of the file path. For example:
 
 ```console
 cloudos bash array-job \
