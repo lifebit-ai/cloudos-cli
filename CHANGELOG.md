@@ -1,6 +1,20 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.34.0 (2025-06-27)
+## v2.36.0 (2025-06-27)
+
+### Feat
+
+- Adds command to remove files.
+- Adds ci tests for cp and mkdir
+- Patch s3 folders listing files
+
+## v2.35.0 (2025-06-27)
+
+### Feat
+
+-  Adds command to create new folders
+
+## v2.34.0 (2025-06-25)
 
 ### Feat
 
