@@ -458,15 +458,6 @@ class ConfigurationProfile:
             apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
                                           required=required_dict['apikey'], missing_required_params=missing)
             resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'])
-            if not resolved_cloudos_url:
-                click.secho(
-                    f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
-                    fg="yellow",
-                    bold=True
-                )
-                cloudos_url = cloudos_url_default
-            else:
-                cloudos_url = resolved_cloudos_url
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
                                                 required=required_dict['workspace_id'], missing_required_params=missing)
             workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
@@ -482,15 +473,6 @@ class ConfigurationProfile:
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
                                           missing_required_params=missing)
             resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'])
-            if not resolved_cloudos_url:
-                click.secho(
-                    f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
-                    fg="yellow",
-                    bold=True
-                )
-                cloudos_url = cloudos_url_default
-            else:
-                cloudos_url = resolved_cloudos_url
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
                                                 required=required_dict['workspace_id'],
                                                 missing_required_params=missing)
@@ -503,6 +485,15 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
+        if not resolved_cloudos_url:
+            click.secho(
+                f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
+                fg="yellow",
+                bold=True
+            )
+            cloudos_url = cloudos_url_default
+        else:
+            cloudos_url = resolved_cloudos_url
         cloudos_url = cloudos_url.rstrip('/')
 
         # Raise once, after all checks
