@@ -3065,7 +3065,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
     try:
         # Determine item type
         if "fileType" in source_item:
-                item_type = "file"
+            item_type = "file"
         elif source_item.get("folderType") == "VirtualFolder":
             item_type = "virtual_folder"
         elif "s3BucketName" in source_item and source_item.get("folderType") == "S3Folder":
