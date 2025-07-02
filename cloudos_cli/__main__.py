@@ -1618,8 +1618,7 @@ def list_projects(ctx,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
-              required=True)
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
@@ -1695,8 +1694,7 @@ def cromwell_status(ctx,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.', 
-              required=True)
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
@@ -1799,8 +1797,7 @@ def cromwell_restart(ctx,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
-              required=True)
+              help='Your CloudOS API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
