@@ -3218,7 +3218,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -3234,6 +3234,10 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3324,7 +3328,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -3340,6 +3344,10 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
