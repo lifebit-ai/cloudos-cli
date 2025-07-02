@@ -502,7 +502,7 @@ Apart from files, the parameter can also take glob patterns, for example:
 ```console
 cloudos bash array-job \
     -p data=Data/input.csv
-    -p exp=PROJECT_EXPRESSION/Data/*.csv \
+    -p exp="PROJECT_EXPRESSION/Data/*.csv" \
     --project-name "ADIPOSE"
 ...
 ```
