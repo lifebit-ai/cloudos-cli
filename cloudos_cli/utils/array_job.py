@@ -46,9 +46,9 @@ def is_probably_regex(s):
     Determines if a given string is likely a regular expression.
 
     This function checks whether the input string matches common patterns
-    that are indicative of regular expressions. It first validates the 
-    string using `is_valid_regex(s)` and then searches for specific regex 
-    indicators such as quantifiers, character classes, anchors, and 
+    that are indicative of regular expressions. It first validates the
+    string using `is_valid_regex(s)` and then searches for specific regex
+    indicators such as quantifiers, character classes, anchors, and
     alternation.
 
     Parameters
