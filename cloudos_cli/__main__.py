@@ -3400,7 +3400,11 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
 def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
-    """Link files/folders to interactive analysis."""
+    """
+    Link a S3 folder to an active interactive analysis.
+
+    S3_PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
+    """
     print(link.__doc__ + '\n')
 
     profile = profile or ctx.default_map['datasets']['link']['profile']
