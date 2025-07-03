@@ -485,7 +485,7 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config=None,
-                 project_id="",
+                 project_id='',
                  parameter=(),
                  array_parameter=(),
                  array_file_header=None,
@@ -494,22 +494,22 @@ class Job(Cloudos):
                  git_commit=None,
                  git_tag=None,
                  git_branch=None,
-                 job_name="new_job",
+                 job_name='new_job',
                  resumable=False,
                  save_logs=True,
                  batch=True,
                  job_queue_id=None,
                  nextflow_profile=None,
-                 nextflow_version="22.10.8",
-                 instance_type="c5.xlarge",
+                 nextflow_version='22.10.8',
+                 instance_type='c5.xlarge',
                  instance_disk=500,
-                 storage_mode="regular",
+                 storage_mode='regular',
                  lustre_size=1200,
-                 execution_platform="aws",
+                 execution_platform='aws',
                  hpc_id=None,
-                 workflow_type="nextflow",
+                 workflow_type='nextflow',
                  cromwell_id=None,
-                 azure_worker_instance_type="Standard_D4as_v4",
+                 azure_worker_instance_type='Standard_D4as_v4',
                  azure_worker_instance_disk=100,
                  azure_worker_instance_spot=False,
                  cost_limit=30.0,
@@ -519,7 +519,7 @@ class Job(Cloudos):
                  command=None,
                  cpus=1,
                  memory=4,
-                 resume_job_work_dir=""):
+                 resume_job_work_dir=''):
         """Send a job to CloudOS.
 
         Parameters
