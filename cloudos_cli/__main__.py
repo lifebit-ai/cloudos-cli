@@ -343,7 +343,7 @@ def configure(ctx, profile, make_default):
               is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
-         'account has to be already linked to CloudOS.'),
+                    'account has to be already linked to CloudOS.'),
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
