@@ -662,7 +662,6 @@ class Job(Cloudos):
         # specifying the resumeWorkDir slot, makes the job resumed.
         if resume_job_work_dir:
             params["resumeWorkDir"] = resume_job_work_dir
-        from pprint import pprint
         r = retry_requests_post(
             "{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id),
             data=json.dumps(params),
