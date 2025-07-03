@@ -6,6 +6,12 @@
 
 - Links S3 folder to Interactive Analysis (`cloudos datasets link`)
 
+## v2.37.1 (2025-07-01)
+
+### Fix
+
+- Change error messaging for missing parameters that could be configured in profiles
+
 ## v2.37.0 (2025-06-30)
 
 ### Feat

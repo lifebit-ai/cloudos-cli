@@ -47,7 +47,10 @@ def run_cloudos_cli(ctx):
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
     if profile_to_use is None:
-        print('[Warning] No profile found. Please create one with "cloudos configure".\n')
+        console = Console()
+        console.print(
+            "[bold yellow][Warning] No profile found. Please create one with \"cloudos configure\"."
+        )
         shared_config = dict({
             'apikey': '',
             'cloudos_url': CLOUDOS_URL,
@@ -216,7 +219,6 @@ def configure(ctx, profile, make_default):
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
 
-
 @job.command('run')
 @click.option('-k',
               '--apikey',
@@ -225,7 +227,8 @@ def configure(ctx, profile, make_default):
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -667,7 +670,8 @@ def run(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -740,7 +744,8 @@ def job_status(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -816,7 +821,8 @@ def job_logs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -892,7 +898,8 @@ def job_results(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -1119,7 +1126,8 @@ def job_details(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1252,7 +1260,8 @@ def list_jobs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1348,7 +1357,8 @@ def abort_jobs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1449,7 +1459,8 @@ def list_workflows(ctx,
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
                     f'Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1534,7 +1545,8 @@ def import_wf(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1659,7 +1671,8 @@ def list_projects(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1737,7 +1750,8 @@ def cromwell_status(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1842,7 +1856,8 @@ def cromwell_restart(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1918,7 +1933,8 @@ def cromwell_stop(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2029,7 +2045,8 @@ def remove_profile(ctx, profile):
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2263,7 +2280,8 @@ def run_bash_job(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2768,7 +2786,7 @@ def list_files(ctx,
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
 @click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
 @click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False,
