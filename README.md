@@ -477,6 +477,51 @@ This assumes the interpreter is available on the container’s $PATH. If not, yo
 
 These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.
 
+#### Use multiple projects for files in `--parameter` option
+
+The option `--parameter`, could specify a file input located in a different project than option `--project-name`. The files can only be located inside the project's `Data` subfolder, not `Cohorts` or `Analyses Results`. The accepted structures for different parameter projects are:
+- `-p/--parameter "--file=<project>/Data/file.txt"`
+- `-p/--parameter "--file=<project>/Data/subfolder/file.txt"`
+- `-p/--parameter "--file=Data/subfolder/file.txt"` (the same project as `--project-name`)
+- `-p/--parameter "--file=<project>/Data/subfolder/*.txt"`
+- `-p/--parameter "--file=<project>/Data/*.txt"`
+- `-p/--parameter "--file=Data/*.txt"` (the same project as `--project-name`)
+
+The project, should be specified at the beginning of the file path. For example:
+
+```console
+cloudos bash array-job \
+    -p file=Data/input.csv
+...
+```
+This will point to the global project, specified with `--project-name`. In contrast:
+
+```console
+cloudos bash array-job \
+    -p data=Data/input.csv
+    -p exp=PROJECT_EXPRESSION/Data/input.csv \
+    --project-name "ADIPOSE"
+...
+```
+for parameter `exp` it will point to a project named `PROJECT_EXPRESSION` in the File Explorer, and `data` parameter will be found in the global project `ADIPOSE`.
+
+Apart from files, the parameter can also take glob patterns, for example:
+
+```console
+cloudos bash array-job \
+    -p data=Data/input.csv
+    -p exp="PROJECT_EXPRESSION/Data/*.csv" \
+    --project-name "ADIPOSE"
+...
+```
+will take all `csv` file extensions in the specified folder.
+
+> [!NOTE]
+> When specifying glob patterns, depending on the terminal is best to add it in double quotes to avoid the terminal searching for the glob pattern locally, e.g. `-p exp="PROJECT_EXPRESSION/Data/*.csv"`.
+
+> [!NOTE]
+> Project names in the `--parameter` option can start with either forward slash `/` or without. The following are the same `-p data=/PROJECT1/Data/input.csv` and `-p data=PROJECT1/Data/input.csv`.
+
 #### Get path to logs of job from CloudOS
 
 Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.

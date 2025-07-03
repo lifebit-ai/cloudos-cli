@@ -10,6 +10,8 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from pathlib import Path
 import base64
+from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
+import os
 
 
 @dataclass
@@ -382,14 +384,8 @@ class Job(Cloudos):
                 p_name = p_split[0]
                 p_value = '='.join(p_split[1:])
                 if workflow_type == 'docker':
-                    prefix = "--" if p_name.startswith('--') else ("-" if p_name.startswith('-') else '')
-                    # leave defined for adding files later
-                    parameter_kind = "textValue"
-                    param = {"prefix": prefix,
-                             "name": p_name.lstrip('-'),
-                             "parameterKind": parameter_kind,
-                             "textValue": p_value}
-                    workflow_params.append(param)
+                    # will differentiate between text, data items and glob patterns
+                    workflow_params.append(self.docker_workflow_param_processing(p, self.project_name))
                 elif workflow_type == 'wdl':
                     param = {"prefix": "",
                              "name": p_name,
@@ -834,3 +830,97 @@ class Job(Cloudos):
                 }
 
         return ap_param
+
+    def docker_workflow_param_processing(self, param, project_name):
+        """
+        Processes a Docker workflow parameter and determines its type and associated metadata.
+
+        Parameters
+        ----------
+        param : str
+            The parameter string in the format '--param_name=value'.
+            It can represent a file path, a glob pattern, or a simple text value.
+        project_name : str
+            The name of the current project to use if no specific project is extracted from the parameter.
+
+        Returns:
+            dict: A dictionary containing the processed parameter details. The structure of the dictionary depends on the type of the parameter:
+            - For glob patterns:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "globPattern": str,   # The glob pattern extracted from the parameter.
+                "parameterKind": str, # Always "globPattern".
+                "folder": str         # Folder ID associated with the glob pattern.
+            - For file paths:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "parameterKind": str, # Always "dataItem".
+                "dataItem": {
+                    "kind": str,      # Always "File".
+                    "item": str       # File ID associated with the file path.
+            - For text values:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "parameterKind": str, # Always "textValue".
+                "textValue": str      # The text value extracted from the parameter.
+
+        Notes
+        -----
+        - The function uses helper methods `extract_project`, `classify_pattern`, and `get_file_or_folder_id` to process the parameter.
+        - If the parameter represents a file path or glob pattern, the function retrieves the corresponding file or folder ID from the cloud workspace.
+        - If the parameter does not match any specific pattern or file extension, it is treated as a simple text value.
+        """
+
+        # split '--param_name=example_test'
+        # name -> '--param_name'
+        # rest -> 'example_test'
+        name, rest = param.split('=', 1)
+
+        # e.g. "/Project/Subproject/file.csv", project is "Project"
+        # e.g "Data/input.csv", project is '', leaving the global project name
+        # e.g "-p --test=value", project is ''
+        project, file_path = extract_project(rest)
+        current_project = project if project != '' else project_name
+
+        # e.g. "/Project/Subproject/file.csv"
+        command_path = Path(file_path)
+        command_dir = str(command_path.parent)
+        command_name = command_path.name
+        _, ext = os.path.splitext(command_name)
+        prefix = "--" if name.startswith('--') else ("-" if name.startswith('-') else "")
+        if classify_pattern(rest) in ["regex", "glob"]:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
+            folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                'globPattern': command_name,
+                "parameterKind": "globPattern",
+                "folder": f"{folder}"
+            }
+        elif ext:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
+            file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "dataItem",
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{file}"
+                }
+            }
+        else:
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "textValue",
+                "textValue": f"{rest}"
+            }
