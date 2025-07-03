@@ -68,8 +68,6 @@ def run_cloudos_cli(ctx):
                 'list': shared_config,
                 'logs': shared_config,
                 'results': shared_config,
-                'logs': shared_config,
-                'results': shared_config,
                 'details': shared_config
             },
             'workflow': {
