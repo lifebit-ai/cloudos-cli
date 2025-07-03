@@ -504,7 +504,7 @@ In this example, all the processes of the job with id `ID_OF_JOB_TO_CONE` will b
 
 #### Get path to logs of job from CloudOS
 
-Get the path where Nextflow logs, Nextflow standard output, and trace files. It can be used on jobs with any status.
+Get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
 
 Example
 ```console
