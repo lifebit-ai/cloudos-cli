@@ -457,8 +457,7 @@ class ConfigurationProfile:
             profile_data = self.load_profile(profile_name=profile)
             apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
                                           required=required_dict['apikey'], missing_required_params=missing)
-            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url',
-                                               profile_data['cloudos_url']) or cloudos_url_default
+            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'])
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
                                                 required=required_dict['workspace_id'], missing_required_params=missing)
             workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
@@ -473,7 +472,8 @@ class ConfigurationProfile:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
                                           missing_required_params=missing)
-            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or cloudos_url_default
+            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url,
+                                          missing_required_params=missing) 
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
                                                 required=required_dict['workspace_id'],
                                                 missing_required_params=missing)
@@ -486,10 +486,19 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
+        if not resolved_cloudos_url:
+            click.secho(
+                f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
+                fg="yellow",
+                bold=True
+            )
+            cloudos_url = cloudos_url_default
+        else:
+            cloudos_url = resolved_cloudos_url
         cloudos_url = cloudos_url.rstrip('/')
 
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted}")
+            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name\n For more information on the usage of the command, please run cloudos configure --help")
         return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name
