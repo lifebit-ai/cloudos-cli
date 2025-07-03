@@ -535,11 +535,6 @@ cloudos job logs --cloudos-url $CLOUDOS \
     --workspace-id $WORKSPACE_ID \
     --job-id "12345678910"
     
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.25.0
-
-CloudOS job functionality: run, check and abort jobs in CloudOS.
 
 Executing results...
 results: s3://path/to/location/of/results/results/
