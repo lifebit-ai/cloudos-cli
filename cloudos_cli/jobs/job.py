@@ -16,6 +16,8 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from pathlib import Path
 import base64
+from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
+import os
 
 
 @dataclass
@@ -53,14 +55,13 @@ class Job(Cloudos):
     workflow_id : string
         The CloudOS workflow id for a given workflow_name.
     """
-
     workspace_id: str
     project_name: str
     workflow_name: str
     verify: Union[bool, str] = True
     mainfile: str = None
     importsfile: str = None
-    repository_platform: str = "github"
+    repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
 
@@ -75,11 +76,10 @@ class Job(Cloudos):
             self._project_id = self.fetch_cloudos_id(
                 self.apikey,
                 self.cloudos_url,
-                "projects",
+                'projects',
                 self.workspace_id,
                 self.project_name,
-                verify=self.verify,
-            )
+                verify=self.verify)
         else:
             # Let the user define the value.
             self._project_id = v
@@ -95,30 +95,27 @@ class Job(Cloudos):
             self._workflow_id = self.fetch_cloudos_id(
                 self.apikey,
                 self.cloudos_url,
-                "workflows",
+                'workflows',
                 self.workspace_id,
                 self.workflow_name,
                 self.mainfile,
                 self.importsfile,
                 self.repository_platform,
-                self.verify,
-            )
+                self.verify)
         else:
             # Let the user define the value.
             self._workflow_id = v
 
-    def fetch_cloudos_id(
-        self,
-        apikey,
-        cloudos_url,
-        resource,
-        workspace_id,
-        name,
-        mainfile=None,
-        importsfile=None,
-        repository_platform="github",
-        verify=True,
-    ):
+    def fetch_cloudos_id(self,
+                         apikey,
+                         cloudos_url,
+                         resource,
+                         workspace_id,
+                         name,
+                         mainfile=None,
+                         importsfile=None,
+                         repository_platform='github',
+                         verify=True):
         """Fetch the cloudos id for a given name.
 
         Parameters
@@ -152,49 +149,37 @@ class Job(Cloudos):
         project_id : string
             The CloudOS project id for a given project name.
         """
-        allowed_resources = ["projects", "workflows"]
+        allowed_resources = ['projects', 'workflows']
         if resource not in allowed_resources:
-            raise ValueError(
-                "Your specified resource is not supported. "
-                + f"Use one of the following: {allowed_resources}"
-            )
-        if resource == "workflows":
+            raise ValueError('Your specified resource is not supported. ' +
+                             f'Use one of the following: {allowed_resources}')
+        if resource == 'workflows':
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
-                if (
-                    element["name"] == name
-                    and element["workflowType"] == "docker"
-                    and not element["archived"]["status"]
-                ):
+                if (element["name"] == name and element["workflowType"] == "docker" and
+                        not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
-                if (
-                    element["name"] == name
-                    and element["repository"]["platform"] == repository_platform
-                    and not element["archived"]["status"]
-                ):
+                if (element["name"] == name and
+                        element["repository"]["platform"] == repository_platform and
+                        not element["archived"]["status"]):
                     if mainfile is None:
                         return element["_id"]
                     elif element["mainFile"] == mainfile:
                         if importsfile is None and "importsFile" not in element.keys():
                             return element["_id"]
-                        elif (
-                            "importsFile" in element.keys()
-                            and element["importsFile"] == importsfile
-                        ):
+                        elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
-        elif resource == "projects":
+        elif resource == 'projects':
             content = self.get_project_list(workspace_id, verify=verify)
             # New API projects endpoint spec
             for element in content:
                 if element["name"] == name:
                     return element["_id"]
         if mainfile is not None:
-            raise ValueError(
-                f"[ERROR] A workflow named '{name}' with a mainFile '{mainfile}'"
-                + f" and an importsFile '{importsfile}' was not found"
-            )
+            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+                             f' and an importsFile \'{importsfile}\' was not found')
         else:
-            raise ValueError(f"[ERROR] No {name} element in {resource} was found")
+            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
@@ -326,80 +311,64 @@ class Job(Cloudos):
             A JSON formatted dict.
         """
         workflow_params = []
-        if workflow_type == "wdl":
+        if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
         if (
-            nextflow_profile is None
-            and job_config is None
-            and len(parameter) == 0
-            and len(example_parameters) == 0
+            nextflow_profile is None and
+            job_config is None and
+            len(parameter) == 0 and
+            len(example_parameters) == 0
         ):
-            raise ValueError(
-                "No --job-config, --nextflow_profile, --parameter or "
-                + "--example_parameters were specified,"
-                + "  please use at least one of these options."
-            )
-        if workflow_type == "wdl" and job_config is None and len(parameter) == 0:
-            raise ValueError(
-                "No --job-config or --parameter were provided. At least one of "
-                + "these are required for WDL workflows."
-            )
-        if workflow_type == "docker" and len(parameter) == 0:
-            raise ValueError(
-                "No --parameter were provided. At least one of "
-                + "these are required for bash workflows."
-            )
+            raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
+                             '--example_parameters were specified,' +
+                             '  please use at least one of these options.')
+        if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
+            raise ValueError('No --job-config or --parameter were provided. At least one of ' +
+                             'these are required for WDL workflows.')
+        if workflow_type == 'docker' and len(parameter) == 0:
+            raise ValueError('No --parameter were provided. At least one of ' +
+                             'these are required for bash workflows.')
         if job_config is not None:
-            with open(job_config, "r") as p:
+            with open(job_config, 'r') as p:
                 reading = False
                 for p_l in p:
-                    if "params" in p_l.lower():
+                    if 'params' in p_l.lower():
                         reading = True
                     else:
                         if reading:
-                            if workflow_type == "wdl":
-                                p_l_strip = p_l.strip().replace(" ", "")
+                            if workflow_type == 'wdl':
+                                p_l_strip = p_l.strip().replace(' ', '')
                             else:
-                                p_l_strip = (
-                                    p_l.strip()
-                                    .replace(" ", "")
-                                    .replace('"', "")
-                                    .replace("'", "")
-                                )
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '').replace('\"', '').replace('\'', '')
                             if len(p_l_strip) == 0:
                                 continue
-                            elif p_l_strip[0] == "/" or p_l_strip[0] == "#":
+                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
                                 continue
-                            elif p_l_strip == "}":
+                            elif p_l_strip == '}':
                                 reading = False
                             else:
-                                p_list = p_l_strip.split("=")
+                                p_list = p_l_strip.split('=')
                                 p_name = p_list[0]
-                                p_value = "=".join(p_list[1:])
+                                p_value = '='.join(p_list[1:])
                                 if len(p_list) < 2:
-                                    raise ValueError(
-                                        "Please, specify your "
-                                        + "parameters in "
-                                        + f"{job_config} using "
-                                        + "the '=' as spacer. "
-                                        + "E.g: name = my_name"
-                                    )
-                                elif workflow_type == "wdl":
-                                    param = {
-                                        "prefix": "",
-                                        "name": p_name,
-                                        "parameterKind": "textValue",
-                                        "textValue": p_value,
-                                    }
+                                    raise ValueError('Please, specify your ' +
+                                                     'parameters in ' +
+                                                     f'{job_config} using ' +
+                                                     'the \'=\' as spacer. ' +
+                                                     'E.g: name = my_name')
+                                elif workflow_type == 'wdl':
+                                    param = {"prefix": "",
+                                             "name": p_name,
+                                             "parameterKind": "textValue",
+                                             "textValue": p_value}
                                     workflow_params.append(param)
                                 else:
-                                    param = {
-                                        "prefix": "--",
-                                        "name": p_name,
-                                        "parameterKind": "textValue",
-                                        "textValue": p_value,
-                                    }
+                                    param = {"prefix": "--",
+                                             "name": p_name,
+                                             "parameterKind": "textValue",
+                                             "textValue": p_value}
                                     workflow_params.append(param)
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
@@ -413,65 +382,41 @@ class Job(Cloudos):
         # general parameters (from --parameter)
         if len(parameter) > 0:
             for p in parameter:
-                p_split = p.split("=")
+                p_split = p.split('=')
                 if len(p_split) < 2:
-                    raise ValueError(
-                        "Please, specify -p / --parameter using a single '=' "
-                        + "as spacer. E.g: input=value"
-                    )
+                    raise ValueError('Please, specify -p / --parameter using a single \'=\' ' +
+                                     'as spacer. E.g: input=value')
                 p_name = p_split[0]
-                p_value = "=".join(p_split[1:])
-                if workflow_type == "docker":
-                    prefix = (
-                        "--"
-                        if p_name.startswith("--")
-                        else ("-" if p_name.startswith("-") else "")
-                    )
-                    # leave defined for adding files later
-                    parameter_kind = "textValue"
-                    param = {
-                        "prefix": prefix,
-                        "name": p_name.lstrip("-"),
-                        "parameterKind": parameter_kind,
-                        "textValue": p_value,
-                    }
-                    workflow_params.append(param)
-                elif workflow_type == "wdl":
-                    param = {
-                        "prefix": "",
-                        "name": p_name,
-                        "parameterKind": "textValue",
-                        "textValue": p_value,
-                    }
+                p_value = '='.join(p_split[1:])
+                if workflow_type == 'docker':
+                    # will differentiate between text, data items and glob patterns
+                    workflow_params.append(self.docker_workflow_param_processing(p, self.project_name))
+                elif workflow_type == 'wdl':
+                    param = {"prefix": "",
+                             "name": p_name,
+                             "parameterKind": "textValue",
+                             "textValue": p_value}
                     workflow_params.append(param)
                 else:
-                    param = {
-                        "prefix": "--",
-                        "name": p_name,
-                        "parameterKind": "textValue",
-                        "textValue": p_value,
-                    }
+                    param = {"prefix": "--",
+                             "name": p_name,
+                             "parameterKind": "textValue",
+                             "textValue": p_value}
                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f"The provided parameters are not valid: {parameter}")
+                raise ValueError(f'The provided parameters are not valid: {parameter}')
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
         if storage_mode == "lustre":
-            print(
-                "\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of "
-                + "storage is available in your CloudOS workspace.\n"
-            )
+            print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
+                  'storage is available in your CloudOS workspace.\n')
             if lustre_size % 1200:
-                raise ValueError(
-                    "Please, specify a lustre storage size of 1200 or a multiple of it. "
-                    + f"{lustre_size} is not a valid number."
-                )
-        if storage_mode not in ["lustre", "regular"]:
-            raise ValueError(
-                "Please, use either 'lustre' or 'regular' for --storage-mode "
-                + f"{storage_mode} is not allowed"
-            )
+                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
+                                 f'{lustre_size} is not a valid number.')
+        if storage_mode not in ['lustre', 'regular']:
+            raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
+                             f'{storage_mode} is not allowed')
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -482,56 +427,60 @@ class Job(Cloudos):
             "executionPlatform": execution_platform,
             "hpc": hpc_id,
             "storageSizeInGb": instance_disk,
-            "execution": {"computeCostLimit": cost_limit, "optim": "test"},
+            "execution": {
+                "computeCostLimit": cost_limit,
+                "optim": "test"
+            },
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints,
+            "usesFusionFileSystem": use_mountpoints
         }
-        if workflow_type != "docker":
+        if workflow_type != 'docker':
             params["nextflowVersion"] = nextflow_version
-        if execution_platform != "hpc":
-            params["masterInstance"] = {"requestedInstance": {"type": instance_type}}
-            params["batch"] = {"enabled": batch}
+        if execution_platform != 'hpc':
+            params['masterInstance'] = {
+                "requestedInstance": {
+                    "type": instance_type
+                }
+            }
+            params['batch'] = {
+                "enabled": batch
+            }
         if job_queue_id is not None:
-            params["batch"] = {
+            params['batch'] = {
                 "dockerLogin": docker_login,
                 "enabled": batch,
-                "jobQueue": job_queue_id,
+                "jobQueue": job_queue_id
             }
-        if execution_platform == "azure" and not is_module:
-            params["azureBatch"] = {
+        if execution_platform == 'azure' and not is_module:
+            params['azureBatch'] = {
                 "vmType": azure_worker_instance_type,
                 "spot": azure_worker_instance_spot,
-                "diskSizeInGb": azure_worker_instance_disk,
+                "diskSizeInGb": azure_worker_instance_disk
             }
-        if workflow_type == "docker":
-            params["command"] = command
-            params["resourceRequirements"] = {"cpu": cpus, "ram": memory}
-        if workflow_type == "wdl":
-            params["cromwellCloudResources"] = cromwell_id
-        git_flag = [1 for x in [git_tag, git_commit, git_branch] if x]
+        if workflow_type == 'docker':
+            params = params | command  # add command to params as dict (python 3.9+)
+            params["resourceRequirements"] = {
+                "cpu": cpus,
+                "ram": memory
+            }
+        if workflow_type == 'wdl':
+            params['cromwellCloudResources'] = cromwell_id
+        git_flag = [x is not None for x in [git_tag, git_commit, git_branch]]
         if sum(git_flag) > 1:
-            raise ValueError(
-                "Please, specify none or only one of --git-tag, "
-                + "--git-branch or --git-commit options."
-            )
+            raise ValueError('Please, specify none or only one of --git-tag, ' +
+                             '--git-branch or --git-commit options.')
         elif sum(git_flag) == 1:
-            revision_type = (
-                "tag"
-                if git_tag is not None
-                else "commit"
-                if git_commit is not None
-                else "branch"
-            )
-            params["revision"] = {
+            revision_type = 'tag' if git_tag is not None else 'commit' if git_commit is not None else 'branch'
+            params['revision'] = {
                 "revisionType": revision_type,
                 "tag": git_tag,
                 "commit": git_commit,
-                "branch": git_branch,
+                "branch": git_branch
             }
         if nextflow_profile is not None:
-            params["profile"] = nextflow_profile
+            params['profile'] = nextflow_profile
         return params
 
     def send_job(
@@ -673,42 +622,41 @@ class Job(Cloudos):
         project_id = self.project_id
         # Prepare api request for CloudOS to run a job
         headers = {"Content-type": "application/json", "apikey": apikey}
-        params = self.convert_nextflow_to_json(
-            job_config,
-            parameter,
-            array_parameter,
-            array_file_header,
-            is_module,
-            example_parameters,
-            git_commit,
-            git_tag,
-            git_branch,
-            project_id,
-            workflow_id,
-            job_name,
-            resumable,
-            save_logs,
-            batch,
-            job_queue_id,
-            nextflow_profile,
-            nextflow_version,
-            instance_type,
-            instance_disk,
-            storage_mode,
-            lustre_size,
-            execution_platform,
-            hpc_id,
-            workflow_type,
-            cromwell_id,
-            azure_worker_instance_type,
-            azure_worker_instance_disk,
-            azure_worker_instance_spot,
-            cost_limit,
-            use_mountpoints,
-            docker_login,
-            command=command,
-            cpus=cpus,
-            memory=memory)
+        params = self.convert_nextflow_to_json(job_config,
+                                               parameter,
+                                               array_parameter,
+                                               array_file_header,
+                                               is_module,
+                                               example_parameters,
+                                               git_commit,
+                                               git_tag,
+                                               git_branch,
+                                               project_id,
+                                               workflow_id,
+                                               job_name,
+                                               resumable,
+                                               save_logs,
+                                               batch,
+                                               job_queue_id,
+                                               nextflow_profile,
+                                               nextflow_version,
+                                               instance_type,
+                                               instance_disk,
+                                               storage_mode,
+                                               lustre_size,
+                                               execution_platform,
+                                               hpc_id,
+                                               workflow_type,
+                                               cromwell_id,
+                                               azure_worker_instance_type,
+                                               azure_worker_instance_disk,
+                                               azure_worker_instance_spot,
+                                               cost_limit,
+                                               use_mountpoints,
+                                               docker_login,
+                                               command=command,
+                                               cpus=cpus,
+                                                 memory=memory)
         if project_id:
             params["project"] = project_id
         # specifying the resumeWorkDir slot, makes the job resumed.
@@ -724,10 +672,8 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
-        print(
-            "\tJob successfully launched to CloudOS, please check the "
-            + f"following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}"
-        )
+        print('\tJob successfully launched to CloudOS, please check the ' +
+              f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
 
     def check_branch(
@@ -1249,3 +1195,97 @@ class Job(Cloudos):
                 }
 
         return ap_param
+
+    def docker_workflow_param_processing(self, param, project_name):
+        """
+        Processes a Docker workflow parameter and determines its type and associated metadata.
+
+        Parameters
+        ----------
+        param : str
+            The parameter string in the format '--param_name=value'.
+            It can represent a file path, a glob pattern, or a simple text value.
+        project_name : str
+            The name of the current project to use if no specific project is extracted from the parameter.
+
+        Returns:
+            dict: A dictionary containing the processed parameter details. The structure of the dictionary depends on the type of the parameter:
+            - For glob patterns:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "globPattern": str,   # The glob pattern extracted from the parameter.
+                "parameterKind": str, # Always "globPattern".
+                "folder": str         # Folder ID associated with the glob pattern.
+            - For file paths:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "parameterKind": str, # Always "dataItem".
+                "dataItem": {
+                    "kind": str,      # Always "File".
+                    "item": str       # File ID associated with the file path.
+            - For text values:
+                {
+                "name": str,          # Parameter name without leading dashes.
+                "prefix": str,        # Prefix ('--' or '-') based on the parameter format.
+                "parameterKind": str, # Always "textValue".
+                "textValue": str      # The text value extracted from the parameter.
+
+        Notes
+        -----
+        - The function uses helper methods `extract_project`, `classify_pattern`, and `get_file_or_folder_id` to process the parameter.
+        - If the parameter represents a file path or glob pattern, the function retrieves the corresponding file or folder ID from the cloud workspace.
+        - If the parameter does not match any specific pattern or file extension, it is treated as a simple text value.
+        """
+
+        # split '--param_name=example_test'
+        # name -> '--param_name'
+        # rest -> 'example_test'
+        name, rest = param.split('=', 1)
+
+        # e.g. "/Project/Subproject/file.csv", project is "Project"
+        # e.g "Data/input.csv", project is '', leaving the global project name
+        # e.g "-p --test=value", project is ''
+        project, file_path = extract_project(rest)
+        current_project = project if project != '' else project_name
+
+        # e.g. "/Project/Subproject/file.csv"
+        command_path = Path(file_path)
+        command_dir = str(command_path.parent)
+        command_name = command_path.name
+        _, ext = os.path.splitext(command_name)
+        prefix = "--" if name.startswith('--') else ("-" if name.startswith('-') else "")
+        if classify_pattern(rest) in ["regex", "glob"]:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
+            folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                'globPattern': command_name,
+                "parameterKind": "globPattern",
+                "folder": f"{folder}"
+            }
+        elif ext:
+            if not (file_path.startswith('/Data') or file_path.startswith('Data')):
+                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+
+            file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "dataItem",
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{file}"
+                }
+            }
+        else:
+            return {
+                "name": f"{name.lstrip('-')}",
+                "prefix": f"{prefix}",
+                "parameterKind": "textValue",
+                "textValue": f"{rest}"
+            }
