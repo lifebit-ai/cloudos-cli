@@ -613,7 +613,6 @@ def clone(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'job_id': True,
         'project_name': True,
         "workflow_name": False
     }
@@ -825,7 +824,6 @@ def resume(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'job_id': True,
         'project_name': True,
         "workflow_name": False
     }
