@@ -20,6 +20,7 @@ from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
+from cloudos_cli.link import Link
 
 
 # GLOBAL VARS
@@ -48,7 +49,10 @@ def run_cloudos_cli(ctx):
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
     if profile_to_use is None:
-        print('[Warning] No profile found. Please create one with "cloudos configure".\n')
+        console = Console()
+        console.print(
+            "[bold yellow][Warning] No profile found. Please create one with \"cloudos configure\"."
+        )
         shared_config = dict({
             'apikey': '',
             'cloudos_url': CLOUDOS_URL,
@@ -57,7 +61,8 @@ def run_cloudos_cli(ctx):
             'workflow_name': '',
             'repository_platform': 'github',
             'execution_platform': 'aws',
-            'profile': INIT_PROFILE
+            'profile': INIT_PROFILE,
+            'session_id': '',
         })
         ctx.default_map = dict({
             'job': {
@@ -95,6 +100,7 @@ def run_cloudos_cli(ctx):
                 'mv': shared_config,
                 'rename': shared_config,
                 'cp': shared_config,
+                'link': shared_config,
                 'mkdir': shared_config,
                 'rm': shared_config
             }
@@ -109,7 +115,8 @@ def run_cloudos_cli(ctx):
             'workflow_name': profile_data.get('workflow_name', ""),
             'repository_platform': profile_data.get('repository_platform', ""),
             'execution_platform': profile_data.get('execution_platform', ""),
-            'profile': profile_to_use
+            'profile': profile_to_use,
+            'session_id': profile_data.get('session_id', "")
         })
         ctx.default_map = dict({
             'job': {
@@ -147,6 +154,7 @@ def run_cloudos_cli(ctx):
                 'mv': shared_config,
                 'rename': shared_config,
                 'cp': shared_config,
+                'link': shared_config,
                 'mkdir': shared_config,
                 'rm': shared_config
             }
@@ -217,7 +225,6 @@ def configure(ctx, profile, make_default):
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
 
-
 @job.command('run')
 @click.option('-k',
               '--apikey',
@@ -226,7 +233,8 @@ def configure(ctx, profile, make_default):
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -413,7 +421,7 @@ def run(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -429,6 +437,13 @@ def run(ctx,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    workflow_name = user_options['workflow_name']
+    repository_platform = user_options['repository_platform']
+    execution_platform = user_options['execution_platform']
+    project_name = user_options['project_name']
 
     job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id,
                          cromwell_token=cromwell_token, disable_ssl_verification=disable_ssl_verification,
@@ -869,7 +884,8 @@ def resume(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -903,7 +919,7 @@ def job_status(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -914,6 +930,8 @@ def job_status(ctx,
             cloudos_url=cloudos_url
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -940,7 +958,8 @@ def job_status(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -978,7 +997,7 @@ def job_logs(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -990,6 +1009,9 @@ def job_logs(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     print('Executing logs...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1013,7 +1035,8 @@ def job_logs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1051,7 +1074,7 @@ def job_results(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1063,6 +1086,9 @@ def job_results(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     print('Executing results...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1086,7 +1112,8 @@ def job_results(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -1137,7 +1164,7 @@ def job_details(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1148,6 +1175,9 @@ def job_details(ctx,
             cloudos_url=cloudos_url
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    execution_platform = user_options['execution_platform']
 
     print('Executing details...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1310,7 +1340,8 @@ def job_details(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1376,7 +1407,7 @@ def list_jobs(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1388,6 +1419,9 @@ def list_jobs(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1440,7 +1474,8 @@ def list_jobs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1480,7 +1515,7 @@ def abort_jobs(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1492,6 +1527,9 @@ def abort_jobs(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
@@ -1533,7 +1571,8 @@ def abort_jobs(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1584,7 +1623,7 @@ def list_workflows(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1596,6 +1635,9 @@ def list_workflows(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1631,7 +1673,8 @@ def list_workflows(ctx,
               '--cloudos-url',
               help=('The CloudOS url you are trying to access to. ' +
                     f'Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1677,7 +1720,7 @@ def import_wf(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1691,6 +1734,11 @@ def import_wf(ctx,
             repository_platform=repository_platform
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    workflow_name = user_options['workflow_name']
+    repository_platform = user_options['repository_platform']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     repo_import = ImportWorflow(
@@ -1711,7 +1759,8 @@ def import_wf(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1767,7 +1816,7 @@ def list_projects(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1779,6 +1828,9 @@ def list_projects(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1833,7 +1885,8 @@ def list_projects(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1868,7 +1921,7 @@ def cromwell_status(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1879,6 +1932,9 @@ def cromwell_status(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -1908,7 +1964,8 @@ def cromwell_status(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -1948,7 +2005,7 @@ def cromwell_restart(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -1959,6 +2016,9 @@ def cromwell_restart(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -2010,7 +2070,8 @@ def cromwell_restart(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2045,7 +2106,7 @@ def cromwell_stop(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2056,6 +2117,9 @@ def cromwell_stop(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -2083,7 +2147,8 @@ def cromwell_stop(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2130,7 +2195,7 @@ def list_queues(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2142,6 +2207,9 @@ def list_queues(ctx,
             workspace_id=workspace_id
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -2191,7 +2259,8 @@ def remove_profile(ctx, profile):
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2312,7 +2381,7 @@ def run_bash_job(ctx,
 
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2328,6 +2397,13 @@ def run_bash_job(ctx,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    workflow_name = user_options['workflow_name']
+    repository_platform = user_options['repository_platform']
+    execution_platform = user_options['execution_platform']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -2418,7 +2494,8 @@ def run_bash_job(ctx,
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
+              default=CLOUDOS_URL,
+              required=True)
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
@@ -2587,7 +2664,7 @@ def run_bash_array_job(ctx,
 
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2603,6 +2680,14 @@ def run_bash_array_job(ctx,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    workflow_name = user_options['workflow_name']
+    repository_platform = user_options['repository_platform']
+    execution_platform = user_options['execution_platform']
+    project_name = user_options['project_name']
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):
@@ -2808,7 +2893,7 @@ def list_files(ctx,
         'project_name': False
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2824,6 +2909,11 @@ def list_files(ctx,
             project_name=project_name
         )
     )
+    # Setup only the required parameters
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -2910,7 +3000,7 @@ def list_files(ctx,
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=False, help='The CloudOS URL.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
 @click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
 @click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False,
@@ -2950,7 +3040,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -2966,6 +3056,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3094,7 +3188,7 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -3110,6 +3204,10 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Initialize Datasets clients
@@ -3198,7 +3296,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         'workflow_name': False,
         'project_name': True
     }
-    apikey, cloudos_url, workspace_id, workflow_name, _, _, project_name = config_manager.load_profile_and_validate_data(
+    user_options = config_manager.load_profile_and_validate_data(
         ctx, INIT_PROFILE, CLOUDOS_URL, profile=profile,
         required_dict=required_dict,
         apikey=apikey,
@@ -3209,6 +3307,11 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         execution_platform=None,
         project_name=project_name
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
+
     destination_project_name = destination_project_name or project_name
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Initialize clients
@@ -3334,7 +3437,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -3350,6 +3453,10 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3440,7 +3547,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         'project_name': True
     }
 
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
+    user_options = (
         config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
@@ -3456,6 +3563,10 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
             project_name=project_name
         )
     )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3506,6 +3617,68 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     except Exception as e:
         click.echo(f"[ERROR] Delete operation failed: {str(e)}", err=True)
         sys.exit(1)
+
+
+@datasets.command(name="link")
+@click.argument("s3_path", required=True)
+@click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
+@click.option('-c', '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL)
+@click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
+@click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default='default')
+@click.pass_context
+def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+    """
+    Link a S3 folder to an active interactive analysis.
+
+    S3_PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
+    """
+    print(link.__doc__ + '\n')
+
+    profile = profile or ctx.default_map['datasets']['link']['profile']
+
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            session_id=session_id
+        )
+    )
+    # Unpack the user options
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    session_id = user_options['session_id']
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    link_p = Link(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token=None,
+        project_name=None,
+        verify=verify_ssl
+    )
+    link_p.link_S3_folder(s3_path, session_id)
 
 
 if __name__ == "__main__":
