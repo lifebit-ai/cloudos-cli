@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.38.0 (2025-07-03)
+
+### Feat
+
+- Links S3 folder to Interactive Analysis (`cloudos datasets link`)
+
 ## v2.37.1 (2025-07-01)
 
 ### Fix
@@ -10,7 +16,7 @@
 
 ### Feat
 
-- Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
+- Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv`
 
 ## v2.36.0 (2025-06-27)
 
