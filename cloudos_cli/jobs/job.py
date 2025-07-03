@@ -945,7 +945,6 @@ class Job(Cloudos):
                 if new_param.split("=")[0] not in old_params_names:
                     new_parameters.append(new_param)
 
-        new_resumable = job_payload_d["resumable"] if resumable is None else resumable
         new_save_logs = (
             job_payload_d["saveProcessLogs"] if save_logs is None else save_logs
         )
