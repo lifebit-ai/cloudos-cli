@@ -337,7 +337,8 @@ class Job(Cloudos):
                     else:
                         if reading:
                             if workflow_type == 'wdl':
-                                p_l_strip = p_l.strip().replace(' ', '')
+                                p_l_strip = p_l.strip().replace(
+                                    ' ', '')
                             else:
                                 p_l_strip = p_l.strip().replace(
                                     ' ', '').replace('\"', '').replace('\'', '')
@@ -482,45 +483,43 @@ class Job(Cloudos):
             params['profile'] = nextflow_profile
         return params
 
-    def send_job(
-        self,
-        job_config=None,
-        project_id="",
-        parameter=(),
-        array_parameter=(),
-        array_file_header=None,
-        is_module=False,
-        example_parameters=[],
-        git_commit=None,
-        git_tag=None,
-        git_branch=None,
-        job_name="new_job",
-        resumable=False,
-        save_logs=True,
-        batch=True,
-        job_queue_id=None,
-        nextflow_profile=None,
-        nextflow_version="22.10.8",
-        instance_type="c5.xlarge",
-        instance_disk=500,
-        storage_mode="regular",
-        lustre_size=1200,
-        execution_platform="aws",
-        hpc_id=None,
-        workflow_type="nextflow",
-        cromwell_id=None,
-        azure_worker_instance_type="Standard_D4as_v4",
-        azure_worker_instance_disk=100,
-        azure_worker_instance_spot=False,
-        cost_limit=30.0,
-        use_mountpoints=False,
-        docker_login=False,
-        verify=True,
-        command=None,
-        cpus=1,
-        memory=4,
-        resume_job_work_dir="",
-    ):
+    def send_job(self,
+                 job_config=None,
+                 project_id="",
+                 parameter=(),
+                 array_parameter=(),
+                 array_file_header=None,
+                 is_module=False,
+                 example_parameters=[],
+                 git_commit=None,
+                 git_tag=None,
+                 git_branch=None,
+                 job_name="new_job",
+                 resumable=False,
+                 save_logs=True,
+                 batch=True,
+                 job_queue_id=None,
+                 nextflow_profile=None,
+                 nextflow_version="22.10.8",
+                 instance_type="c5.xlarge",
+                 instance_disk=500,
+                 storage_mode="regular",
+                 lustre_size=1200,
+                 execution_platform="aws",
+                 hpc_id=None,
+                 workflow_type="nextflow",
+                 cromwell_id=None,
+                 azure_worker_instance_type="Standard_D4as_v4",
+                 azure_worker_instance_disk=100,
+                 azure_worker_instance_spot=False,
+                 cost_limit=30.0,
+                 use_mountpoints=False,
+                 docker_login=False,
+                 verify=True,
+                 command=None,
+                 cpus=1,
+                 memory=4,
+                 resume_job_work_dir=""):
         """Send a job to CloudOS.
 
         Parameters
@@ -655,18 +654,15 @@ class Job(Cloudos):
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
-                                                 memory=memory)
+                                               memory=memory)
         if project_id:
             params["project"] = project_id
         # specifying the resumeWorkDir slot, makes the job resumed.
         if resume_job_work_dir:
             params["resumeWorkDir"] = resume_job_work_dir
-        r = retry_requests_post(
-            "{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id),
-            data=json.dumps(params),
-            headers=headers,
-            verify=verify,
-        )
+        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
+                                                                  workspace_id),
+                                data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
