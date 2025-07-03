@@ -12,7 +12,6 @@ from cloudos_cli.utils.errors import (
     CantResumeNonResumableJob,
     CantResumeRunningJob,
 )
-from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from pathlib import Path
 import base64
@@ -486,7 +485,6 @@ class Job(Cloudos):
     def send_job(
         self,
         job_config=None,
-        project_id="",
         parameter=(),
         array_parameter=(),
         array_file_header=None,
