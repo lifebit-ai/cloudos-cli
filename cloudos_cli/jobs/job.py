@@ -485,6 +485,7 @@ class Job(Cloudos):
     def send_job(
         self,
         job_config=None,
+        project_id="",
         parameter=(),
         array_parameter=(),
         array_file_header=None,
@@ -617,7 +618,7 @@ class Job(Cloudos):
         cloudos_url = self.cloudos_url
         workspace_id = self.workspace_id
         workflow_id = self.workflow_id
-        project_id = self.project_id
+        project_id = project_id or self.project_id
         # Prepare api request for CloudOS to run a job
         headers = {"Content-type": "application/json", "apikey": apikey}
         params = self.convert_nextflow_to_json(job_config,
