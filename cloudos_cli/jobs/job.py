@@ -619,7 +619,10 @@ class Job(Cloudos):
         workflow_id = self.workflow_id
         project_id = project_id or self.project_id
         # Prepare api request for CloudOS to run a job
-        headers = {"Content-type": "application/json", "apikey": apikey}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
         params = self.convert_nextflow_to_json(job_config,
                                                parameter,
                                                array_parameter,
