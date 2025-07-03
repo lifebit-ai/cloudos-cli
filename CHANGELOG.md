@@ -1,10 +1,16 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.36.1 (2025-07-01)
+## v2.37.1 (2025-07-01)
 
 ### Fix
 
 - Change error messaging for missing parameters that could be configured in profiles
+
+## v2.37.0 (2025-06-30)
+
+### Feat
+
+- Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
 
 ## v2.36.0 (2025-06-27)
 
