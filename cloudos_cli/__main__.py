@@ -48,7 +48,7 @@ def run_cloudos_cli(ctx):
     if profile_to_use is None:
         console = Console()
         console.print(
-            "[bold yellow]Warning: No profile found."
+            "[bold yellow][Warning] No profile found. Please create one with \"cloudos configure\"."
         )
         shared_config = dict({
             'apikey': '',
