@@ -479,7 +479,7 @@ These options provide flexibility for configuring and running bash array jobs, a
 
 #### Resume a job in CloudOS
 
-Resume a job in CloudOS. This feature allows to resume a non-running job (completed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
+Resume a job in CloudOS. This feature allows to resume a non-running job (completed, failed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
 
 Example
 
