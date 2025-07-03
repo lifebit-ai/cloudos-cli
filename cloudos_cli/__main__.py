@@ -2728,8 +2728,8 @@ def list_files(ctx,
 @click.argument("destination_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
 @click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.', )
-@click.option('--project-name', required=True, help='The source project name.', )
+@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False,
               help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
