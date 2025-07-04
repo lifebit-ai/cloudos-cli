@@ -6,7 +6,12 @@ from dataclasses import dataclass
 from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import (
+    BadRequestException,
+    cloud_os_request_error,
+    CantResumeNonResumableJob,
+    CantResumeRunningJob,
+)
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from pathlib import Path
 import base64
@@ -480,6 +485,7 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config=None,
+                 project_id='',
                  parameter=(),
                  array_parameter=(),
                  array_file_header=None,
@@ -512,13 +518,16 @@ class Job(Cloudos):
                  verify=True,
                  command=None,
                  cpus=1,
-                 memory=4):
+                 memory=4,
+                 resume_job_work_dir=''):
         """Send a job to CloudOS.
 
         Parameters
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        project_id : str
+            Project ID where the job will be launched.
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
@@ -596,6 +605,8 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
+        resume_job_work_dir : str
+            In case sending a resumed job, this is the resume work directory.
 
         Returns
         -------
@@ -606,7 +617,7 @@ class Job(Cloudos):
         cloudos_url = self.cloudos_url
         workspace_id = self.workspace_id
         workflow_id = self.workflow_id
-        project_id = self.project_id
+        project_id = project_id or self.project_id
         # Prepare api request for CloudOS to run a job
         headers = {
             "Content-type": "application/json",
@@ -647,6 +658,11 @@ class Job(Cloudos):
                                                command=command,
                                                cpus=cpus,
                                                memory=memory)
+        if project_id:
+            params["project"] = project_id
+        # specifying the resumeWorkDir slot, makes the job resumed.
+        if resume_job_work_dir:
+            params["resumeWorkDir"] = resume_job_work_dir
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
@@ -656,6 +672,351 @@ class Job(Cloudos):
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
+
+    def check_branch(
+        self,
+        workspace_id,
+        git_platform,
+        repository_id,
+        repository_owner,
+        workflow_owner_id,
+        branch,
+        verify,
+    ):
+        """
+        Checks if a given branch exists in a target repository.
+        :param workspace_id: CloudOS workkspace ID.
+        :param git_platform: Repository platform (Github, Gitlab).
+        :param repository ID: Repository ID.
+        :param repository owner: Owner of repository.
+        :param workflow_owner_id: Workflow owner ID.
+        :param branch: Branch to check.
+        :param verify: SSL verification option.
+        :return: bool
+        """
+        params = {
+            "teamId": workspace_id,
+            "repositoryIdentifier": repository_id,
+            "owner": repository_owner,
+            "workflowOwnerId": workflow_owner_id,
+            "branchName": branch,
+        }
+        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        branches_url = f"{self.cloudos_url}/api/v1/git/{git_platform}/getBranches/"
+        branches_r = retry_requests_get(
+            branches_url, headers=headers, params=params, verify=verify
+        )
+
+        cloud_os_request_error(branches_r)
+        branches_d = branches_r.json()
+
+        return bool(branches_d["branches"])
+
+    def check_commit(
+        self,
+        workspace_id,
+        git_platform,
+        repository_id,
+        repository_owner,
+        workflow_owner_id,
+        commit,
+        verify,
+    ):
+        """
+        Checks if a given commit exists in a repository.
+        :param workspace_id: Workspace ID.
+        :param git_platform: Git platform (Github, Gitlab).
+        :param repository_owner: Repository owner.
+        :param workflow_owner_id: Workflow owner ID.
+        :param commit: Commit to be checked.
+        :verify: SSL verification option.
+        """
+        params = {
+            "teamId": workspace_id,
+            "repositoryIdentifier": repository_id,
+            "owner": repository_owner,
+            "workflowOwnerId": workflow_owner_id,
+            "commitName": commit,
+        }
+        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        commits_url = f"{self.cloudos_url}/api/v1/git/{git_platform}/getCommits/"
+        commits_r = retry_requests_get(
+            commits_url, headers=headers, params=params, verify=verify
+        )
+
+        cloud_os_request_error(commits_r)
+        commits_d = commits_r.json()
+        n_commits = len(commits_d["commits"])
+        if n_commits > 1:
+            raise ValueError(
+                f"Provided commit {commit} matched more than one commit in the repository. Please provide a longer commit string."
+            )
+        return bool(commits_d["commits"])
+
+    def check_profile(self, workflow_id, commit, workspace_id, profile, verify):
+        """
+        Checks if a Nextflow profile exists in a Workflow repository.
+        :param workflow_id: Workflow ID.
+        :param commit: Current commit of the repository.
+        :param workspace_id: Workspace ID.
+        :param profile: Profile to be checked.
+        :param verify: SSL verification option.
+        :return bool:
+        """
+        headers = {"apikey": self.apikey}
+        params = {
+            "teamId": workspace_id,
+            "workflowId": workflow_id,
+            "revisionHash": commit,
+        }
+        profile_url = f"{self.cloudos_url}/api/v2/workflows/parsers/nf-config-profiles"
+        profile_r = retry_requests_get(
+            profile_url, params=params, headers=headers, verify=verify
+        )
+
+        cloud_os_request_error(profile_r)
+        profile_d = profile_r.json()
+
+        return profile in profile_d
+
+    def check_project(self, workspace_id, project, verify):
+        """
+        Check if a CloudOS project exists.
+        :param workspace_id: Workspace ID.
+        :param project: Project name.
+        :verify: SSL verification option.
+        """
+        headers = {"apikey": self.apikey}
+        params = {"teamId": workspace_id, "search": project}
+        project_url = f"{self.cloudos_url}/api/v2/projects"
+        project_r = retry_requests_get(
+            project_url, params=params, headers=headers, verify=verify
+        )
+
+        cloud_os_request_error(project_r)
+        project_d = project_r.json()
+        if project_d["total"] == 1:
+            return True, project_d["projects"][0]["_id"]
+        if project_d["total"] > 1:
+            raise ValueError(
+                f"Project {project} is not unique. Please provide a unique project name."
+            )
+        return False, None
+
+    def clone_or_resume_job(
+        self,
+        job_id,
+        job_config=None,
+        branch="",
+        commit="",
+        git_tag=None,
+        profile="",
+        name="",
+        parameters=None,
+        is_module=False,
+        example_parameters=[],
+        cost_limit=0.0,
+        project="",
+        instance_type="",
+        resumable=None,
+        save_logs=None,
+        batch=None,
+        job_queue_id=None,
+        use_mountpoints=None,
+        nextflow_version="",
+        instance_disk=0,
+        storage_mode="",
+        lustre_size=1200,
+        hpc_id=None,
+        workflow_type="nextflow",
+        cromwell_id=None,
+        azure_worker_instance_type="Standard_D4as_v4",
+        azure_worker_instance_disk=100,
+        azure_worker_instance_spot=False,
+        docker_login=False,
+        verify=True,
+        cpus=1,
+        memory=4,
+        resume_job=False,
+    ):
+        headers = {"apikey": self.apikey}
+
+        params = {"teamId": self.workspace_id}
+        job_payload_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload"
+        job_payload_r = retry_requests_get(
+            job_payload_url, headers=headers, params=params, verify=verify
+        )
+        cloud_os_request_error(job_payload_r)
+        job_payload_d = job_payload_r.json()
+
+        job_data_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
+        job_data_r = retry_requests_get(
+            job_data_url, headers=headers, params=params, verify=verify
+        )
+        cloud_os_request_error(job_data_r)
+        job_data_d = job_data_r.json()
+        self.workflow_name = job_data_d["name"]
+        # This if statement is the only difference between the
+        # clone and resume funcionality
+        if resume_job:
+            if not job_payload_d["resumable"]:
+                raise CantResumeNonResumableJob(job_id)
+            status = job_data_d["status"]
+            if status == "running":
+                raise CantResumeRunningJob(job_id)
+            new_resume_work_dir = job_data_d["resumeWorkDir"]
+        else:
+            new_resume_work_dir = ""
+        specified_revision = sum([bool(x) for x in [commit, branch, git_tag]])
+        if specified_revision > 1:
+            raise ValueError("Only one of commit, branch, or tag should be specified")
+        if not job_payload_d["revision"]:
+            job_payload_d["revision"] = job_data_d["revision"]
+
+
+        new_branch = (
+            job_payload_d["revision"]["branch"] if not any([git_tag, commit]) else None
+        )
+        repository_data = job_data_d["workflow"]["repository"]
+        repository_id = repository_data["repositoryId"]
+        repository_owner_data = repository_data["owner"]
+        repository_owner = repository_owner_data["login"]
+        worflow_owner_id = repository_owner_data["id"]
+        repository_platform = repository_data["platform"]
+        new_commit = None
+        if branch:
+            branch_exists = self.check_branch(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                branch,
+                verify=verify,
+            )
+            if not branch_exists:
+                raise ValueError(f"Branch {branch} does not exist in the repository.")
+        if commit:
+            commit_exists = self.check_commit(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                commit,
+                verify=verify,
+            )
+            if not commit_exists:
+                raise ValueError(f"Commit {commit} does not exist in the repository.")
+            new_commit = commit
+        if git_tag and not any([commit, branch]):
+            new_git_tag = git_tag
+        else:
+            new_git_tag = job_payload_d["revision"].get("tag", None)
+
+
+        new_profile = job_payload_d["profile"]
+        if profile:
+            workflow_id = job_payload_d["workflow"]
+            profile_exists = self.check_profile(
+                workflow_id, new_commit, self.workspace_id, profile, verify=verify
+            )
+            if not profile_exists:
+                raise ValueError(
+                    f"the profile {profile} does not exist in the commit {new_commit} of the workflow."
+                )
+            new_profile = profile
+
+        new_project = job_payload_d["project"]
+        if project:
+            project_exists, new_project = self.check_project(
+                self.workspace_id, project, verify=verify
+            )
+            if not project_exists:
+                raise ValueError(f"The project {project} does not exist.")
+
+        new_parameters = [
+            f"{x['name']}={x['textValue']}" for x in job_payload_d["parameters"]
+        ]
+        if parameters:
+            old_params_names = [x.split("=")[0] for x in new_parameters]
+            for new_param in parameters:
+                if new_param.split("=")[0] not in old_params_names:
+                    new_parameters.append(new_param)
+
+        new_save_logs = (
+            job_payload_d["saveProcessLogs"] if save_logs is None else save_logs
+        )
+        new_use_mountpoints = (
+            job_payload_d["usesFusionFileSystem"]
+            if use_mountpoints is None
+            else use_mountpoints
+        )
+        ## Assemble payload for cloning
+        new_name = name or job_payload_d["name"]
+        new_is_module = is_module
+        new_example_parameters = example_parameters
+        new_instance_type = (
+            instance_type
+            or job_payload_d["masterInstance"]["requestedInstance"]["type"]
+        )
+        if not cost_limit:
+            cost_limit = -1
+        new_cost_limit = cost_limit or job_payload_d["execution"]["computeCostLimit"]
+        new_resumable = resumable or job_payload_d["resumable"]
+        new_job_config = job_config
+        new_batch = batch or job_payload_d["batch"]["enabled"]
+        new_job_queue_id = job_queue_id
+        new_nextflow_version = nextflow_version or job_payload_d["nextflowVersion"]
+        new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
+        new_storage_mode = storage_mode or job_payload_d["storageMode"]
+        new_lustre_size = lustre_size
+        new_execution_platform = job_payload_d["executionPlatform"]
+        new_hpc_id = hpc_id
+        new_workflow_type = workflow_type
+        new_cromwell_id = cromwell_id
+        new_azure_worker_instance_type = azure_worker_instance_type
+        new_azure_worker_instance_disk = azure_worker_instance_disk
+        new_azure_worker_instance_spot = azure_worker_instance_spot
+        new_docker_login = docker_login
+        new_cpus = cpus
+        new_memory = memory
+        new_job_id = self.send_job(
+            job_config=new_job_config,
+            project_id=new_project,
+            parameter=new_parameters,
+            is_module=new_is_module,
+            example_parameters=new_example_parameters,
+            git_commit=new_commit,
+            git_tag=new_git_tag,
+            git_branch=new_branch,
+            job_name=new_name,
+            resumable=new_resumable,
+            save_logs=new_save_logs,
+            batch=new_batch,
+            job_queue_id=new_job_queue_id,
+            nextflow_profile=new_profile,
+            nextflow_version=new_nextflow_version,
+            instance_type=new_instance_type,
+            instance_disk=new_instance_disk,
+            storage_mode=new_storage_mode,
+            lustre_size=new_lustre_size,
+            execution_platform=new_execution_platform,
+            hpc_id=new_hpc_id,
+            workflow_type=new_workflow_type,
+            cromwell_id=new_cromwell_id,
+            azure_worker_instance_type=new_azure_worker_instance_type,
+            azure_worker_instance_disk=new_azure_worker_instance_disk,
+            azure_worker_instance_spot=new_azure_worker_instance_spot,
+            cost_limit=new_cost_limit,
+            use_mountpoints=new_use_mountpoints,
+            docker_login=new_docker_login,
+            verify=verify,
+            cpus=new_cpus,
+            memory=new_memory,
+            resume_job_work_dir=new_resume_work_dir,
+        )
+        return new_job_id
 
     def retrieve_cols_from_array_file(self, array_file, ds, separator, verify_ssl):
         """
