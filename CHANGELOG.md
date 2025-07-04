@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.38.1 (2025-07-04)
+
+### Fix
+
+- Set `--workflow-name` as required in `cloudos workflow import` to trigger the correct error message
+
 ## v2.38.0 (2025-07-03)
 
 ### Feat
