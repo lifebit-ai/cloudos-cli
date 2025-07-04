@@ -1715,7 +1715,7 @@ def import_wf(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'workflow_name': False,
+        'workflow_name': True,
         'project_name': False
     }
     # determine if the user provided all required parameters
