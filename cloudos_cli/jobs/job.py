@@ -658,8 +658,7 @@ class Job(Cloudos):
                                                command=command,
                                                cpus=cpus,
                                                memory=memory)
-        if project_id:
-            params["project"] = project_id
+
         # specifying the resumeWorkDir slot, makes the job resumed.
         if resume_job_work_dir:
             params["resumeWorkDir"] = resume_job_work_dir
