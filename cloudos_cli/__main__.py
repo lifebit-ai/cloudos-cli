@@ -606,7 +606,7 @@ def clone(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': True,
+        'project_name': False,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
@@ -837,7 +837,7 @@ def resume(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': True,
+        'project_name': False,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
