@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from email.policy import default
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
@@ -457,7 +458,8 @@ def run(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.')
+              help='The name of a CloudOS project.',
+              default="")
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
@@ -682,7 +684,8 @@ def clone(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.')
+              help='The name of a CloudOS project.',
+               default="")
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
