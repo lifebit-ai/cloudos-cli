@@ -132,6 +132,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       job_id: ${{ steps.get-job-id.outputs.job_id }}
+      project_name: ${{steps.get-job-id.outputs.project_name}}
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -164,6 +165,7 @@ jobs:
         cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
+        echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
         cloudos job status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   clone_resume:
     needs: job_run_and_status
@@ -190,7 +192,7 @@ jobs:
           CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
+          cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }} --project-name ${{needs.job_run_and_status.outputs.project_name}}
   logs_results_aws:
     needs: job_run_and_status
     runs-on: ubuntu-latest

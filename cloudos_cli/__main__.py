@@ -458,8 +458,7 @@ def run(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
-              default="")
+              help='The name of a CloudOS project.')
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
@@ -606,7 +605,7 @@ def clone(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': False,
+        'project_name': True,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
@@ -687,8 +686,7 @@ def clone(ctx,
               help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
-               default="")
+              help='The name of a CloudOS project.')
 @click.option('--job-id',
               help='The ID of the job to be cloned or resumed.',
               required=True)
@@ -840,7 +838,7 @@ def resume(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': False,
+        'project_name': True,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
