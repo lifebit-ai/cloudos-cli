@@ -244,22 +244,6 @@ FINISHED_JOB_BRNACH = {
         }
     }
 }
-# FINISHED_JOB_TAG = FINISHED_JOB_BRNACH | {
-#     "revision": {
-#         "revisionType": "tag",
-#         "tag": TAG,
-#         "commit": COMMIT,
-#         "branch": BRANCH
-#     }
-# }
-# FINISHED_JOB_COMMIT = FINISHED_JOB_BRNACH | {
-#     "revision": {
-#             "revisionType": "commit",
-#             "tag": TAG,
-#             "commit": COMMIT,
-#             "branch": BRANCH
-#     }
-# }
 
 @responses.activate
 @pytest.mark.parametrize("payload,job_id,job_params,resume",
