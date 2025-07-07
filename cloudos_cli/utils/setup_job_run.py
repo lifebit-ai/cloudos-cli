@@ -7,8 +7,7 @@ from cloudos_cli.utils.resources import ssl_selector
 import json
 import time
 import sys
-
-CLOUDOS_URL = "https://cloudos.lifebit.ai"
+from cloudos_cli.__main__ import CLOUDOS_URL
 
 
 class JobSetup:
