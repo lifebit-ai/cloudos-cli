@@ -875,7 +875,6 @@ class Job(Cloudos):
         if not job_payload_d["revision"]:
             job_payload_d["revision"] = job_data_d["revision"]
 
-
         new_branch = (
             job_payload_d["revision"]["branch"] if not any([git_tag, commit]) else None
         )
