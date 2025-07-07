@@ -6,7 +6,7 @@ from responses import matchers
 import pytest
 import json
 
-from tests.test_jobs.test_send_job import PROJECT_NAME
+PROJECT_NAME = "lifebit-testing"
 
 CLOS_URL = "https://cloudos.lifebit.ai"
 WS_ID = "workspace1"
