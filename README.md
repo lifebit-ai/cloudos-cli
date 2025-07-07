@@ -491,7 +491,7 @@ cloudos job resume --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-u
 In the example above, the job with ID `$ID_OF_JOB_TO_RESUME` will be resumed, including the parameter `new_parameter` with value `newValue`. Only processes that have not been executed or processes that depend on the `new_parameter` parameter will be executed. All other processes will be cached.
 
 #### Clone a job in CloudOS
-Clone a job in CloudOs. Cloned jobs can be executed even when then job they were cloned from is still running. New parameters can be set for the cloned job. The difference between cloning and resuming, is that cloned jobs run all the processes of the cloned job, even if they have already been completed in the original job.
+Clone a job in CloudOS. Cloned jobs can be executed even when then job they were cloned from is still running. New parameters can be set for the cloned job. The difference between cloning and resuming, is that cloned jobs run all the processes of the cloned job, even if they have already been completed in the original job.
 
 Example
 
