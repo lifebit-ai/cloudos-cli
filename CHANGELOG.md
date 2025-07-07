@@ -1,10 +1,28 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.38.1 (2025-07-04)
+
+### Fix
+
+- Set `--workflow-name` as required in `cloudos workflow import` to trigger the correct error message
+
+## v2.38.0 (2025-07-03)
+
+### Feat
+
+- Links S3 folder to Interactive Analysis (`cloudos datasets link`)
+
+## v2.37.1 (2025-07-01)
+
+### Fix
+
+- Change error messaging for missing parameters that could be configured in profiles
+
 ## v2.37.0 (2025-06-30)
 
 ### Feat
 
-- Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv` 
+- Allows **specifying** different projects for parameter options i.e. `-p --file1=PROJECT1/Data/input.csv -p --file2=Project2/Data/input.csv`
 
 ## v2.36.0 (2025-06-27)
 

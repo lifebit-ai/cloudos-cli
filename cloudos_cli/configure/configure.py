@@ -68,6 +68,7 @@ class ConfigurationProfile:
             shared_config['workflow_name'] = profile_data.get('workflow_name', None)
             shared_config['repository_platform'] = profile_data.get('repository_platform', None)
             shared_config['execution_platform'] = profile_data.get('execution_platform', None)
+            shared_config['session_id'] = profile_data.get('session_id', None)
             shared_config['profile'] = profile_name
             print(f"Profile '{profile_name}' already exists. You can update single parameters or all.")
 
@@ -183,6 +184,18 @@ class ConfigurationProfile:
         else:
             workflow_name = workflow_name
 
+        # Interactive Analysis ID
+        session_id = input(
+            f"Interactive Analysis ID [{shared_config.get('session_id', profile_name)}]: "
+        ).strip()
+        # If the user presses Enter, keep the existing value
+        if session_id == "" and shared_config.get('session_id', None) is not None:
+            session_id = shared_config['session_id']
+        elif session_id == "":
+            session_id = None
+        else:
+            session_id = session_id
+
         # Make the profile the default if it is the first one
         if number_of_profiles >= 1:
             default_profile = self.determine_default_profile()
@@ -227,6 +240,9 @@ class ConfigurationProfile:
             config[profile_name]['workflow_name'] = workflow_name
         if default_profile is not None:
             config[profile_name]['default'] = str(default_profile)
+        if session_id is not None:
+            config[profile_name]['session_id'] = session_id
+        
 
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
@@ -360,6 +376,7 @@ class ConfigurationProfile:
             'workflow_name': config[profile_name].get('workflow_name', ""),
             'execution_platform': config[profile_name].get('execution_platform', ""),
             'repository_platform': config[profile_name].get('repository_platform', ""),
+            'session_id': config[profile_name].get('session_id', "")
         }
 
     def check_if_profile_exists(self, profile_name):
@@ -427,7 +444,7 @@ class ConfigurationProfile:
 
     def load_profile_and_validate_data(self, ctx, init_profile, cloudos_url_default, profile, required_dict, apikey=None,
                                        cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None,
-                                       execution_platform=None, repository_platform=None):
+                                       execution_platform=None, repository_platform=None, session_id=None):
         """
         Load profile data and validate required parameters.
 
@@ -443,7 +460,7 @@ class ConfigurationProfile:
             The profile name to load.
         required_dict : dict
             A dictionary with param name as key and whether is required or not (as bool) as value.
-        apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform : string
+        apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform, session_id : string
             The values coming from the CLI to be compared with the profile
 
         Returns
@@ -457,8 +474,7 @@ class ConfigurationProfile:
             profile_data = self.load_profile(profile_name=profile)
             apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
                                           required=required_dict['apikey'], missing_required_params=missing)
-            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url',
-                                               profile_data['cloudos_url']) or cloudos_url_default
+            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'])
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
                                                 required=required_dict['workspace_id'], missing_required_params=missing)
             workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
@@ -469,11 +485,13 @@ class ConfigurationProfile:
                                                       profile_data['execution_platform'])
             project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
                                                 required=required_dict['project_name'], missing_required_params=missing)
+            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data.get('session_id', None))
         else:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
                                           missing_required_params=missing)
-            cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url) or cloudos_url_default
+            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url,
+                                          missing_required_params=missing) 
             workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
                                                 required=required_dict['workspace_id'],
                                                 missing_required_params=missing)
@@ -486,10 +504,29 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
+            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id)
+        if not resolved_cloudos_url:
+            click.secho(
+                f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
+                fg="yellow",
+                bold=True
+            )
+            cloudos_url = cloudos_url_default
+        else:
+            cloudos_url = resolved_cloudos_url
         cloudos_url = cloudos_url.rstrip('/')
 
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted}")
-        return apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name
+            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name\n For more information on the usage of the command, please run cloudos configure --help")
+        return {
+            'apikey': apikey,
+            'cloudos_url': cloudos_url,
+            'workspace_id': workspace_id,
+            'workflow_name': workflow_name,
+            'repository_platform': repository_platform,
+            'execution_platform': execution_platform,
+            'project_name': project_name,
+            'session_id': session_id
+        }

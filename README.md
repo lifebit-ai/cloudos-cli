@@ -71,7 +71,7 @@ In order to generate a profile called `default`, the following command can be us
 cloudos configure
 ```
 
-This will bring in prompts for API, platform URL, project name, platform executor, repository provider, workflow name (if any). This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
+This will bring in prompts for API, platform URL, project name, platform executor, repository provider, workflow name (if any) and session ID for interactive analysis. This will be the default profile if no other was explicitly set. The default profile allows running all subcommands without adding `--profile` option in the command line.
 
 ### Configure named profile
 
@@ -1079,6 +1079,32 @@ Please, note that in the above example a preconfigured profile has been used. If
     --project-name $PROJEC_NAME
 ```
 
+#### Linking S3 folders to Interactive Analysis
+
+The CLI can link S3 folders into an interactive session, which will appear in the left panel of the session as "mounted". This subcommand is using the option `--session-id` to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.
+
+The usage of the subcommand is as follows:
+
+```console
+cloudos datasets link <S3 FOLDER COMPLETE PATH> <options>
+```
+
+For example:
+
+```console
+cloudos datasets link s3://bucket/path/folder --profile test
+```
+where profile `test` has already defined the `--session-id`.
+
+Or specifying explicitly:
+
+```console
+cloudos datasets link s3://bucket/path/folder --profile test --session-id 1234
+```
+where profile `test` is used for all other necessary variables, but `--session-id` is overwritten from the command line.
+
+> [!NOTE]
+> If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the `--apikey` needs to be added.
 
 #### Create a (virtual) folder
 
