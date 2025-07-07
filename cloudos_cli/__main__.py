@@ -611,8 +611,7 @@ def clone(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
-        config_manager.load_profile_and_validate_data(
+    user_options = config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
@@ -626,7 +625,11 @@ def clone(ctx,
             execution_platform=None,
             project_name=project_name
         )
-    )
+    apikey = user_options["apikey"]
+    cloudos_url = user_options["cloudos_url"]
+    workspace_id = user_options["workspace_id"]
+    project_name = user_options["project_name"]
+    workflow_name = user_options["workflow_name"]
 
     job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
@@ -842,8 +845,7 @@ def resume(ctx,
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
-    apikey, cloudos_url, workspace_id, workflow_name, repository_platform, execution_platform, project_name = (
-        config_manager.load_profile_and_validate_data(
+    user_options = config_manager.load_profile_and_validate_data(
             ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
@@ -857,8 +859,11 @@ def resume(ctx,
             execution_platform=None,
             project_name=project_name
         )
-    )
-
+    apikey = user_options["apikey"]
+    cloudos_url = user_options["cloudos_url"]
+    workspace_id = user_options["workspace_id"]
+    project_name = user_options["project_name"]
+    workflow_name = user_options["workflow_name"]
     job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
                          workspace_id=workspace_id,
