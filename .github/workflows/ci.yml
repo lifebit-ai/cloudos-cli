@@ -165,6 +165,32 @@ jobs:
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
         cloudos job status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  clone_resume:
+    needs: job_run_and_status
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+        feature: [ "clone", "resume" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
   logs_results_aws:
     needs: job_run_and_status
     runs-on: ubuntu-latest
