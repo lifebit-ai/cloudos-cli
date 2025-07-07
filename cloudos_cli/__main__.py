@@ -541,10 +541,6 @@ def run(ctx,
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--hpc-id',
-              help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
-                    'Default=660fae20f93358ad61e0104b'),
-              default='660fae20f93358ad61e0104b')
 @click.option('--azure-worker-instance-type',
               help=('The worker node instance type to be used in azure. ' +
                     'Default=Standard_D4as_v4'),
