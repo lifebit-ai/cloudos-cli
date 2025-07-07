@@ -952,7 +952,7 @@ class Job(Cloudos):
             if use_mountpoints is None
             else use_mountpoints
         )
-        ## Assemble payload for cloning
+        # Assemble payload for cloning
         new_name = name or job_payload_d["name"]
         new_is_module = is_module
         new_example_parameters = example_parameters
