@@ -335,6 +335,31 @@ Executing run...
 	Your job took 420 seconds to complete successfully.
 ```
 
+#### Resume a job in CloudOS
+
+Resume a job in CloudOS. This feature allows to resume a non-running job (completed, failed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
+
+Example
+
+```console
+cloudos job resume --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
+  --job-id $ID_OF_JOB_TO_RESUME --param new_parameter=newValue --job-name resumed_with_extra_parameters
+```
+
+In the example above, the job with ID `$ID_OF_JOB_TO_RESUME` will be resumed, including the parameter `new_parameter` with value `newValue`. Only processes that have not been executed or processes that depend on the `new_parameter` parameter will be executed. All other processes will be cached.
+
+#### Clone a job in CloudOS
+Clone a job in CloudOs. Cloned jobs can be executed even when then job they were cloned from is still running. New parameters can be set for the cloned job. The difference between cloning and resuming, is that cloned jobs run all the processes of the cloned job, even if they have already been completed in the original job.
+
+Example
+
+```console
+cloudos job clone --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
+  --job-id $ID_OF_JOB_TO_CLONE --param new_parameter=newValue --job-name cloned_with_extra_parameters
+```
+
+In this example, all the processes of the job with id `ID_OF_JOB_TO_CONE` will be executed with the additional parameter `new_parameter` with value `newValue`
+
 #### Send a bash job to CloudOS (sequential sample processing)
 
 A bash job can be sent to CloudOS using the command `bash` and the subcommand `job`. In this case, the `--workflow-name` must be a bash job already
@@ -476,31 +501,6 @@ This assumes the interpreter is available on the container’s $PATH. If not, yo
 - **`--custom-script-project`**: Specifies the name of the project in which the custom script is placed, if it is different from the project specified by `--project-name`.
 
 These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.
-
-#### Resume a job in CloudOS
-
-Resume a job in CloudOS. This feature allows to resume a non-running job (completed, failed or aborted). New parameters can be included in the newly created job, and CloudOS will run only the processes that either have not run, or include parameters that have been modified by the resume command.
-
-Example
-
-```console
-cloudos job resume --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
-  --job-id $ID_OF_JOB_TO_RESUME --param new_parameter=newValue --job-name resumed_with_extra_parameters
-```
-
-In the example above, the job with ID `$ID_OF_JOB_TO_RESUME` will be resumed, including the parameter `new_parameter` with value `newValue`. Only processes that have not been executed or processes that depend on the `new_parameter` parameter will be executed. All other processes will be cached.
-
-#### Clone a job in CloudOS
-Clone a job in CloudOs. Cloned jobs can be executed even when then job they were cloned from is still running. New parameters can be set for the cloned job. The difference between cloning and resuming, is that cloned jobs run all the processes of the cloned job, even if they have already been completed in the original job.
-
-Example
-
-```console
-cloudos job clone --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
-  --job-id $ID_OF_JOB_TO_CLONE --param new_parameter=newValue --job-name cloned_with_extra_parameters
-```
-
-In this example, all the processes of the job with id `ID_OF_JOB_TO_CONE` will be executed with the additional parameter `new_parameter` with value `newValue`
 
 #### Use multiple projects for files in `--parameter` option
 
