@@ -1,6 +1,5 @@
 from requests import head
-from cloudos_cli.jobs.job import Job
-from cloudos_cli.utils.setup_job_run import JobSetup
+from cloudos_cli.jobs.job import Job, JobSetup
 import responses
 from responses import matchers
 import pytest

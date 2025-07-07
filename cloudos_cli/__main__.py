@@ -10,7 +10,6 @@ import json
 import time
 import sys
 
-from cloudos_cli.utils.setup_job_run import JobSetup
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -445,7 +444,7 @@ def run(ctx,
     execution_platform = user_options['execution_platform']
     project_name = user_options['project_name']
 
-    job_setup = JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id,
+    job_setup = jb.JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id,
                          cromwell_token=cromwell_token, disable_ssl_verification=disable_ssl_verification,
                          ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
                          execution_platform=execution_platform, hpc_id=hpc_id, wdl_mainfile=wdl_mainfile,
@@ -643,7 +642,7 @@ def clone(ctx,
         )
     )
 
-    job_setup = JobSetup(cloudos_url=cloudos_url,
+    job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
                          workspace_id=workspace_id,
                          cromwell_token="",
@@ -875,7 +874,7 @@ def resume(ctx,
         )
     )
 
-    job_setup = JobSetup(cloudos_url=cloudos_url,
+    job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
                          workspace_id=workspace_id,
                          cromwell_token=cromwell_token,
