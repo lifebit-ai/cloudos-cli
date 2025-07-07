@@ -687,7 +687,7 @@ class Job(Cloudos):
     ):
         """
         Checks if a given branch exists in a target repository.
-        :param workspace_id: CloudOS workkspace ID.
+        :param workspace_id: CloudOS workspace ID.
         :param git_platform: Repository platform (Github, Gitlab).
         :param repository ID: Repository ID.
         :param repository owner: Owner of repository.
