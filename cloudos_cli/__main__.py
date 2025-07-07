@@ -20,21 +20,7 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
-
-
-# GLOBAL VARS
-JOB_COMPLETED = 'completed'
-REQUEST_INTERVAL_CROMWELL = 30
-AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
-AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
-HPC_NEXTFLOW_VERSIONS = ['22.10.8']
-AWS_NEXTFLOW_LATEST = '24.04.4'
-AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
-HPC_NEXTFLOW_LATEST = '22.10.8'
-ABORT_JOB_STATES = ['running', 'initializing']
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
-
+from cloudos_cli.global_vars import CLOUDOS_URL, JOB_COMPLETED
 
 @click.group()
 @click.version_option(__version__)

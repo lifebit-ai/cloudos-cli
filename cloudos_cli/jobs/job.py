@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
 
-from cloudos_cli.__main__ import (CLOUDOS_URL, JOB_COMPLETED, AWS_NEXTFLOW_LATEST,
+from cloudos_cli.global_vars import (CLOUDOS_URL, JOB_COMPLETED, AWS_NEXTFLOW_LATEST,
                                   AZURE_NEXTFLOW_LATEST, HPC_NEXTFLOW_LATEST, AWS_NEXTFLOW_VERSIONS,
                                   AZURE_NEXTFLOW_VERSIONS, HPC_NEXTFLOW_VERSIONS
 )
