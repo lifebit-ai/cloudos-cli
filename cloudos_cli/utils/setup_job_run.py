@@ -7,7 +7,7 @@ from cloudos_cli.utils.resources import ssl_selector
 import json
 import time
 import sys
-from cloudos_cli.__main__ import CLOUDOS_URL
+from cloudos_cli.__main__ import CLOUDOS_URL, JOB_COMPLETED, AWS_NEXTFLOW_LATEST, AZURE_NEXTFLOW_LATEST, HPC_NEXTFLOW_LATEST, AWS_NEXTFLOW_VERSIONS, AZURE_NEXTFLOW_VERSIONS, HPC_NEXTFLOW_VERSIONS
 
 
 class JobSetup:
@@ -58,13 +58,13 @@ class JobSetup:
     ) -> None:
         self.REQUEST_INTERVAL_CROMWELL = 30
 
-        self.JOB_COMPLETED = "completed"
-        self.AWS_NEXTFLOW_LATEST = "24.04.4"
-        self.AZURE_NEXTFLOW_LATEST = "22.11.1-edge"
-        self.HPC_NEXTFLOW_LATEST = "22.10.8"
-        self.AWS_NEXTFLOW_VERSIONS = ["22.10.8", "24.04.4"]
-        self.AZURE_NEXTFLOW_VERSIONS = ["22.11.1-edge"]
-        self.HPC_NEXTFLOW_VERSIONS = ["22.10.8"]
+        self.job_completed = JOB_COMPLETED
+        self.aws_nextflow_latest = AWS_NEXTFLOW_LATEST
+        self.azure_nextflow_latest = AZURE_NEXTFLOW_LATEST
+        self.hpc_nextflow_latest = HPC_NEXTFLOW_LATEST
+        self.aws_nextflow_versions = AWS_NEXTFLOW_VERSIONS
+        self.azure_nextflow_versions = AZURE_NEXTFLOW_VERSIONS
+        self.hpc_nextflow_versions = HPC_NEXTFLOW_VERSIONS
         self.headers = {"apikey": apikey}
         self.request_params = {"teamId": workspace_id}
 
@@ -345,32 +345,32 @@ class JobSetup:
     def fix_nextflow_versions(self):
         if self.nextflow_version == "latest":
             if self.execution_platform == "aws":
-                self.nextflow_version = self.AWS_NEXTFLOW_LATEST
+                self.nextflow_version = self.aws_nextflow_latest
             elif self.execution_platform == "azure":
-                self.nextflow_version = self.AZURE_NEXTFLOW_LATEST
+                self.nextflow_version = self.azure_nextflow_latest
             else:
-                self.nextflow_version = self.HPC_NEXTFLOW_LATEST
+                self.nextflow_version = self.hpc_nextflow_latest
             print(
                 "[Message] You have specified Nextflow version 'latest' for execution platform "
                 + f"'{self.execution_platform}'. The workflow will use the "
                 + f"latest version available on CloudOS: {self.nextflow_version}."
             )
         if self.execution_platform == "aws":
-            if self.nextflow_version not in self.AWS_NEXTFLOW_VERSIONS:
+            if self.nextflow_version not in self.aws_nextflow_versions:
                 print(
                     "[Message] For execution platform 'aws', the workflow will use the default "
                     + "'22.10.8' version on CloudOS."
                 )
                 self.nextflow_version = "22.10.8"
         if self.execution_platform == "azure":
-            if self.nextflow_version not in self.AZURE_NEXTFLOW_VERSIONS:
+            if self.nextflow_version not in self.azure_nextflow_versions:
                 print(
                     "[Message] For execution platform 'azure', the workflow will use the '22.11.1-edge' "
                     + "version on CloudOS."
                 )
                 self.nextflow_version = "22.11.1-edge"
         if self.execution_platform == "hpc":
-            if self.nextflow_version not in self.HPC_NEXTFLOW_VERSIONS:
+            if self.nextflow_version not in self.hpc_nextflow_versions:
                 print(
                     "[Message] For execution platform 'hpc', the workflow will use the '22.10.8' version on CloudOS."
                 )
@@ -486,7 +486,7 @@ class JobSetup:
             )
             j_name = j_status["name"]
             j_final_s = j_status["status"]
-            if j_final_s == self.JOB_COMPLETED:
+            if j_final_s == self.job_completed:
                 print(
                     f'\nJob status for job "{j_name}" (ID: {self.job_id}): {j_final_s}'
                 )
