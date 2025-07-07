@@ -541,9 +541,6 @@ def run(ctx,
               help=('Max time to wait (in seconds) to job completion. ' +
                     'Default=3600.'),
               default=3600)
-@click.option('--repository-platform',
-              help='Name of the repository platform of the workflow. Default=github.',
-              default='github')
 @click.option('--hpc-id',
               help=('ID of your HPC, only applicable when --execution-platform=hpc. ' +
                     'Default=660fae20f93358ad61e0104b'),
