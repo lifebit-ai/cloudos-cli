@@ -923,8 +923,11 @@ class Job(Cloudos):
             new_git_tag = git_tag
         else:
             new_git_tag = job_payload_d["revision"].get("tag", None)
-
-        new_profile = job_payload_d["profile"]
+        # commits, tags and branches can come as "" from the payload, but they need to be None
+        new_git_tag = None if new_git_tag == "" else new_git_tag
+        new_commit = None if new_commit == "" else new_commit
+        new_branch = None if new_branch == "" else new_branch
+        new_profile = job_payload_d.get("profile", None)
         if profile:
             workflow_id = job_payload_d["workflow"]
             profile_exists = self.check_profile(

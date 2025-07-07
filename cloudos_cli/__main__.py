@@ -485,15 +485,18 @@ def run(ctx,
               help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--git-tag',
               help=('The tag to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
@@ -718,15 +721,18 @@ def clone(ctx,
               help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--git-tag',
               help=('The tag to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
-                    'of the default branch.'))
+                    'of the default branch.'),
+              default=None)
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
