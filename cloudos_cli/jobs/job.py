@@ -9,6 +9,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from sqlite3.dbapi2 import paramstyle
 from typing import Union
 
 from cloudos_cli.global_vars import (CLOUDOS_URL, JOB_COMPLETED, AWS_NEXTFLOW_LATEST,
@@ -164,10 +165,12 @@ class Job(Cloudos):
         if resource == 'workflows':
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
-                if (element["name"] == name and element["workflowType"] == "docker" and
+                # from the API, workflow names are coming with newline characters
+                element_name = element["name"].strip()
+                if (element_name == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
-                if (element["name"] == name and
+                if (element_name == name and
                         element["repository"]["platform"] == repository_platform and
                         not element["archived"]["status"]):
                     if mainfile is None:
@@ -1077,7 +1080,9 @@ class Job(Cloudos):
                 s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
                 break
         else:
-            raise ValueError(f'File "{file_name}" not found in the "{directory}" folder of the project "{self.project_name}".')
+            raise ValueError(
+                f'File "{file_name}" not found in the "{directory}" folder of the project "{self.project_name}".'
+            )
 
         # retrieve the metadata of the array file
         headers = {
@@ -1408,10 +1413,11 @@ class JobSetup:
 
         if run_type != "run":
             self._workflow_name = self.get_workflow_name(self.job_id)
-
+            self.repository_platform = self.get_repo_platform()
         self.workflow_type = self.cl.detect_workflow(
             self.workflow_name, self.workspace_id, self.verify_ssl
         )
+
 
         self.is_module = self.cl.is_module(
             self.workflow_name, self.workspace_id, self.verify_ssl
@@ -1521,6 +1527,21 @@ class JobSetup:
         cloud_os_request_error(job_r)
         job_d = job_r.json()
         return job_d["executionPlatform"]
+
+    def get_repo_platform(self):
+        job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}/request-payload"
+        job_r = retry_requests_get(job_url, params=self.request_params, headers=self.headers)
+        cloud_os_request_error(job_r)
+        job_d = job_r.json()
+        workflow_id = job_d["workflow"]
+
+        workflow_url = f"{self.cloudos_url}/api/v2/workflows/{workflow_id}"
+        # NOTE: This does not work. The API endpoint is not open.
+        workflow_r = retry_requests_get(workflow_url, params=self.request_params, headers=self.headers)
+        cloud_os_request_error(workflow_r)
+        workflow_d = workflow_r.json()
+        git_platform = workflow_d["repository"]["platform"]
+        return git_platform
 
     def check_hpc_args(self):
         if self.execution_platform == "hpc":

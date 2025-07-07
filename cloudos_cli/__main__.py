@@ -633,7 +633,6 @@ def clone(ctx,
     workspace_id = user_options["workspace_id"]
     project_name = user_options["project_name"]
     workflow_name = user_options["workflow_name"]
-
     job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
                          workspace_id=workspace_id,
