@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.38.2 (2025-07-07)
+
+### Fix
+
+- Adds error message for `cp` `mv` and `rm` for forbidden operations on s3folders and files
+
 ## v2.38.1 (2025-07-04)
 
 ### Fix
