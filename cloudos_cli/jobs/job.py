@@ -215,7 +215,8 @@ class Job(Cloudos):
                                  docker_login,
                                  command,
                                  cpus,
-                                 memory):
+                                 memory,
+                                 resume_dir=None):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -302,6 +303,8 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
+        resume_dir : str
+            If specified, the job will be resumed using this argument as working directory.
 
 
         Returns
@@ -481,6 +484,8 @@ class Job(Cloudos):
             }
         if nextflow_profile is not None:
             params['profile'] = nextflow_profile
+        if resume_dir:
+            params["resumeWorkDir"] = resume_dir
         return params
 
     def send_job(self,
@@ -657,11 +662,9 @@ class Job(Cloudos):
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
-                                               memory=memory)
+                                               memory=memory,
+                                               resume_dir=resume_job_work_dir)
 
-        # specifying the resumeWorkDir slot, makes the job resumed.
-        if resume_job_work_dir:
-            params["resumeWorkDir"] = resume_job_work_dir
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
