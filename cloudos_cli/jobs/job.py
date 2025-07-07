@@ -915,7 +915,6 @@ class Job(Cloudos):
         else:
             new_git_tag = job_payload_d["revision"].get("tag", None)
 
-
         new_profile = job_payload_d["profile"]
         if profile:
             workflow_id = job_payload_d["workflow"]
