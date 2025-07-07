@@ -20,7 +20,7 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
-from cloudos_cli.global_vars import CLOUDOS_URL, JOB_COMPLETED, INIT_PROFILE
+from cloudos_cli.global_vars import CLOUDOS_URL, JOB_COMPLETED, INIT_PROFILE, ABORT_JOB_STATES, REQUEST_INTERVAL_CROMWELL
 
 @click.group()
 @click.version_option(__version__)
