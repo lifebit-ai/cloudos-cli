@@ -3393,9 +3393,12 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
         sys.exit(1)
 
-    item_id = found_item["_id"]
+    item_id = found_item.get("_id",'')
     kind = "Folder" if "folderType" in found_item else "File"
-
+    if item_id=='':
+        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
+                   err=True)
+        sys.exit(1)
     click.echo(f"Deleting {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
