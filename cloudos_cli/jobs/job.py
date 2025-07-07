@@ -1319,7 +1319,7 @@ class JobSetup:
         workflow_name="",
         job_id="",
         job_queue=None,
-        job_config="",
+        job_config=None,
         branch=None,
         commit=None,
         git_tag=None,

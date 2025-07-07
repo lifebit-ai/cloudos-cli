@@ -464,7 +464,8 @@ def run(ctx,
               required=True)
 @click.option('--job-config',
               help=('A config file similar to a nextflow.config file, ' +
-                    'but only with the parameters to use with your job.'))
+                    'but only with the parameters to use with your job.'),
+              default=None)
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -692,7 +693,8 @@ def clone(ctx,
               required=True)
 @click.option('--job-config',
               help=('A config file similar to a nextflow.config file, ' +
-                    'but only with the parameters to use with your job.'))
+                    'but only with the parameters to use with your job.'),
+              default=None)
 @click.option('-p',
               '--parameter',
               multiple=True,
