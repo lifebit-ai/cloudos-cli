@@ -2517,7 +2517,7 @@ def run_bash_array_job(ctx,
     # retrieve columns
     r = j.retrieve_cols_from_array_file(
         array_file,
-        generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl),
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, array_file_project, verify_ssl),
         separators[separator]['api'],
         verify_ssl
     )
