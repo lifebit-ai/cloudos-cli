@@ -1529,19 +1529,11 @@ class JobSetup:
         return job_d["executionPlatform"]
 
     def get_repo_platform(self):
-        job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}/request-payload"
+        job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}"
         job_r = retry_requests_get(job_url, params=self.request_params, headers=self.headers)
         cloud_os_request_error(job_r)
         job_d = job_r.json()
-        workflow_id = job_d["workflow"]
-
-        workflow_url = f"{self.cloudos_url}/api/v2/workflows/{workflow_id}"
-        # NOTE: This does not work. The API endpoint is not open.
-        workflow_r = retry_requests_get(workflow_url, params=self.request_params, headers=self.headers)
-        cloud_os_request_error(workflow_r)
-        workflow_d = workflow_r.json()
-        git_platform = workflow_d["repository"]["platform"]
-        return git_platform
+        return job_d["workflow"]["repository"]["platform"]
 
     def check_hpc_args(self):
         if self.execution_platform == "hpc":
