@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.38.3 (2025-07-8)
+
+### Fix
+
+- Array file project
+
 ## v2.38.2 (2025-07-07)
 
 ### Fix
