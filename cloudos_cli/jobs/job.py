@@ -9,12 +9,17 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from sqlite3.dbapi2 import paramstyle
 from typing import Union
-
-from cloudos_cli.global_vars import (CLOUDOS_URL, JOB_COMPLETED, AWS_NEXTFLOW_LATEST,
-                                  AZURE_NEXTFLOW_LATEST, HPC_NEXTFLOW_LATEST, AWS_NEXTFLOW_VERSIONS,
-                                  AZURE_NEXTFLOW_VERSIONS, HPC_NEXTFLOW_VERSIONS
+from cloudos_cli.global_vars import (
+    CLOUDOS_URL,
+    JOB_COMPLETED,
+    AWS_NEXTFLOW_LATEST,
+    AZURE_NEXTFLOW_LATEST,
+    HPC_NEXTFLOW_LATEST,
+    AWS_NEXTFLOW_VERSIONS,
+    AZURE_NEXTFLOW_VERSIONS,
+    HPC_NEXTFLOW_VERSIONS,
+    REQUEST_INTERVAL_CROMWELL
 )
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.queue.queue import Queue
@@ -166,7 +171,7 @@ class Job(Cloudos):
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
                 # from the API, workflow names are coming with newline characters
-                element_name = element["name"].strip()
+                element_name = element["name"].replace('\n', '')
                 if (element_name == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
@@ -1194,7 +1199,7 @@ class Job(Cloudos):
             ap_split = ap.split('=')
             if len(ap_split) < 2:
                 raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                'as spacer. E.g: input=value')
+                                 'as spacer. E.g: input=value')
             ap_name = ap_split[0]
             ap_value = '='.join(ap_split[1:])
             if workflow_type == 'docker':
@@ -1350,7 +1355,7 @@ class JobSetup:
         verbose=False,
         run_type="",
     ) -> None:
-        self.REQUEST_INTERVAL_CROMWELL = 30
+        self.REQUEST_INTERVAL_CROMWELL = REQUEST_INTERVAL_CROMWELL
 
         self.job_completed = JOB_COMPLETED
         self.aws_nextflow_latest = AWS_NEXTFLOW_LATEST
@@ -1417,7 +1422,6 @@ class JobSetup:
         self.workflow_type = self.cl.detect_workflow(
             self.workflow_name, self.workspace_id, self.verify_ssl
         )
-
 
         self.is_module = self.cl.is_module(
             self.workflow_name, self.workspace_id, self.verify_ssl

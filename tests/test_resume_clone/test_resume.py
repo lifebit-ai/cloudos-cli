@@ -1,9 +1,7 @@
-from requests import head
 from cloudos_cli.jobs.job import Job, JobSetup
 import responses
 from responses import matchers
 import pytest
-import json
 
 PROJECT_NAME = "lifebit-testing"
 
@@ -45,12 +43,14 @@ CHECK_BRANCH_RESPONSE = {
         {"commit": {"sha": COMMIT}}
     ]
 }
-BAD_BRANCH_RESPONSE = {"branches":[]}
+BAD_BRANCH_RESPONSE = {"branches": []}
+
+
 @pytest.mark.parametrize("branch,reponse_json", [
-    (BRANCH, CHECK_BRANCH_RESPONSE), 
+    (BRANCH, CHECK_BRANCH_RESPONSE),
     ("bad_branch", BAD_BRANCH_RESPONSE)])
 @responses.activate
-def test_check_branch(branch,reponse_json):
+def test_check_branch(branch, reponse_json):
     params = BASE_PARAMS | {
         "repositoryIdentifier": REPO_ID,
         "owner": REPO_OWNER,
@@ -63,19 +63,20 @@ def test_check_branch(branch,reponse_json):
         match=[matchers.query_param_matcher(params), matchers.header_matcher(HEADERS)],
         json=reponse_json
     )
-    branch_exists =  BASE_JOB.check_branch(WS_ID, GIT_PROVIDER, REPO_ID, REPO_OWNER, WF_OWNER, branch, verify=VERIFY)
+    branch_exists = BASE_JOB.check_branch(WS_ID, GIT_PROVIDER, REPO_ID, REPO_OWNER, WF_OWNER, branch, verify=VERIFY)
     if branch == BRANCH:
         assert branch_exists
     else:
-        assert not branch_exists 
+        assert not branch_exists
 
 
 COMMIT_RESPONSE = dict(commits=[{"commit": 1}])
 BAD_COMMIT_RESPONSE = dict(commits=[])
 
+
 @pytest.mark.parametrize("commit,commit_response",
                          [(COMMIT, COMMIT_RESPONSE),
-                         ("bad_commit", BAD_COMMIT_RESPONSE)])
+                          ("bad_commit", BAD_COMMIT_RESPONSE)])
 @responses.activate
 def test_check_commit(commit, commit_response):
     params = BASE_PARAMS | {
@@ -96,7 +97,10 @@ def test_check_commit(commit, commit_response):
     else:
         assert not commit_exists
 
+
 VALID_PROFILES = ["good_profile", "another_profile"]
+
+
 @pytest.mark.parametrize("profile", ["good_profile", "bad_profile"])
 @responses.activate
 def test_check_profile(profile):
@@ -116,6 +120,7 @@ def test_check_profile(profile):
     else:
         assert not profile_exists
 
+
 VALID_PROJECTS = {
     "total": 1,
     "projects": [
@@ -133,6 +138,8 @@ VALID_PROJECTS = {
 INVALID_PROJECTS = {
     "total": 0
 }
+
+
 @responses.activate
 @pytest.mark.parametrize("project,project_response", [(PROJECT, VALID_PROJECTS), ("bad_project", INVALID_PROJECTS)])
 def check_projects(project, project_response):
@@ -237,7 +244,7 @@ FINISHED_JOB_BRNACH = {
         "repository": {
             "repositoryId": REPO_ID,
             "owner": {
-        "id": REPO_OWNER_ID,
+                "id": REPO_OWNER_ID,
                 "login": REPO_OWNER
             },
             "platform": GIT_PROVIDER
@@ -245,13 +252,14 @@ FINISHED_JOB_BRNACH = {
     }
 }
 
+
 @responses.activate
 @pytest.mark.parametrize("payload,job_id,job_params,resume",
-                         [ 
-                            (PAYLOAD_BRANCH_AWS, JOB_ID, None, False), 
+                         [
+                            (PAYLOAD_BRANCH_AWS, JOB_ID, None, False),
                             (PAYLOAD_BRANCH_AWS, JOB_ID, ["param1=val1", "param2=val2"], False),
                             (PAYLOAD_BRANCH_AZURE, JOB_ID, None, False),
-                            (PAYLOAD_BRANCH_AWS, JOB_ID, None, True), 
+                            (PAYLOAD_BRANCH_AWS, JOB_ID, None, True),
                             (PAYLOAD_BRANCH_AWS, JOB_ID, ["param1=val1", "param2=val2"], True),
                             (PAYLOAD_BRANCH_AZURE, JOB_ID, None, True),
                          ])
@@ -304,6 +312,7 @@ def test_clone(payload, job_id, job_params, resume):
     new_job_id = BASE_JOB.clone_or_resume_job(job_id, parameters=job_params, resume_job=resume)
     assert new_job_id == NEW_JOB_ID
 
+
 @pytest.mark.parametrize("payload", [(PAYLOAD_BRANCH_AWS)])
 @responses.activate
 def test_job_setup(payload):
@@ -321,7 +330,7 @@ def test_job_setup(payload):
         json=FINISHED_JOB_BRNACH
     )
     headers = HEADERS | {"Content-type": "application/json"}
-    wf_list_response ={
+    wf_list_response = {
         "paginationMetadata": {
             "Pagination-Count": 1
         },
