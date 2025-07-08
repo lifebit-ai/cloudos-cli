@@ -3160,8 +3160,12 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         target_id = match["_id"]
         folder_type = match.get("folderType")
         # Normalize kind: top-level datasets are kind=Dataset, all other folders are kind=Folder
-        if folder_type in ("VirtualFolder", "S3Folder", "Folder"):
+        if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
+        elif folder_type=="S3Folder":
+            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is not modifiable.",
+                   err=True)
+            sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
         else:
@@ -3416,6 +3420,10 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
+        elif destination_folder.get("folderType")=="S3Folder":
+            click.echo(f"[ERROR] Item '{source_name}' could not be copied to '{destination_path}' as the destination folder is not modifiable.",
+                   err=True)
+            sys.exit(1)
         else:
             destination_kind = "Folder"
         response = source_client.copy_item(
@@ -3635,9 +3643,12 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
         sys.exit(1)
 
-    item_id = found_item["_id"]
+    item_id = found_item.get("_id",'')
     kind = "Folder" if "folderType" in found_item else "File"
-
+    if item_id=='':
+        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
+                   err=True)
+        sys.exit(1)
     click.echo(f"Deleting {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
