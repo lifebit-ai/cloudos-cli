@@ -30,24 +30,24 @@ class Link(Cloudos):
     project_name: str
     verify: Union[bool, str] = True
 
-    def link_S3_folder(self,
-                       s3_folder: str,
+    def link_folder(self,
+                       folder: str,
                        session_id: str) -> dict:
-        """Link an S3 folder to an interactive session.
+        """Link a folder (S3 or File Explorer) to an interactive session.
 
         Parameters
         ----------
-        s3_folder : str
-            The S3 folder to link.
+        folder : str
+            The folder to link.
         session_id : str
             The interactive session ID.
 
         Raises
         ------
         ValueError
-            If the S3 URL already exists with 'mounted' status
+            If the URL already exists with 'mounted' status
             If the API key is invalid or permissions are insufficient
-            If the S3 URL is invalid or the session is not active.
+            If the URL is invalid or the session is not active.
         """
         url = (
             f"{self.cloudos_url}/api/v1/"
@@ -58,7 +58,7 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        data = self.parse_s3_path(s3_folder)
+        data = self.parse_s3_path(folder)
         r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
 
         if r.status_code == 403:
@@ -123,3 +123,23 @@ class Link(Cloudos):
             }
         }
 
+    def parse_file_explorer_path(self, file_path):
+        """
+        Parses a file path and returns the base name and full path.
+
+        Parameters
+        ----------
+        file_path : str
+            The file path to parse.
+
+        Returns
+        -------
+        dict: A dictionary containing the parsed file information structured as:
+                "dataItem": {
+                    "type": "File",
+                    "data": {
+                        "name": str,          # The base name of the file.
+                        "fullPath": str      # The full path of the file.
+        """
+        parts = file_path.rstrip('/').split('/')
+        base = parts[-1]

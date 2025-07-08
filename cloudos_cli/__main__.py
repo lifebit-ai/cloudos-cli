@@ -19,6 +19,7 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
+from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 
 
 # GLOBAL VARS
@@ -3406,22 +3407,27 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
 
 
 @datasets.command(name="link")
-@click.argument("s3_path", required=True)
+@click.argument("path", required=True)
 @click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
 @click.option('-c', '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=False)
 @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
 @click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
-def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
     """
-    Link a S3 folder to an active interactive analysis.
+    Link a folder (S3 or File Explorer) to an active interactive analysis.
 
-    S3_PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
+    PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
+    PATH [path]: the full path to the File Explorer folder to link. E.g.: 'Data/Downloads' for the same project,
+    or '<PROJECT_NAME>/Data/Downloads' for a different project than '--project-name'\n
     """
     print(link.__doc__ + '\n')
 
@@ -3454,17 +3460,34 @@ def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ss
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
     session_id = user_options['session_id']
+    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    link_p = Link(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        cromwell_token=None,
-        project_name=None,
-        verify=verify_ssl
-    )
-    link_p.link_S3_folder(s3_path, session_id)
+
+    # determine if is file explorer or s3
+
+    # s3 already has functionality
+    # file explorer
+    ## error if project name is not provided for this case
+    ## determine project + path
+    project, file_path = extract_project(path)
+    print("project:", project)
+    print("file_path:", file_path)
+    ## get folder id
+    current_project = project if project != '' else project_name
+    print("current_project:", current_project)
+    folder_id = get_file_or_folder_id(cloudos_url, apikey, workspace_id, current_project, verify_ssl, file_path, "", is_file=False)
+    print("folder_id:", folder_id)
+    # ## send as data item
+    # link_p = Link(
+    #     cloudos_url=cloudos_url,
+    #     apikey=apikey,
+    #     workspace_id=workspace_id,
+    #     cromwell_token=None,
+    #     project_name=None,
+    #     verify=verify_ssl
+    # )
+    # link_p.link_folder(path, session_id)
 
 
 if __name__ == "__main__":
