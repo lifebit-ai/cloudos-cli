@@ -342,8 +342,13 @@ Resume a job in CloudOS. This feature allows to resume a non-running job (comple
 Example
 
 ```console
-cloudos job resume --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
-  --job-id $ID_OF_JOB_TO_RESUME --param new_parameter=newValue --job-name resumed_with_extra_parameters
+cloudos job resume \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --cloudos-url $CLOUDOS \
+    --job-id $ID_OF_JOB_TO_RESUME \
+    --param new_parameter=newValue \
+    --job-name resumed_with_extra_parameters
 ```
 
 In the example above, the job with ID `$ID_OF_JOB_TO_RESUME` will be resumed, including the parameter `new_parameter` with value `newValue`. Only processes that have not been executed or processes that depend on the `new_parameter` parameter will be executed. All other processes will be cached.
@@ -354,8 +359,13 @@ Clone a job in CloudOs. Cloned jobs can be executed even when then job they were
 Example
 
 ```console
-cloudos job clone --apikey $MY_API_KEY --workspace-id $WORKSPACE_ID --cloudos-url $CLOUDOS \
-  --job-id $ID_OF_JOB_TO_CLONE --param new_parameter=newValue --job-name cloned_with_extra_parameters
+cloudos job clone \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --cloudos-url $CLOUDOS \
+    --job-id $ID_OF_JOB_TO_CLONE \
+    --param new_parameter=newValue \
+    --job-name cloned_with_extra_parameters
 ```
 
 In this example, all the processes of the job with id `ID_OF_JOB_TO_CONE` will be executed with the additional parameter `new_parameter` with value `newValue`

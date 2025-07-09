@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from email.policy import default
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
@@ -10,7 +9,6 @@ from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
-
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -21,7 +19,14 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
-from cloudos_cli.global_vars import CLOUDOS_URL, JOB_COMPLETED, INIT_PROFILE, ABORT_JOB_STATES, REQUEST_INTERVAL_CROMWELL
+from cloudos_cli.global_vars import (
+    CLOUDOS_URL,
+    JOB_COMPLETED,
+    INIT_PROFILE,
+    ABORT_JOB_STATES,
+    REQUEST_INTERVAL_CROMWELL
+)
+
 
 @click.group()
 @click.version_option(__version__)
@@ -210,6 +215,7 @@ def configure(ctx, profile, make_default):
         config_manager.create_profile_from_input(profile_name=profile)
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
+
 
 @job.command('run')
 @click.option('-k',
@@ -431,17 +437,47 @@ def run(ctx,
     execution_platform = user_options['execution_platform']
     project_name = user_options['project_name']
 
-    job_setup = jb.JobSetup(cloudos_url=cloudos_url, apikey=apikey, workspace_id=workspace_id,
-                         cromwell_token=cromwell_token, disable_ssl_verification=disable_ssl_verification,
-                         ssl_cert=ssl_cert, do_not_save_logs=do_not_save_logs, instance_type=instance_type, job_queue=job_queue,
-                         execution_platform=execution_platform, hpc_id=hpc_id, wdl_mainfile=wdl_mainfile,
-                         use_private_docker_repository=use_private_docker_repository, nextflow_version=nextflow_version,
-                         wdl_importsfile=wdl_importsfile, storage_mode=storage_mode, accelerate_file_staging=accelerate_file_staging,
-                         workflow_name=workflow_name, project_name=project_name, repository_platform=repository_platform, job_config=job_config, parameters=parameter,
-                         commit=git_commit, branch=git_branch, git_tag=git_tag, name=job_name, resumable=resumable, nextflow_profile=nextflow_profile, instance_disk=instance_disk,
-                         lustre_size=lustre_size, azure_worker_instance_type=azure_worker_instance_type, azure_worker_instance_disk=azure_worker_instance_disk,
-                         azure_worker_instance_spot=azure_worker_instance_spot, cost_limit=cost_limit, wait_completion=wait_completion, wait_time=wait_time,
-                         request_interval=request_interval, verbose=verbose, run_type="run")
+    job_setup = jb.JobSetup(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token=cromwell_token,
+        disable_ssl_verification=disable_ssl_verification,
+        ssl_cert=ssl_cert,
+        do_not_save_logs=do_not_save_logs,
+        instance_type=instance_type,
+        job_queue=job_queue,
+        execution_platform=execution_platform,
+        hpc_id=hpc_id,
+        wdl_mainfile=wdl_mainfile,
+        use_private_docker_repository=use_private_docker_repository,
+        nextflow_version=nextflow_version,
+        wdl_importsfile=wdl_importsfile,
+        storage_mode=storage_mode,
+        accelerate_file_staging=accelerate_file_staging,
+        workflow_name=workflow_name,
+        project_name=project_name,
+        repository_platform=repository_platform,
+        job_config=job_config,
+        parameters=parameter,
+        commit=git_commit,
+        branch=git_branch,
+        git_tag=git_tag,
+        name=job_name,
+        resumable=resumable,
+        nextflow_profile=nextflow_profile,
+        instance_disk=instance_disk,
+        lustre_size=lustre_size,
+        azure_worker_instance_type=azure_worker_instance_type,
+        azure_worker_instance_disk=azure_worker_instance_disk,
+        azure_worker_instance_spot=azure_worker_instance_spot,
+        cost_limit=cost_limit,
+        wait_completion=wait_completion,
+        wait_time=wait_time,
+        request_interval=request_interval,
+        verbose=verbose,
+        run_type="run"
+    )
     job_setup.run()
 
 
@@ -677,6 +713,46 @@ def clone(ctx,
                          verbose=verbose,
                          run_type="clone")
 
+    job_setup = jb.JobSetup(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token="",
+        disable_ssl_verification=disable_ssl_verification,
+        ssl_cert=ssl_cert,
+        do_not_save_logs=do_not_save_logs,
+        instance_type=instance_type,
+        job_queue=job_queue,
+        hpc_id=None,
+        wdl_mainfile="",
+        job_id=job_id,
+        use_private_docker_repository=use_private_docker_repository,
+        nextflow_version=nextflow_version,
+        wdl_importsfile="",
+        storage_mode=storage_mode,
+        accelerate_file_staging=accelerate_file_staging,
+        workflow_name=workflow_name,
+        project_name=project_name,
+        repository_platform=None,
+        job_config=job_config,
+        parameters=parameter,
+        commit=git_commit,
+        branch=git_branch,
+        git_tag=git_tag,
+        name=job_name,
+        resumable=None,
+        nextflow_profile=nextflow_profile,
+        instance_disk=instance_disk,
+        lustre_size=lustre_size,
+        azure_worker_instance_type=azure_worker_instance_type,
+        azure_worker_instance_disk=azure_worker_instance_disk,
+        azure_worker_instance_spot=azure_worker_instance_spot,
+        cost_limit=cost_limit,
+        wait_completion=wait_completion,
+        wait_time=wait_time,
+        request_interval=request_interval,
+        verbose=verbose,
+        run_type="clone")
     job_setup.run_again(resume=False)
 
 
@@ -917,6 +993,47 @@ def resume(ctx,
                          verbose=verbose,
                          run_type="resume")
 
+    job_setup = jb.JobSetup(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token=cromwell_token,
+        disable_ssl_verification=disable_ssl_verification,
+        ssl_cert=ssl_cert,
+        do_not_save_logs=do_not_save_logs,
+        instance_type=instance_type,
+        job_queue=job_queue,
+        hpc_id=None,
+        wdl_mainfile="",
+        job_id=job_id,
+        use_private_docker_repository=use_private_docker_repository,
+        nextflow_version=nextflow_version,
+        wdl_importsfile="",
+        storage_mode=storage_mode,
+        accelerate_file_staging=accelerate_file_staging,
+        workflow_name=workflow_name,
+        project_name=project_name,
+        repository_platform=None,
+        job_config=job_config,
+        parameters=parameter,
+        commit=git_commit,
+        branch=git_branch,
+        git_tag=git_tag,
+        name=job_name,
+        resumable=None,
+        nextflow_profile=nextflow_profile,
+        instance_disk=instance_disk,
+        lustre_size=lustre_size,
+        azure_worker_instance_type=azure_worker_instance_type,
+        azure_worker_instance_disk=azure_worker_instance_disk,
+        azure_worker_instance_spot=azure_worker_instance_spot,
+        cost_limit=cost_limit,
+        wait_completion=wait_completion,
+        wait_time=wait_time,
+        request_interval=request_interval,
+        verbose=verbose,
+        run_type="resume"
+    )
     job_setup.run_again(resume=True)
 
 
@@ -2775,7 +2892,7 @@ def run_bash_array_job(ctx,
     # retrieve columns
     r = j.retrieve_cols_from_array_file(
         array_file,
-        generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl),
+        generate_datasets_for_project(cloudos_url, apikey, workspace_id, array_file_project, verify_ssl),
         separators[separator]['api'],
         verify_ssl
     )
@@ -3214,9 +3331,16 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
-                    workspace_id, project_name,
-                    disable_ssl_verification, ssl_cert, profile):
+def renaming_item(ctx,
+                  source_path,
+                  new_name,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  project_name,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
     """
     Rename a file or folder in a CloudOS project.
 
