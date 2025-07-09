@@ -19,7 +19,6 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
-from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 
 
 # GLOBAL VARS
@@ -3464,30 +3463,15 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    # determine if is file explorer or s3
-
-    # s3 already has functionality
-    # file explorer
-    ## error if project name is not provided for this case
-    ## determine project + path
-    project, file_path = extract_project(path)
-    print("project:", project)
-    print("file_path:", file_path)
-    ## get folder id
-    current_project = project if project != '' else project_name
-    print("current_project:", current_project)
-    folder_id = get_file_or_folder_id(cloudos_url, apikey, workspace_id, current_project, verify_ssl, file_path, "", is_file=False)
-    print("folder_id:", folder_id)
-    # ## send as data item
-    # link_p = Link(
-    #     cloudos_url=cloudos_url,
-    #     apikey=apikey,
-    #     workspace_id=workspace_id,
-    #     cromwell_token=None,
-    #     project_name=None,
-    #     verify=verify_ssl
-    # )
-    # link_p.link_folder(path, session_id)
+    link_p = Link(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        cromwell_token=None,
+        project_name=project_name,
+        verify=verify_ssl
+    )
+    link_p.link_folder(path, session_id)
 
 
 if __name__ == "__main__":

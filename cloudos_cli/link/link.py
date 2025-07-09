@@ -7,6 +7,7 @@ from typing import Union
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post
 from urllib.parse import urlparse
+from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 
 
 @dataclass
@@ -31,8 +32,8 @@ class Link(Cloudos):
     verify: Union[bool, str] = True
 
     def link_folder(self,
-                       folder: str,
-                       session_id: str) -> dict:
+                    folder: str,
+                    session_id: str) -> dict:
         """Link a folder (S3 or File Explorer) to an interactive session.
 
         Parameters
@@ -58,22 +59,30 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        data = self.parse_s3_path(folder)
-        r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
+        # determine if is file explorer or s3
+        if folder.startswith('s3://'):
+            data = self.parse_s3_path(folder)
+            type_folder = "S3"
+        else:
+            data = self.parse_file_explorer_path(folder)
+            type_folder = "File Explorer"
 
+        r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
         if r.status_code == 403:
-            raise ValueError(f"Provided folder already exists with 'mounted' status")
+            raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
         elif r.status_code == 401:
             raise ValueError(f"Forbidden: Invalid API key or insufficient permissions")
         elif r.status_code == 400:
-            raise ValueError("Bad request: please make sure the S3 URL is valid, and the session is active")
+            raise ValueError(f"Bad request: please make sure the {type_folder} URL is valid, and the session is active")
         elif r.status_code == 204:
-            full_path = (
-                f"s3://{data['dataItem']['data']['s3BucketName']}/"
-                f"{data['dataItem']['data']['s3Prefix']}"
-            )
-            print(f"Succesfully linked S3 folder: {full_path}")
-
+            if type_folder == "S3":
+                full_path = (
+                    f"s3://{data['dataItem']['data']['s3BucketName']}/"
+                    f"{data['dataItem']['data']['s3Prefix']}"
+                )
+            else:
+                full_path = folder
+            print(f"Succesfully linked {type_folder} folder: {full_path}")
 
     def parse_s3_path(self, s3_url):
         """
@@ -123,7 +132,7 @@ class Link(Cloudos):
             }
         }
 
-    def parse_file_explorer_path(self, file_path):
+    def parse_file_explorer_path(self, path):
         """
         Parses a file path and returns the base name and full path.
 
@@ -141,5 +150,26 @@ class Link(Cloudos):
                         "name": str,          # The base name of the file.
                         "fullPath": str      # The full path of the file.
         """
-        parts = file_path.rstrip('/').split('/')
-        base = parts[-1]
+        # determine project + path
+        project, file_path = extract_project(path)
+
+        # get folder id
+        current_project = project if project != '' else self.project_name
+        folder_id = get_file_or_folder_id(
+            self.cloudos_url,
+            self.apikey,
+            self.workspace_id,
+            current_project,
+            self.verify,
+            file_path,
+            "",
+            is_file=False
+        )
+        parts = path.strip("/").split("/")
+        return {
+            "dataItem": {
+                "kind": "Folder",
+                "item": f"{folder_id}",
+                "name": f"{parts[-1]}"
+            }
+        }
