@@ -1436,7 +1436,10 @@ class JobSetup:
             self._workflow_name = workflow_attrs["name"]
             self.is_module = workflow_attrs["isModule"]
             self.workflow_type = workflow_attrs["workflowType"]
-            self.repository_platform = self.get_repo_platform()
+            if self.workflow_type != "docker":
+                self.repository_platform = self.get_repo_platform()
+            else:
+                self.repository_platform = None
         else:
             self.workflow_type = self.cl.detect_workflow(
                 self.workflow_name, self.workspace_id, self.verify_ssl
@@ -1445,8 +1448,11 @@ class JobSetup:
             self.is_module = self.cl.is_module(
                 self.workflow_name, self.workspace_id, self.verify_ssl
             )
+
         self.fix_nextflow_versions()
-        self.check_module()
+        if self.workflow_type != "docker":
+            print("noh")
+            self.check_module()
 
         if self.verbose:
             print("\t...Detecting workflow type")
@@ -1640,21 +1646,21 @@ class JobSetup:
             self.job_queue_id = None
             if self.nextflow_version != "22.10.8" and self.execution_platform != "azure":
                 print(
-                    f"[Message] The selected worflow '{self.workflow_name}' "
+                    f"[Message] The selected workflow '{self.workflow_name}' "
                     + "is a CloudOS module. CloudOS modules only work with "
                     + "Nextflow version 22.10.8. Switching to use 22.10.8"
                 )
             self.nextflow_version = "22.10.8"
             if self.execution_platform == "azure":
                 print(
-                    f"[Message] The selected worflow '{self.workflow_name}' "
+                    f"[Message] The selected workflow '{self.workflow_name}' "
                     + "is a CloudOS module. For these workflows, worker nodes "
                     + "are managed internally. For this reason, the options "
                     + "azure-worker-instance-type, azure-worker-instance-disk and "
                     + "azure-worker-instance-spot are not taking effect."
                 )
                 self.nextflow_version = "22.11.1-edge"
-        else:
+        elif self.execution_platform == "aws":
             queue = Queue(
                 cloudos_url=self.cloudos_url,
                 apikey=self.apikey,
@@ -1734,7 +1740,7 @@ class JobSetup:
             resumable=self.resumable,
             save_logs=self.save_logs,
             batch=self.batch,
-            job_queue_id=self.job_queue_id,
+            job_queue_id=self.job_queue_id if self.execution_platform == "aws" else None,
             nextflow_profile=self.nextflow_profile,
             nextflow_version=self.nextflow_version,
             instance_type=self.instance_type,
@@ -1749,7 +1755,7 @@ class JobSetup:
             azure_worker_instance_disk=self.azure_worker_instance_disk,
             azure_worker_instance_spot=self.azure_worker_instance_spot,
             cost_limit=self.cost_limit,
-            use_mountpoints=self.use_mountpoints,
+            use_mountpoints=self.use_mountpoints if self.execution_platform == "aws" else None,
             docker_login=self.docker_login,
             verify=self.verify_ssl,
         )
@@ -1774,8 +1780,8 @@ class JobSetup:
             resumable=self.resumable,
             save_logs=self.save_logs,
             batch=self.batch,
-            job_queue_id=self.job_queue_id,
-            use_mountpoints=self.use_mountpoints,
+            job_queue_id=self.job_queue_id if self.execution_platform == "aws" else None,
+            use_mountpoints=self.use_mountpoints if self.execution_platform == "aws" else None,
             nextflow_version=self.nextflow_version,
             execution_platform=self.execution_platform,
             instance_disk=self.instance_disk,
