@@ -234,6 +234,8 @@ FINISHED_JOB_BRNACH = {
     },
     "workflow": {
         "name": WF_NAME,
+        "isModule": True,
+        "workflowType": "nextflow",
         "repository": {
             "repositoryId": REPO_ID,
             "owner": {
@@ -370,6 +372,12 @@ def test_job_setup(payload):
                 match=[matchers.query_param_matcher(projects_params)],
                 status=200,
                 json=VALID_PROJECTS
+        )
+        responses.add(
+            responses.GET,
+            url=f"{CLOS_URL}/api/v1/cloud/aws",
+            match=[matchers.query_param_matcher({"teamId": "workspace1"})],
+            json={"withValue": 1}
         )
     job_setup = JobSetup(APIKEY, WS_ID, PROJECT_NAME, job_id=JOB_ID)
     assert job_setup.job_id == JOB_ID

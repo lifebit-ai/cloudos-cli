@@ -183,6 +183,7 @@ class Job(Cloudos):
         elif resource == 'projects':
             content = self.get_project_list(workspace_id, verify=verify)
             # New API projects endpoint spec
+            from pprint import pprint
             for element in content:
                 if element["name"] == name:
                     return element["_id"]
@@ -838,6 +839,7 @@ class Job(Cloudos):
         job_queue_id=None,
         use_mountpoints=None,
         nextflow_version="",
+        execution_platform=None,
         instance_disk=0,
         storage_mode="",
         lustre_size=1200,
@@ -860,8 +862,22 @@ class Job(Cloudos):
         job_payload_r = retry_requests_get(
             job_payload_url, headers=headers, params=params, verify=verify
         )
-        cloud_os_request_error(job_payload_r)
-        job_payload_d = job_payload_r.json()
+        # if request-payload is not available, use the raw job response
+        # Some further parsing is required
+        if job_payload_r.status_code == 404:
+            job_info_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
+            job_info_r  = retry_requests_get(job_info_url, params=params, headers=headers)
+            cloud_os_request_error(job_info_r)
+            job_payload_d = job_info_r.json()
+            job_payload_d["resumable"] = "resumeWorkDir" in job_payload_r
+            job_payload_d["executionPlatform"] = execution_platform
+            used_revision_type = job_payload_d["revision"]["revisionType"]
+            for rev_type in [x for x in ("branch", "tag", "commit")]:
+                if rev_type != used_revision_type:
+                    job_payload_d["revision"][rev_type] = None
+        else:
+            cloud_os_request_error(job_payload_r)
+            job_payload_d = job_payload_r.json()
 
         job_data_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
         job_data_r = retry_requests_get(
@@ -1412,16 +1428,19 @@ class JobSetup:
         self.cl = Cloudos(self.cloudos_url, self.apikey, self.cromwell_token)
 
         if run_type != "run":
-            self._workflow_name = self.get_workflow_name(self.job_id)
+            workflow_attrs = self.get_workflow_attrs(self.job_id)
+            self._workflow_name = workflow_attrs["name"]
+            self.is_module = workflow_attrs["isModule"]
+            self.workflow_type = workflow_attrs["workflowType"]
             self.repository_platform = self.get_repo_platform()
-        self.workflow_type = self.cl.detect_workflow(
-            self.workflow_name, self.workspace_id, self.verify_ssl
-        )
+        else:
+            self.workflow_type = self.cl.detect_workflow(
+                self.workflow_name, self.workspace_id, self.verify_ssl
+            )
 
-
-        self.is_module = self.cl.is_module(
-            self.workflow_name, self.workspace_id, self.verify_ssl
-        )
+            self.is_module = self.cl.is_module(
+                self.workflow_name, self.workspace_id, self.verify_ssl
+            )
         self.fix_nextflow_versions()
         self.check_module()
 
@@ -1515,18 +1534,19 @@ class JobSetup:
         if self._workflow_name:
             return self._workflow_name
         if self.job_id:
-            return self.get_workflow_name(self.job_id)
+            return self.get_workflow_attrs(self.job_id)["name"]
         else:
             raise ValueError("Workflow name or Job ID should be provided")
 
     def get_exec_platform(self):
-        job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}/request-payload"
-        job_r = retry_requests_get(
-            job_url, params=self.request_params, headers=self.headers
-        )
-        cloud_os_request_error(job_r)
-        job_d = job_r.json()
-        return job_d["executionPlatform"]
+        for cloud in ("aws", "azure", "gcp"):
+            cloud_url = f"{self.cloudos_url}/api/v1/cloud/{cloud}"
+            cloud_r = retry_requests_get(cloud_url, params=self.request_params, headers=self.headers)
+            cloud_os_request_error(cloud_r)
+            cloud_d = cloud_r.json()
+            if cloud_d:
+                return cloud
+        raise ValueError("Workspace is not associated with any supported cloud provider")
 
     def get_repo_platform(self):
         job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}"
@@ -1686,14 +1706,14 @@ class JobSetup:
                 + "to be written in DSL2 and does not support DSL1."
             )
 
-    def get_workflow_name(self, job_id):
+    def get_workflow_attrs(self, job_id):
         job_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
         job_req = retry_requests_get(
             job_url, headers=self.headers, params=self.request_params
         )
         cloud_os_request_error(job_req)
         job_d = job_req.json()
-        return job_d["workflow"]["name"]
+        return job_d["workflow"]
 
     def run(self):
         if self.job_id:
@@ -1753,6 +1773,7 @@ class JobSetup:
             job_queue_id=self.job_queue_id,
             use_mountpoints=self.use_mountpoints,
             nextflow_version=self.nextflow_version,
+            execution_platform=self.execution_platform,
             instance_disk=self.instance_disk,
             storage_mode=self.storage_mode,
             lustre_size=self.lustre_size,
