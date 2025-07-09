@@ -3435,9 +3435,10 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     """
     Link a folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
-    PATH [path]: the full path to the File Explorer folder to link. E.g.: 'Data/Downloads' for the same project,
-    or '<PROJECT_NAME>/Data/Downloads' for a different project than '--project-name'\n
+    PATH [path]: the full path to the S3/File Explorer folder to link. 
+    E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' for the 
+    same project or '<PROJECT_NAME>/Data/Downloads' for a different 
+    project than '--project-name'.
     """
     print(link.__doc__ + '\n')
 
