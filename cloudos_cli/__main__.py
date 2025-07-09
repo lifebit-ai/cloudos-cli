@@ -3472,6 +3472,10 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     session_id = user_options['session_id']
     project_name = user_options['project_name']
 
+    if not path.startswith("s3://") and project_name is None:
+        # for non-s3 paths we need the project, for S3 we don't
+        raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     link_p = Link(
