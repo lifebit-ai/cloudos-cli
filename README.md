@@ -1081,6 +1081,26 @@ where profile `test` is used for all other necessary variables, but `--session-i
 > [!NOTE]
 > If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the `--apikey` needs to be added.
 
+#### Linking a File Explorer folder to Interactive Analysis
+
+The usage of the subcommand is using the same structure as for the S3 folders:
+
+```console
+cloudos datasets link <File Explorer FOLDER PATH> <options>
+```
+
+Examples (one per line):
+
+```console
+cloudos datasets link Data/ingest_data --profile test
+cloudos datasets link Data/SEQUENCES --session-id 1234
+cloudos datasets link Data/SEQUENCES/HCC --session-id 1234
+cloudos datasets link "Analyses Results/HLA" --session-id 1234
+```
+
+> [!NOTE]
+> Virtual folders in File Explorer cannot be linked
+
 #### Create a (virtual) folder
 
 New folders can be created within the `Data` dataset and its subfolders using the following command
