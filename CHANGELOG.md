@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.39.0 (2025-07-8)
+
+### Feat
+
+- Adds azure support for `datasets ls`
+
+
 ## v2.38.3 (2025-07-8)
 
 ### Fix
