@@ -971,8 +971,8 @@ If you require more information on the files and folder listed, you can use the 
 - Owner
 - Size in human readable format
 - Last updated
-- Filepath (the file or folder name)
-- S3 Path
+- File Name (the file or folder name)
+- Storage Path
 
 ##### Moving files
 
