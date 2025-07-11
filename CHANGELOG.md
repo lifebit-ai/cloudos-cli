@@ -1,6 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.38.3 (2025-07-8)
+## v2.39.0 (2025-07-09)
+
+### Feat
+
+- Adds `job clone` and `job resume` commands
+- Refactors `job run` command
+
+## v2.38.3 (2025-07-08)
 
 ### Fix
 

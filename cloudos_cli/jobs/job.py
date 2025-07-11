@@ -2,16 +2,37 @@
 This is the main class to create jobs.
 """
 
-from dataclasses import dataclass
-from typing import Union
-import json
-from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
-from pathlib import Path
 import base64
-from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
+import json
 import os
+import sys
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Union
+from cloudos_cli.global_vars import (
+    CLOUDOS_URL,
+    JOB_COMPLETED,
+    AWS_NEXTFLOW_LATEST,
+    AZURE_NEXTFLOW_LATEST,
+    HPC_NEXTFLOW_LATEST,
+    AWS_NEXTFLOW_VERSIONS,
+    AZURE_NEXTFLOW_VERSIONS,
+    HPC_NEXTFLOW_VERSIONS,
+    REQUEST_INTERVAL_CROMWELL
+)
+from cloudos_cli.clos import Cloudos
+from cloudos_cli.queue.queue import Queue
+from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
+from cloudos_cli.utils.errors import (
+    BadRequestException,
+    cloud_os_request_error,
+    CantResumeNonResumableJob,
+    CantResumeRunningJob,
+    NotImplementedFeature,
+)
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
+from cloudos_cli.utils.resources import ssl_selector
 
 
 @dataclass
@@ -150,10 +171,12 @@ class Job(Cloudos):
         if resource == 'workflows':
             content = self.get_workflow_list(workspace_id, verify=verify)
             for element in content:
-                if (element["name"] == name and element["workflowType"] == "docker" and
+                # from the API, workflow names are coming with newline characters
+                element_name = element["name"].replace('\n', '')
+                if (element_name == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
-                if (element["name"] == name and
+                if (element_name == name and
                         element["repository"]["platform"] == repository_platform and
                         not element["archived"]["status"]):
                     if mainfile is None:
@@ -210,7 +233,8 @@ class Job(Cloudos):
                                  docker_login,
                                  command,
                                  cpus,
-                                 memory):
+                                 memory,
+                                 resume_dir=None):
         """Converts a nextflow.config file into a json formatted dict.
 
         Parameters
@@ -297,6 +321,8 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
+        resume_dir : str
+            If specified, the job will be resumed using this argument as working directory.
 
 
         Returns
@@ -476,10 +502,13 @@ class Job(Cloudos):
             }
         if nextflow_profile is not None:
             params['profile'] = nextflow_profile
+        if resume_dir:
+            params["resumeWorkDir"] = resume_dir
         return params
 
     def send_job(self,
                  job_config=None,
+                 project_id='',
                  parameter=(),
                  array_parameter=(),
                  array_file_header=None,
@@ -512,13 +541,16 @@ class Job(Cloudos):
                  verify=True,
                  command=None,
                  cpus=1,
-                 memory=4):
+                 memory=4,
+                 resume_job_work_dir=''):
         """Send a job to CloudOS.
 
         Parameters
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        project_id : str
+            Project ID where the job will be launched.
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
@@ -596,6 +628,8 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
+        resume_job_work_dir : str
+            In case sending a resumed job, this is the resume work directory.
 
         Returns
         -------
@@ -606,7 +640,7 @@ class Job(Cloudos):
         cloudos_url = self.cloudos_url
         workspace_id = self.workspace_id
         workflow_id = self.workflow_id
-        project_id = self.project_id
+        project_id = project_id or self.project_id
         # Prepare api request for CloudOS to run a job
         headers = {
             "Content-type": "application/json",
@@ -646,7 +680,9 @@ class Job(Cloudos):
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
-                                               memory=memory)
+                                               memory=memory,
+                                               resume_dir=resume_job_work_dir)
+
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
@@ -656,6 +692,367 @@ class Job(Cloudos):
         print('\tJob successfully launched to CloudOS, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
+
+    def check_branch(
+        self,
+        workspace_id,
+        git_platform,
+        repository_id,
+        repository_owner,
+        workflow_owner_id,
+        branch,
+        verify,
+    ):
+        """
+        Checks if a given branch exists in a target repository.
+        :param workspace_id: CloudOS workspace ID.
+        :param git_platform: Repository platform (Github, Gitlab).
+        :param repository ID: Repository ID.
+        :param repository owner: Owner of repository.
+        :param workflow_owner_id: Workflow owner ID.
+        :param branch: Branch to check.
+        :param verify: SSL verification option.
+        :return: bool
+        """
+        params = {
+            "teamId": workspace_id,
+            "repositoryIdentifier": repository_id,
+            "owner": repository_owner,
+            "workflowOwnerId": workflow_owner_id,
+            "branchName": branch,
+        }
+        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        branches_url = f"{self.cloudos_url}/api/v1/git/{git_platform}/getBranches/"
+        branches_r = retry_requests_get(
+            branches_url, headers=headers, params=params, verify=verify
+        )
+
+        cloud_os_request_error(branches_r)
+        branches_d = branches_r.json()
+
+        return bool(branches_d["branches"])
+
+    def check_commit(
+        self,
+        workspace_id,
+        git_platform,
+        repository_id,
+        repository_owner,
+        workflow_owner_id,
+        commit,
+        verify,
+    ):
+        """
+        Checks if a given commit exists in a repository.
+        :param workspace_id: Workspace ID.
+        :param git_platform: Git platform (Github, Gitlab).
+        :param repository_owner: Repository owner.
+        :param workflow_owner_id: Workflow owner ID.
+        :param commit: Commit to be checked.
+        :verify: SSL verification option.
+        """
+        params = {
+            "teamId": workspace_id,
+            "repositoryIdentifier": repository_id,
+            "owner": repository_owner,
+            "workflowOwnerId": workflow_owner_id,
+            "commitName": commit,
+        }
+        headers = {"Content-type": "application/json", "apikey": self.apikey}
+        commits_url = f"{self.cloudos_url}/api/v1/git/{git_platform}/getCommits/"
+        commits_r = retry_requests_get(
+            commits_url, headers=headers, params=params, verify=verify
+        )
+
+        cloud_os_request_error(commits_r)
+        commits_d = commits_r.json()
+        n_commits = len(commits_d["commits"])
+        if n_commits > 1:
+            raise ValueError(
+                f"Provided commit {commit} matched more than one commit in the repository. Please provide a longer commit string."
+            )
+        return bool(commits_d["commits"])
+
+    def check_profile(self, workflow_id, commit, workspace_id, profile, verify):
+        """
+        Checks if a Nextflow profile exists in a Workflow repository.
+        :param workflow_id: Workflow ID.
+        :param commit: Current commit of the repository.
+        :param workspace_id: Workspace ID.
+        :param profile: Profile to be checked.
+        :param verify: SSL verification option.
+        :return bool:
+        """
+        headers = {"apikey": self.apikey}
+        params = {
+            "teamId": workspace_id,
+            "workflowId": workflow_id,
+            "revisionHash": commit,
+        }
+        profile_url = f"{self.cloudos_url}/api/v2/workflows/parsers/nf-config-profiles"
+        profile_r = retry_requests_get(
+            profile_url, params=params, headers=headers, verify=verify
+        )
+
+        cloud_os_request_error(profile_r)
+        profile_d = profile_r.json()
+
+        return profile in profile_d
+
+    def check_project(self, workspace_id, project, verify):
+        """
+        Check if a CloudOS project exists.
+        :param workspace_id: Workspace ID.
+        :param project: Project name.
+        :verify: SSL verification option.
+        """
+        headers = {"apikey": self.apikey}
+        params = {"teamId": workspace_id, "search": project}
+        project_url = f"{self.cloudos_url}/api/v2/projects"
+        project_r = retry_requests_get(
+            project_url, params=params, headers=headers, verify=verify
+        )
+
+        cloud_os_request_error(project_r)
+        project_d = project_r.json()
+        if project_d["total"] == 1:
+            return True, project_d["projects"][0]["_id"]
+        if project_d["total"] > 1:
+            raise ValueError(
+                f"Project {project} is not unique. Please provide a unique project name."
+            )
+        return False, None
+
+    def clone_or_resume_job(
+        self,
+        job_id,
+        job_config=None,
+        branch="",
+        commit="",
+        git_tag=None,
+        profile="",
+        name="",
+        parameters=None,
+        is_module=False,
+        example_parameters=[],
+        cost_limit=0.0,
+        project="",
+        instance_type="",
+        resumable=None,
+        save_logs=None,
+        batch=None,
+        job_queue_id=None,
+        use_mountpoints=None,
+        nextflow_version="",
+        execution_platform=None,
+        instance_disk=0,
+        storage_mode="",
+        lustre_size=1200,
+        hpc_id=None,
+        workflow_type="nextflow",
+        cromwell_id=None,
+        azure_worker_instance_type="Standard_D4as_v4",
+        azure_worker_instance_disk=100,
+        azure_worker_instance_spot=False,
+        docker_login=False,
+        verify=True,
+        cpus=1,
+        memory=4,
+        resume_job=False,
+    ):
+        headers = {"apikey": self.apikey}
+
+        params = {"teamId": self.workspace_id}
+        job_payload_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload"
+        job_payload_r = retry_requests_get(
+            job_payload_url, headers=headers, params=params, verify=verify
+        )
+        # if request-payload is not available, use the raw job response
+        # Some further parsing is required
+        if job_payload_r.status_code == 404:
+            job_info_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
+            job_info_r  = retry_requests_get(job_info_url, params=params, headers=headers)
+            cloud_os_request_error(job_info_r)
+            job_payload_d = job_info_r.json()
+            job_payload_d["resumable"] = "resumeWorkDir" in job_payload_r
+            job_payload_d["executionPlatform"] = execution_platform
+            used_revision_type = job_payload_d["revision"]["revisionType"]
+            for rev_type in [x for x in ("branch", "tag", "commit")]:
+                if rev_type != used_revision_type:
+                    job_payload_d["revision"][rev_type] = None
+        else:
+            cloud_os_request_error(job_payload_r)
+            job_payload_d = job_payload_r.json()
+
+        job_data_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
+        job_data_r = retry_requests_get(
+            job_data_url, headers=headers, params=params, verify=verify
+        )
+        cloud_os_request_error(job_data_r)
+        job_data_d = job_data_r.json()
+        self.workflow_name = job_data_d["name"]
+        # This if statement is the only difference between the
+        # clone and resume funcionality
+        if resume_job:
+            if not job_payload_d["resumable"]:
+                raise CantResumeNonResumableJob(job_id)
+            status = job_data_d["status"]
+            if status == "running":
+                raise CantResumeRunningJob(job_id)
+            new_resume_work_dir = job_data_d["resumeWorkDir"]
+        else:
+            new_resume_work_dir = ""
+        specified_revision = sum([bool(x) for x in [commit, branch, git_tag]])
+        if specified_revision > 1:
+            raise ValueError("Only one of commit, branch, or tag should be specified")
+        if not job_payload_d["revision"]:
+            job_payload_d["revision"] = job_data_d["revision"]
+
+        new_branch = (
+            job_payload_d["revision"]["branch"] if not any([git_tag, commit]) else None
+        )
+        repository_data = job_data_d["workflow"]["repository"]
+        repository_id = repository_data["repositoryId"]
+        repository_owner_data = repository_data["owner"]
+        repository_owner = repository_owner_data["login"]
+        worflow_owner_id = repository_owner_data["id"]
+        repository_platform = repository_data["platform"]
+        new_commit = None
+        if branch:
+            branch_exists = self.check_branch(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                branch,
+                verify=verify,
+            )
+            if not branch_exists:
+                raise ValueError(f"Branch {branch} does not exist in the repository.")
+        if commit:
+            commit_exists = self.check_commit(
+                self.workspace_id,
+                repository_platform,
+                repository_id,
+                repository_owner,
+                worflow_owner_id,
+                commit,
+                verify=verify,
+            )
+            if not commit_exists:
+                raise ValueError(f"Commit {commit} does not exist in the repository.")
+            new_commit = commit
+        if git_tag and not any([commit, branch]):
+            new_git_tag = git_tag
+        else:
+            new_git_tag = job_payload_d["revision"].get("tag", None)
+        # commits, tags and branches can come as "" from the payload, but they need to be None
+        new_git_tag = None if new_git_tag == "" else new_git_tag
+        new_commit = None if new_commit == "" else new_commit
+        new_branch = None if new_branch == "" else new_branch
+        new_profile = job_payload_d.get("profile", None)
+        if profile:
+            workflow_id = job_payload_d["workflow"]
+            profile_exists = self.check_profile(
+                workflow_id, new_commit, self.workspace_id, profile, verify=verify
+            )
+            if not profile_exists:
+                raise ValueError(
+                    f"the profile {profile} does not exist in the commit {new_commit} of the workflow."
+                )
+            new_profile = profile
+
+        new_project = job_payload_d["project"]
+        if project:
+            project_exists, new_project = self.check_project(
+                self.workspace_id, project, verify=verify
+            )
+            if not project_exists:
+                raise ValueError(f"The project {project} does not exist.")
+
+        new_parameters = [
+            f"{x['name']}={x['textValue']}" for x in job_payload_d["parameters"]
+        ]
+        if parameters:
+            old_params_names = [x.split("=")[0] for x in new_parameters]
+            for new_param in parameters:
+                if new_param.split("=")[0] not in old_params_names:
+                    new_parameters.append(new_param)
+
+        new_save_logs = (
+            job_payload_d["saveProcessLogs"] if save_logs is None else save_logs
+        )
+        new_use_mountpoints = (
+            job_payload_d["usesFusionFileSystem"]
+            if use_mountpoints is None
+            else use_mountpoints
+        )
+        # Assemble payload for cloning
+        new_name = name or job_payload_d["name"]
+        new_is_module = is_module
+        new_example_parameters = example_parameters
+        new_instance_type = (
+            instance_type
+            or job_payload_d["masterInstance"]["requestedInstance"]["type"]
+        )
+        if not cost_limit:
+            cost_limit = -1
+        new_cost_limit = cost_limit or job_payload_d["execution"]["computeCostLimit"]
+        new_resumable = resumable or job_payload_d["resumable"]
+        new_job_config = job_config
+        new_batch = batch or job_payload_d["batch"]["enabled"]
+        new_job_queue_id = job_queue_id
+        new_nextflow_version = nextflow_version or job_payload_d["nextflowVersion"]
+        new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
+        new_storage_mode = storage_mode or job_payload_d["storageMode"]
+        new_lustre_size = lustre_size
+        new_execution_platform = job_payload_d["executionPlatform"]
+        new_hpc_id = hpc_id
+        new_workflow_type = workflow_type
+        new_cromwell_id = cromwell_id
+        new_azure_worker_instance_type = azure_worker_instance_type
+        new_azure_worker_instance_disk = azure_worker_instance_disk
+        new_azure_worker_instance_spot = azure_worker_instance_spot
+        new_docker_login = docker_login
+        new_cpus = cpus
+        new_memory = memory
+        new_job_id = self.send_job(
+            job_config=new_job_config,
+            project_id=new_project,
+            parameter=new_parameters,
+            is_module=new_is_module,
+            example_parameters=new_example_parameters,
+            git_commit=new_commit,
+            git_tag=new_git_tag,
+            git_branch=new_branch,
+            job_name=new_name,
+            resumable=new_resumable,
+            save_logs=new_save_logs,
+            batch=new_batch,
+            job_queue_id=new_job_queue_id,
+            nextflow_profile=new_profile,
+            nextflow_version=new_nextflow_version,
+            instance_type=new_instance_type,
+            instance_disk=new_instance_disk,
+            storage_mode=new_storage_mode,
+            lustre_size=new_lustre_size,
+            execution_platform=new_execution_platform,
+            hpc_id=new_hpc_id,
+            workflow_type=new_workflow_type,
+            cromwell_id=new_cromwell_id,
+            azure_worker_instance_type=new_azure_worker_instance_type,
+            azure_worker_instance_disk=new_azure_worker_instance_disk,
+            azure_worker_instance_spot=new_azure_worker_instance_spot,
+            cost_limit=new_cost_limit,
+            use_mountpoints=new_use_mountpoints,
+            docker_login=new_docker_login,
+            verify=verify,
+            cpus=new_cpus,
+            memory=new_memory,
+            resume_job_work_dir=new_resume_work_dir,
+        )
+        return new_job_id
 
     def retrieve_cols_from_array_file(self, array_file, ds, separator, verify_ssl):
         """
@@ -704,7 +1101,9 @@ class Job(Cloudos):
                 s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
                 break
         else:
-            raise ValueError(f'File "{file_name}" not found in the "{directory}" folder of the project "{self.project_name}".')
+            raise ValueError(
+                f'File "{file_name}" not found in the "{directory}" folder of the project "{self.project_name}".'
+            )
 
         # retrieve the metadata of the array file
         headers = {
@@ -816,7 +1215,7 @@ class Job(Cloudos):
             ap_split = ap.split('=')
             if len(ap_split) < 2:
                 raise ValueError('Please, specify -a / --array-parameter using a single \'=\' ' +
-                                'as spacer. E.g: input=value')
+                                 'as spacer. E.g: input=value')
             ap_name = ap_split[0]
             ap_value = '='.join(ap_split[1:])
             if workflow_type == 'docker':
@@ -924,3 +1323,525 @@ class Job(Cloudos):
                 "parameterKind": "textValue",
                 "textValue": f"{rest}"
             }
+
+
+class JobSetup:
+    def __init__(
+        self,
+        apikey,
+        workspace_id,
+        project_name,
+        execution_platform="aws",
+        hpc_id="",
+        wdl_mainfile="",
+        wdl_importsfile="",
+        storage_mode="regular",
+        accelerate_file_staging=False,
+        repository_platform="github",
+        do_not_save_logs=False,
+        use_private_docker_repository=False,
+        cromwell_token=None,
+        disable_ssl_verification=False,
+        ssl_cert=None,
+        nextflow_version="22.10.8",
+        cloudos_url=CLOUDOS_URL,
+        workflow_name="",
+        job_id="",
+        job_queue=None,
+        job_config=None,
+        branch=None,
+        commit=None,
+        git_tag=None,
+        nextflow_profile=None,
+        name="new_job",
+        parameters=None,
+        cost_limit=30.0,
+        resumable=False,
+        instance_disk=500,
+        lustre_size=1200,
+        instance_type="NONE_SELECTED",
+        azure_worker_instance_type="Standard_D4as_v4",
+        azure_worker_instance_disk=100,
+        azure_worker_instance_spot=False,
+        cpus=1,
+        memory=4,
+        wait_completion=False,
+        wait_time=3600,
+        request_interval=30,
+        verbose=False,
+        run_type="",
+    ) -> None:
+        self.REQUEST_INTERVAL_CROMWELL = REQUEST_INTERVAL_CROMWELL
+
+        self.job_completed = JOB_COMPLETED
+        self.aws_nextflow_latest = AWS_NEXTFLOW_LATEST
+        self.azure_nextflow_latest = AZURE_NEXTFLOW_LATEST
+        self.hpc_nextflow_latest = HPC_NEXTFLOW_LATEST
+        self.aws_nextflow_versions = AWS_NEXTFLOW_VERSIONS
+        self.azure_nextflow_versions = AZURE_NEXTFLOW_VERSIONS
+        self.hpc_nextflow_versions = HPC_NEXTFLOW_VERSIONS
+        self.headers = {"apikey": apikey}
+        self.request_params = {"teamId": workspace_id}
+
+        self.cloudos_url = cloudos_url
+        self.apikey = apikey
+        self._workflow_name = workflow_name
+        self.job_config = job_config
+        self.job_id = job_id
+        self.branch = branch
+        self.commit = commit
+        self.git_tag = git_tag
+        self.nextflow_profile = nextflow_profile
+        self.nextflow_version = nextflow_version
+        self.name = name
+        self.parameters = parameters
+        self.cost_limit = cost_limit
+        self.resumable = resumable
+        self.use_private_docker_repository = use_private_docker_repository
+        self._instance_type = instance_type
+        self.instance_disk = instance_disk
+        self.lustre_size = lustre_size
+        self.accelerate_file_staging = accelerate_file_staging
+        self.azure_worker_instance_type = azure_worker_instance_type
+        self.azure_worker_instance_disk = azure_worker_instance_disk
+        self.azure_worker_instance_spot = azure_worker_instance_spot
+        self.cpus = cpus
+        self.memory = memory
+        self.workspace_id = workspace_id
+        self.project_name = project_name
+        self.repository_platform = repository_platform
+        self.cromwell_token = cromwell_token
+        self.disable_ssl_verification = disable_ssl_verification
+        self.ssl_cert = ssl_cert
+        self.save_logs = not do_not_save_logs
+        self.verify_ssl = ssl_selector(self.disable_ssl_verification, self.ssl_cert)
+        self.execution_platform = (
+            execution_platform if run_type == "run" else self.get_exec_platform()
+        )
+        self.job_queue = job_queue
+        self.verbose = verbose
+        self.wait_completion = wait_completion
+        self.wait_time = wait_time
+        self.request_interval = request_interval
+        self.batch = not execution_platform == "azure" or execution_platform == "hpc"
+        self.wdl_mainfile = wdl_mainfile
+        self.wdl_importsfile = wdl_importsfile
+        self.storage_mode = storage_mode
+        self.hpc_id = hpc_id
+        self.check_hpc_args()
+
+        self.cl = Cloudos(self.cloudos_url, self.apikey, self.cromwell_token)
+
+        if run_type != "run":
+            workflow_attrs = self.get_workflow_attrs(self.job_id)
+            self._workflow_name = workflow_attrs["name"]
+            self.is_module = workflow_attrs["isModule"]
+            self.workflow_type = workflow_attrs["workflowType"]
+            if self.workflow_type != "docker":
+                self.repository_platform = self.get_repo_platform()
+            else:
+                self.repository_platform = None
+        else:
+            self.workflow_type = self.cl.detect_workflow(
+                self.workflow_name, self.workspace_id, self.verify_ssl
+            )
+
+            self.is_module = self.cl.is_module(
+                self.workflow_name, self.workspace_id, self.verify_ssl
+            )
+
+        self.fix_nextflow_versions()
+        if self.workflow_type != "docker":
+            self.check_module()
+        else:
+            raise NotImplementedFeature("Importing array bash jobs")
+        if self.verbose:
+            print("\t...Detecting workflow type")
+
+        self.cromwell_id = self.cromwell_checks()
+
+        if self.verbose:
+            print("\t...Preparing objects")
+        self.job = Job(
+            cloudos_url=self.cloudos_url,
+            apikey=self.apikey,
+            cromwell_token=cromwell_token,
+            workspace_id=self.workspace_id,
+            project_name=self.project_name,
+            workflow_name=self.workflow_name,
+            repository_platform=self.repository_platform,
+            verify=self.verify_ssl,
+        )
+        if self.verbose:
+            print("\tThe following Job object was created")
+            print(f"\t{str(self.job)}")
+            print("\t...Sending job to CloudOS")
+
+    @property
+    def instance_type(self):
+        if self._instance_type == "NONE_SELECTED":
+            if self.execution_platform == "aws":
+                return "c4.xlarge"
+            elif self.execution_platform == "azure":
+                return "Standard_D4as_v4"
+            else:
+                return None
+        else:
+            return self._instance_type
+
+    @property
+    def use_mountpoints(self):
+        if self.accelerate_file_staging:
+            if self.execution_platform != "aws":
+                print(
+                    "[Message] You have selected accelerate file staging, but this function is "
+                    + "only available when execution platform is AWS. The accelerate file staging "
+                    + "will not be applied"
+                )
+                return False
+            else:
+                print(
+                    "[Message] Enabling AWS S3 mountpoint for accelerated file staging. "
+                    + "Please, take into consideration the following:\n"
+                    + "\t- It significantly reduces runtime and compute costs but may increase network costs.\n"
+                    + "\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n"
+                    + "\t- This is still a CloudOS BETA feature.\n"
+                )
+                return True
+        else:
+            return False
+
+    @property
+    def docker_login(self):
+        if self.use_private_docker_repository:
+            if self.is_module:
+                print(
+                    f'[Message] Workflow "{self.workflow_name}" is a CloudOS module. '
+                    + "Option --use-private-docker-repository will be ignored."
+                )
+                return False
+            else:
+                me = self.job.get_user_info(verify=self.verify_ssl)[
+                    "dockerRegistriesCredentials"
+                ]
+                if len(me) == 0:
+                    raise Exception(
+                        "User private Docker repository has been selected but your user "
+                        + "credentials have not been configured yet. Please, link your "
+                        + "Docker account to CloudOS before using "
+                        + "--use-private-docker-repository option."
+                    )
+                print(
+                    "[Message] Use private Docker repository has been selected. A custom job "
+                    + "queue to support private Docker containers and/or Lustre FSx will be created for "
+                    + "your job. The selected job queue will serve as a template."
+                )
+                return True
+        else:
+            return False
+
+    @property
+    def workflow_name(self):
+        if self._workflow_name:
+            return self._workflow_name
+        if self.job_id:
+            return self.get_workflow_attrs(self.job_id)["name"]
+        else:
+            raise ValueError("Workflow name or Job ID should be provided")
+
+    def get_exec_platform(self):
+        for cloud in ("aws", "azure", "gcp"):
+            cloud_url = f"{self.cloudos_url}/api/v1/cloud/{cloud}"
+            cloud_r = retry_requests_get(cloud_url, params=self.request_params, headers=self.headers)
+            cloud_os_request_error(cloud_r)
+            cloud_d = cloud_r.json()
+            if cloud_d:
+                return cloud
+        raise ValueError("Workspace is not associated with any supported cloud provider")
+
+    def get_repo_platform(self):
+        job_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}"
+        job_r = retry_requests_get(job_url, params=self.request_params, headers=self.headers)
+        cloud_os_request_error(job_r)
+        job_d = job_r.json()
+        return job_d["workflow"]["repository"]["platform"]
+
+    def check_hpc_args(self):
+        if self.execution_platform == "hpc":
+            print("\n[Message] HPC execution platform selected")
+            if self.hpc_id is None:
+                raise ValueError("Please, specify your HPC ID using --hpc parameter")
+            print(
+                "[Message] Please, take into account that HPC execution do not support "
+                + "the following parameters and all of them will be ignored:\n"
+                + "\t--job-queue\n"
+                + "\t--resumable | --do-not-save-logs\n"
+                + "\t--instance-type | --instance-disk | --cost-limit\n"
+                + "\t--storage-mode | --lustre-size\n"
+                + "\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n"
+            )
+            self.wdl_mainfile = None
+            self.wdl_importsfile = None
+            self.storage_mode = "regular"
+            self.save_logs = False
+
+    def cromwell_checks(self):
+        if self.execution_platform == "hpc" and self.workflow_type == "wdl":
+            raise ValueError(
+                f"The workflow {self.workflow_name} is a WDL workflow. "
+                + "WDL is not supported on HPC execution platform."
+            )
+        if self.workflow_type == "wdl":
+            print("[Message] WDL workflow detected")
+            if self.wdl_mainfile is None:
+                raise ValueError(
+                    "Please, specify WDL mainFile using --wdl-mainfile <mainFile>."
+                )
+            c_status = self.cl.get_cromwell_status(self.workspace_id, self.verify_ssl)
+            c_status_h = json.loads(c_status.content)["status"]
+            print(f"\tCurrent Cromwell server status is: {c_status_h}\n")
+            if c_status_h == "Stopped":
+                print("\tStarting Cromwell server...\n")
+                self.cl.cromwell_switch(self.workspace_id, "restart", self.verify_ssl)
+                elapsed = 0
+                while elapsed < 300 and c_status_h != "Running":
+                    c_status_old = c_status_h
+                    time.sleep(self.REQUEST_INTERVAL_CROMWELL)
+                    elapsed += self.REQUEST_INTERVAL_CROMWELL
+                    c_status = self.cl.get_cromwell_status(
+                        self.workspace_id, self.verify_ssl
+                    )
+                    c_status_h = json.loads(c_status.content)["status"]
+                    if c_status_h != c_status_old:
+                        print(f"\tCurrent Cromwell server status is: {c_status_h}\n")
+            if c_status_h != "Running":
+                raise Exception("Cromwell server did not restarted properly.")
+            cromwell_id = json.loads(c_status.content)["_id"]
+            print(
+                "\t"
+                + ("*" * 80)
+                + "\n"
+                + "\t[WARNING] Cromwell server is now running. Please, remember to stop it when "
+                + "your\n"
+                + "\tjob finishes. You can use the following command:\n"
+                + "\tcloudos cromwell stop \\\n"
+                + "\t\t--cromwell-token $CROMWELL_TOKEN \\\n"
+                + f"\t\t--cloudos-url {self.cloudos_url} \\\n"
+                + f"\t\t--workspace-id {self.workspace_id}\n"
+                + "\t"
+                + ("*" * 80)
+                + "\n"
+            )
+        else:
+            cromwell_id = None
+        return cromwell_id
+
+    def check_module(self):
+        if self.is_module:
+            if self.job_queue is not None:
+                print(
+                    f'[Message] Ignoring job queue "{self.job_queue}" for '
+                    + f'Platform Workflow "{self.workflow_name}". Platform Workflows '
+                    + "use their own predetermined queues."
+                )
+            self.job_queue_id = None
+            if self.nextflow_version != "22.10.8" and self.execution_platform != "azure":
+                print(
+                    f"[Message] The selected workflow '{self.workflow_name}' "
+                    + "is a CloudOS module. CloudOS modules only work with "
+                    + "Nextflow version 22.10.8. Switching to use 22.10.8"
+                )
+            self.nextflow_version = "22.10.8"
+            if self.execution_platform == "azure":
+                print(
+                    f"[Message] The selected workflow '{self.workflow_name}' "
+                    + "is a CloudOS module. For these workflows, worker nodes "
+                    + "are managed internally. For this reason, the options "
+                    + "azure-worker-instance-type, azure-worker-instance-disk and "
+                    + "azure-worker-instance-spot are not taking effect."
+                )
+                self.nextflow_version = "22.11.1-edge"
+        elif self.execution_platform == "aws":
+            queue = Queue(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                cromwell_token=self.cromwell_token,
+                workspace_id=self.workspace_id,
+                verify=self.verify_ssl,
+            )
+            self.job_queue_id = queue.fetch_job_queue_id(
+                workflow_type=self.workflow_type,
+                batch=self.batch,
+                job_queue=self.job_queue,
+            )
+        else:
+            self.job_queue_id = None
+
+    def fix_nextflow_versions(self):
+        if self.nextflow_version == "latest":
+            if self.execution_platform == "aws":
+                self.nextflow_version = self.aws_nextflow_latest
+            elif self.execution_platform == "azure":
+                self.nextflow_version = self.azure_nextflow_latest
+            else:
+                self.nextflow_version = self.hpc_nextflow_latest
+            print(
+                "[Message] You have specified Nextflow version 'latest' for execution platform "
+                + f"'{self.execution_platform}'. The workflow will use the "
+                + f"latest version available on CloudOS: {self.nextflow_version}."
+            )
+        if self.execution_platform == "aws":
+            if self.nextflow_version not in self.aws_nextflow_versions:
+                print(
+                    "[Message] For execution platform 'aws', the workflow will use the default "
+                    + "'22.10.8' version on CloudOS."
+                )
+                self.nextflow_version = "22.10.8"
+        if self.execution_platform == "azure":
+            if self.nextflow_version not in self.azure_nextflow_versions:
+                print(
+                    "[Message] For execution platform 'azure', the workflow will use the '22.11.1-edge' "
+                    + "version on CloudOS."
+                )
+                self.nextflow_version = "22.11.1-edge"
+        if self.execution_platform == "hpc":
+            if self.nextflow_version not in self.hpc_nextflow_versions:
+                print(
+                    "[Message] For execution platform 'hpc', the workflow will use the '22.10.8' version on CloudOS."
+                )
+                self.nextflow_version = "22.10.8"
+        if (
+            self.nextflow_version != "22.10.8"
+            and self.nextflow_version != "22.11.1-edge"
+        ):
+            print(
+                f"[Warning] You have specified Nextflow version {self.nextflow_version}. This version requires the pipeline "
+                + "to be written in DSL2 and does not support DSL1."
+            )
+
+    def get_workflow_attrs(self, job_id):
+        job_url = f"{self.cloudos_url}/api/v1/jobs/{job_id}"
+        job_req = retry_requests_get(
+            job_url, headers=self.headers, params=self.request_params
+        )
+        cloud_os_request_error(job_req)
+        job_d = job_req.json()
+        return job_d["workflow"]
+
+    def run(self):
+        if self.job_id:
+            raise ValueError("Job ID should only be specified when resuming jobs.")
+
+        j_id = self.job.send_job(
+            job_config=self.job_config,
+            parameter=self.parameters,
+            is_module=self.is_module,
+            git_commit=self.commit,
+            git_tag=self.git_tag,
+            git_branch=self.branch,
+            job_name=self.name,
+            resumable=self.resumable,
+            save_logs=self.save_logs,
+            batch=self.batch,
+            job_queue_id=self.job_queue_id if self.execution_platform == "aws" else None,
+            nextflow_profile=self.nextflow_profile,
+            nextflow_version=self.nextflow_version,
+            instance_type=self.instance_type,
+            instance_disk=self.instance_disk,
+            storage_mode=self.storage_mode,
+            lustre_size=self.lustre_size,
+            execution_platform=self.execution_platform,
+            hpc_id=self.hpc_id,
+            workflow_type=self.workflow_type,
+            cromwell_id=self.cromwell_id,
+            azure_worker_instance_type=self.azure_worker_instance_type,
+            azure_worker_instance_disk=self.azure_worker_instance_disk,
+            azure_worker_instance_spot=self.azure_worker_instance_spot,
+            cost_limit=self.cost_limit,
+            use_mountpoints=self.use_mountpoints if self.execution_platform == "aws" else None,
+            docker_login=self.docker_login,
+            verify=self.verify_ssl,
+        )
+        print(f"\tYour assigned job id is: {j_id}\n")
+        self.job_id = j_id
+        self.wait()
+
+    def run_again(self, resume=False):
+        job_id = self.job.clone_or_resume_job(
+            job_id=self.job_id,
+            job_config=self.job_config,
+            branch=self.branch,
+            commit=self.commit,
+            git_tag=self.git_tag,
+            profile=self.nextflow_profile,
+            name=self.name,
+            parameters=self.parameters,
+            is_module=self.is_module,
+            cost_limit=self.cost_limit,
+            project=self.project_name,
+            instance_type=self.instance_type,
+            resumable=self.resumable,
+            save_logs=self.save_logs,
+            batch=self.batch,
+            job_queue_id=self.job_queue_id if self.execution_platform == "aws" else None,
+            use_mountpoints=self.use_mountpoints if self.execution_platform == "aws" else None,
+            nextflow_version=self.nextflow_version,
+            execution_platform=self.execution_platform,
+            instance_disk=self.instance_disk,
+            storage_mode=self.storage_mode,
+            lustre_size=self.lustre_size,
+            hpc_id=self.hpc_id,
+            workflow_type=self.workflow_type,
+            cromwell_id=self.cromwell_id,
+            azure_worker_instance_type=self.azure_worker_instance_type,
+            azure_worker_instance_disk=self.azure_worker_instance_disk,
+            azure_worker_instance_spot=self.azure_worker_instance_spot,
+            docker_login=self.docker_login,
+            verify=self.verify_ssl,
+            cpus=self.cpus,
+            memory=self.memory,
+            resume_job=resume,
+        )
+        print(f"\tYour assigned job id is: {job_id}\n")
+        self.job_id = job_id
+        self.wait()
+
+    def wait(self):
+        j_url = f"{self.cloudos_url}/app/advanced-analytics/analyses/{self.job_id}"
+        if self.wait_completion:
+            print(
+                "\tPlease, wait until job completion (max wait time of "
+                + f"{self.wait_time} seconds).\n"
+            )
+            j_status = self.job.wait_job_completion(
+                job_id=self.job_id,
+                wait_time=self.wait_time,
+                request_interval=self.request_interval,
+                verbose=self.verbose,
+                verify=self.verify_ssl,
+            )
+            j_name = j_status["name"]
+            j_final_s = j_status["status"]
+            if j_final_s == self.job_completed:
+                print(
+                    f'\nJob status for job "{j_name}" (ID: {self.job_id}): {j_final_s}'
+                )
+                sys.exit(0)
+            else:
+                print(
+                    f'\nJob status for job "{j_name}" (ID: {self.job_id}): {j_final_s}'
+                )
+
+                sys.exit(1)
+        else:
+            j_status = self.job.get_job_status(self.job_id, self.verify_ssl)
+            j_status_h = json.loads(j_status.content)["status"]
+            print(f"\tYour current job status is: {j_status_h}")
+            print(
+                "\tTo further check your job status you can either go to "
+                + f"{j_url} or use the following command:\n"
+                + "\tcloudos job status \\\n"
+                + "\t\t--apikey $MY_API_KEY \\\n"
+                + f"\t\t--cloudos-url {self.cloudos_url} \\\n"
+                + f"\t\t--job-id {self.job_id}\n"
+            )
