@@ -80,6 +80,19 @@ class CantResumeNonResumableJob(Exception):
         self.workflow = workflow
 
 
+class NotImplementedFeature(Exception):
+    """
+    Exception raised when attempting to use a feature that hasn't been implemented yet.
+    """
+    def __init__(self, feature_name, additional_info=None):
+        message = f"The feature '{feature_name}' is not implemented yet"
+        if additional_info:
+            message += f": {additional_info}"
+        super(NotImplementedFeature, self).__init__(message)
+        self.feature_name = feature_name
+
+
+
 def cloud_os_request_error(request):
     if request.status_code == 401:
         raise NotAuthorisedException

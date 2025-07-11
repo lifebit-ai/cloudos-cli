@@ -29,6 +29,7 @@ from cloudos_cli.utils.errors import (
     cloud_os_request_error,
     CantResumeNonResumableJob,
     CantResumeRunningJob,
+    NotImplementedFeature,
 )
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from cloudos_cli.utils.resources import ssl_selector
@@ -1451,9 +1452,9 @@ class JobSetup:
 
         self.fix_nextflow_versions()
         if self.workflow_type != "docker":
-            print("noh")
             self.check_module()
-
+        else:
+            raise NotImplementedFeature("Importing array bash jobs")
         if self.verbose:
             print("\t...Detecting workflow type")
 
@@ -1673,6 +1674,8 @@ class JobSetup:
                 batch=self.batch,
                 job_queue=self.job_queue,
             )
+        else:
+            self.job_queue_id = None
 
     def fix_nextflow_versions(self):
         if self.nextflow_version == "latest":
