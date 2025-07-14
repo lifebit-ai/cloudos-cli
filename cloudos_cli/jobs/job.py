@@ -641,6 +641,7 @@ class Job(Cloudos):
         workspace_id = self.workspace_id
         workflow_id = self.workflow_id
         project_id = project_id or self.project_id
+
         # Prepare api request for CloudOS to run a job
         headers = {
             "Content-type": "application/json",
@@ -686,6 +687,7 @@ class Job(Cloudos):
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
+        print("{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id))
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
@@ -1467,19 +1469,28 @@ class JobSetup:
             project_r = retry_requests_get(project_url, params=self.request_params, headers=self.headers)
             cloud_os_request_error(project_r)
             project_id = project_r.json()["project"]
+            self.job = Job(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                cromwell_token=cromwell_token,
+                workspace_id=self.workspace_id,
+                project_name=self.project_name,
+                project_id=project_id,
+                workflow_name=self.workflow_name,
+                repository_platform=self.repository_platform,
+                verify=self.verify_ssl,
+            )
         else:
-            project_id = None
-        self.job = Job(
-            cloudos_url=self.cloudos_url,
-            apikey=self.apikey,
-            cromwell_token=cromwell_token,
-            workspace_id=self.workspace_id,
-            project_name=self.project_name,
-            project_id=project_id,
-            workflow_name=self.workflow_name,
-            repository_platform=self.repository_platform,
-            verify=self.verify_ssl,
-        )
+            self.job = Job(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                cromwell_token=cromwell_token,
+                workspace_id=self.workspace_id,
+                project_name=self.project_name,
+                workflow_name=self.workflow_name,
+                repository_platform=self.repository_platform,
+                verify=self.verify_ssl,
+            )
         if self.verbose:
             print("\tThe following Job object was created")
             print(f"\t{str(self.job)}")
@@ -1739,7 +1750,6 @@ class JobSetup:
     def run(self):
         if self.job_id:
             raise ValueError("Job ID should only be specified when resuming jobs.")
-
         j_id = self.job.send_job(
             job_config=self.job_config,
             parameter=self.parameters,
