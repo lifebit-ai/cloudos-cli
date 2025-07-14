@@ -1083,7 +1083,7 @@ where profile `test` is used for all other necessary variables, but `--session-i
 
 #### Linking a File Explorer folder to Interactive Analysis
 
-The usage of the subcommand is using the same structure as for the S3 folders:
+Linking a File Explorer folder to an Interactive Analysis session can be done using the same subcommand as for the s3 folders:
 
 ```console
 cloudos datasets link <File Explorer FOLDER PATH> <options>
