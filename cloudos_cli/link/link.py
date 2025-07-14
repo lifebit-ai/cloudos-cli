@@ -8,6 +8,7 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post
 from urllib.parse import urlparse
 from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
+import json
 
 
 @dataclass
@@ -66,14 +67,19 @@ class Link(Cloudos):
         else:
             data = self.parse_file_explorer_path(folder)
             type_folder = "File Explorer"
-
         r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
         if r.status_code == 403:
             raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
         elif r.status_code == 401:
             raise ValueError(f"Forbidden: Invalid API key or insufficient permissions")
         elif r.status_code == 400:
-            raise ValueError(f"Bad request: please make sure the {type_folder} URL is valid, and the session is active")
+            r_content = json.loads(r.content)
+            if r_content["message"] == "Invalid Supported DataItem folderType. Supported values are S3Folder":
+                raise ValueError(f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.")
+            elif r_content["message"] == "Request failed with status code 403":
+                raise ValueError(f"Interactive Analysis session is not active")
+            else:
+                raise ValueError(f"Cannot link folder")
         elif r.status_code == 204:
             if type_folder == "S3":
                 full_path = (
