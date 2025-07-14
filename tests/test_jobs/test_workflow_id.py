@@ -26,7 +26,8 @@ def test_workflow_id():
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
-    params = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
+    #params = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
+    params = {"search": "lifebit-testing", "teamId": "lv89ufc838sdig"}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,
@@ -37,7 +38,7 @@ def test_workflow_id():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
+    search_str = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(

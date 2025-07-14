@@ -35,7 +35,8 @@ def test_send_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
-    params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
+    #params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
+    params_projects = {"search": "lifebit-testing", "teamId": "lv89ufc838sdig"}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,
@@ -46,7 +47,7 @@ def test_send_job():
             "apikey": APIKEY
         }
     search_str = f"teamId={WORKSPACE_ID}"
-    search_str_projects = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
+    search_str_projects = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
     # mock GET method with the .json
     responses.add(
