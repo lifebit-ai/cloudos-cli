@@ -1462,12 +1462,20 @@ class JobSetup:
 
         if self.verbose:
             print("\t...Preparing objects")
+        if not self.project_name:
+            project_url = f"{self.cloudos_url}/api/v1/jobs/{self.job_id}/request-payload"
+            project_r = retry_requests_get(project_url, params=self.request_params, headers=self.headers)
+            cloud_os_request_error(project_r)
+            project_id = project_r.json()["project"]
+        else:
+            project_id = None
         self.job = Job(
             cloudos_url=self.cloudos_url,
             apikey=self.apikey,
             cromwell_token=cromwell_token,
             workspace_id=self.workspace_id,
             project_name=self.project_name,
+            project_id=project_id,
             workflow_name=self.workflow_name,
             repository_platform=self.repository_platform,
             verify=self.verify_ssl,

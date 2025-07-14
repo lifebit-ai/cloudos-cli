@@ -649,7 +649,7 @@ def clone(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': True,
+        'project_name': False,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
@@ -888,7 +888,7 @@ def resume(ctx,
     required_dict = {
         'apikey': True,
         'workspace_id': True,
-        'project_name': True,
+        'project_name': False,
         "workflow_name": False
     }
     # determine if the user provided all required parameters
@@ -940,7 +940,7 @@ def resume(ctx,
         branch=git_branch,
         git_tag=git_tag,
         name=job_name,
-        resumable=None,
+        resumable=resumable,
         nextflow_profile=nextflow_profile,
         instance_disk=instance_disk,
         lustre_size=lustre_size,
