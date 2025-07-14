@@ -1099,7 +1099,7 @@ cloudos datasets link "Analyses Results/HLA" --session-id 1234
 ```
 
 > [!NOTE]
-> Virtual folders in File Explorer cannot be linked
+> Virtual folders in File Explorer, the ones a user has created in File explorer and are not actual storage locations, cannot be linked
 
 #### Create a (virtual) folder
 
