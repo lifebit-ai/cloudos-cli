@@ -128,7 +128,7 @@ def test_link_file_explorer_folder_success():
     assert r.status_code == 204 # Expecting a 204 No Content response
 
 @pytest.fixture
-def link_instance_test_resopnse():
+def link_instance_test_response():
     return Link(
         cloudos_url="https://lifebit.ai",
         apikey="dummy-key",
@@ -139,39 +139,57 @@ def link_instance_test_resopnse():
     )
 
 @responses.activate
-def test_link_folder_403(link_instance_test_resopnse):
+def test_link_folder_403(link_instance_test_response):
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=403)
     
     with pytest.raises(ValueError, match="already exists"):
-        link_instance_test_resopnse.link_folder("s3://bucket/path", "sessionABC")
+        link_instance_test_response.link_folder("s3://bucket/path", "sessionABC")
 
 
 @responses.activate
-def test_link_folder_401(link_instance_test_resopnse):
+def test_link_folder_401(link_instance_test_response):
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=401)
 
     with pytest.raises(ValueError, match="Invalid API key"):
-        link_instance_test_resopnse.link_folder("s3://bucket/path", "sessionABC")
+        link_instance_test_response.link_folder("s3://bucket/path", "sessionABC")
 
 
 @responses.activate
-def test_link_folder_400(link_instance_test_resopnse):
+def test_link_folder_400_ia_inactive(link_instance_test_response):
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
-    responses.add(responses.POST, url, status=400)
+    responses.add(responses.POST, url, status=400, json={"message": "Request failed with status code 403"})
 
-    with pytest.raises(ValueError, match="Bad request"):
-        link_instance_test_resopnse.link_folder("s3://bucket/path", "sessionABC")
+    with pytest.raises(ValueError, match="Interactive Analysis session is not active"):
+        link_instance_test_response.link_folder("s3://bucket/path", "sessionABC")
 
 
 @responses.activate
-def test_link_folder_204_s3(capsys, link_instance_test_resopnse, monkeypatch):
+def test_link_folder_400_invalid_dataitem(link_instance_test_response):
+    url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url, status=400, json={"message": "Invalid Supported DataItem folderType. Supported values are S3Folder"})
+
+    with pytest.raises(ValueError, match="Invalid Supported DataItem"):
+        link_instance_test_response.link_folder("s3://bucket/path", "sessionABC")
+
+
+@responses.activate
+def test_link_folder_400_cannot_link(link_instance_test_response):
+    url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url, status=400, json={"message": "Some other error"})
+
+    with pytest.raises(ValueError, match="Cannot link folder"):
+        link_instance_test_response.link_folder("s3://bucket/path", "sessionABC")
+
+
+@responses.activate
+def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
 
     # Patch `parse_s3_path` to return a mocked S3 folder structure
-    monkeypatch.setattr(link_instance_test_resopnse, "parse_s3_path", lambda x: {
+    monkeypatch.setattr(link_instance_test_response, "parse_s3_path", lambda x: {
         "dataItem": {
             "type": "S3Folder",
             "data": {
@@ -181,18 +199,18 @@ def test_link_folder_204_s3(capsys, link_instance_test_resopnse, monkeypatch):
         }
     })
 
-    link_instance_test_resopnse.link_folder("s3://bucket/path/to/folder", "sessionABC")
+    link_instance_test_response.link_folder("s3://bucket/path/to/folder", "sessionABC")
     captured = capsys.readouterr()
     assert "Succesfully linked S3 folder: s3://bucket/path/to/folder/" in captured.out
 
 
 @responses.activate
-def test_link_folder_204_file_explorer(capsys, link_instance_test_resopnse, monkeypatch):
+def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monkeypatch):
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
 
-    monkeypatch.setattr(link_instance_test_resopnse, "parse_file_explorer_path", lambda x: {"dummy": "data"})
+    monkeypatch.setattr(link_instance_test_response, "parse_file_explorer_path", lambda x: {"dummy": "data"})
 
-    link_instance_test_resopnse.link_folder("/home/user/data", "sessionABC")
+    link_instance_test_response.link_folder("/home/user/data", "sessionABC")
     captured = capsys.readouterr()
     assert "Succesfully linked File Explorer folder: /home/user/data" in captured.out
