@@ -5,6 +5,7 @@ This is the main class for file explorer (datasets).
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
+from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_post, retry_requests_delete
 import json
 
@@ -150,6 +151,8 @@ class Datasets(Cloudos):
                                                                                   self.project_id,
                                                                                   self.workspace_id),
                                headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         raw = r.json()
         datasets = raw.get("datasets", [])
         #  Normalize response
