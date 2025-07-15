@@ -164,13 +164,6 @@ class Job(Cloudos):
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
         elif resource == 'projects':
-            #content = self.get_project_list(workspace_id, verify=verify)
-            print("element2:", self.get_project_id_from_name(workspace_id, self.project_name, verify=verify))
-            #New API projects endpoint spec
-            # for element in content:
-            #     if element["name"] == name:
-            #         print("element: ", element["_id"])
-            #         return element["_id"]
             return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
