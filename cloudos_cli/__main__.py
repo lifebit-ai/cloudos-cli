@@ -2653,7 +2653,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"Filepath", "Storage Path".'),
+                    '"File Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
