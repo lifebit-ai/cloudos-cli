@@ -843,7 +843,7 @@ class Job(Cloudos):
         parameters=None,
         is_module=False,
         example_parameters=[],
-        cost_limit=0.0,
+        cost_limit=None,
         project="",
         instance_type="",
         resumable=None,
@@ -853,9 +853,9 @@ class Job(Cloudos):
         use_mountpoints=None,
         nextflow_version="",
         execution_platform=None,
-        instance_disk=0,
+        instance_disk=None,
         storage_mode="",
-        lustre_size=1200,
+        lustre_size=None,
         hpc_id=None,
         workflow_type="nextflow",
         cromwell_id=None,
@@ -1012,8 +1012,12 @@ class Job(Cloudos):
         new_batch = batch or job_payload_d["batch"]["enabled"]
         new_job_queue_id = job_queue_id
         new_nextflow_version = nextflow_version or job_payload_d["nextflowVersion"]
+        if instance_disk is None:
+            instance_disk = 0
         new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
         new_storage_mode = storage_mode or job_payload_d["storageMode"]
+        if lustre_size is None:
+            lustre_size = 1200
         new_lustre_size = lustre_size
         new_execution_platform = job_payload_d["executionPlatform"]
         new_hpc_id = hpc_id
@@ -1344,7 +1348,7 @@ class JobSetup:
         wdl_mainfile="",
         wdl_importsfile="",
         storage_mode="regular",
-        accelerate_file_staging=False,
+        accelerate_file_staging=None,
         repository_platform="github",
         do_not_save_logs=False,
         use_private_docker_repository=False,
@@ -1516,6 +1520,8 @@ class JobSetup:
 
     @property
     def use_mountpoints(self):
+        if self.accelerate_file_staging is None:
+            return None
         if self.accelerate_file_staging:
             if self.execution_platform != "aws":
                 print(

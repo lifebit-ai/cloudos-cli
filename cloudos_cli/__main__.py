@@ -673,6 +673,7 @@ def clone(ctx,
     workspace_id = user_options["workspace_id"]
     project_name = user_options["project_name"]
     workflow_name = user_options["workflow_name"]
+    use_mountpoints = None if not accelerate_file_staging else True
     job_setup = jb.JobSetup(cloudos_url=cloudos_url,
                          apikey=apikey,
                          workspace_id=workspace_id,
@@ -689,7 +690,7 @@ def clone(ctx,
                          nextflow_version=nextflow_version,
                          wdl_importsfile="",
                          storage_mode=storage_mode,
-                         accelerate_file_staging=accelerate_file_staging,
+                         accelerate_file_staging=use_mountpoints,
                          workflow_name=workflow_name,
                          project_name=project_name,
                          repository_platform=None,
@@ -912,7 +913,7 @@ def resume(ctx,
     workspace_id = user_options["workspace_id"]
     project_name = user_options["project_name"]
     workflow_name = user_options["workflow_name"]
-
+    use_mountpoints = None if not accelerate_file_staging else True
     job_setup = jb.JobSetup(
         cloudos_url=cloudos_url,
         apikey=apikey,
@@ -930,7 +931,7 @@ def resume(ctx,
         nextflow_version=nextflow_version,
         wdl_importsfile="",
         storage_mode=storage_mode,
-        accelerate_file_staging=accelerate_file_staging,
+        accelerate_file_staging=use_mountpoints,
         workflow_name=workflow_name,
         project_name=project_name,
         repository_platform=None,
