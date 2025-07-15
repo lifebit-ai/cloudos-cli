@@ -1462,7 +1462,7 @@ class JobSetup:
         if self.workflow_type != "docker":
             self.check_module()
         else:
-            raise NotImplementedFeature("Importing array bash jobs")
+            raise NotImplementedFeature("Cloning/resuming array bash jobs")
         if self.verbose:
             print("\t...Detecting workflow type")
 
