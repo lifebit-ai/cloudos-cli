@@ -683,11 +683,11 @@ class Job(Cloudos):
                                                cpus=cpus,
                                                memory=memory,
                                                resume_dir=resume_job_work_dir)
-
+        if execution_platform == "azure":
+             del params["usesFusionFileSystem"]
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
-        print("{}/api/v2/jobs?teamId={}".format(cloudos_url, workspace_id))
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
