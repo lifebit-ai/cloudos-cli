@@ -34,6 +34,13 @@ from cloudos_cli.utils.errors import (
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from cloudos_cli.utils.resources import ssl_selector
 
+def set_param(given, previous, null_value=None):
+    """
+    Set return a given value if it is not `null_value`, or `previous`
+    if `given` is equal to `null_value`
+    """
+    reject_given = given is None if null_value is None else given == null_value
+    return previous if reject_given else given
 
 @dataclass
 class Job(Cloudos):
@@ -845,7 +852,7 @@ class Job(Cloudos):
         example_parameters=[],
         cost_limit=None,
         project="",
-        instance_type="",
+        instance_type=None,
         resumable=None,
         save_logs=None,
         batch=None,
@@ -988,44 +995,43 @@ class Job(Cloudos):
                 if new_param.split("=")[0] not in old_params_names:
                     new_parameters.append(new_param)
 
-        new_save_logs = (
-            job_payload_d["saveProcessLogs"] if save_logs is None else save_logs
-        )
-        new_use_mountpoints = (
-            job_payload_d["usesFusionFileSystem"]
-            if use_mountpoints is None
-            else use_mountpoints
-        )
+        new_save_logs = set_param(save_logs, job_data_d["saveProcessLogs"])
+        new_use_mountpoints = set_param(use_mountpoints, job_payload_d["usesFusionFileSystem"], None)
+        new_name = set_param(name, job_payload_d["name"])
         # Assemble payload for cloning
-        new_name = name or job_payload_d["name"]
         new_is_module = is_module
-        new_example_parameters = example_parameters
-        new_instance_type = (
-            instance_type
-            or job_payload_d["masterInstance"]["requestedInstance"]["type"]
-        )
-        if not cost_limit:
-            cost_limit = -1
-        new_cost_limit = cost_limit or job_payload_d["execution"]["computeCostLimit"]
-        new_resumable = resumable or job_payload_d["resumable"]
         new_job_config = job_config
-        new_batch = batch or job_payload_d["batch"]["enabled"]
-        new_job_queue_id = job_queue_id
-        new_nextflow_version = nextflow_version or job_payload_d["nextflowVersion"]
-        if instance_disk is None:
-            instance_disk = 0
-        new_instance_disk = instance_disk or job_payload_d["storageSizeInGb"]
-        new_storage_mode = storage_mode or job_payload_d["storageMode"]
-        if lustre_size is None:
-            lustre_size = 1200
-        new_lustre_size = lustre_size
+        new_job_queue_id = set_param(job_queue_id, job_data_d["batch"]["jobQueue"]["id"]) if execution_platform == "aws" else None
+
+        new_example_parameters = example_parameters
+        new_instance_type = set_param(instance_type, job_payload_d["masterInstance"]["requestedInstance"]["type"])
+        new_cost_limit = set_param(cost_limit, job_payload_d["execution"]["computeCostLimit"], 0.0)
+        new_resumable = set_param(resumable, job_payload_d["resumable"], False)
+        new_batch = set_param(batch, job_payload_d["batch"]["enabled"])
+        new_nextflow_version = set_param(nextflow_version, job_payload_d["nextflowVersion"])
+
+        new_instance_disk = set_param(instance_disk, job_payload_d["storageSizeInGb"], 0)
+        new_storage_mode = set_param(storage_mode, job_payload_d["storageMode"])
+
+        new_lustre_size = set_param(lustre_size, job_payload_d.get("lusterFsxStorageSizeInGb", 1200), 0)
         new_execution_platform = job_payload_d["executionPlatform"]
         new_hpc_id = hpc_id
         new_workflow_type = workflow_type
         new_cromwell_id = cromwell_id
-        new_azure_worker_instance_type = azure_worker_instance_type
-        new_azure_worker_instance_disk = azure_worker_instance_disk
-        new_azure_worker_instance_spot = azure_worker_instance_spot
+        if new_execution_platform == "azure":
+            new_azure_worker_instance_type = set_param(
+                azure_worker_instance_type,
+                job_data_d["azureBatch"].get("vmType", None), None)
+            new_azure_worker_instance_disk = set_param(
+                azure_worker_instance_disk,
+                job_data_d["azureBatch"].get("diskSizeInGb", None), 0)
+            new_azure_worker_instance_spot = set_param(
+                azure_worker_instance_spot,
+                job_data_d["azureBatch"].get("spot", False), None)
+        else:
+            new_azure_worker_instance_type = None
+            new_azure_worker_instance_disk = None
+            new_azure_worker_instance_spot = None
         new_docker_login = docker_login
         new_cpus = cpus
         new_memory = memory
@@ -1508,7 +1514,7 @@ class JobSetup:
 
     @property
     def instance_type(self):
-        if self._instance_type == "NONE_SELECTED":
+        if self._instance_type is None or self._instance_type == "NONE_SELECTED":
             if self.execution_platform == "aws":
                 return "c4.xlarge"
             elif self.execution_platform == "azure":
