@@ -2729,8 +2729,11 @@ def list_files(ctx,
                 type_ = "folder" if is_folder else "file"
 
                 user = item.get("user", {})
-                name = user.get("name", "").strip()
-                surname = user.get("surname", "").strip()
+                if isinstance(user, dict):
+                    name = user.get("name", "").strip()
+                    surname = user.get("surname", "").strip()
+                else:
+                    name = surname = ""
                 if name and surname:
                     owner = f"{name} {surname}"
                 elif name:
