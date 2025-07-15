@@ -743,18 +743,13 @@ def clone(ctx,
                     'following form: parameter_name=parameter_value. E.g.: ' +
                     '-p input=s3://path_to_my_file. You can use this option as many ' +
                     'times as parameters you want to include.'))
-@click.option('-t',
-              '--cromwell-token',
-              help=('Specific Cromwell server authentication token. Currently, not necessary ' +
-                    'as apikey can be used instead, but maintained for backwards compatibility.'))
 @click.option('--nextflow-profile',
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
 @click.option('--nextflow-version',
-              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
-                    'Default=22.10.8.'),
-              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
-              default='22.10.8')
+              help='Nextflow version to use when executing the workflow in CloudOS.',
+              type=click.Choice([None, '22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
+              default=None)
 @click.option('--git-commit',
               help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -772,8 +767,8 @@ def clone(ctx,
                     'of the default branch.'),
               default=None)
 @click.option('--job-name',
-              help='The name of the job. Default=new_job.',
-              default='new_job')
+              help='The name of the job. Default=previous job name.',
+              default=None)
 @click.option("--resumable",
               help="Allow the job to be resumed.",
               is_flag=True)
@@ -782,24 +777,24 @@ def clone(ctx,
                     'logs will not be stored.'),
               is_flag=True)
 @click.option('--job-queue',
-              help='Name of the job queue to use with a batch job.')
+              help='Name of the job queue to use with a batch job.',
+              default=None)
 @click.option('--instance-type',
-              help=('The type of compute instance to use as master node. ' +
-                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'),
-              default='NONE_SELECTED')
+              help=('The type of compute instance to use as master node.'),
+              default=None)
 @click.option('--instance-disk',
-              help='The disk space of the master node instance, in GB. Default=500.',
+              help='The disk space of the master node instance, in GB.',
               type=int,
-              default=500)
+              default=0)
 @click.option('--storage-mode',
               help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
-                    'regular or lustre storage. Default=regular.'),
-              default='regular')
+                    'regular or lustre storage.'),
+              default=None)
 @click.option('--lustre-size',
               help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
-                    'be 1200 or a multiple of it. Default=1200.'),
+                    'be 1200 or a multiple of it.'),
               type=int,
-              default=1200)
+              default=0)
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -813,16 +808,16 @@ def clone(ctx,
                     'Default=Standard_D4as_v4'),
               default='Standard_D4as_v4')
 @click.option('--azure-worker-instance-disk',
-              help='The disk size in GB for the worker node to be used in azure. Default=100',
+              help='The disk size in GB for the worker node to be used in azure.',
               type=int,
-              default=100)
+              default=0)
 @click.option('--azure-worker-instance-spot',
               help='Whether the azure worker nodes have to be spot instances or not.',
               is_flag=True)
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
-              default=30.0)
+              default=0.0)
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
