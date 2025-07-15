@@ -270,6 +270,57 @@ class Datasets(Cloudos):
                                 headers=headers, verify=self.verify)
         return r.json()
     
+    def list_azure_container_content(self, container_name: str, storage_account_name: str, path: str):
+        """
+        List contents of an Azure Blob container path.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        url = f"{self.cloudos_url}/api/v1/data-access/azure/container-contents"
+        url += f"?containerName={container_name}&storageAccountName={storage_account_name}"
+        url += f"&path={path}&teamId={self.workspace_id}"
+
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
+        raw = r.json()
+
+        # Normalize response to match existing expectations
+        normalized = {"folders": [], "files": []}
+        for item in raw.get("contents", []):
+            is_dir = item.get("isDir", False)
+
+            # Set a name field based on the last part of the blob path
+            path_str = item.get("path", "")
+            name = item.get("name") or path_str.rstrip("/").split("/")[-1]
+
+            # inject expected structure
+            if is_dir:
+                normalized["folders"].append({
+                    "_id": item.get("_id"),
+                    "name": name,
+                    "folderType": "AzureBlobFolder",
+                    "blobPrefix": path_str,
+                    "blobContainerName": container_name,
+                    "blobStorageAccountName": storage_account_name,
+                    "kind": "Folder" 
+                })
+            else:
+                normalized["files"].append({
+                    "_id": item.get("_id"),
+                    "name": name,
+                    "fileType": "AzureBlobFile",
+                    "blobName": path_str,
+                    "blobContainerName": container_name,
+                    "blobStorageAccountName": storage_account_name,
+                    "sizeInBytes": item.get("size", 0),
+                    "updatedAt": item.get("lastModified"),
+                    "kind": "File" 
+                })
+
+        return normalized
+
     def list_folder_content(self, path=None):
         """
         Wrapper to list contents of a CloudOS folder.
@@ -327,6 +378,21 @@ class Datasets(Cloudos):
                             path_depth += 1
                             break
 
+                    elif folder_type == "AzureBlobFolder":
+                        container_name = job_folder['blobContainerName']
+                        storage_account_name = job_folder['blobStorageAccountName']
+                        blob_prefix = job_folder['blobPrefix']
+                        # trailing slash is mandatory for azure, otherwise it will not list the content of thefolde, just the folder 
+                        if not blob_prefix.endswith('/'):
+                            blob_prefix += '/'
+
+                        if path_depth == len(parts) - 1:
+                            return self.list_azure_container_content(container_name, storage_account_name, blob_prefix)
+                        else:
+                            sub_path = '/'.join(parts[0:path_depth+1])
+                            folder_content = self.list_folder_content(sub_path)
+                            path_depth += 1
+                            break
                     else:
                         raise ValueError(f"Unsupported folder type '{folder_type}' for path '{path}'")
 
