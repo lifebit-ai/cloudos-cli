@@ -817,13 +817,19 @@ class Job(Cloudos):
 
         cloud_os_request_error(project_r)
         project_d = project_r.json()
-        if project_d["total"] == 1:
-            return True, project_d["projects"][0]["_id"]
-        if project_d["total"] > 1:
-            raise ValueError(
-                f"Project {project} is not unique. Please provide a unique project name."
-            )
-        return False, None
+        n_hits = 0
+        hit = False
+        project_id = None
+        for project_ix in project_d["projects"]:
+            if project_ix["name"] == project:
+                hit = True
+                project_id = project_ix["_id"]
+                n_hits += 1
+            if n_hits > 1:
+                raise ValueError(
+                    f"Project {project} is not unique. Please provide a unique project name."
+                )
+        return hit, project_id
 
     def clone_or_resume_job(
         self,
