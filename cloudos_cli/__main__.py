@@ -2653,7 +2653,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"Filepath", "Storage Path".'),
+                    '"File Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -2729,8 +2729,11 @@ def list_files(ctx,
                 type_ = "folder" if is_folder else "file"
 
                 user = item.get("user", {})
-                name = user.get("name", "").strip()
-                surname = user.get("surname", "").strip()
+                if isinstance(user, dict):
+                    name = user.get("name", "").strip()
+                    surname = user.get("surname", "").strip()
+                else:
+                    name = surname = ""
                 if name and surname:
                     owner = f"{name} {surname}"
                 elif name:
@@ -2754,7 +2757,7 @@ def list_files(ctx,
                     account = item.get("blobStorageAccountName")
                     container = item.get("blobContainerName")
                     key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
-                    s3_path = f"azure://{account}/{container}/{key}" if account and container and key else "-"
+                    s3_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
                 else:
                     s3_path = "-"
 

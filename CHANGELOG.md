@@ -6,11 +6,13 @@
 
 - Adds azure support for `datasets cp`
 
+
 ## v2.40.0 (2025-07-11)
 
 ### Feat
 
 - Adds azure support for `datasets ls --details`
+
 
 ## v2.39.0 (2025-07-8)
 
