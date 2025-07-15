@@ -2754,7 +2754,7 @@ def list_files(ctx,
                     account = item.get("blobStorageAccountName")
                     container = item.get("blobContainerName")
                     key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
-                    s3_path = f"azure://{account}/{container}/{key}" if account and container and key else "-"
+                    s3_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
                 else:
                     s3_path = "-"
 

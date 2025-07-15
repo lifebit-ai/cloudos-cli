@@ -128,6 +128,8 @@ class Datasets(Cloudos):
                              f' and an importsFile \'{importsfile}\' was not found')
         else:
             raise ValueError(f'[ERROR] No {name} element in {resource} was found')
+        
+
     def list_project_content(self):
         """
         Fetch the information of the directories present in the projects.
@@ -198,6 +200,8 @@ class Datasets(Cloudos):
                                                                               folder_id,
                                                                               self.workspace_id),
                                 headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         return r.json()
 
     def list_s3_folder_content(self, s3_bucket_name, s3_relative_path):
@@ -227,6 +231,8 @@ class Datasets(Cloudos):
                                                                                                              s3_relative_path,
                                                                                                              self.workspace_id),
                                 headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         raw = r.json()
 
         #  Normalize response
@@ -268,6 +274,8 @@ class Datasets(Cloudos):
                                                                                      folder_id,
                                                                                      self.workspace_id),
                                 headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         return r.json()
     
     def list_azure_container_content(self, container_name: str, storage_account_name: str, path: str):
@@ -284,6 +292,8 @@ class Datasets(Cloudos):
         url += f"&path={path}&teamId={self.workspace_id}"
 
         r = retry_requests_get(url, headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
         raw = r.json()
 
         # Normalize response to match existing expectations
@@ -435,6 +445,8 @@ class Datasets(Cloudos):
             }
         }
         response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
         return response
 
     def rename_item(self, item_id: str, new_name: str, kind: str):
@@ -472,6 +484,8 @@ class Datasets(Cloudos):
         }
 
         response = retry_requests_put(url, headers=headers, data=json.dumps(payload), verify=self.verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
         return response
     
     def copy_item(self, item, destination_id, destination_kind):
@@ -515,7 +529,8 @@ class Datasets(Cloudos):
         else:
             raise ValueError(f"Unknown item type for copy: {item.get('name')}")
         response = retry_requests_post(url, headers=headers, json=payload)
-
+        if response.status_code >= 400:
+            raise BadRequestException(response)
         return response
     
     def create_virtual_folder(self, name: str, parent_id: str, parent_kind: str):
@@ -556,6 +571,8 @@ class Datasets(Cloudos):
         }
 
         response = retry_requests_post(url, headers=headers, json=payload, verify=self.verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
         return response
     
     def delete_item(self, item_id: str, kind: str):
@@ -586,4 +603,6 @@ class Datasets(Cloudos):
         }
 
         response = retry_requests_delete(url, headers=headers, verify=self.verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
         return response
