@@ -251,7 +251,9 @@ FINISHED_JOB_BRNACH = {
             },
             "platform": GIT_PROVIDER
         }
-    }
+    },
+    "saveProcessLogs": True,
+    "azureBatch": {"vmType": "Standard_D4as_v4"}
 }
 
 

@@ -861,7 +861,7 @@ class Job(Cloudos):
         nextflow_version="",
         execution_platform=None,
         instance_disk=None,
-        storage_mode="",
+        storage_mode=None,
         lustre_size=None,
         hpc_id=None,
         workflow_type="nextflow",
