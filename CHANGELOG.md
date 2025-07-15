@@ -6,6 +6,7 @@
 
 - Adds azure support for `datasets ls --details`
 
+
 ## v2.39.0 (2025-07-8)
 
 ### Feat
