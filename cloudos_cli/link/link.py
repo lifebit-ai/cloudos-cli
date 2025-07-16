@@ -156,18 +156,14 @@ class Link(Cloudos):
                         "name": str,          # The base name of the file.
                         "fullPath": str      # The full path of the file.
         """
-        # determine project + path
-        project, file_path = extract_project(path)
-
         # get folder id
-        current_project = project if project != '' else self.project_name
         folder_id = get_file_or_folder_id(
             self.cloudos_url,
             self.apikey,
             self.workspace_id,
-            current_project,
+            self.project_name,
             self.verify,
-            file_path,
+            path.strip("/"),
             "",
             is_file=False
         )
