@@ -2653,7 +2653,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"Filepath", "S3 Path".'),
+                    '"File Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -2668,10 +2668,9 @@ def list_files(ctx,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
 
-    # fallback to ctx default if profile not specified
     profile = profile or ctx.default_map['datasets']['list'].get('profile')
-
     config_manager = ConfigurationProfile()
+
     required_dict = {
         'apikey': True,
         'workspace_id': True,
@@ -2679,28 +2678,25 @@ def list_files(ctx,
         'project_name': False
     }
 
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
+    user_options = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=workspace_id,
+        workflow_name=None,
+        repository_platform=None,
+        execution_platform=None,
+        project_name=project_name
     )
-    # Setup only the required parameters
+
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
     project_name = user_options['project_name']
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
@@ -2719,32 +2715,31 @@ def list_files(ctx,
             contents = result.get("files", []) + result.get("folders", [])
 
         if details:
-            console = Console(width=None)  # Avoid terminal width truncation
-
+            console = Console(width=None)
             table = Table(show_header=True, header_style="bold white")
             table.add_column("Type", style="cyan", no_wrap=True)
             table.add_column("Owner", style="white")
             table.add_column("Size", style="magenta")
             table.add_column("Last Updated", style="green")
-            table.add_column("Filepath", style="bold", overflow="fold")
-            table.add_column("S3 Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+            table.add_column("File Name", style="bold", overflow="fold")
+            table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
 
             for item in contents:
                 is_folder = "folderType" in item or item.get("isDir", False)
                 type_ = "folder" if is_folder else "file"
 
-                user = item.get("user")
+                user = item.get("user", {})
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
                     surname = user.get("surname", "").strip()
-                    if name and surname:
-                        owner = f"{name} {surname}"
-                    elif name:
-                        owner = name
-                    elif surname:
-                        owner = surname
-                    else:
-                        owner = "-"
+                else:
+                    name = surname = ""
+                if name and surname:
+                    owner = f"{name} {surname}"
+                elif name:
+                    owner = name
+                elif surname:
+                    owner = surname
                 else:
                     owner = "-"
 
@@ -2754,14 +2749,17 @@ def list_files(ctx,
                 updated = item.get("updatedAt") or item.get("lastModified", "-")
                 filepath = item.get("name", "-")
 
-                if is_folder:
-                    s3_bucket = item.get("s3BucketName")
-                    s3_key = item.get("s3Prefix")
-                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
+                    bucket = item.get("s3BucketName")
+                    key = item.get("s3ObjectKey") or item.get("s3Prefix")
+                    s3_path = f"s3://{bucket}/{key}" if bucket and key else "-"
+                elif item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
+                    account = item.get("blobStorageAccountName")
+                    container = item.get("blobContainerName")
+                    key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
+                    s3_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
                 else:
-                    s3_bucket = item.get("s3BucketName")
-                    s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                    s3_path = "-"
 
                 style = Style(color="blue", underline=True) if is_folder else None
                 table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
