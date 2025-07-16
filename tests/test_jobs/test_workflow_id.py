@@ -26,8 +26,7 @@ def test_workflow_id():
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
-    #params = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
-    params = {"search": "lifebit-testing", "teamId": "lv89ufc838sdig"}
+    params = {"search": PROJECT_NAME, "teamId": WORKSPACE_ID}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,

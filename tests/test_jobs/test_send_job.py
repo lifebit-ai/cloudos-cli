@@ -35,8 +35,7 @@ def test_send_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
-    #params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
-    params_projects = {"search": "lifebit-testing", "teamId": "lv89ufc838sdig"}
+    params_projects = {"search": PROJECT_NAME, "teamId": WORKSPACE_ID}
     params_workflows = {
         "teamId": WORKSPACE_ID,
         "pageSize": PAGE_SIZE,
