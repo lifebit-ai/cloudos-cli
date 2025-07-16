@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.41.0 (2025-07-16)
+
+### Feat
+
+- Implements searching the API for project name to get project id
+
 ## v2.40.0 (2025-07-11)
 
 ### Feat
