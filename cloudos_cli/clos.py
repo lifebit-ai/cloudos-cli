@@ -917,5 +917,4 @@ class Cloudos:
         response = retry_requests_get(url, headers=headers, verify=verify)
         if response.status_code >= 400:
             raise BadRequestException(response)
-        # example return -> {'total': 1, 'projects': [{'_id': '1234', 'user': {'id': '4567'}, 'team': {'id': '7643'}, 'name': 'PROJECT', 'description': '', 'projectData': [], 'createdAt': '2025-06-25T11:53:40.170Z', 'updatedAt': '2025-07-08T15:23:51.542Z', 'directory': {}}]}
         return json.loads(response.content)["projects"][0]["_id"]
