@@ -589,14 +589,16 @@ class Cloudos:
         wt : string ['nextflow'|'wdl']
             The workflow type detected
         """
-        my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
-        my_workflows = self.process_workflow_list(my_workflows_r)
-        wt_all = my_workflows.loc[
-            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
-            'workflowType']
+        #my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
+        #my_workflows = self.process_workflow_list(my_workflows_r)
+        # wt_all = my_workflows.loc[
+        #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+        #     'workflowType']
+        # get list with workflow types
+        wt_all = self.workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType")
         if len(wt_all) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
-        wt = wt_all.unique()
+        wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
         return str(wt[0])
@@ -623,11 +625,13 @@ class Cloudos:
         bool
             True, if the workflow is a system module, false otherwise.
         """
-        my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
-        my_workflows = self.process_workflow_list(my_workflows_r)
-        group = my_workflows.loc[
-            (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
-            'group']
+        # my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
+        # my_workflows = self.process_workflow_list(my_workflows_r)
+        # group = my_workflows.loc[
+        #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
+        #     'group']
+        # get a list of all groups
+        group = self.workflow_content_query(self, workspace_id, workflow_name, verify=True, query="group")
         if len(group) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         if len(group) > 1:
@@ -640,7 +644,7 @@ class Cloudos:
                          'data-factory-omics-insights',
                          'intermediate'
                          ]
-        if group.values[0] in module_groups:
+        if group[0] in module_groups:
             return True
         else:
             return False
@@ -883,3 +887,51 @@ class Cloudos:
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
+
+    def get_workflow_content(self, workspace_id, workflow_name, verify=True):
+        """Retrieve the workflow content from API.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID to search for the workflow.
+        workflow_name : str
+            The name of the workflow to search for.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            The server response containing workflow details.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to retrieve the project fails with a status code
+            indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        content = json.loads(response.content)
+        return content
+
+    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType"):
+
+        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify)
+
+        return [wf.get(query) for wf in content.get("workflows", [])]
+
+
+        # First matching workflow (or None if not found)
+        wf = next((wf for wf in content.get("workflows", []) if wf.get("name") == workflow_name), None)
+        if wf is None:
+            raise ValueError(f"[Error] Cannot find workflow '{workflow_name}' in workspace '{workspace_id}'")
