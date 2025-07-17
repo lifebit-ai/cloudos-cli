@@ -928,3 +928,51 @@ class Cloudos:
             raise ValueError(f"[Error] Project '{project_name}' was not found in workspace '{workspace_id}'")
 
         return project_id
+
+    def get_workflow_content(self, workspace_id, workflow_name, verify=True):
+        """Retrieve the workflow content from API.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID to search for the workflow.
+        workflow_name : str
+            The name of the workflow to search for.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            The server response containing workflow details.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to retrieve the project fails with a status code
+            indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        content = json.loads(response.content)
+        return content
+
+    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType"):
+
+        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify)
+
+        return [wf.get(query) for wf in content.get("workflows", [])]
+
+
+        # First matching workflow (or None if not found)
+        wf = next((wf for wf in content.get("workflows", []) if wf.get("name") == workflow_name), None)
+        if wf is None:
+            raise ValueError(f"[Error] Cannot find workflow '{workflow_name}' in workspace '{workspace_id}'")
