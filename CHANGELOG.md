@@ -1,10 +1,16 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.41.0 (2025-07-16)
+## v2.42.0 (2025-07-17)
 
 ### Feat
 
 - Link File Explorer folder to Interactive Analysis
+
+## v2.41.0 (2025-07-14)
+
+### Feat
+
+- Adds azure support for `datasets cp`
 
 ## v2.40.0 (2025-07-11)
 
