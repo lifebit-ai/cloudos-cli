@@ -973,10 +973,5 @@ class Cloudos:
         if len(wf) > 1:
             raise ValueError(f'More than one workflow found with name: {workflow_name}')
 
+        # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
-
-
-        # # First matching workflow (or None if not found)
-        # wf = next((wf for wf in content.get("workflows", []) if wf.get("name") == workflow_name), None)
-        # if wf is None:
-        #     raise ValueError(f"[Error] Cannot find workflow '{workflow_name}' in workspace '{workspace_id}'")
