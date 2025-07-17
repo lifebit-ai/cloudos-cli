@@ -595,9 +595,8 @@ class Cloudos:
         #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
         #     'workflowType']
         # get list with workflow types
-        wt_all = self.workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType")
-        if len(wt_all) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
+        wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType")
+        # make unique
         wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
@@ -631,11 +630,8 @@ class Cloudos:
         #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
         #     'group']
         # get a list of all groups
-        group = self.workflow_content_query(self, workspace_id, workflow_name, verify=True, query="group")
-        if len(group) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
-        if len(group) > 1:
-            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+        group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group")
+
         module_groups = ['system-tools',
                          'data-factory-data-connection-etl',
                          'data-factory',
@@ -969,10 +965,18 @@ class Cloudos:
 
         content = self.get_workflow_content(workspace_id, workflow_name, verify=verify)
 
-        return [wf.get(query) for wf in content.get("workflows", [])]
+        # check for duplicates
+        wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
+
+        if len(wf) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
+        if len(wf) > 1:
+            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+
+        return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
 
-        # First matching workflow (or None if not found)
-        wf = next((wf for wf in content.get("workflows", []) if wf.get("name") == workflow_name), None)
-        if wf is None:
-            raise ValueError(f"[Error] Cannot find workflow '{workflow_name}' in workspace '{workspace_id}'")
+        # # First matching workflow (or None if not found)
+        # wf = next((wf for wf in content.get("workflows", []) if wf.get("name") == workflow_name), None)
+        # if wf is None:
+        #     raise ValueError(f"[Error] Cannot find workflow '{workflow_name}' in workspace '{workspace_id}'")
