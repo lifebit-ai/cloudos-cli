@@ -11,7 +11,7 @@ class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
                  workflow_name, workflow_url, workflow_docs_link="", workflow_description="", cost_limit=30, main_file=None, verify=True):
         self.cloudos_url = cloudos_url
-        self.workflow_url = workflow_url.rstrip('.git')
+        self.workflow_url = workflow_url.replace('.git', "")
         self.workspace_id = workspace_id
         self.platform = platform
         self.parsed_url = urlsplit(self.workflow_url)
