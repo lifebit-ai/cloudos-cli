@@ -1,20 +1,36 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.43.0 (2025-07-17)
+
+### Feat
+
+- Implements searching the API for project name to get project id
+
+## v2.42.0 (2025-07-17)
+
+### Feat
+
+- Link File Explorer folder to Interactive Analysis
+
+## v2.41.0 (2025-07-14)
+
+### Feat
+
+- Adds azure support for `datasets cp`
+
 ## v2.40.0 (2025-07-11)
 
 ### Feat
 
 - Adds azure support for `datasets ls --details`
 
-
-## v2.39.0 (2025-07-8)
+## v2.39.0 (2025-07-14)
 
 ### Feat
 
 - Adds azure support for `datasets ls`
 
-
-## v2.38.3 (2025-07-8)
+## v2.38.3 (2025-07-08)
 
 ### Fix
 

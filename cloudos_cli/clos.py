@@ -888,3 +888,43 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def get_project_id_from_name(self, workspace_id, project_name, verify=True):
+        """Retrieve the project ID from its name.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID to search for the project.
+        project_name : str
+            The name of the project to search for.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            The server response containing project details.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to retrieve the project fails with a status code
+            indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v2/projects?teamId={workspace_id}&search={project_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        content = json.loads(response.content)
+
+        project_id = next((p.get("_id") for p in content.get("projects", []) if p.get("name") == project_name), None)
+        if project_id is None:
+            raise ValueError(f"[Error] Project '{project_name}' was not found in workspace '{workspace_id}'")
+
+        return project_id

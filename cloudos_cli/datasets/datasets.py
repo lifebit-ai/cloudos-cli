@@ -118,11 +118,7 @@ class Datasets(Cloudos):
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
         elif resource == 'projects':
-            content = self.get_project_list(workspace_id, verify=verify)
-            # New API projects endpoint spec
-            for element in content:
-                if element["name"] == name:
-                    return element["_id"]
+            return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
@@ -489,7 +485,7 @@ class Datasets(Cloudos):
         return response
     
     def copy_item(self, item, destination_id, destination_kind):
-        """Copy a file or folder (S3 or Virtual) to a destination in CloudOS."""
+        """Copy a file or folder (S3, Azure or Virtual) to a destination in CloudOS."""
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
@@ -526,6 +522,29 @@ class Datasets(Cloudos):
                 "sizeInBytes": item.get("sizeInBytes", 0)
             }
             url = f"{self.cloudos_url}/api/v1/files/s3?teamId={self.workspace_id}"
+        # Azure folder
+        elif item.get("folderType") == "AzureBlobFolder":
+            payload = {
+                "blobContainerName": item["blobContainerName"],
+                "blobPrefix": item["blobPrefix"],
+                "blobStorageAccountName": item["blobStorageAccountName"],
+                "name": item["name"],
+                "parent": parent
+            }
+            url = f"{self.cloudos_url}/api/v1/folders/azure-blob?teamId={self.workspace_id}"
+        # Azure file
+        elif item.get("fileType") == "AzureBlobFile":
+            payload = {
+                "blobContainerName": item["blobContainerName"],
+                "blobName": item["blobName"],
+                "blobStorageAccountName": item["blobStorageAccountName"],
+                "name": item["name"],
+                "parent": parent,
+                "isManagedByLifebit": item.get("isManagedByLifebit", False),
+                "sizeInBytes": item.get("sizeInBytes", 0)
+            }
+            url = f"{self.cloudos_url}/api/v1/files/azure-blob?teamId={self.workspace_id}"
+
         else:
             raise ValueError(f"Unknown item type for copy: {item.get('name')}")
         response = retry_requests_post(url, headers=headers, json=payload)
