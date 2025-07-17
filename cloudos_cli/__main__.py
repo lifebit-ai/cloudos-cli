@@ -3436,7 +3436,6 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     PATH [path]: the full path to the S3 folder to link or relative to File Explorer. 
     E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
-    print(link.__doc__ + '\n')
 
     profile = profile or ctx.default_map['datasets']['link']['profile']
 
