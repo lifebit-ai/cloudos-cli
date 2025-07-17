@@ -917,4 +917,10 @@ class Cloudos:
         response = retry_requests_get(url, headers=headers, verify=verify)
         if response.status_code >= 400:
             raise BadRequestException(response)
-        return json.loads(response.content)["projects"][0]["_id"]
+        content = json.loads(response.content)
+
+        project_id = next((p.get("_id") for p in content.get("projects", []) if p.get("name") == project_name), None)
+        if project_id is None:
+            raise ValueError(f"[Error] Project '{project_name}' was not found in workspace '{workspace_id}'")
+
+        return project_id
