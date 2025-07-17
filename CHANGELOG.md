@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.41.0 (2025-07-14)
+
+### Feat
+
+- Adds azure support for `datasets cp`
+
+
 ## v2.40.0 (2025-07-11)
 
 ### Feat
