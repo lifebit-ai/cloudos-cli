@@ -946,7 +946,16 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        # determine pagination, there might be a lot with the same name
         url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        pag_content = json.loads(response.content)
+        max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
+
+        # get all the matching content
+        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={max_pagination}"
         response = retry_requests_get(url, headers=headers, verify=verify)
         if response.status_code >= 400:
             raise BadRequestException(response)
