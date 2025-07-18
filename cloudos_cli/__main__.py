@@ -533,7 +533,7 @@ def run(ctx,
         print('\t...Preparing objects')
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=wdl_mainfile, importsfile=wdl_importsfile,
-               repository_platform=repository_platform, verify=verify_ssl)
+               repository_platform=repository_platform, verify=verify_ssl, last=last)
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
@@ -2060,6 +2060,9 @@ def remove_profile(ctx, profile):
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
               required=True)
+@click.option('--last',
+              help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
+              is_flag=True)
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -2140,6 +2143,7 @@ def run_bash_job(ctx,
                  workspace_id,
                  project_name,
                  workflow_name,
+                 last,
                  parameter,
                  job_name,
                  do_not_save_logs,
@@ -2207,7 +2211,7 @@ def run_bash_job(ctx,
 
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
-               repository_platform=repository_platform, verify=verify_ssl)
+               repository_platform=repository_platform, verify=verify_ssl, last=last)
 
     if job_queue is not None:
         batch = True
@@ -2295,6 +2299,9 @@ def run_bash_job(ctx,
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
               required=True)
+@click.option('--last',
+              help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
+              is_flag=True)
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -2414,6 +2421,7 @@ def run_bash_array_job(ctx,
                        workspace_id,
                        project_name,
                        workflow_name,
+                       last,
                        parameter,
                        job_name,
                        do_not_save_logs,
@@ -2516,7 +2524,7 @@ def run_bash_array_job(ctx,
 
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
-               repository_platform=repository_platform, verify=verify_ssl)
+               repository_platform=repository_platform, verify=verify_ssl, last=last)
 
     # retrieve columns
     r = j.retrieve_cols_from_array_file(

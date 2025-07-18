@@ -58,6 +58,7 @@ class Job(Cloudos):
     repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
+    last: bool = False
 
     @property
     def project_id(self) -> str:
@@ -148,7 +149,7 @@ class Job(Cloudos):
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
         if resource == 'workflows':
-            content = self.get_workflow_content(workspace_id, name, verify=verify)
+            content = self.get_workflow_content(workspace_id, name, verify=verify, last=self.last)
             for element in content["workflows"]:
                 if (element["name"] == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
