@@ -624,11 +624,6 @@ class Cloudos:
         bool
             True, if the workflow is a system module, false otherwise.
         """
-        # my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
-        # my_workflows = self.process_workflow_list(my_workflows_r)
-        # group = my_workflows.loc[
-        #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
-        #     'group']
         # get a list of all groups
         group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group")
 
