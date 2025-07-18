@@ -589,11 +589,6 @@ class Cloudos:
         wt : string ['nextflow'|'wdl']
             The workflow type detected
         """
-        #my_workflows_r = self.get_workflow_list(workspace_id, verify=verify)
-        #my_workflows = self.process_workflow_list(my_workflows_r)
-        # wt_all = my_workflows.loc[
-        #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
-        #     'workflowType']
         # get list with workflow types
         wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType")
         # make unique
