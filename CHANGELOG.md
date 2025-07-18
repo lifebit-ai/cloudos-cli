@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.45.0 (2025-07-18)
+
+### Feat
+
+- Implements `--last` flag to use the last imported workflow in case of duplication
+
 ## v2.44.0 (2025-07-17)
 
 ### Feat
