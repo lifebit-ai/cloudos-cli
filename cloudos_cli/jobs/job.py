@@ -148,8 +148,8 @@ class Job(Cloudos):
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
         if resource == 'workflows':
-            content = self.get_workflow_list(workspace_id, verify=verify)
-            for element in content:
+            content = self.get_workflow_content(workspace_id, name, verify=verify)
+            for element in content["workflows"]:
                 if (element["name"] == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile

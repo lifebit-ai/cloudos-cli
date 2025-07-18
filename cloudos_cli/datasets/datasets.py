@@ -43,10 +43,7 @@ class Datasets(Cloudos):
     def project_id(self, v) -> None:
         if isinstance(v, property):
             # Fetch the value as not defined by user.
-            self._project_id = self.fetch_cloudos_id(
-                self.apikey,
-                self.cloudos_url,
-                'projects',
+            self._project_id = self.fetch_project_id(
                 self.workspace_id,
                 self.project_name,
                 verify=self.verify)
@@ -54,39 +51,18 @@ class Datasets(Cloudos):
             # Let the user define the value.
             self._project_id = v
 
-    def fetch_cloudos_id(self,
-                         apikey,
-                         cloudos_url,
-                         resource,
+    def fetch_project_id(self,
                          workspace_id,
-                         name,
-                         mainfile=None,
-                         importsfile=None,
-                         repository_platform='github',
+                         project_name,
                          verify=True):
-        """Fetch the cloudos id for a given name.
+        """Fetch the project id for a given name.
 
         Parameters
         ----------
-        apikey : string
-            Your CloudOS API key
-        cloudos_url : string
-            The CloudOS service url.
-        resource : string
-            The resource you want to fetch from. E.g.: projects.
         workspace_id : string
             The specific Cloudos workspace id.
-        name : string
-            The name of a CloudOS resource element.
-        mainfile : string
-            The name of the mainFile used by the workflow. Only used when resource == 'workflows'.
-            Required for WDL pipelines as different mainFiles could be loaded for a single
-            pipeline.
-        importsfile : string
-            The name of the importsFile used by the workflow. Optional and only used for WDL pipelines
-            as different importsFiles could be loaded for a single pipeline.
-        repository_platform : string
-            The name of the repository platform of the workflow resides.
+        project_name : string
+            The name of a CloudOS project element.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -97,34 +73,7 @@ class Datasets(Cloudos):
         project_id : string
             The CloudOS project id for a given project name.
         """
-        allowed_resources = ['projects', 'workflows']
-        if resource not in allowed_resources:
-            raise ValueError('Your specified resource is not supported. ' +
-                             f'Use one of the following: {allowed_resources}')
-        if resource == 'workflows':
-            content = self.get_workflow_list(workspace_id, verify=verify)
-            for element in content:
-                if (element["name"] == name and element["workflowType"] == "docker" and
-                        not element["archived"]["status"]):
-                    return element["_id"]  # no mainfile or importsfile
-                if (element["name"] == name and
-                        element["repository"]["platform"] == repository_platform and
-                        not element["archived"]["status"]):
-                    if mainfile is None:
-                        return element["_id"]
-                    elif element["mainFile"] == mainfile:
-                        if importsfile is None and "importsFile" not in element.keys():
-                            return element["_id"]
-                        elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
-                            return element["_id"]
-        elif resource == 'projects':
-            return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
-        if mainfile is not None:
-            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
-                             f' and an importsFile \'{importsfile}\' was not found')
-        else:
-            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
-        
+        return self.get_project_id_from_name(workspace_id, project_name, verify=verify)
 
     def list_project_content(self):
         """

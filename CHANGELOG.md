@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.44.0 (2025-07-17)
+
+### Feat
+
+- Implements searching the API for workflow name
+
 ## v2.43.0 (2025-07-17)
 
 ### Feat
