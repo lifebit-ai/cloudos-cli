@@ -11,7 +11,6 @@ from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedExcepti
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
-from rich.console import Console
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
