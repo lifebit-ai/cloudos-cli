@@ -917,6 +917,45 @@ class Cloudos:
 
         return project_id
 
+    def get_workflow_max_pagination(self, workspace_id, workflow_name, verify=True):
+        """Retrieve the workflows max pages from API.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID to search for the workflow.
+        workflow_name : str
+            The name of the workflow to search for.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        int
+            The server response with max pagination for workflows.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to retrieve the project fails with a status code
+            indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        # determine pagination, there might be a lot with the same name
+        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        pag_content = json.loads(response.content)
+        max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
+
+        return max_pagination
+
     def get_workflow_content(self, workspace_id, workflow_name, verify=True, last=False):
         """Retrieve the workflow content from API.
 
@@ -946,17 +985,12 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        # determine pagination, there might be a lot with the same name
-        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
-        response = retry_requests_get(url, headers=headers, verify=verify)
-        if response.status_code >= 400:
-            raise BadRequestException(response)
-        pag_content = json.loads(response.content)
-        max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
+        max_pagination = self.get_workflow_max_pagination(workspace_id, workflow_name, verify=verify)
 
         # get all the matching content
         url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={max_pagination}"
         response = retry_requests_get(url, headers=headers, verify=verify)
+
         if response.status_code >= 400:
             raise BadRequestException(response)
         content = json.loads(response.content)
