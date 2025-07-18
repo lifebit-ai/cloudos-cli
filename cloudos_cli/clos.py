@@ -979,7 +979,8 @@ class Cloudos:
         if len(wf) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         if len(wf) > 1:
-            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+            raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
+                             "To run the last imported workflow use '--last' flag.")
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
