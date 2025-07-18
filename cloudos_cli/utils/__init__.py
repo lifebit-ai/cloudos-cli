@@ -9,5 +9,6 @@ from .cloud import find_cloud
 from .cloud import find_cloud
 from .array_job import is_valid_regex, is_glob_pattern, is_probably_regex, classify_pattern, generate_datasets_for_project, get_file_or_folder_id
 from .details import get_path
+from .last_wf import youngest_workflow_id_by_name
 
-__all__ = ['errors', 'requests', 'resources', 'cloud', 'details', 'array_job']
+__all__ = ['errors', 'requests', 'resources', 'cloud', 'details', 'array_job', 'last_wf']

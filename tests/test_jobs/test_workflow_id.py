@@ -27,14 +27,16 @@ def test_workflow_id():
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     params = {"search": PROJECT_NAME, "teamId": WORKSPACE_ID}
-    params_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
+    params_pagination_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
+    params_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
     search_str = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
-    search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str_pagination_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize={PAGE_SIZE}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -45,11 +47,18 @@ def test_workflow_id():
             status=200)
     responses.add(
             responses.GET,
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_pagination_workflows}",
+            body=create_json_workflow,
+            headers=header,
+            match=[matchers.query_param_matcher(params_pagination_workflows)],
+            status=200)
+    responses.add(
+            responses.GET,
             url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_workflows}",
             body=create_json_workflow,
             headers=header,
             match=[matchers.query_param_matcher(params_workflows)],
-            status=201)
+            status=200)
     # start cloudOS service
     job = Job(apikey=APIKEY,
               cloudos_url=CLOUDOS_URL,

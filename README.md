@@ -335,6 +335,8 @@ Executing run...
 	Your job took 420 seconds to complete successfully.
 ```
 
+When there are duplicated `--workflow-name` in the platform, the flag `--last` can be added, and it will use the latest import of that pipeline in the workspace, based on the date. For example, the pipeline `lifebit-process` was imported on May 23 2025 and again on May 30 2025, with the `--last` flag, it will use the import of May 30 of 2025.
+
 #### Send a bash job to CloudOS (sequential sample processing)
 
 A bash job can be sent to CloudOS using the command `bash` and the subcommand `job`. In this case, the `--workflow-name` must be a bash job already
