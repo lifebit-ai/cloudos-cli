@@ -10,6 +10,8 @@ from cloudos_cli.utils.cloud import find_cloud
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
+from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
+from rich.console import Console
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -570,7 +572,7 @@ class Cloudos:
             df = df_full.loc[:, present_columns]
         return df
 
-    def detect_workflow(self, workflow_name, workspace_id, verify=True):
+    def detect_workflow(self, workflow_name, workspace_id, verify=True, last=False):
         """Detects workflow type: nextflow or wdl.
 
         Parameters
@@ -595,14 +597,14 @@ class Cloudos:
         #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
         #     'workflowType']
         # get list with workflow types
-        wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType")
+        wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType", last=last)
         # make unique
         wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
         return str(wt[0])
 
-    def is_module(self, workflow_name, workspace_id, verify=True):
+    def is_module(self, workflow_name, workspace_id, verify=True, last=False):
         """Detects whether the workflow is a system module or not.
 
         System modules use fixed queues, so this check is important to
@@ -630,7 +632,7 @@ class Cloudos:
         #     (my_workflows['name'] == workflow_name) & (my_workflows['archived.status'] == False),
         #     'group']
         # get a list of all groups
-        group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group")
+        group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group", last=last)
 
         module_groups = ['system-tools',
                          'data-factory-data-connection-etl',
@@ -925,7 +927,7 @@ class Cloudos:
 
         return project_id
 
-    def get_workflow_content(self, workspace_id, workflow_name, verify=True):
+    def get_workflow_content(self, workspace_id, workflow_name, verify=True, last=False):
         """Retrieve the workflow content from API.
 
         Parameters
@@ -959,11 +961,17 @@ class Cloudos:
         if response.status_code >= 400:
             raise BadRequestException(response)
         content = json.loads(response.content)
+
+        if len(content["workflows"]) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
+
+        if last:
+            content = youngest_workflow_id_by_name(content, workflow_name)
         return content
 
-    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType"):
+    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType", last=False):
 
-        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify)
+        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify, last=last)
 
         # check for duplicates
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]

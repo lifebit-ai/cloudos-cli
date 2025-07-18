@@ -238,6 +238,9 @@ def configure(ctx, profile, make_default):
 @click.option('--workflow-name',
               help='The name of a CloudOS workflow or pipeline.',
               required=True)
+@click.option('--last',
+              help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
+              is_flag=True)
 @click.option('--job-config',
               help=('A config file similar to a nextflow.config file, ' +
                     'but only with the parameters to use with your job.'))
@@ -370,6 +373,7 @@ def run(ctx,
         workspace_id,
         project_name,
         workflow_name,
+        last,
         job_config,
         parameter,
         git_commit,
@@ -488,8 +492,8 @@ def run(ctx,
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
-    workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl)
-    is_module = cl.is_module(workflow_name, workspace_id, verify_ssl)
+    workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl, last)
+    is_module = cl.is_module(workflow_name, workspace_id, verify_ssl, last)
     if execution_platform == 'hpc' and workflow_type == 'wdl':
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
