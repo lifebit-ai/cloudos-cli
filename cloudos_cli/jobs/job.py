@@ -52,13 +52,13 @@ class Job(Cloudos):
     workspace_id: str
     project_name: str
     workflow_name: str
+    last: bool = False
     verify: Union[bool, str] = True
     mainfile: str = None
     importsfile: str = None
     repository_platform: str = 'github'
     project_id: str = None
     workflow_id: str = None
-    last: bool = False
 
     @property
     def project_id(self) -> str:

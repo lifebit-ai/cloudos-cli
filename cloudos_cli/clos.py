@@ -955,22 +955,21 @@ class Cloudos:
         if len(content["workflows"]) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
 
-        if last:
+        # check for duplicates
+        wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
+
+        if len(wf) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name}')
+        if len(wf) > 1 and not last:
+            raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
+                             "To run the last imported workflow use '--last' flag.")
+        else:
             content = youngest_workflow_id_by_name(content, workflow_name)
         return content
 
     def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType", last=False):
 
         content = self.get_workflow_content(workspace_id, workflow_name, verify=verify, last=last)
-
-        # check for duplicates
-        wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
-
-        if len(wf) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
-        if len(wf) > 1:
-            raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
-                             "To run the last imported workflow use '--last' flag.")
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
