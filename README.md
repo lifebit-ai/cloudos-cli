@@ -1006,8 +1006,8 @@ If you require more information on the files and folder listed, you can use the 
 - Owner
 - Size in human readable format
 - Last updated
-- Filepath (the file or folder name)
-- S3 Path
+- File Name (the file or folder name)
+- Storage Path
 
 ##### Moving files
 
@@ -1115,6 +1115,26 @@ where profile `test` is used for all other necessary variables, but `--session-i
 
 > [!NOTE]
 > If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the `--apikey` needs to be added.
+
+#### Linking a File Explorer folder to Interactive Analysis
+
+Linking a File Explorer folder to an Interactive Analysis session can be done using the same subcommand as for the s3 folders:
+
+```console
+cloudos datasets link <File Explorer FOLDER PATH> <options>
+```
+
+Examples (one per line):
+
+```console
+cloudos datasets link Data/ingest_data --profile test
+cloudos datasets link Data/SEQUENCES --session-id 1234
+cloudos datasets link Data/SEQUENCES/HCC --session-id 1234
+cloudos datasets link "Analyses Results/HLA" --session-id 1234
+```
+
+> [!NOTE]
+> Virtual folders in File Explorer, the ones a user has created in File explorer and are not actual storage locations, cannot be linked.
 
 #### Create a (virtual) folder
 

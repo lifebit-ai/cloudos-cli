@@ -9,6 +9,7 @@ INPUT = "tests/test_data/process_workflow_list_initial_request.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
+WORKFLOW_NAME = 'picard'
 PAGE_SIZE = 10
 PAGE = 1
 ARCHIVED_STATUS = "false"
@@ -22,16 +23,13 @@ def test_detect_workflow():
     API request is mocked and replicated with json files
     """
     json_data = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID,
-              "pageSize": PAGE_SIZE,
-              "page": PAGE,
-              "archived.status": ARCHIVED_STATUS}
+    params = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
+    search_str = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -43,5 +41,5 @@ def test_detect_workflow():
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.detect_workflow(workspace_id=WORKSPACE_ID, workflow_name="picard")
+    response = clos.detect_workflow(workspace_id=WORKSPACE_ID, workflow_name=WORKFLOW_NAME)
     assert response == 'docker'
