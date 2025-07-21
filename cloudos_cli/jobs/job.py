@@ -181,7 +181,7 @@ class Job(Cloudos):
                 if (element["name"] == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
-                if (element_name == name and
+                if (element["name"] == name and
                         element["repository"]["platform"] == repository_platform and
                         not element["archived"]["status"]):
                     if mainfile is None:

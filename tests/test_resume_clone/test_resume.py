@@ -358,29 +358,17 @@ def test_job_setup(payload):
         ]
     }
     for p in (1, 10):
-        wf_list_params = {
-            "teamId": WS_ID,
-            "pageSize": p,
-            "page": 1,
-            "archived.status": "false"
-        }
         responses.add(
             responses.GET,
             url=f"{CLOS_URL}/api/v3/workflows",
-            match=[matchers.query_param_matcher(wf_list_params), matchers.header_matcher(headers)],
+            match=[matchers.query_param_matcher({"search": WF_NAME, "teamId": WS_ID}), matchers.header_matcher(headers)],
             status=200,
             json=wf_list_response
         )
-        projects_params = {
-            "teamId": WS_ID,
-            "pageSize": p,
-            "page": 1,
-        }
         responses.add(
                 responses.GET,
-                url=f"{CLOS_URL}/api/v2/projects",
+                url=f"{CLOS_URL}/api/v2/projects?teamId={WS_ID}&search={PROJECT_NAME}",
                 headers=headers,
-                match=[matchers.query_param_matcher(projects_params)],
                 status=200,
                 json=VALID_PROJECTS
         )
