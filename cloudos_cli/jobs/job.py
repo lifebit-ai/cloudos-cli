@@ -176,11 +176,9 @@ class Job(Cloudos):
             raise ValueError('Your specified resource is not supported. ' +
                              f'Use one of the following: {allowed_resources}')
         if resource == 'workflows':
-            content = self.get_workflow_list(workspace_id, verify=verify)
-            for element in content:
-                # from the API, workflow names are coming with newline characters
-                element_name = element["name"].replace('\n', '')
-                if (element_name == name and element["workflowType"] == "docker" and
+            content = self.get_workflow_content(workspace_id, name, verify=verify)
+            for element in content["workflows"]:
+                if (element["name"] == name and element["workflowType"] == "docker" and
                         not element["archived"]["status"]):
                     return element["_id"]  # no mainfile or importsfile
                 if (element_name == name and
@@ -194,11 +192,7 @@ class Job(Cloudos):
                         elif "importsFile" in element.keys() and element["importsFile"] == importsfile:
                             return element["_id"]
         elif resource == 'projects':
-            content = self.get_project_list(workspace_id, verify=verify)
-            # New API projects endpoint spec
-            for element in content:
-                if element["name"] == name:
-                    return element["_id"]
+            return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
         if mainfile is not None:
             raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')

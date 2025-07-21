@@ -2942,7 +2942,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"Filepath", "S3 Path".'),
+                    '"File Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -2957,10 +2957,9 @@ def list_files(ctx,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
 
-    # fallback to ctx default if profile not specified
     profile = profile or ctx.default_map['datasets']['list'].get('profile')
-
     config_manager = ConfigurationProfile()
+
     required_dict = {
         'apikey': True,
         'workspace_id': True,
@@ -2968,28 +2967,25 @@ def list_files(ctx,
         'project_name': False
     }
 
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
+    user_options = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=workspace_id,
+        workflow_name=None,
+        repository_platform=None,
+        execution_platform=None,
+        project_name=project_name
     )
-    # Setup only the required parameters
+
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
     project_name = user_options['project_name']
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
@@ -3008,32 +3004,31 @@ def list_files(ctx,
             contents = result.get("files", []) + result.get("folders", [])
 
         if details:
-            console = Console(width=None)  # Avoid terminal width truncation
-
+            console = Console(width=None)
             table = Table(show_header=True, header_style="bold white")
             table.add_column("Type", style="cyan", no_wrap=True)
             table.add_column("Owner", style="white")
             table.add_column("Size", style="magenta")
             table.add_column("Last Updated", style="green")
-            table.add_column("Filepath", style="bold", overflow="fold")
-            table.add_column("S3 Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+            table.add_column("File Name", style="bold", overflow="fold")
+            table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
 
             for item in contents:
                 is_folder = "folderType" in item or item.get("isDir", False)
                 type_ = "folder" if is_folder else "file"
 
-                user = item.get("user")
+                user = item.get("user", {})
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
                     surname = user.get("surname", "").strip()
-                    if name and surname:
-                        owner = f"{name} {surname}"
-                    elif name:
-                        owner = name
-                    elif surname:
-                        owner = surname
-                    else:
-                        owner = "-"
+                else:
+                    name = surname = ""
+                if name and surname:
+                    owner = f"{name} {surname}"
+                elif name:
+                    owner = name
+                elif surname:
+                    owner = surname
                 else:
                     owner = "-"
 
@@ -3043,14 +3038,17 @@ def list_files(ctx,
                 updated = item.get("updatedAt") or item.get("lastModified", "-")
                 filepath = item.get("name", "-")
 
-                if is_folder:
-                    s3_bucket = item.get("s3BucketName")
-                    s3_key = item.get("s3Prefix")
-                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
+                    bucket = item.get("s3BucketName")
+                    key = item.get("s3ObjectKey") or item.get("s3Prefix")
+                    s3_path = f"s3://{bucket}/{key}" if bucket and key else "-"
+                elif item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
+                    account = item.get("blobStorageAccountName")
+                    container = item.get("blobContainerName")
+                    key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
+                    s3_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
                 else:
-                    s3_bucket = item.get("s3BucketName")
-                    s3_key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    s3_path = f"s3://{s3_bucket}/{s3_key}" if s3_bucket and s3_key else "-"
+                    s3_path = "-"
 
                 style = Style(color="blue", underline=True) if is_folder else None
                 table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
@@ -3713,24 +3711,27 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
 
 
 @datasets.command(name="link")
-@click.argument("s3_path", required=True)
+@click.argument("path", required=True)
 @click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
 @click.option('-c', '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL)
+@click.option('--project-name',
+              help='The name of a CloudOS project.',
+              required=False)
 @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
 @click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
-def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
     """
-    Link a S3 folder to an active interactive analysis.
+    Link a folder (S3 or File Explorer) to an active interactive analysis.
 
-    S3_PATH [path]: the full path to the S3 folder to link. E.g.: 's3://bucket-name/folder/subfolder'\n
+    PATH [path]: the full path to the S3 folder to link or relative to File Explorer. 
+    E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
-    print(link.__doc__ + '\n')
 
     profile = profile or ctx.default_map['datasets']['link']['profile']
 
@@ -3753,7 +3754,8 @@ def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ss
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            session_id=session_id
+            session_id=session_id,
+            project_name=project_name
         )
     )
     # Unpack the user options
@@ -3761,17 +3763,23 @@ def link(ctx, s3_path, apikey, cloudos_url, workspace_id, session_id, disable_ss
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
     session_id = user_options['session_id']
+    project_name = user_options['project_name']
+
+    if not path.startswith("s3://") and project_name is None:
+        # for non-s3 paths we need the project, for S3 we don't
+        raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
     link_p = Link(
         cloudos_url=cloudos_url,
         apikey=apikey,
         workspace_id=workspace_id,
         cromwell_token=None,
-        project_name=None,
+        project_name=project_name,
         verify=verify_ssl
     )
-    link_p.link_S3_folder(s3_path, session_id)
+    link_p.link_folder(path, session_id)
 
 
 if __name__ == "__main__":

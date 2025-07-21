@@ -51,19 +51,15 @@ def test_send_bash_array_job():
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
-    params_projects = {"teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE, "page": PAGE}
-    params_workflows = {
-        "teamId": WORKSPACE_ID,
-        "pageSize": PAGE_SIZE,
-        "page": PAGE,
-        "archived.status": ARCHIVED_STATUS}
+    params_projects = {"search": PROJECT_NAME, "teamId": WORKSPACE_ID}
+    params_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
     header = {
             "Content-type": "application/json",
             "apikey": APIKEY
         }
     search_str = f"teamId={WORKSPACE_ID}"
-    search_str_projects = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}"
-    search_str_workflows = f"teamId={WORKSPACE_ID}&pageSize={PAGE_SIZE}&page={PAGE}&archived.status={ARCHIVED_STATUS}"
+    search_str_projects = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
+    search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
     # mock GET method with the .json
     responses.add(
             responses.POST,
