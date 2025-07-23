@@ -987,11 +987,11 @@ class Cloudos:
         max_pagination = self.get_workflow_max_pagination(workspace_id, workflow_name, verify=verify)
 
         # get all the matching content
-        if max_pagination > 1000:
+        if max_pagination > max_page_size:
             content = {"workflows": []}
-            for page_start in range(0, max_pagination, 1000):
-                page_size = min(1000, max_pagination - page_start)
-                url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={page_size}&page={page_start // 1000 + 1}"
+            for page_start in range(0, max_pagination, max_page_size):
+                page_size = min(max_page_size, max_pagination - page_start)
+                url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={page_size}&page={page_start // max_page_size + 1}"
                 response = retry_requests_get(url, headers=headers, verify=verify)
                 # keep structure as a dict
                 content["workflows"].extend(json.loads(response.content).get("workflows", []))
