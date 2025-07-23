@@ -463,7 +463,7 @@ class Cloudos:
         return df
 
     def get_workflow_list(self, workspace_id, verify=True, get_all=True,
-                          page=1, page_size=10, max_page_size=1000,
+                          page=1, page_size=10, max_page_size=100,
                           archived_status=False):
         """Get all the workflows from a CloudOS workspace.
 
@@ -637,7 +637,7 @@ class Cloudos:
             return False
 
     def get_project_list(self, workspace_id, verify=True, get_all=True,
-                         page=1, page_size=10, max_page_size=1000):
+                         page=1, page_size=10, max_page_size=100):
         """Get all the project from a CloudOS workspace.
 
         Parameters
@@ -955,7 +955,7 @@ class Cloudos:
 
         return max_pagination
 
-    def get_workflow_content(self, workspace_id, workflow_name, verify=True, last=False):
+    def get_workflow_content(self, workspace_id, workflow_name, verify=True, last=False, max_page_size=100):
         """Retrieve the workflow content from API.
 
         Parameters
