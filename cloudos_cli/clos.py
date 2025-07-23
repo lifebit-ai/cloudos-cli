@@ -1001,7 +1001,7 @@ class Cloudos:
             # return all content
             content = json.loads(response.content)
 
-        if response.status_code >= 400:
+        if response.status_code > 400:
             raise BadRequestException(response)
 
         if len(content["workflows"]) == 0:
