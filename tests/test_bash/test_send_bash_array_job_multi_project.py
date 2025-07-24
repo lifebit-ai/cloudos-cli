@@ -52,14 +52,16 @@ def test_send_bash_array_job():
     create_json = load_json_file(INPUT)
     params_job = {"teamId": WORKSPACE_ID}
     params_projects = {"search": PROJECT_NAME, "teamId": WORKSPACE_ID}
-    params_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
+    params_pagination_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
+    params_workflows = {"pageSize": PAGE_SIZE, "search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
     header = {
             "Content-type": "application/json",
             "apikey": APIKEY
         }
     search_str = f"teamId={WORKSPACE_ID}"
     search_str_projects = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
-    search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str_pagination_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize={PAGE_SIZE}"
     # mock GET method with the .json
     responses.add(
             responses.POST,
@@ -74,6 +76,13 @@ def test_send_bash_array_job():
             body=create_json_project,
             headers=header,
             match=[matchers.query_param_matcher(params_projects)],
+            status=200)
+    responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_pagination_workflows}",
+            body=create_json_workflow,
+            headers=header,
+            match=[matchers.query_param_matcher(params_pagination_workflows)],
             status=200)
     responses.add(
             responses.GET,

@@ -23,14 +23,24 @@ def test_is_module():
     API request is mocked and replicated with json files
     """
     json_data = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "search": WORKFLOW_NAME}
+    params_pagination = {"teamId": WORKSPACE_ID, "search": WORKFLOW_NAME}
+    params = {"teamId": WORKSPACE_ID, "search": WORKFLOW_NAME, "pageSize": PAGE_SIZE}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str_pagination = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
+    search_str = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize={PAGE_SIZE}"
+    print(json_data)
     # mock GET method with the .json
+    responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_pagination}",
+            body=json_data,
+            headers=header,
+            match=[matchers.query_param_matcher(params_pagination)],
+            status=200)
     responses.add(
             responses.GET,
             url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str}",

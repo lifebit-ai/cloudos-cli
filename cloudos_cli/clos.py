@@ -10,6 +10,7 @@ from cloudos_cli.utils.cloud import find_cloud
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
+from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -462,7 +463,7 @@ class Cloudos:
         return df
 
     def get_workflow_list(self, workspace_id, verify=True, get_all=True,
-                          page=1, page_size=10, max_page_size=1000,
+                          page=1, page_size=10, max_page_size=100,
                           archived_status=False):
         """Get all the workflows from a CloudOS workspace.
 
@@ -570,7 +571,7 @@ class Cloudos:
             df = df_full.loc[:, present_columns]
         return df
 
-    def detect_workflow(self, workflow_name, workspace_id, verify=True):
+    def detect_workflow(self, workflow_name, workspace_id, verify=True, last=False):
         """Detects workflow type: nextflow or wdl.
 
         Parameters
@@ -590,14 +591,14 @@ class Cloudos:
             The workflow type detected
         """
         # get list with workflow types
-        wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType")
+        wt_all = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="workflowType", last=last)
         # make unique
         wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
             raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
         return str(wt[0])
 
-    def is_module(self, workflow_name, workspace_id, verify=True):
+    def is_module(self, workflow_name, workspace_id, verify=True, last=False):
         """Detects whether the workflow is a system module or not.
 
         System modules use fixed queues, so this check is important to
@@ -620,7 +621,7 @@ class Cloudos:
             True, if the workflow is a system module, false otherwise.
         """
         # get a list of all groups
-        group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group")
+        group = self.workflow_content_query(workspace_id, workflow_name, verify=verify, query="group", last=last)
 
         module_groups = ['system-tools',
                          'data-factory-data-connection-etl',
@@ -636,7 +637,7 @@ class Cloudos:
             return False
 
     def get_project_list(self, workspace_id, verify=True, get_all=True,
-                         page=1, page_size=10, max_page_size=1000):
+                         page=1, page_size=10, max_page_size=100):
         """Get all the project from a CloudOS workspace.
 
         Parameters
@@ -915,7 +916,48 @@ class Cloudos:
 
         return project_id
 
-    def get_workflow_content(self, workspace_id, workflow_name, verify=True):
+    def get_workflow_max_pagination(self, workspace_id, workflow_name, verify=True):
+        """Retrieve the workflows max pages from API.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID to search for the workflow.
+        workflow_name : str
+            The name of the workflow to search for.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        int
+            The server response with max pagination for workflows.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to retrieve the project fails with a status code
+            indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        # determine pagination, there might be a lot with the same name
+        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
+        response = retry_requests_get(url, headers=headers, verify=verify)
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        pag_content = json.loads(response.content)
+        max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
+        if max_pagination == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
+
+        return max_pagination
+
+    def get_workflow_content(self, workspace_id, workflow_name, verify=True, last=False, max_page_size=100):
         """Retrieve the workflow content from API.
 
         Parameters
@@ -944,24 +986,41 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}"
-        response = retry_requests_get(url, headers=headers, verify=verify)
+        max_pagination = self.get_workflow_max_pagination(workspace_id, workflow_name, verify=verify)
+
+        # get all the matching content
+        if max_pagination > max_page_size:
+            content = {"workflows": []}
+            for page_start in range(0, max_pagination, max_page_size):
+                page_size = min(max_page_size, max_pagination - page_start)
+                url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={page_size}&page={page_start // max_page_size + 1}"
+                response = retry_requests_get(url, headers=headers, verify=verify)
+                # keep structure as a dict
+                content["workflows"].extend(json.loads(response.content).get("workflows", []))
+        else:
+            url = f"{self.cloudos_url}/api/v3/workflows?teamId={workspace_id}&search={workflow_name}&pageSize={max_pagination}"
+            response = retry_requests_get(url, headers=headers, verify=verify)
+            # return all content
+            content = json.loads(response.content)
+
         if response.status_code >= 400:
             raise BadRequestException(response)
-        content = json.loads(response.content)
-        return content
-
-    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType"):
-
-        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify)
 
         # check for duplicates
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
-        if len(wf) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
-        if len(wf) > 1:
-            raise ValueError(f'More than one workflow found with name: {workflow_name}')
+        if len(wf) == 0 or len(content["workflows"]) == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
+        if len(wf) > 1 and not last:
+            raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
+                             "To run the last imported workflow use '--last' flag.")
+        else:
+            content = youngest_workflow_id_by_name(content, workflow_name)
+        return content
+
+    def workflow_content_query(self, workspace_id, workflow_name, verify=True, query="workflowType", last=False):
+
+        content = self.get_workflow_content(workspace_id, workflow_name, verify=verify, last=last)
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
