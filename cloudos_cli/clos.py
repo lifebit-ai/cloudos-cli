@@ -1001,16 +1001,13 @@ class Cloudos:
             # return all content
             content = json.loads(response.content)
 
-        if response.status_code >= 400:
+        if response.status_code > 400:
             raise BadRequestException(response)
-
-        if len(content["workflows"]) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
 
         # check for duplicates
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
-        if len(wf) == 0:
+        if len(wf) == 0 or len(content["workflows"]) == 0:
             raise ValueError(f'No workflow found with name: {workflow_name}')
         if len(wf) > 1 and not last:
             raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
