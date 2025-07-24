@@ -952,6 +952,8 @@ class Cloudos:
             raise BadRequestException(response)
         pag_content = json.loads(response.content)
         max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
+        if max_pagination == 0:
+            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
 
         return max_pagination
 
@@ -1001,14 +1003,14 @@ class Cloudos:
             # return all content
             content = json.loads(response.content)
 
-        if response.status_code > 400:
+        if response.status_code >= 400:
             raise BadRequestException(response)
 
         # check for duplicates
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
         if len(wf) == 0 or len(content["workflows"]) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name}')
+            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
         if len(wf) > 1 and not last:
             raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
                              "To run the last imported workflow use '--last' flag.")
