@@ -26,7 +26,7 @@ def test_configure_check_credentials_config_exists():
     assert os.path.exists(os.path.join(CONFIG_DIR, "config"))
 
 
-@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '2', '2', 'workflow_name', 'session1234', 'n'])
+@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'procurement_id', 'project_name', '2', '2', 'workflow_name', 'session1234', 'n'])
 def test_create_profile_with_user_input(mock_input):
     """
     Test creating a profile with mocked user input
@@ -41,7 +41,7 @@ def test_create_profile_with_user_input(mock_input):
     assert config['user_input_profile']['cloudos_url'] == CLOUDOS_URL
 
 
-@patch('builtins.input', side_effect=['', '', '', '', '', '', '', '', 'n'])
+@patch('builtins.input', side_effect=['', '', '', '', '', '', '', '', '', 'n'])
 def test_create_profile_keep_existing_values(mock_input):
     """
     Test creating a profile and leaving it as is by pressing "Enter" for each field
@@ -88,7 +88,7 @@ def test_list_profiles():
         mock_print.assert_any_call(" - user_input_profile (default)")
 
 
-@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'project_name', '1', '1', 'workflow_name', 'session1234', 'n'])
+@patch('builtins.input', side_effect=[APIKEY1, 'http://cloudos.lifebit.ai', 'workspace_id', 'procurement_id', 'project_name', '1', '1', 'workflow_name', 'session1234', 'n'])
 def test_remove_profile(mock_input):
     """
     Test removing a profile
