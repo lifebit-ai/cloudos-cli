@@ -1,0 +1,53 @@
+{
+  "imageConfigurations": [
+    {
+      "lastUpdatedBy": "Lifebit",
+      "imageName": "Lifebit-Default",
+      "imageType": "JobDefault",
+      "isLifebitManaged": true,
+      "region": "eu-west-2",
+      "provider": "aws",
+      "imageId": "ami-00b8129c5cdc58f24",
+      "id": "68667809e13a844401d10f6c",
+      "organisationName": "Federation-workloads",
+      "updatedAt": "2025-07-15T10:53:14"
+    },
+    {
+      "lastUpdatedBy": "Lifebit",
+      "imageName": "Lifebit-Default",
+      "imageType": "NextflowBatchComputeEnvironment",
+      "isLifebitManaged": true,
+      "region": "eu-west-2",
+      "provider": "aws",
+      "imageId": "ami-0caee8d7cad062cdc",
+      "id": "68667809e13a844401d10f6d",
+      "organisationName": "Federation-workloads",
+      "updatedAt": "2025-07-15T10:53:14"
+    },
+    {
+      "lastUpdatedBy": "Lifebit",
+      "imageName": "Lifebit-Default",
+      "imageType": "RegularInteractiveSessions",
+      "isLifebitManaged": true,
+      "region": "eu-west-2",
+      "provider": "aws",
+      "imageId": "ami-052a1a4aae5437730",
+      "id": "68667809e13a844401d10f6e",
+      "organisationName": "Federation-workloads",
+      "updatedAt": "2025-07-15T10:53:14"
+    },
+    {
+      "lastUpdatedBy": "Lifebit",
+      "imageName": "Lifebit-Default",
+      "imageType": "SparkInteractiveSessions",
+      "isLifebitManaged": true,
+      "region": "eu-west-2",
+      "provider": "aws",
+      "imageId": "ami-0f5fd81abae1287e2",
+      "id": "68667809e13a844401d10f6f",
+      "organisationName": "Federation-workloads",
+      "updatedAt": "2025-07-22T09:17:46"
+    }
+  ],
+  "paginationMetadata": {"Pagination-Count": 4, "Pagination-Page": 1, "Pagination-Limit": 10}
+}

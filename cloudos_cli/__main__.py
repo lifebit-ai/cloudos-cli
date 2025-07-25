@@ -3550,7 +3550,7 @@ def list_images(ctx,
                profile,
                page,
                limit):
-    """List contents of a path within a CloudOS workspace dataset."""
+    """List images associated with organisations of a given procurement."""
 
     profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
     config_manager = ConfigurationProfile()
@@ -3584,7 +3584,7 @@ def list_images(ctx,
     procurement_id = user_options['procurement_id']
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    procurement = Images(
+    procurement_images = Images(
         cloudos_url=cloudos_url,
         apikey=apikey,
         procurement_id=procurement_id,
@@ -3595,7 +3595,7 @@ def list_images(ctx,
     )
 
     try:
-        result = procurement.list_procurement_images()
+        result = procurement_images.list_procurement_images()
         console = Console()
         console.print(result)
 
