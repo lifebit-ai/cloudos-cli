@@ -71,4 +71,5 @@ class Images(Cloudos):
             "image_configurations": image_configurations,
             "pagination_metadata": pagination_metadata
         }
+
         return response
