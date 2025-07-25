@@ -522,7 +522,7 @@ class ConfigurationProfile:
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
             session_id = self.get_param_value(ctx, session_id, 'session_id', session_id)
-            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', profile_data.get('procurement_id', None))
+            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', procurement_id)
         if not resolved_cloudos_url:
             click.secho(
                 f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
