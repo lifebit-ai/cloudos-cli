@@ -1205,16 +1205,9 @@ cloudos procurement images ls \
 
 #### Using profiles
 
-You can also use profiles to simplify the command. First, configure a profile with your procurement details:
+You can also use profiles to simplify the command, and `--procurement-id` is now a configurable parameter when configuring a new profile.
 
-```bash
-cloudos configure set-profile procurement-profile \
-    --apikey $MY_API_KEY \
-    --cloudos-url $CLOUDOS \
-    --procurement-id $PROCUREMENT_ID
-```
-
-Then use the profile:
+With the new profile, you can run:
 
 ```bash
 cloudos procurement images ls --profile procurement-profile
