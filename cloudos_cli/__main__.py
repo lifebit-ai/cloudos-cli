@@ -207,15 +207,16 @@ def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
 
+
 @run_cloudos_cli.group()
 def procurement():
     """CloudOS procurement functionality."""
     print(procurement.__doc__ + '\n')
 
+
 @procurement.group()
 def images():
     """CloudOS procurement images functionality."""
-    print(images.__doc__ + '\n')
 
 
 @run_cloudos_cli.group()
@@ -3524,6 +3525,7 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     )
     link_p.link_folder(path, session_id)
 
+
 @images.command(name="ls")
 @click.option('-k',
               '--apikey',
@@ -3546,14 +3548,14 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def list_images(ctx,
-               apikey,
-               cloudos_url,
-               procurement_id,
-               disable_ssl_verification,
-               ssl_cert,
-               profile,
-               page,
-               limit):
+                apikey,
+                cloudos_url,
+                procurement_id,
+                disable_ssl_verification,
+                ssl_cert,
+                profile,
+                page,
+                limit):
     """List images associated with organisations of a given procurement."""
 
     profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
@@ -3563,7 +3565,8 @@ def list_images(ctx,
         'apikey': True,
         'workspace_id': False,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': True
     }
 
     user_options = config_manager.load_profile_and_validate_data(
