@@ -127,10 +127,7 @@ class Images(Cloudos):
 
         return response
 
-    def reset_procurement_organisation_image(self, organisation_id,
-                                                            image_type,
-                                                            provider,
-                                                            region):
+    def reset_procurement_organisation_image(self, organisation_id, image_type, provider, region):
         """
         Sets the value for a procurement image of a given organisation
 
