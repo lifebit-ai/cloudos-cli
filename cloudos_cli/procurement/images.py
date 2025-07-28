@@ -7,7 +7,6 @@ from cloudos_cli.clos import Cloudos
 from typing import Union
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get
-import json
 
 @dataclass
 class Images(Cloudos):

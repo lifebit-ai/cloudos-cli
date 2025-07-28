@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.46.0 (2025-07-28)
+
+### Feat
+
+- Adds support for listing organisation images associated with a given procurement.
+
 ## v2.45.0 (2025-07-18)
 
 ### Feat
