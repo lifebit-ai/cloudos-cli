@@ -3609,6 +3609,7 @@ def list_images(ctx,
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
+
 @images.command(name="set")
 @click.option('-k',
               '--apikey',
@@ -3656,7 +3657,8 @@ def set_organisation_image(ctx,
         'apikey': True,
         'workspace_id': False,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': True
     }
 
     user_options = config_manager.load_profile_and_validate_data(
@@ -3704,6 +3706,7 @@ def set_organisation_image(ctx,
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
 
+
 @images.command(name="reset")
 @click.option('-k',
               '--apikey',
@@ -3728,16 +3731,16 @@ def set_organisation_image(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def reset_organisation_image(ctx,
-                           apikey,
-                           cloudos_url,
-                           procurement_id,
-                           organisation_id,
-                           image_type,
-                           provider,
-                           region,
-                           disable_ssl_verification,
-                           ssl_cert,
-                           profile):
+                            apikey,
+                            cloudos_url,
+                            procurement_id,
+                            organisation_id,
+                            image_type,
+                            provider,
+                            region,
+                            disable_ssl_verification,
+                            ssl_cert,
+                            profile):
     """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
 
     profile = profile or ctx.default_map['procurement']['images']['set'].get('profile')
@@ -3747,7 +3750,8 @@ def reset_organisation_image(ctx,
         'apikey': True,
         'workspace_id': False,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': True
     }
 
     user_options = config_manager.load_profile_and_validate_data(

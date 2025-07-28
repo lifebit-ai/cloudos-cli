@@ -2,6 +2,7 @@
 This is the main class for procurement images interaction.
 """
 
+import json
 from dataclasses import dataclass
 from cloudos_cli.clos import Cloudos
 from typing import Union
