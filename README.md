@@ -1342,35 +1342,6 @@ cloudos procurement images reset \
     --region "us-east-1"
 ```
 
-##### Using profiles with set and reset commands
-
-Both `set` and `reset` commands support profiles for convenience:
-
-```bash
-# Configure a profile for procurement management
-cloudos configure set-profile procurement-admin \
-    --apikey $MY_API_KEY \
-    --cloudos-url $CLOUDOS \
-    --procurement-id $PROCUREMENT_ID
-
-# Use profile with set command
-cloudos procurement images set \
-    --profile procurement-admin \
-    --organisation-id $ORGANISATION_ID \
-    --image-type "JobDefault" \
-    --provider "aws" \
-    --region "us-east-1" \
-    --image-id "ami-0123456789abcdef0"
-
-# Use profile with reset command
-cloudos procurement images reset \
-    --profile procurement-admin \
-    --organisation-id $ORGANISATION_ID \
-    --image-type "JobDefault" \
-    --provider "aws" \
-    --region "us-east-1"
-```
-
 ### WDL pipeline support
 
 #### Cromwell server managing
