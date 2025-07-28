@@ -1144,6 +1144,91 @@ Please, note that in the above example a preconfigured profile has been used. If
     --project-name $PROJEC_NAME
 ```
 
+### Procurement image management
+
+CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
+
+#### List procurement images
+
+You can get a list of images associated with organizations of a given procurement using the `cloudos procurement images ls` command. This command provides paginated results showing image configurations and metadata.
+
+To list images for a specific procurement, use the following command:
+
+```bash
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id "your_procurement_id_here"
+```
+
+#### Command options
+
+The `cloudos procurement images ls` command supports the following options:
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--page`: The response page number (default: 1)
+- `--limit`: The page size limit (default: 10)
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+#### Example usage
+
+Here's a complete example of how to list procurement images:
+
+```bash
+# Set up your environment variables
+MY_API_KEY="xxxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
+PROCUREMENT_ID="your_procurement_id"
+
+# List images for the procurement (first page, 10 items)
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID
+```
+
+To get more results per page or navigate to different pages:
+
+```bash
+# Get 25 images from page 2
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID \
+    --page 2 \
+    --limit 25
+```
+
+#### Using profiles
+
+You can also use profiles to simplify the command. First, configure a profile with your procurement details:
+
+```bash
+cloudos configure set-profile procurement-profile \
+    --apikey $MY_API_KEY \
+    --cloudos-url $CLOUDOS \
+    --procurement-id $PROCUREMENT_ID
+```
+
+Then use the profile:
+
+```bash
+cloudos procurement images ls --profile procurement-profile
+```
+
+#### Output format
+
+The command returns detailed information about image configurations and pagination metadata in JSON format, including:
+
+- **Image configurations**: Details about available container images
+- **Pagination metadata**: Information about total pages, current page, and available items
+
+This is particularly useful for understanding what container images are available across different organizations within your procurement and for programmatic access to image inventory.
+
 ### WDL pipeline support
 
 #### Cromwell server managing
