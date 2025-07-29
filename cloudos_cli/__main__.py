@@ -3622,11 +3622,12 @@ def list_images(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True)
-@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True)
+@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
+            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
-@click.option('--image-id', help='The new image id value. Required.', required=True)
-@click.option('--image-name', help='The new image name value. Optional.', required=False)
+@click.option('--image-id', help='The new image id value.', required=True)
+@click.option('--image-name', help='The new image name value.', required=False)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -3699,7 +3700,7 @@ def set_organisation_image(ctx,
            region,
            image_id,
            image_name
-       )
+        )
         console = Console()
         console.print(result)
 
@@ -3719,8 +3720,9 @@ def set_organisation_image(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True)
-@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True)
+@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
+            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
@@ -3731,16 +3733,16 @@ def set_organisation_image(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def reset_organisation_image(ctx,
-                            apikey,
-                            cloudos_url,
-                            procurement_id,
-                            organisation_id,
-                            image_type,
-                            provider,
-                            region,
-                            disable_ssl_verification,
-                            ssl_cert,
-                            profile):
+                             apikey,
+                             cloudos_url,
+                             procurement_id,
+                             organisation_id,
+                             image_type,
+                             provider,
+                             region,
+                             disable_ssl_verification,
+                             ssl_cert,
+                             profile):
     """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
 
     profile = profile or ctx.default_map['procurement']['images']['set'].get('profile')
@@ -3790,12 +3792,13 @@ def reset_organisation_image(ctx,
            image_type,
            provider,
            region
-       )
+        )
         console = Console()
         console.print(result)
 
     except Exception as e:
         click.echo(f"[ERROR] {str(e)}", err=True)
+
 
 if __name__ == "__main__":
     run_cloudos_cli()
