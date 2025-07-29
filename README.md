@@ -1144,6 +1144,204 @@ Please, note that in the above example a preconfigured profile has been used. If
     --project-name $PROJEC_NAME
 ```
 
+### Procurement image management
+
+CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
+
+#### List procurement images
+
+You can get a list of images associated with organizations of a given procurement using the `cloudos procurement images ls` command. This command provides paginated results showing image configurations and metadata.
+
+To list images for a specific procurement, use the following command:
+
+```bash
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id "your_procurement_id_here"
+```
+
+#### Command options
+
+The `cloudos procurement images ls` command supports the following options:
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--page`: The response page number (default: 1)
+- `--limit`: The page size limit (default: 10)
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+#### Example usage
+
+Here's a complete example of how to list procurement images:
+
+```bash
+# Set up your environment variables
+MY_API_KEY="xxxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
+PROCUREMENT_ID="your_procurement_id"
+
+# List images for the procurement (first page, 10 items)
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID
+```
+
+To get more results per page or navigate to different pages:
+
+```bash
+# Get 25 images from page 2
+cloudos procurement images ls \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID \
+    --page 2 \
+    --limit 25
+```
+
+#### Using profiles
+
+You can also use profiles to simplify the command, and `--procurement-id` is now a configurable parameter when configuring a new profile.
+
+With the new profile, you can run:
+
+```bash
+cloudos procurement images ls --profile procurement-profile
+```
+
+#### Output format
+
+The command returns detailed information about image configurations and pagination metadata in JSON format, including:
+
+- **Image configurations**: Details about available container images
+- **Pagination metadata**: Information about total pages, current page, and available items
+
+This is particularly useful for understanding what container images are available across different organizations within your procurement and for programmatic access to image inventory.
+
+#### Set procurement organization image
+
+You can set a custom image ID or name for an organization within a procurement using the `cloudos procurement images set` command. This allows you to override the default CloudOS images with your own custom images for specific organizations.
+
+To set a custom image for an organization, use the following command:
+
+```bash
+cloudos procurement images set \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id "your_procurement_id" \
+    --organisation-id "your_organization_id" \
+    --image-type "JobDefault" \
+    --provider "aws" \
+    --region "us-east-1" \
+    --image-id "ami-0123456789abcdef0" \
+    --image-name "custom-image-name"
+```
+
+##### Set command options
+
+The `cloudos procurement images set` command supports the following options:
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--organisation-id`: The organization ID where the change will be applied (required)
+- `--image-type`: The CloudOS resource image type (required). Possible values:
+  - `RegularInteractiveSessions`
+  - `SparkInteractiveSessions`
+  - `RStudioInteractiveSessions`
+  - `JupyterInteractiveSessions`
+  - `JobDefault`
+  - `NextflowBatchComputeEnvironment`
+- `--provider`: The cloud provider (required). Currently only `aws` is supported
+- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--image-id`: The new image ID value (required)
+- `--image-name`: The new image name value (optional)
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+##### Set command example
+
+Here's a complete example showing how to set a custom image:
+
+```bash
+# Set up your environment variables
+MY_API_KEY="xxxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
+PROCUREMENT_ID="your_procurement_id"
+ORGANISATION_ID="your_organization_id"
+
+# Set custom image for job execution
+cloudos procurement images set \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID \
+    --organisation-id $ORGANISATION_ID \
+    --image-type "JobDefault" \
+    --provider "aws" \
+    --region "us-east-1" \
+    --image-id "ami-0123456789abcdef0" \
+    --image-name "my-custom-job-image"
+```
+
+#### Reset procurement organization image
+
+You can reset an organization's image configuration back to CloudOS defaults using the `cloudos procurement images reset` command. This removes any custom image configurations and restores the original CloudOS defaults.
+
+To reset an organization's image to defaults, use the following command:
+
+```bash
+cloudos procurement images reset \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id "your_procurement_id" \
+    --organisation-id "your_organization_id" \
+    --image-type "JobDefault" \
+    --provider "aws" \
+    --region "us-east-1"
+```
+
+##### Reset command options
+
+The `cloudos procurement images reset` command supports the following options:
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--organisation-id`: The organization ID where the change will be applied (required)
+- `--image-type`: The CloudOS resource image type (required). Same values as for `set` command
+- `--provider`: The cloud provider (required). Currently only `aws` is supported
+- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+##### Reset command example
+
+Here's a complete example showing how to reset an image to defaults:
+
+```bash
+# Set up your environment variables
+MY_API_KEY="xxxxx"
+CLOUDOS="https://cloudos.lifebit.ai"
+PROCUREMENT_ID="your_procurement_id"
+ORGANISATION_ID="your_organization_id"
+
+# Reset image configuration to CloudOS defaults
+cloudos procurement images reset \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --procurement-id $PROCUREMENT_ID \
+    --organisation-id $ORGANISATION_ID \
+    --image-type "JobDefault" \
+    --provider "aws" \
+    --region "us-east-1"
+```
+
 ### WDL pipeline support
 
 #### Cromwell server managing

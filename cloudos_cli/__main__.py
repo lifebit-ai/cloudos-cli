@@ -14,6 +14,7 @@ from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
 from rich.table import Table
 from cloudos_cli.datasets import Datasets
+from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
@@ -55,6 +56,7 @@ def run_cloudos_cli(ctx):
             'apikey': '',
             'cloudos_url': CLOUDOS_URL,
             'workspace_id': '',
+            'procurement_id': '',
             'project_name': '',
             'workflow_name': '',
             'repository_platform': 'github',
@@ -99,6 +101,13 @@ def run_cloudos_cli(ctx):
                 'link': shared_config,
                 'mkdir': shared_config,
                 'rm': shared_config
+            },
+            'procurement': {
+                'images': {
+                    'ls': shared_config,
+                    'set': shared_config,
+                    'reset': shared_config
+                }
             }
         })
     else:
@@ -107,6 +116,7 @@ def run_cloudos_cli(ctx):
             'apikey': profile_data.get('apikey', ""),
             'cloudos_url': profile_data.get('cloudos_url', ""),
             'workspace_id': profile_data.get('workspace_id', ""),
+            'procurement_id': profile_data.get('procurement_id', ""),
             'project_name': profile_data.get('project_name', ""),
             'workflow_name': profile_data.get('workflow_name', ""),
             'repository_platform': profile_data.get('repository_platform', ""),
@@ -151,6 +161,13 @@ def run_cloudos_cli(ctx):
                 'link': shared_config,
                 'mkdir': shared_config,
                 'rm': shared_config
+            },
+            'procurement': {
+                'images': {
+                    'ls': shared_config,
+                    'set': shared_config,
+                    'reset': shared_config
+                }
             }
         })
 
@@ -189,6 +206,17 @@ def queue():
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
+
+
+@run_cloudos_cli.group()
+def procurement():
+    """CloudOS procurement functionality."""
+    print(procurement.__doc__ + '\n')
+
+
+@procurement.group()
+def images():
+    """CloudOS procurement images functionality."""
 
 
 @run_cloudos_cli.group()
@@ -3496,6 +3524,280 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         verify=verify_ssl
     )
     link_p.link_folder(path, session_id)
+
+
+@images.command(name="ls")
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--page', help='The response page. Defaults to 1.', required=False, default=1)
+@click.option('--limit', help='The page size limit. Defaults to 10', required=False, default=10)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def list_images(ctx,
+                apikey,
+                cloudos_url,
+                procurement_id,
+                disable_ssl_verification,
+                ssl_cert,
+                profile,
+                page,
+                limit):
+    """List images associated with organisations of a given procurement."""
+
+    profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
+    config_manager = ConfigurationProfile()
+
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': True
+    }
+
+    user_options = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=None,
+        project_name=None,
+        workflow_name=None,
+        execution_platform=None,
+        repository_platform=None,
+        session_id=None,
+        procurement_id=procurement_id
+    )
+
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    procurement_id = user_options['procurement_id']
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    procurement_images = Images(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        procurement_id=procurement_id,
+        verify=verify_ssl,
+        cromwell_token=None,
+        page=page,
+        limit=limit
+    )
+
+    try:
+        result = procurement_images.list_procurement_images()
+        console = Console()
+        console.print(result)
+
+    except Exception as e:
+        click.echo(f"[ERROR] {str(e)}", err=True)
+
+
+@images.command(name="set")
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
+@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
+            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
+@click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
+@click.option('--image-id', help='The new image id value.', required=True)
+@click.option('--image-name', help='The new image name value.', required=False)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def set_organisation_image(ctx,
+                           apikey,
+                           cloudos_url,
+                           procurement_id,
+                           organisation_id,
+                           image_type,
+                           provider,
+                           region,
+                           image_id,
+                           image_name,
+                           disable_ssl_verification,
+                           ssl_cert,
+                           profile):
+    """Set a new image id or name to image associated with an organisations of a given procurement."""
+
+    profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
+    config_manager = ConfigurationProfile()
+
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': True
+    }
+
+    user_options = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=None,
+        project_name=None,
+        workflow_name=None,
+        execution_platform=None,
+        repository_platform=None,
+        session_id=None,
+        procurement_id=procurement_id
+    )
+
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    procurement_id = user_options['procurement_id']
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    procurement_images = Images(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        procurement_id=procurement_id,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    try:
+        result = procurement_images.set_procurement_organisation_image(
+           organisation_id,
+           image_type,
+           provider,
+           region,
+           image_id,
+           image_name
+        )
+        console = Console()
+        console.print(result)
+
+    except Exception as e:
+        click.echo(f"[ERROR] {str(e)}", err=True)
+
+
+@images.command(name="reset")
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key.',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
+@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
+            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
+@click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def reset_organisation_image(ctx,
+                             apikey,
+                             cloudos_url,
+                             procurement_id,
+                             organisation_id,
+                             image_type,
+                             provider,
+                             region,
+                             disable_ssl_verification,
+                             ssl_cert,
+                             profile):
+    """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
+
+    profile = profile or ctx.default_map['procurement']['images']['set'].get('profile')
+    config_manager = ConfigurationProfile()
+
+    required_dict = {
+        'apikey': True,
+        'workspace_id': False,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': True
+    }
+
+    user_options = config_manager.load_profile_and_validate_data(
+        ctx,
+        INIT_PROFILE,
+        CLOUDOS_URL,
+        profile=profile,
+        required_dict=required_dict,
+        apikey=apikey,
+        cloudos_url=cloudos_url,
+        workspace_id=None,
+        project_name=None,
+        workflow_name=None,
+        execution_platform=None,
+        repository_platform=None,
+        session_id=None,
+        procurement_id=procurement_id
+    )
+
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    procurement_id = user_options['procurement_id']
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    procurement_images = Images(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        procurement_id=procurement_id,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+
+    try:
+        result = procurement_images.reset_procurement_organisation_image(
+           organisation_id,
+           image_type,
+           provider,
+           region
+        )
+        console = Console()
+        console.print(result)
+
+    except Exception as e:
+        click.echo(f"[ERROR] {str(e)}", err=True)
 
 
 if __name__ == "__main__":

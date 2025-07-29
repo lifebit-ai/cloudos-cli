@@ -64,6 +64,7 @@ class ConfigurationProfile:
             shared_config['apikey'] = profile_data.get('apikey', None)
             shared_config['cloudos_url'] = profile_data.get('cloudos_url', None)
             shared_config['workspace_id'] = profile_data.get('workspace_id', None)
+            shared_config['procurement_id'] = profile_data.get('procurement_id', None)
             shared_config['project_name'] = profile_data.get('project_name', None)
             shared_config['workflow_name'] = profile_data.get('workflow_name', None)
             shared_config['repository_platform'] = profile_data.get('repository_platform', None)
@@ -115,6 +116,18 @@ class ConfigurationProfile:
             platform_workspace_id = None
         else:
             platform_workspace_id = platform_workspace_id
+
+        # Workspace ID
+        platform_procurement_id = input(
+            f"Platform procurement ID [{shared_config.get('procurement_id', profile_name)}]: "
+        ).strip()
+        # If the user presses Enter, keep the existing value
+        if platform_procurement_id == "" and shared_config.get('procurement_id', None) is not None:
+            platform_procurement_id = shared_config['procurement_id']
+        elif platform_procurement_id == "":
+            platform_procurement_id = None
+        else:
+            platform_procurement_id = platform_procurement_id
 
         # Project name
         project_name = input(f"Project name [{shared_config.get('project_name', profile_name)}]: ").strip()
@@ -230,6 +243,8 @@ class ConfigurationProfile:
             config[profile_name]['cloudos_url'] = platform_url
         if platform_workspace_id is not None:
             config[profile_name]['workspace_id'] = platform_workspace_id
+        if platform_procurement_id is not None:
+            config[profile_name]['procurement_id'] = platform_procurement_id
         if project_name is not None:
             config[profile_name]['project_name'] = project_name
         if platform_executor is not None:
@@ -372,6 +387,7 @@ class ConfigurationProfile:
             'apikey': credentials[profile_name].get('apikey', ""),
             'cloudos_url': config[profile_name].get('cloudos_url', ""),
             'workspace_id': config[profile_name].get('workspace_id', ""),
+            'procurement_id': config[profile_name].get('procurement_id', ""),
             'project_name': config[profile_name].get('project_name', ""),
             'workflow_name': config[profile_name].get('workflow_name', ""),
             'execution_platform': config[profile_name].get('execution_platform', ""),
@@ -444,7 +460,7 @@ class ConfigurationProfile:
 
     def load_profile_and_validate_data(self, ctx, init_profile, cloudos_url_default, profile, required_dict, apikey=None,
                                        cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None,
-                                       execution_platform=None, repository_platform=None, session_id=None):
+                                       execution_platform=None, repository_platform=None, session_id=None, procurement_id=None):
         """
         Load profile data and validate required parameters.
 
@@ -486,6 +502,8 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
                                                 required=required_dict['project_name'], missing_required_params=missing)
             session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data.get('session_id', None))
+            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', profile_data['procurement_id'],
+                                                required=required_dict['procurement_id'], missing_required_params=missing)
         else:
             # when no profile is used, we need to check if the user provided all required parameters
             apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
@@ -505,6 +523,7 @@ class ConfigurationProfile:
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
             session_id = self.get_param_value(ctx, session_id, 'session_id', session_id)
+            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', procurement_id)
         if not resolved_cloudos_url:
             click.secho(
                 f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
@@ -519,11 +538,12 @@ class ConfigurationProfile:
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name\n For more information on the usage of the command, please run cloudos configure --help")
+            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name,\n  --procurement-id\n For more information on the usage of the command, please run cloudos configure --help")
         return {
             'apikey': apikey,
             'cloudos_url': cloudos_url,
             'workspace_id': workspace_id,
+            'procurement_id': procurement_id,
             'workflow_name': workflow_name,
             'repository_platform': repository_platform,
             'execution_platform': execution_platform,
