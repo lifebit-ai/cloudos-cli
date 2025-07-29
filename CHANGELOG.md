@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.47.0 (2025-07-29)
+
+### Feat
+
+- Adds support for set and reset organisation images associated with a given procurement.
+
 ## v2.46.0 (2025-07-28)
 
 ### Feat
