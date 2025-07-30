@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.47.1 (2025-07-30)
+
+### Fix
+
+- Patches procurement_id requirement error in all commands
+
 ## v2.47.0 (2025-07-29)
 
 ### Feat

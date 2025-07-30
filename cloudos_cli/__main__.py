@@ -443,7 +443,8 @@ def run(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': True,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -733,7 +734,8 @@ def job_status(ctx,
         'apikey': True,
         'workspace_id': False,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -811,7 +813,8 @@ def job_logs(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -888,7 +891,8 @@ def job_results(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -978,7 +982,8 @@ def job_details(ctx,
         'apikey': True,
         'workspace_id': False,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1221,7 +1226,8 @@ def list_jobs(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1329,7 +1335,8 @@ def abort_jobs(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1437,7 +1444,8 @@ def list_workflows(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1534,7 +1542,8 @@ def import_wf(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': True,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1630,7 +1639,8 @@ def list_projects(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1735,7 +1745,8 @@ def cromwell_status(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1819,7 +1830,8 @@ def cromwell_restart(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -1920,7 +1932,8 @@ def cromwell_stop(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -2009,7 +2022,8 @@ def list_queues(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
@@ -2198,7 +2212,8 @@ def run_bash_job(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': True,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     # determine if the user provided all required parameters
@@ -2485,7 +2500,8 @@ def run_bash_array_job(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': True,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     # determine if the user provided all required parameters
@@ -2715,7 +2731,8 @@ def list_files(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
 
     user_options = config_manager.load_profile_and_validate_data(
@@ -2861,7 +2878,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     user_options = (
@@ -3013,7 +3031,8 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     user_options = (
@@ -3122,7 +3141,8 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
     user_options = config_manager.load_profile_and_validate_data(
         ctx, INIT_PROFILE, CLOUDOS_URL, profile=profile,
@@ -3266,7 +3286,8 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     user_options = (
@@ -3376,7 +3397,8 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': True
+        'project_name': True,
+        'procurement_id': False
     }
 
     user_options = (
@@ -3484,7 +3506,8 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
-        'project_name': False
+        'project_name': False,
+        'procurement_id': False
     }
     # determine if the user provided all required parameters
     config_manager = ConfigurationProfile()
