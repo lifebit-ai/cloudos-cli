@@ -1716,7 +1716,7 @@ def list_projects(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--project-name',
+@click.option('--new-project',
               help='The name for the new project.',
               required=True)
 @click.option('--verbose',
@@ -1734,7 +1734,7 @@ def create_project(ctx,
                    apikey,
                    cloudos_url,
                    workspace_id,
-                   project_name,
+                   new_project,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert,
@@ -1761,7 +1761,7 @@ def create_project(ctx,
             apikey=apikey,
             cloudos_url=cloudos_url,
             workspace_id=workspace_id,
-            project_name=project_name
+            project_name=new_project
         )
     )
     # replace the profile parameters with arguments given by the user
@@ -1776,13 +1776,13 @@ def create_project(ctx,
     if verbose:
         print(f'\tUsing CloudOS URL: {cloudos_url}')
         print(f'\tUsing workspace: {workspace_id}')
-        print(f'\tProject name: {project_name}')
+        print(f'\tProject name: {new_project}')
     
     cl = Cloudos(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None)
     
     try:
-        project_id = cl.create_project(workspace_id, project_name, verify_ssl)
-        print(f'\tProject "{project_name}" created successfully with ID: {project_id}')
+        project_id = cl.create_project(workspace_id, new_project, verify_ssl)
+        print(f'\tProject "{new_project}" created successfully with ID: {project_id}')
         if verbose:
             print(f'\tProject URL: {cloudos_url}/app/projects/{project_id}')
     except Exception as e:

@@ -17,7 +17,7 @@ def test_project_create_command_exists():
     
     # Check that the help text contains expected options
     assert 'Create a new project in CloudOS' in result.output
-    assert '--project-name' in result.output
+    assert '--new-project' in result.output
     assert '--workspace-id' in result.output
     assert '--apikey' in result.output
     assert '--cloudos-url' in result.output
@@ -35,7 +35,7 @@ def test_project_create_command_structure():
     # Command should exist and show help properly
     assert result.exit_code == 0
     assert 'Create a new project in CloudOS' in result.output
-    assert '--project-name' in result.output
+    assert '--new-project' in result.output
     assert 'required' in result.output  # Required arguments should be marked as such
 
 
