@@ -188,7 +188,7 @@ def workflow():
 
 @run_cloudos_cli.group()
 def project():
-    """CloudOS project functionality: list projects in CloudOS."""
+    """CloudOS project functionality: list and create projects in CloudOS."""
     print(project.__doc__ + '\n')
 
 
