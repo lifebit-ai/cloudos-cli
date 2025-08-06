@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.48.0 (2025-08-06)
+
+### Feat
+
+- Adds support for creating new projects with 'cloudos project create' command
+
 ## v2.47.1 (2025-07-30)
 
 ### Fix
