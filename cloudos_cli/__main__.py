@@ -79,7 +79,8 @@ def run_cloudos_cli(ctx):
                 'import': shared_config
             },
             'project': {
-                'list': shared_config
+                'list': shared_config,
+                'create': shared_config
             },
             'cromwell': {
                 'status': shared_config,
@@ -139,7 +140,8 @@ def run_cloudos_cli(ctx):
                 'import': shared_config
             },
             'project': {
-                'list': shared_config
+                'list': shared_config,
+                'create': shared_config
             },
             'cromwell': {
                 'status': shared_config,
@@ -1699,6 +1701,93 @@ def list_projects(ctx,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')
+
+
+@project.command('create')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name for the new project.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def create_project(ctx,
+                   apikey,
+                   cloudos_url,
+                   workspace_id,
+                   project_name,
+                   verbose,
+                   disable_ssl_verification,
+                   ssl_cert,
+                   profile):
+    """Create a new project in CloudOS."""
+    profile = profile or ctx.default_map['project']['create']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            project_name=project_name
+        )
+    )
+    # replace the profile parameters with arguments given by the user
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+    
+    # verify ssl configuration
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    
+    # Print basic output
+    if verbose:
+        print(f'\tUsing CloudOS URL: {cloudos_url}')
+        print(f'\tUsing workspace: {workspace_id}')
+        print(f'\tProject name: {project_name}')
+    
+    cl = Cloudos(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None)
+    
+    try:
+        project_id = cl.create_project(workspace_id, project_name, verify_ssl)
+        print(f'\tProject "{project_name}" created successfully with ID: {project_id}')
+        if verbose:
+            print(f'\tProject URL: {cloudos_url}/app/projects/{project_id}')
+    except Exception as e:
+        print(f'\tError creating project: {str(e)}')
+        sys.exit(1)
 
 
 @cromwell.command('status')
