@@ -489,7 +489,7 @@ class Cloudos:
         
         # Handle empty DataFrame
         if my_jobs_df.empty:
-            table = Table(title="CloudOS Jobs List (No Jobs Found)", show_lines=True)
+            table = Table(title="CloudOS Jobs List Preview (No Jobs Found)", show_lines=True)
             table.add_column("Status", style="cyan", no_wrap=False)
             table.add_row("[yellow]No jobs found[/yellow]")
             console.print(table)
@@ -608,7 +608,7 @@ class Cloudos:
         jobs_to_display = jobs_to_display.drop(columns=['startTime', 'endTime'], errors='ignore')
         
         # Create table with job IDs as column headers - show all lines for better visibility
-        table = Table(title=f"CloudOS Jobs List (Showing {n_jobs} most recent jobs)", show_lines=True, expand=True)
+        table = Table(title=f"CloudOS Jobs List Preview (Showing {n_jobs} most recent jobs)", show_lines=True, expand=True)
         
         # First column is for the attribute names - allow wrapping to show full text
         table.add_column("Attribute", style="cyan", no_wrap=False, overflow="fold")

@@ -740,16 +740,15 @@ This file can later be used when running a job with `cloudos job run --job-confi
 > [!NOTE]
 > Job details can only be retrieved for a single user, cannot see other user's job details.
 
-#### Get a list of your jobs from a CloudOS workspace
+#### Get a list of workspace jobs from a CloudOS
 
-You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
-parameter) in two different formats:
+You can get a summary of the workspace's last 30 submitted jobs (or a selected number of last jobs using `--last-n-jobs n` parameter) in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
-- JSON: all the available information from your jobs, in JSON format.
+- JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enables for this format).
 
-To get a list with your last 30 submitted jobs to a given workspace, in CSV format, use
+To get a list with the workspace's last 30 submitted jobs, in CSV format, use
 the following command:
 
 ```bash
@@ -771,7 +770,7 @@ Executing list...
 
 In addition, a file named `joblist.csv` is created.
 
-To get the same information, but for all your jobs and in JSON format, use the following command:
+To get the same information, but for all the workspace's jobs and in JSON format, use the following command:
 
 ```bash
 cloudos job list \
@@ -786,6 +785,8 @@ Executing list...
 	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
 ```
+
+By default, the last 5 jobs are always displayed in the terminal/console in a formatted table for quick overview. This display can be disabled using the `--no-stdout` parameter if you only want the output file without the console display.
 
 #### Get a list of all available workflows from a CloudOS workspace
 
