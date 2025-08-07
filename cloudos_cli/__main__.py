@@ -1768,18 +1768,18 @@ def create_project(ctx,
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
-    
+
     # verify ssl configuration
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
+
     # Print basic output
     if verbose:
         print(f'\tUsing CloudOS URL: {cloudos_url}')
         print(f'\tUsing workspace: {workspace_id}')
         print(f'\tProject name: {new_project}')
-    
+
     cl = Cloudos(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None)
-    
+
     try:
         project_id = cl.create_project(workspace_id, new_project, verify_ssl)
         print(f'\tProject "{new_project}" created successfully with ID: {project_id}')

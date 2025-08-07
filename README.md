@@ -931,17 +931,6 @@ The expected output is something similar to:
 	Project "My New Project" created successfully with ID: 64f1a23b8e4c9d001234abcd
 ```
 
-You can optionally use the `--verbose` flag to get additional information about the creation process:
-
-```bash
-cloudos project create \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --new-project "My New Project" \
-    --verbose
-```
-
 #### Get a list of the available job queues
 
 Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are

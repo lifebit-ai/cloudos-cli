@@ -953,7 +953,10 @@ class Cloudos:
                                 json=data, headers=headers, verify=verify)
         if r.status_code == 401:
             raise ValueError('It seems your API key is not authorised. Please check if ' +
-                             'your workspace has support for creating projects using cloudos-cli')
+                             'you have used the correct API key for the selected workspace')
+        elif r.status_code == 409:
+            raise ValueError(f'It seems that there is another project named "{project_name}" ' +
+                             'in your workspace, please use another name for the new project')
         elif r.status_code >= 400:
             raise BadRequestException(r)
         content = json.loads(r.content)
