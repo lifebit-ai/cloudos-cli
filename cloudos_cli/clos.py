@@ -11,6 +11,8 @@ from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedExcepti
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
+from rich.console import Console
+from rich.table import Table
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -461,6 +463,76 @@ class Cloudos:
         else:
             df = df_full.loc[:, COLUMNS]
         return df
+
+    @staticmethod
+    def display_job_list_table(my_jobs_df):
+        """Display a job list DataFrame using Rich Console with colors.
+
+        Parameters
+        ----------
+        my_jobs_df : pandas.DataFrame
+            A DataFrame containing job information from process_job_list.
+
+        Returns
+        -------
+        None
+            Prints the table to stdout using Rich Console.
+        """
+        console = Console()
+        table = Table(title="CloudOS Jobs List", show_lines=True)
+
+        # Add columns with the same styling as job details - cyan headers
+        for column in my_jobs_df.columns:
+            table.add_column(column, style="cyan", no_wrap=False, overflow="fold")
+
+        # Add rows with data
+        for _, row in my_jobs_df.iterrows():
+            # Convert all values to strings and handle None/NaN values
+            row_values = []
+            for i, value in enumerate(row):
+                column_name = my_jobs_df.columns[i]
+                
+                if pd.isna(value) or value is None:
+                    row_values.append("N/A")
+                else:
+                    str_value = str(value)
+                    
+                    # Apply special color coding for status column
+                    if column_name == 'status':
+                        if str_value == 'completed':
+                            str_value = f"[green]{str_value}[/green]"
+                        elif str_value == 'failed':
+                            str_value = f"[red]{str_value}[/red]"
+                        elif str_value == 'aborted':
+                            str_value = f"[yellow]{str_value}[/yellow]"
+                        else:
+                            # All other statuses are blue
+                            str_value = f"[blue]{str_value}[/blue]"
+                    else:
+                        # For non-status columns, use magenta as in job details
+                        str_value = f"[magenta]{str_value}[/magenta]"
+                    
+                    # Truncate very long values to keep table readable
+                    if len(str(value)) > 100:  # Check original value length
+                        content = str(value)[:97] + "..."
+                        # Re-apply color to truncated content
+                        if column_name == 'status':
+                            if content.startswith('completed'):
+                                str_value = f"[green]{content}[/green]"
+                            elif content.startswith('failed'):
+                                str_value = f"[red]{content}[/red]"
+                            elif content.startswith('aborted'):
+                                str_value = f"[yellow]{content}[/yellow]"
+                            else:
+                                str_value = f"[blue]{content}[/blue]"
+                        else:
+                            str_value = f"[magenta]{content}[/magenta]"
+                    
+                    row_values.append(str_value)
+            
+            table.add_row(*row_values)
+
+        console.print(table)
 
     def get_workflow_list(self, workspace_id, verify=True, get_all=True,
                           page=1, page_size=10, max_page_size=100,
