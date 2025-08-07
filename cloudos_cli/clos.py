@@ -430,28 +430,28 @@ class Cloudos:
         df : pandas.DataFrame
             A DataFrame with the requested columns from the jobs.
         """
-        COLUMNS = ['_id',
-                   'team',
+        COLUMNS = ['status',
                    'name',
-                   'parameters',
-                   'status',
+                   'project.name',
+                   'user.name',
+                   'user.surname',
+                   'workflow.name',
+                   '_id',
                    'startTime',
                    'endTime',
                    'createdAt',
                    'updatedAt',
-                   'computeCostSpent',
-                   'masterInstanceStorageCost',
-                   'user.id',
-                   'workflow._id',
-                   'workflow.name',
-                   'workflow.description',
-                   'workflow.createdAt',
-                   'workflow.updatedAt',
-                   'workflow.workflowType',
-                   'project._id',
-                   'project.name',
-                   'project.createdAt',
-                   'project.updatedAt'
+                   'revision.commit',
+                   'realInstancesExecutionCost',
+                   'masterInstance.usedInstance.type',
+                   'storageMode',
+                   'workflow.repository.url',
+                   'parameters',
+                   'nextflowVersion',
+                   'batch.enabled',
+                   'storageSizeInGb',
+                   'batch.jobQueue.id',
+                   'usesFusionFileSystem'
                    ]
         df_full = pd.json_normalize(r)
         if df_full.empty:
