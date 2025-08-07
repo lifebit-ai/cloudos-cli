@@ -1174,13 +1174,13 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=stdout.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
-                    'when --output-format=csv'),
+                    'when --output-format=csv. Automatically enabled for json output.'),
               is_flag=True)
 @click.option('--last-n-jobs',
               help=("The number of last user's jobs to retrieve. You can use 'all' to " +
@@ -1248,7 +1248,8 @@ def list_jobs(ctx,
     workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -1268,6 +1269,11 @@ def list_jobs(ctx,
         except ValueError:
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
+    
+    # For JSON output, automatically enable all_fields
+    if output_format == 'json':
+        all_fields = True
+    
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
@@ -1277,17 +1283,23 @@ def list_jobs(ctx,
             print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested ' +
                   'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                   'using --page parameter.')
+    elif output_format == 'stdout':
+        # For stdout, display the processed job list in a tabular format
+        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
+        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        print(my_jobs.to_string(index=False))
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        print(f'\tJob list saved to {outfile}')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_jobs_r))
-        print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
+        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        print(f'\tJob list saved to {outfile}')
     else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tJob list saved to {outfile}')
+        raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
 @job.command('abort')
