@@ -1177,9 +1177,6 @@ def job_details(ctx,
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
-@click.option('--no-stdout',
-              is_flag=True,
-              help='Do not display the job list table in stdout.')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -1275,11 +1272,6 @@ def list_jobs(ctx,
             raise
 
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
-    if not no_stdout:
-        # For stdout, display the processed job list in a tabular format
-        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
-        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
-        cl.display_job_list_table(my_jobs)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
