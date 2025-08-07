@@ -1287,7 +1287,7 @@ def list_jobs(ctx,
         # For stdout, display the processed job list in a tabular format
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
-        print(my_jobs.to_string(index=False))
+        cl.display_job_list_table(my_jobs)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
