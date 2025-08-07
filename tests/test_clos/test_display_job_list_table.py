@@ -237,3 +237,33 @@ class TestDisplayJobListTable:
             expected_color = expected_colors[status]
             expected_colored_status = f'[{expected_color}]{status}[/{expected_color}]'
             assert status_arg == expected_colored_status
+
+    @patch('cloudos_cli.clos.Console')
+    @patch('cloudos_cli.clos.Table')
+    def test_handles_array_values(self, mock_table_class, mock_console_class):
+        """Test that array values are handled correctly without ValueError."""
+        # Create DataFrame with array-like values
+        data_with_arrays = [
+            {'status': 'completed', 'name': 'job1', 'array_col': [1, 2, 3]},
+            {'status': 'running', 'name': 'job2', 'array_col': np.array([4, 5, 6])},
+            {'status': 'failed', 'name': None, 'array_col': None}
+        ]
+        df_with_arrays = pd.DataFrame(data_with_arrays)
+        
+        mock_console = MagicMock()
+        mock_table = MagicMock()
+        mock_console_class.return_value = mock_console
+        mock_table_class.return_value = mock_table
+        
+        # This should not raise a ValueError about ambiguous array truth values
+        Cloudos.display_job_list_table(df_with_arrays)
+        
+        # Check that function executed successfully
+        mock_console.print.assert_called_once_with(mock_table)
+        assert mock_table.add_row.call_count == len(df_with_arrays)
+        
+        # Check that None values become N/A
+        row_calls = mock_table.add_row.call_args_list
+        third_row_args = row_calls[2][0]  # Third row has None name and array_col
+        assert third_row_args[1] == "N/A"  # None name becomes N/A
+        assert third_row_args[2] == "N/A"  # None array_col becomes N/A

@@ -492,7 +492,16 @@ class Cloudos:
             for i, value in enumerate(row):
                 column_name = my_jobs_df.columns[i]
                 
-                if pd.isna(value) or value is None:
+                # Handle array-like values and scalar NaN/None values
+                try:
+                    is_na = pd.isna(value)
+                    # If pd.isna returns an array, check if all elements are NaN
+                    if hasattr(is_na, '__len__') and not isinstance(is_na, str):
+                        is_na = is_na.all() if len(is_na) > 0 else False
+                except (TypeError, ValueError):
+                    is_na = False
+                
+                if is_na or value is None:
                     row_values.append("N/A")
                 else:
                     str_value = str(value)
