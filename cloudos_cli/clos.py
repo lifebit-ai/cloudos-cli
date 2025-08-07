@@ -916,6 +916,52 @@ class Cloudos:
 
         return project_id
 
+    def create_project(self, workspace_id, project_name, verify=True):
+        """Create a new project in CloudOS.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID where the project will be created.
+        project_name : str
+            The name for the new project.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        str
+            The ID of the newly created project.
+
+        Raises
+        ------
+        BadRequestException
+            If the request to create the project fails with a status code
+            indicating an error.
+        """
+        data = {
+            "name": project_name
+        }
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        r = retry_requests_post("{}/api/v1/projects?teamId={}".format(self.cloudos_url,
+                                                                      workspace_id),
+                                json=data, headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise ValueError('It seems your API key is not authorised. Please check if ' +
+                             'you have used the correct API key for the selected workspace')
+        elif r.status_code == 409:
+            raise ValueError(f'It seems that there is another project named "{project_name}" ' +
+                             'in your workspace, please use another name for the new project')
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        content = json.loads(r.content)
+        return content['_id']
+
     def get_workflow_max_pagination(self, workspace_id, workflow_name, verify=True):
         """Retrieve the workflows max pages from API.
 
