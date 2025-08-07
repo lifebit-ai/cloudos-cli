@@ -465,32 +465,196 @@ class Cloudos:
         return df
 
     @staticmethod
-    def display_job_list_table(my_jobs_df):
-        """Display a job list DataFrame using Rich Console with colors.
+    def display_job_list_table(my_jobs_df, max_jobs=10):
+        """Display a job list DataFrame using Rich Console with colors (transposed).
 
         Parameters
         ----------
         my_jobs_df : pandas.DataFrame
             A DataFrame containing job information from process_job_list.
+        max_jobs : int, optional
+            Maximum number of jobs to display. Default is 10.
+            If there are fewer jobs than max_jobs, all available jobs are shown.
 
         Returns
         -------
         None
-            Prints the table to stdout using Rich Console.
+            Prints the transposed table to stdout using Rich Console.
+            Each column represents a job (by ID), and each row represents a job attribute.
         """
+        from datetime import datetime
+        import pandas as pd
+        
         console = Console()
-        table = Table(title="CloudOS Jobs List", show_lines=True)
-
-        # Add columns with the same styling as job details - cyan headers
-        for column in my_jobs_df.columns:
-            table.add_column(column, style="cyan", no_wrap=False, overflow="fold")
-
-        # Add rows with data
-        for _, row in my_jobs_df.iterrows():
-            # Convert all values to strings and handle None/NaN values
-            row_values = []
-            for i, value in enumerate(row):
-                column_name = my_jobs_df.columns[i]
+        
+        # Handle empty DataFrame
+        if my_jobs_df.empty:
+            table = Table(title="CloudOS Jobs List (No Jobs Found)", show_lines=True)
+            table.add_column("Status", style="cyan", no_wrap=False)
+            table.add_row("[yellow]No jobs found[/yellow]")
+            console.print(table)
+            return
+        
+        # Get the last N jobs (most recent)
+        jobs_to_display = my_jobs_df.head(max_jobs).copy()
+        n_jobs = len(jobs_to_display)
+        
+        # Process the DataFrame for display modifications
+        # 1. Fusion user.name and user.surname into user
+        if 'user.name' in jobs_to_display.columns and 'user.surname' in jobs_to_display.columns:
+            jobs_to_display['user'] = jobs_to_display.apply(
+                lambda row: f"{row.get('user.name', '')} {row.get('user.surname', '')}".strip() 
+                if pd.notna(row.get('user.name')) or pd.notna(row.get('user.surname')) 
+                else None, axis=1
+            )
+            # Remove original columns
+            jobs_to_display = jobs_to_display.drop(columns=['user.name', 'user.surname'], errors='ignore')
+        
+        # 2. Remove _id column
+        if '_id' in jobs_to_display.columns:
+            jobs_to_display = jobs_to_display.drop(columns=['_id'])
+        
+        # 3. Convert time fields to human-readable format
+        time_columns = ['startTime', 'endTime', 'createdAt', 'updatedAt']
+        for col in time_columns:
+            if col in jobs_to_display.columns:
+                def format_time(x):
+                    if pd.notna(x) and isinstance(x, str) and x:
+                        try:
+                            return datetime.fromisoformat(x.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S UTC')
+                        except (ValueError, TypeError):
+                            return x  # Return original value if parsing fails
+                    return None
+                jobs_to_display[col] = jobs_to_display[col].apply(format_time)
+        
+        # 4. Format realInstancesExecutionCost (divide by 100, show 4 decimals)
+        if 'realInstancesExecutionCost' in jobs_to_display.columns:
+            def format_cost(x):
+                if pd.notna(x) and x != '' and x is not None:
+                    try:
+                        return f"{float(x) / 100:.4f}"
+                    except (ValueError, TypeError):
+                        return x  # Return original value if conversion fails
+                return None
+            jobs_to_display['realInstancesExecutionCost'] = jobs_to_display['realInstancesExecutionCost'].apply(format_cost)
+        
+        # 5. Calculate Run time (endTime - startTime)
+        if 'startTime' in jobs_to_display.columns and 'endTime' in jobs_to_display.columns:
+            def calculate_runtime(row):
+                start_time = row.get('startTime')
+                end_time = row.get('endTime')
+                
+                if pd.notna(start_time) and pd.notna(end_time) and start_time and end_time:
+                    # If times are already formatted as strings, we need the original times
+                    original_start = my_jobs_df.iloc[row.name].get('startTime') if row.name < len(my_jobs_df) else start_time
+                    original_end = my_jobs_df.iloc[row.name].get('endTime') if row.name < len(my_jobs_df) else end_time
+                    
+                    if pd.notna(original_start) and pd.notna(original_end) and original_start and original_end:
+                        try:
+                            start_dt = datetime.fromisoformat(str(original_start).replace('Z', '+00:00'))
+                            end_dt = datetime.fromisoformat(str(original_end).replace('Z', '+00:00'))
+                            duration = end_dt - start_dt
+                            
+                            # Format duration as hours:minutes:seconds
+                            total_seconds = int(duration.total_seconds())
+                            hours = total_seconds // 3600
+                            minutes = (total_seconds % 3600) // 60
+                            seconds = total_seconds % 60
+                            
+                            if hours > 0:
+                                return f"{hours}h {minutes}m {seconds}s"
+                            elif minutes > 0:
+                                return f"{minutes}m {seconds}s"
+                            else:
+                                return f"{seconds}s"
+                        except (ValueError, TypeError):
+                            return None
+                return None
+            
+            jobs_to_display['Run time'] = jobs_to_display.apply(calculate_runtime, axis=1)
+        
+        # 6. Format batch.enabled (True -> "Batch", else "N/A")
+        if 'batch.enabled' in jobs_to_display.columns:
+            jobs_to_display['batch.enabled'] = jobs_to_display['batch.enabled'].apply(
+                lambda x: "Batch" if x is True else "N/A"
+            )
+        
+        # 7. Rename columns using the provided dictionary
+        column_name_mapping = {
+            "status": "Status",
+            "name": "Name",
+            "parameters": "Parameters",
+            "project.name": "Project",
+            "user": "Owner",
+            "workflow.name": "Pipeline",
+            "createdAt": "Submit time",
+            "updatedAt": "End time", 
+            "revision.commit": "Commit",
+            "realInstancesExecutionCost": "Cost",
+            "masterInstance.usedInstance.type": "Resources",
+            "storageMode": "Storage type",
+            "workflow.repository.url": "Pipeline url",
+            "nextflowVersion": "Nextflow version",
+            "batch.enabled": "Executor",
+            "storageSizeInGb": "Storage size",
+            "batch.jobQueue.id": "Job queue",
+            "usesFusionFileSystem": "Accelerated file staging"
+        }
+        
+        # Rename columns that exist in the DataFrame
+        jobs_to_display = jobs_to_display.rename(columns=column_name_mapping)
+        
+        # Remove the original startTime and endTime columns since we now have Submit time, End time, and Run time
+        jobs_to_display = jobs_to_display.drop(columns=['startTime', 'endTime'], errors='ignore')
+        
+        # Create table with job IDs as column headers - show all lines for better visibility
+        table = Table(title=f"CloudOS Jobs List (Showing {n_jobs} most recent jobs)", show_lines=True, expand=True)
+        
+        # First column is for the attribute names - allow wrapping to show full text
+        table.add_column("Attribute", style="cyan", no_wrap=False, overflow="fold")
+        
+        # Add columns for each job using their original IDs from the original DataFrame
+        job_ids = []
+        for idx, row in jobs_to_display.iterrows():
+            # Use the original _id from my_jobs_df if available, otherwise use index
+            if '_id' in my_jobs_df.columns and idx < len(my_jobs_df):
+                original_row = my_jobs_df.iloc[idx] if isinstance(idx, int) else my_jobs_df.loc[idx]
+                if pd.notna(original_row.get('_id')):
+                    job_id = str(original_row['_id'])
+                    # Show full job ID without truncation
+                    display_id = job_id
+                    job_ids.append(job_id)
+                else:
+                    display_id = f"Job-{idx}"
+                    job_ids.append(f"Job-{idx}")
+            else:
+                display_id = f"Job-{idx}"
+                job_ids.append(f"Job-{idx}")
+            
+            table.add_column(display_id, style="cyan", no_wrap=False, overflow="fold")
+        
+        # Define the desired order of attributes/rows
+        desired_order = [
+            "Status", "Name", "Project", "Owner", "Pipeline", 
+            "Submit time", "End time", "Run time", "Commit", "Cost", 
+            "Resources", "Storage type", "Pipeline url", "Parameters", 
+            "Nextflow version", "Executor", "Storage size", "Job queue", 
+            "Accelerated file staging"
+        ]
+        
+        # Add rows for each attribute in the specified order
+        for column_name in desired_order:
+            # Skip columns that don't exist in the DataFrame
+            if column_name not in jobs_to_display.columns:
+                continue
+            # Show full attribute names without truncation
+            display_attr = column_name
+            
+            row_values = [display_attr]  # First cell is the full attribute name
+            
+            # Add values for each job
+            for idx, row in jobs_to_display.iterrows():
+                value = row[column_name]
                 
                 # Handle array-like values and scalar NaN/None values
                 try:
@@ -506,8 +670,8 @@ class Cloudos:
                 else:
                     str_value = str(value)
                     
-                    # Apply special color coding for status column
-                    if column_name == 'status':
+                    # Apply special color coding for status row
+                    if column_name == 'Status':
                         if str_value == 'completed':
                             str_value = f"[green]{str_value}[/green]"
                         elif str_value == 'failed':
@@ -518,25 +682,10 @@ class Cloudos:
                             # All other statuses are blue
                             str_value = f"[blue]{str_value}[/blue]"
                     else:
-                        # For non-status columns, use magenta as in job details
+                        # For non-status rows, use magenta as in job details
                         str_value = f"[magenta]{str_value}[/magenta]"
                     
-                    # Truncate very long values to keep table readable
-                    if len(str(value)) > 100:  # Check original value length
-                        content = str(value)[:97] + "..."
-                        # Re-apply color to truncated content
-                        if column_name == 'status':
-                            if content.startswith('completed'):
-                                str_value = f"[green]{content}[/green]"
-                            elif content.startswith('failed'):
-                                str_value = f"[red]{content}[/red]"
-                            elif content.startswith('aborted'):
-                                str_value = f"[yellow]{content}[/yellow]"
-                            else:
-                                str_value = f"[blue]{content}[/blue]"
-                        else:
-                            str_value = f"[magenta]{content}[/magenta]"
-                    
+                    # Show full content without truncation - allow wrapping for long values
                     row_values.append(str_value)
             
             table.add_row(*row_values)
