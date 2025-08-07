@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.49.0 (2025-08-07)
+
+### Feat
+
+- Enhanced CSV export functionality for job lists with improved column naming, ordering, and data formatting
+
 ## v2.47.1 (2025-07-30)
 
 ### Fix
