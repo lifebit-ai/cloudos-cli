@@ -464,7 +464,7 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
-    def reorder_save_job_list(self, my_jobs_df, filename='my_jobs.csv'):
+    def reorder_job_list(self, my_jobs_df, filename='my_jobs.csv'):
         """Save a job list DataFrame to a CSV file with renamed and ordered columns.
 
         Parameters
@@ -480,17 +480,17 @@ class Cloudos:
             Saves the DataFrame to a CSV file with renamed and ordered columns.
         """
         from datetime import datetime
-        
+
         # Handle empty DataFrame
         if my_jobs_df.empty:
             print("Warning: DataFrame is empty. Creating empty CSV file.")
             empty_df = pd.DataFrame()
             empty_df.to_csv(filename, index=False)
             return
-        
+
         # Create a copy to avoid modifying the original DataFrame
         jobs_df = my_jobs_df.copy()
-        
+
         # 1. Fusion user.name and user.surname into user
         if 'user.name' in jobs_df.columns and 'user.surname' in jobs_df.columns:
             jobs_df['user'] = jobs_df.apply(
@@ -500,7 +500,7 @@ class Cloudos:
             )
             # Remove original columns
             jobs_df = jobs_df.drop(columns=['user.name', 'user.surname'], errors='ignore')
-        
+
         # 2. Convert time fields to human-readable format
         time_columns = ['startTime', 'endTime', 'createdAt', 'updatedAt']
         for col in time_columns:
@@ -513,7 +513,7 @@ class Cloudos:
                             return x  # Return original value if parsing fails
                     return None
                 jobs_df[col] = jobs_df[col].apply(format_time)
-        
+
         # 3. Format realInstancesExecutionCost (divide by 100, show 4 decimals)
         if 'realInstancesExecutionCost' in jobs_df.columns:
             def format_cost(x):
@@ -524,7 +524,7 @@ class Cloudos:
                         return x  # Return original value if conversion fails
                 return None
             jobs_df['realInstancesExecutionCost'] = jobs_df['realInstancesExecutionCost'].apply(format_cost)
-        
+
         # 4. Calculate Run time (endTime - startTime)
         if 'startTime' in jobs_df.columns and 'endTime' in jobs_df.columns:
             def calculate_runtime(row):
@@ -557,15 +557,15 @@ class Cloudos:
                         except (ValueError, TypeError):
                             return None
                 return None
-            
+
             jobs_df['Run time'] = jobs_df.apply(calculate_runtime, axis=1)
-        
+
         # 5. Format batch.enabled (True -> "Batch", else "N/A")
         if 'batch.enabled' in jobs_df.columns:
             jobs_df['batch.enabled'] = jobs_df['batch.enabled'].apply(
                 lambda x: "Batch" if x is True else "N/A"
             )
-        
+
         # 6. Rename columns using the provided dictionary
         column_name_mapping = {
             "status": "Status",
@@ -587,17 +587,17 @@ class Cloudos:
             "batch.jobQueue.id": "Job queue",
             "usesFusionFileSystem": "Accelerated file staging"
         }
-        
+
         # Rename columns that exist in the DataFrame
         jobs_df = jobs_df.rename(columns=column_name_mapping)
-        
+
         # Remove the original startTime and endTime columns since we now have Submit time, End time, and Run time
         jobs_df = jobs_df.drop(columns=['startTime', 'endTime'], errors='ignore')
-        
+
         # Remove the _id column if it exists
         if '_id' in jobs_df.columns:
             jobs_df = jobs_df.drop(columns=['_id'])
-        
+
         # 7. Define the desired order of columns
         desired_order = [
             "Status", "Name", "Project", "Owner", "Pipeline", 
@@ -606,20 +606,20 @@ class Cloudos:
             "Nextflow version", "Executor", "Storage size", "Job queue", 
             "Accelerated file staging"
         ]
-        
+
         # Reorder columns - only include columns that exist in the DataFrame
         available_columns = [col for col in desired_order if col in jobs_df.columns]
         # Add any remaining columns that aren't in the desired order
         remaining_columns = [col for col in jobs_df.columns if col not in desired_order]
         final_column_order = available_columns + remaining_columns
-        
+
         # Reorder the DataFrame
         jobs_df = jobs_df[final_column_order]
         return jobs_df
 
     def save_job_list_to_csv(self, my_jobs_df, filename='my_jobs.csv'):
         # Save to CSV
-        jobs_df = self.reorder_save_job_list(my_jobs_df, filename)
+        jobs_df = self.reorder_job_list(my_jobs_df, filename)
         jobs_df.to_csv(filename, index=False)
         print(f'\tJob list collected with a total of {len(jobs_df)} jobs.')
         print(f'\tJob list saved to {filename}')
