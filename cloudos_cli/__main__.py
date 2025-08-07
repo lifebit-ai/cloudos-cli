@@ -1290,9 +1290,7 @@ def list_jobs(ctx,
                   'using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
-        my_jobs.to_csv(outfile, index=False)
-        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
-        print(f'\tJob list saved to {outfile}')
+        cl.save_job_list_to_csv(my_jobs, outfile)
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_jobs_r))

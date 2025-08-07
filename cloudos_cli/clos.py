@@ -464,6 +464,166 @@ class Cloudos:
             df = df_full.loc[:, COLUMNS]
         return df
 
+    def reorder_save_job_list(self, my_jobs_df, filename='my_jobs.csv'):
+        """Save a job list DataFrame to a CSV file with renamed and ordered columns.
+
+        Parameters
+        ----------
+        my_jobs_df : pandas.DataFrame
+            A DataFrame containing job information from process_job_list.
+        filename : str
+            The name of the file to save the DataFrame to. Default is 'my_jobs.csv'.
+
+        Returns
+        -------
+        None
+            Saves the DataFrame to a CSV file with renamed and ordered columns.
+        """
+        from datetime import datetime
+        
+        # Handle empty DataFrame
+        if my_jobs_df.empty:
+            print("Warning: DataFrame is empty. Creating empty CSV file.")
+            empty_df = pd.DataFrame()
+            empty_df.to_csv(filename, index=False)
+            return
+        
+        # Create a copy to avoid modifying the original DataFrame
+        jobs_df = my_jobs_df.copy()
+        
+        # 1. Fusion user.name and user.surname into user
+        if 'user.name' in jobs_df.columns and 'user.surname' in jobs_df.columns:
+            jobs_df['user'] = jobs_df.apply(
+                lambda row: f"{row.get('user.name', '')} {row.get('user.surname', '')}".strip() 
+                if pd.notna(row.get('user.name')) or pd.notna(row.get('user.surname')) 
+                else None, axis=1
+            )
+            # Remove original columns
+            jobs_df = jobs_df.drop(columns=['user.name', 'user.surname'], errors='ignore')
+        
+        # 2. Convert time fields to human-readable format
+        time_columns = ['startTime', 'endTime', 'createdAt', 'updatedAt']
+        for col in time_columns:
+            if col in jobs_df.columns:
+                def format_time(x):
+                    if pd.notna(x) and isinstance(x, str) and x:
+                        try:
+                            return datetime.fromisoformat(x.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S UTC')
+                        except (ValueError, TypeError):
+                            return x  # Return original value if parsing fails
+                    return None
+                jobs_df[col] = jobs_df[col].apply(format_time)
+        
+        # 3. Format realInstancesExecutionCost (divide by 100, show 4 decimals)
+        if 'realInstancesExecutionCost' in jobs_df.columns:
+            def format_cost(x):
+                if pd.notna(x) and x != '' and x is not None:
+                    try:
+                        return f"{float(x) / 100:.4f}"
+                    except (ValueError, TypeError):
+                        return x  # Return original value if conversion fails
+                return None
+            jobs_df['realInstancesExecutionCost'] = jobs_df['realInstancesExecutionCost'].apply(format_cost)
+        
+        # 4. Calculate Run time (endTime - startTime)
+        if 'startTime' in jobs_df.columns and 'endTime' in jobs_df.columns:
+            def calculate_runtime(row):
+                start_time = row.get('startTime')
+                end_time = row.get('endTime')
+                
+                if pd.notna(start_time) and pd.notna(end_time) and start_time and end_time:
+                    # Use original times from the original DataFrame for calculation
+                    original_start = my_jobs_df.iloc[row.name].get('startTime') if row.name < len(my_jobs_df) else start_time
+                    original_end = my_jobs_df.iloc[row.name].get('endTime') if row.name < len(my_jobs_df) else end_time
+                    
+                    if pd.notna(original_start) and pd.notna(original_end) and original_start and original_end:
+                        try:
+                            start_dt = datetime.fromisoformat(str(original_start).replace('Z', '+00:00'))
+                            end_dt = datetime.fromisoformat(str(original_end).replace('Z', '+00:00'))
+                            duration = end_dt - start_dt
+                            
+                            # Format duration as hours:minutes:seconds
+                            total_seconds = int(duration.total_seconds())
+                            hours = total_seconds // 3600
+                            minutes = (total_seconds % 3600) // 60
+                            seconds = total_seconds % 60
+                            
+                            if hours > 0:
+                                return f"{hours}h {minutes}m {seconds}s"
+                            elif minutes > 0:
+                                return f"{minutes}m {seconds}s"
+                            else:
+                                return f"{seconds}s"
+                        except (ValueError, TypeError):
+                            return None
+                return None
+            
+            jobs_df['Run time'] = jobs_df.apply(calculate_runtime, axis=1)
+        
+        # 5. Format batch.enabled (True -> "Batch", else "N/A")
+        if 'batch.enabled' in jobs_df.columns:
+            jobs_df['batch.enabled'] = jobs_df['batch.enabled'].apply(
+                lambda x: "Batch" if x is True else "N/A"
+            )
+        
+        # 6. Rename columns using the provided dictionary
+        column_name_mapping = {
+            "status": "Status",
+            "name": "Name",
+            "parameters": "Parameters",
+            "project.name": "Project",
+            "user": "Owner",
+            "workflow.name": "Pipeline",
+            "createdAt": "Submit time",
+            "updatedAt": "End time", 
+            "revision.commit": "Commit",
+            "realInstancesExecutionCost": "Cost",
+            "masterInstance.usedInstance.type": "Resources",
+            "storageMode": "Storage type",
+            "workflow.repository.url": "Pipeline url",
+            "nextflowVersion": "Nextflow version",
+            "batch.enabled": "Executor",
+            "storageSizeInGb": "Storage size",
+            "batch.jobQueue.id": "Job queue",
+            "usesFusionFileSystem": "Accelerated file staging"
+        }
+        
+        # Rename columns that exist in the DataFrame
+        jobs_df = jobs_df.rename(columns=column_name_mapping)
+        
+        # Remove the original startTime and endTime columns since we now have Submit time, End time, and Run time
+        jobs_df = jobs_df.drop(columns=['startTime', 'endTime'], errors='ignore')
+        
+        # Remove the _id column if it exists
+        if '_id' in jobs_df.columns:
+            jobs_df = jobs_df.drop(columns=['_id'])
+        
+        # 7. Define the desired order of columns
+        desired_order = [
+            "Status", "Name", "Project", "Owner", "Pipeline", 
+            "Submit time", "End time", "Run time", "Commit", "Cost", 
+            "Resources", "Storage type", "Pipeline url", "Parameters", 
+            "Nextflow version", "Executor", "Storage size", "Job queue", 
+            "Accelerated file staging"
+        ]
+        
+        # Reorder columns - only include columns that exist in the DataFrame
+        available_columns = [col for col in desired_order if col in jobs_df.columns]
+        # Add any remaining columns that aren't in the desired order
+        remaining_columns = [col for col in jobs_df.columns if col not in desired_order]
+        final_column_order = available_columns + remaining_columns
+        
+        # Reorder the DataFrame
+        jobs_df = jobs_df[final_column_order]
+        return jobs_df
+
+    def save_job_list_to_csv(self, my_jobs_df, filename='my_jobs.csv'):
+        # Save to CSV
+        jobs_df = self.reorder_save_job_list(my_jobs_df, filename)
+        jobs_df.to_csv(filename, index=False)
+        print(f'\tJob list collected with a total of {len(jobs_df)} jobs.')
+        print(f'\tJob list saved to {filename}')
+
     @staticmethod
     def display_job_list_table(my_jobs_df, max_jobs=5):
         """Display a job list DataFrame using Rich Console with colors (transposed).
@@ -484,9 +644,9 @@ class Cloudos:
         """
         from datetime import datetime
         import pandas as pd
-        
+
         console = Console()
-        
+
         # Handle empty DataFrame
         if my_jobs_df.empty:
             table = Table(title="CloudOS Jobs List Preview (No Jobs Found)", show_lines=True)
@@ -494,7 +654,7 @@ class Cloudos:
             table.add_row("[yellow]No jobs found[/yellow]")
             console.print(table)
             return
-        
+
         # Get the last N jobs (most recent)
         jobs_to_display = my_jobs_df.head(max_jobs).copy()
         n_jobs = len(jobs_to_display)
@@ -513,7 +673,7 @@ class Cloudos:
         # 2. Remove _id column
         if '_id' in jobs_to_display.columns:
             jobs_to_display = jobs_to_display.drop(columns=['_id'])
-        
+
         # 3. Convert time fields to human-readable format
         time_columns = ['startTime', 'endTime', 'createdAt', 'updatedAt']
         for col in time_columns:
@@ -526,7 +686,7 @@ class Cloudos:
                             return x  # Return original value if parsing fails
                     return None
                 jobs_to_display[col] = jobs_to_display[col].apply(format_time)
-        
+
         # 4. Format realInstancesExecutionCost (divide by 100, show 4 decimals)
         if 'realInstancesExecutionCost' in jobs_to_display.columns:
             def format_cost(x):
@@ -537,7 +697,7 @@ class Cloudos:
                         return x  # Return original value if conversion fails
                 return None
             jobs_to_display['realInstancesExecutionCost'] = jobs_to_display['realInstancesExecutionCost'].apply(format_cost)
-        
+
         # 5. Calculate Run time (endTime - startTime)
         if 'startTime' in jobs_to_display.columns and 'endTime' in jobs_to_display.columns:
             def calculate_runtime(row):
@@ -570,15 +730,15 @@ class Cloudos:
                         except (ValueError, TypeError):
                             return None
                 return None
-            
+
             jobs_to_display['Run time'] = jobs_to_display.apply(calculate_runtime, axis=1)
-        
+
         # 6. Format batch.enabled (True -> "Batch", else "N/A")
         if 'batch.enabled' in jobs_to_display.columns:
             jobs_to_display['batch.enabled'] = jobs_to_display['batch.enabled'].apply(
                 lambda x: "Batch" if x is True else "N/A"
             )
-        
+
         # 7. Rename columns using the provided dictionary
         column_name_mapping = {
             "status": "Status",
@@ -600,19 +760,19 @@ class Cloudos:
             "batch.jobQueue.id": "Job queue",
             "usesFusionFileSystem": "Accelerated file staging"
         }
-        
+
         # Rename columns that exist in the DataFrame
         jobs_to_display = jobs_to_display.rename(columns=column_name_mapping)
-        
+
         # Remove the original startTime and endTime columns since we now have Submit time, End time, and Run time
         jobs_to_display = jobs_to_display.drop(columns=['startTime', 'endTime'], errors='ignore')
-        
+
         # Create table with job IDs as column headers - show all lines for better visibility
         table = Table(title=f"CloudOS Jobs List Preview (Showing {n_jobs} most recent jobs)", show_lines=True, expand=True)
-        
+
         # First column is for the attribute names - allow wrapping to show full text
         table.add_column("Attribute", style="cyan", no_wrap=False, overflow="fold")
-        
+
         # Add columns for each job using their original IDs from the original DataFrame
         job_ids = []
         for idx, row in jobs_to_display.iterrows():
