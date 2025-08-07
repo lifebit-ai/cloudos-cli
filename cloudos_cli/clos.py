@@ -465,7 +465,7 @@ class Cloudos:
         return df
 
     @staticmethod
-    def display_job_list_table(my_jobs_df, max_jobs=10):
+    def display_job_list_table(my_jobs_df, max_jobs=5):
         """Display a job list DataFrame using Rich Console with colors (transposed).
 
         Parameters

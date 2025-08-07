@@ -1175,8 +1175,11 @@ def job_details(ctx,
               required=False)
 @click.option('--output-format',
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=stdout.',
-              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='stdout')
+@click.option('--no-stdout',
+              is_flag=True,
+              help='Do not display the job list table in stdout.')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -1211,6 +1214,7 @@ def list_jobs(ctx,
               workspace_id,
               output_basename,
               output_format,
+              no_stdout,
               all_fields,
               last_n_jobs,
               page,
@@ -1275,6 +1279,11 @@ def list_jobs(ctx,
         all_fields = True
     
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
+    if not no_stdout:
+        # For stdout, display the processed job list in a tabular format
+        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
+        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        cl.display_job_list_table(my_jobs)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
@@ -1283,11 +1292,6 @@ def list_jobs(ctx,
             print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested ' +
                   'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                   'using --page parameter.')
-    elif output_format == 'stdout':
-        # For stdout, display the processed job list in a tabular format
-        my_jobs = cl.process_job_list(my_jobs_r, all_fields)
-        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
-        cl.display_job_list_table(my_jobs, max_jobs=5)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         my_jobs.to_csv(outfile, index=False)
