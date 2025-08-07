@@ -145,7 +145,7 @@ cloudos --help
 │ configure              CloudOS configuration.                                                                                                                   │
 │ cromwell               Cromwell server functionality: check status, start and stop.                                                                             │
 │ job                    CloudOS job functionality: run, check and abort jobs in CloudOS.                                                                         │
-│ project                CloudOS project functionality: list projects in CloudOS.                                                                                 │
+│ project                CloudOS project functionality: list and create projects in CloudOS.                                                                       │
 │ queue                  CloudOS job queue functionality.                                                                                                         │
 │ workflow               CloudOS workflow functionality: list and import workflows.                                                                               │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -911,6 +911,25 @@ The expected output is something similar to:
 Executing list...
 	Workflow list collected with a total of 320 projects.
 	Workflow list saved to project_list.csv
+```
+
+#### Create a new project in CloudOS
+
+You can create a new project in your CloudOS workspace using the `project create` command.
+This command requires the name of the new project and will return the project ID upon successful creation.
+
+```bash
+cloudos project create \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --new-project "My New Project"
+```
+
+The expected output is something similar to:
+
+```console
+	Project "My New Project" created successfully with ID: 64f1a23b8e4c9d001234abcd
 ```
 
 #### Get a list of the available job queues
