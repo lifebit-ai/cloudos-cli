@@ -1213,7 +1213,6 @@ def list_jobs(ctx,
               workspace_id,
               output_basename,
               output_format,
-              no_stdout,
               all_fields,
               last_n_jobs,
               page,
@@ -1251,8 +1250,7 @@ def list_jobs(ctx,
     workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    if output_format != 'stdout':
-        outfile = output_basename + '.' + output_format
+    outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')

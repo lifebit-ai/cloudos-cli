@@ -786,8 +786,6 @@ Executing list...
 	Job list saved to joblist.json
 ```
 
-By default, the last 5 jobs are always displayed in the terminal/console in a formatted table for quick overview. This display can be disabled using the `--no-stdout` parameter if you only want the output file without the console display.
-
 #### Get a list of all available workflows from a CloudOS workspace
 
 You can get a summary of all the available workspace workflows in two different formats:
