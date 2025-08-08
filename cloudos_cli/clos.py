@@ -538,7 +538,6 @@ class Cloudos:
                             start_dt = datetime.fromisoformat(str(original_start).replace('Z', '+00:00'))
                             end_dt = datetime.fromisoformat(str(original_end).replace('Z', '+00:00'))
                             duration = end_dt - start_dt
-                            
                             # Format duration as hours:minutes:seconds
                             total_seconds = int(duration.total_seconds())
                             hours = total_seconds // 3600
