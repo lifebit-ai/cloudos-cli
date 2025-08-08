@@ -11,6 +11,8 @@ from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedExcepti
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
+from datetime import datetime
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -477,8 +479,6 @@ class Cloudos:
         None
             Saves the DataFrame to a CSV file with renamed and ordered columns.
         """
-        from datetime import datetime
-
         # Handle empty DataFrame
         if my_jobs_df.empty:
             print("Warning: DataFrame is empty. Creating empty CSV file.")
@@ -568,6 +568,7 @@ class Cloudos:
             "project.name": "Project",
             "user": "Owner",
             "workflow.name": "Pipeline",
+            "_id": "ID",
             "createdAt": "Submit time",
             "updatedAt": "End time",
             "revision.commit": "Commit",
@@ -588,13 +589,9 @@ class Cloudos:
         # Remove the original startTime and endTime columns since we now have Submit time, End time, and Run time
         jobs_df = jobs_df.drop(columns=['startTime', 'endTime'], errors='ignore')
 
-        # Remove the _id column if it exists
-        if '_id' in jobs_df.columns:
-            jobs_df = jobs_df.drop(columns=['_id'])
-
         # 7. Define the desired order of columns
         desired_order = [
-            "Status", "Name", "Project", "Owner", "Pipeline",
+            "Status", "Name", "Project", "Owner", "Pipeline", "ID",
             "Submit time", "End time", "Run time", "Commit", "Cost",
             "Resources", "Storage type", "Pipeline url", "Parameters",
             "Nextflow version", "Executor", "Storage size", "Job queue",
