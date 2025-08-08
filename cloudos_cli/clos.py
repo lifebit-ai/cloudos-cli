@@ -528,7 +528,6 @@ class Cloudos:
             def calculate_runtime(row):
                 start_time = row.get('startTime')
                 end_time = row.get('endTime')
-                
                 if pd.notna(start_time) and pd.notna(end_time) and start_time and end_time:
                     # Use original times from the original DataFrame for calculation
                     original_start = my_jobs_df.iloc[row.name].get('startTime') if row.name < len(my_jobs_df) else start_time
