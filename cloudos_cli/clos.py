@@ -533,7 +533,6 @@ class Cloudos:
                     # Use original times from the original DataFrame for calculation
                     original_start = my_jobs_df.iloc[row.name].get('startTime') if row.name < len(my_jobs_df) else start_time
                     original_end = my_jobs_df.iloc[row.name].get('endTime') if row.name < len(my_jobs_df) else end_time
-                    
                     if pd.notna(original_start) and pd.notna(original_end) and original_start and original_end:
                         try:
                             start_dt = datetime.fromisoformat(str(original_start).replace('Z', '+00:00'))
