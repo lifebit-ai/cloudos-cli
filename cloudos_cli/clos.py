@@ -492,8 +492,8 @@ class Cloudos:
         # 1. Fusion user.name and user.surname into user
         if 'user.name' in jobs_df.columns and 'user.surname' in jobs_df.columns:
             jobs_df['user'] = jobs_df.apply(
-                lambda row: f"{row.get('user.name', '')} {row.get('user.surname', '')}".strip() 
-                if pd.notna(row.get('user.name')) or pd.notna(row.get('user.surname')) 
+                lambda row: f"{row.get('user.name', '')} {row.get('user.surname', '')}".strip()
+                if pd.notna(row.get('user.name')) or pd.notna(row.get('user.surname'))
                 else None, axis=1
             )
             # Remove original columns
