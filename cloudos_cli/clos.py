@@ -448,7 +448,6 @@ class Cloudos:
                    'masterInstance.usedInstance.type',
                    'storageMode',
                    'workflow.repository.url',
-                   'parameters',
                    'nextflowVersion',
                    'batch.enabled',
                    'storageSizeInGb',
@@ -564,7 +563,6 @@ class Cloudos:
         column_name_mapping = {
             "status": "Status",
             "name": "Name",
-            "parameters": "Parameters",
             "project.name": "Project",
             "user": "Owner",
             "workflow.name": "Pipeline",
@@ -579,7 +577,7 @@ class Cloudos:
             "nextflowVersion": "Nextflow version",
             "batch.enabled": "Executor",
             "storageSizeInGb": "Storage size",
-            "batch.jobQueue.id": "Job queue",
+            "batch.jobQueue.id": "Job queue ID",
             "usesFusionFileSystem": "Accelerated file staging"
         }
 
@@ -593,8 +591,8 @@ class Cloudos:
         desired_order = [
             "Status", "Name", "Project", "Owner", "Pipeline", "ID",
             "Submit time", "End time", "Run time", "Commit", "Cost",
-            "Resources", "Storage type", "Pipeline url", "Parameters",
-            "Nextflow version", "Executor", "Storage size", "Job queue",
+            "Resources", "Storage type", "Pipeline url",
+            "Nextflow version", "Executor", "Storage size", "Job queue ID",
             "Accelerated file staging"
         ]
 
