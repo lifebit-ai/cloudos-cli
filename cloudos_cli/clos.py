@@ -597,10 +597,10 @@ class Cloudos:
 
         # 7. Define the desired order of columns
         desired_order = [
-            "Status", "Name", "Project", "Owner", "Pipeline", 
-            "Submit time", "End time", "Run time", "Commit", "Cost", 
-            "Resources", "Storage type", "Pipeline url", "Parameters", 
-            "Nextflow version", "Executor", "Storage size", "Job queue", 
+            "Status", "Name", "Project", "Owner", "Pipeline",
+            "Submit time", "End time", "Run time", "Commit", "Cost",
+            "Resources", "Storage type", "Pipeline url", "Parameters",
+            "Nextflow version", "Executor", "Storage size", "Job queue",
             "Accelerated file staging"
         ]
 
