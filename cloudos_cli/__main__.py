@@ -1176,17 +1176,17 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
+              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
-                    'when --output-format=csv'),
+                    'when --output-format=csv. Automatically enabled for json output.'),
               is_flag=True)
 @click.option('--last-n-jobs',
-              help=("The number of last user's jobs to retrieve. You can use 'all' to " +
-                    "retrieve all user's jobs. Default=30."),
+              help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
+                    "retrieve all workspace jobs. Default=30."),
               default='30')
 @click.option('--page',
               help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
@@ -1221,7 +1221,7 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect all your jobs from a CloudOS workspace in CSV format."""
+    """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
     profile = profile or ctx.default_map['job']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1270,6 +1270,7 @@ def list_jobs(ctx,
         except ValueError:
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
+
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
@@ -1281,15 +1282,14 @@ def list_jobs(ctx,
                   'using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
-        my_jobs.to_csv(outfile, index=False)
-        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        cl.save_job_list_to_csv(my_jobs, outfile)
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_jobs_r))
         print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
+        print(f'\tJob list saved to {outfile}')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tJob list saved to {outfile}')
 
 
 @job.command('abort')
