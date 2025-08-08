@@ -746,7 +746,7 @@ You can get a summary of the workspace's last 30 submitted jobs (or a selected n
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
-- JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enables for this format).
+- JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enabled for this format).
 
 To get a list with the workspace's last 30 submitted jobs, in CSV format, use
 the following command:
