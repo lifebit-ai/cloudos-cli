@@ -572,7 +572,7 @@ class Cloudos:
             "user": "Owner",
             "workflow.name": "Pipeline",
             "createdAt": "Submit time",
-            "updatedAt": "End time", 
+            "updatedAt": "End time",
             "revision.commit": "Commit",
             "realInstancesExecutionCost": "Cost",
             "masterInstance.usedInstance.type": "Resources",
