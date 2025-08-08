@@ -1221,7 +1221,7 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect all workspace jobs from a CloudOS workspace in CSV or JSON format."""
+    """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
     profile = profile or ctx.default_map['job']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
