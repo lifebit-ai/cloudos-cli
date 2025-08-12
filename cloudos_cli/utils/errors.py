@@ -12,7 +12,21 @@ class BadRequestException(Exception):
         The request variable returned that caused the error.
     """
     def __init__(self, rv):
-        msg = "Server returned status {}. Reason: {}".format(rv.status_code, rv.reason)
+        # Try to get the message from response body first
+        error_message = None
+        try:
+            response_body = rv.json()
+            error_message = response_body.get('message')
+        except (ValueError, AttributeError):
+            # Response is not JSON or doesn't have expected structure
+            pass
+        
+        # Prioritize message from response, fallback to reason
+        if error_message:
+            msg = "Server returned status {}. Message: {}".format(rv.status_code, error_message)
+        else:
+            msg = "Server returned status {}. Reason: {}".format(rv.status_code, rv.reason)
+        
         super(BadRequestException, self).__init__(msg)
         self.rv = rv
 
