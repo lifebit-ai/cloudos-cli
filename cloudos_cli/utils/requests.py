@@ -38,7 +38,6 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
 
     # Make a request using the session object
     response = session.get(url, **kwargs)
-    print(response.json())
     return response
 
 
@@ -73,7 +72,6 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
 
     # Make a request using the session object
     response = session.post(url, **kwargs)
-    print(response.json())
     return response
 
 
@@ -108,7 +106,6 @@ def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
 
     # Make a request using the session object
     response = session.put(url, **kwargs)
-    print(response.json())
     return response
 
 
@@ -144,5 +141,4 @@ def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 50
     session.mount("https://", adapter)
 
     response = session.delete(url, **kwargs)
-    print(response.json())
     return response
