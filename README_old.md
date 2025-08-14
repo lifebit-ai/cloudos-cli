@@ -122,7 +122,7 @@ Configuration will be saved in the $HOME path folder regardless of operating sys
 ```console
 $HOME
   └── .cloudos
-        ├── credentials     <-- holds API keys
+        ├── credentials     <-- holds API key
         └── config          <-- holds all other parameters
 ```
 
