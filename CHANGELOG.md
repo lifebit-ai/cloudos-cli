@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.50.0 (2025-08-14)
+
+### Feat
+
+- Improves error messages for api-related errors
+
 ## v2.49.0 (2025-08-07)
 
 ### Feat
