@@ -2,6 +2,7 @@
 This is the main class of the package.
 """
 
+from numpy import r_
 import requests
 import time
 import json
@@ -192,6 +193,58 @@ class Cloudos:
             raise BadRequestException(contents_req)
         return contents_req.json()["contents"]
 
+    def get_job_workdir(self, j_id, workspace_id, verify=True):
+        """
+        Get the working directory for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        logs_obj = r_json["logs"]
+        job_workspace = r_json["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+        container_name = cloud_storage["container"]
+        workdir_id = r_json["resumeWorkDir"]
+
+        # This will fail, as the API endpoint is not open. This works when adding
+        # the authorisation bearer token manually to the headers
+        workdir_bucket_r = retry_requests_get(f"{cloudos_url}/api/v1/folders",
+                                                params=dict(id=workdir_id, teamId=workspace_id), 
+                                                headers=headers, verify=verify)
+        if workdir_bucket_r.status_code == 401:
+            raise NotAuthorisedException
+        elif workdir_bucket_r.status_code >= 400:
+            raise BadRequestException(workdir_bucket_r)
+
+        workdir_bucket_o = workdir_bucket_r.json()
+        if len(workdir_bucket_o) > 1:
+            raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
+
+        workdir_bucket_info = workdir_bucket_o[0]
+        if cloud_name == "aws":
+            bucket_name = workdir_bucket_info["s3BucketName"]
+            bucket_path = workdir_bucket_info["s3Prefix"]
+            workdir_path = f"s3://{bucket_name}/{bucket_path}"
+        elif cloud_name == "azure":
+            storage_account = f"az://{workspace_id}.blob.core.windows.net"
+            container_name = workdir_bucket_info["blobContainerName"]
+            blob_prefix = workdir_bucket_info["blobPrefix"]
+            workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
+        else:
+            raise ValueError("Unsupported cloud provider")
+        return workdir_path
+
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """
         Get the location of the logs for the specified job
@@ -233,6 +286,7 @@ class Cloudos:
                 if filename == "trace.txt":
                     filename = "Trace file"
                 logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
+        breakpoint()
         return logs
 
     def get_job_results(self, j_id, workspace_id, verify=True):
