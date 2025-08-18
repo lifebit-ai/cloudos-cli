@@ -9,6 +9,7 @@ from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
+import traceback
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -36,12 +37,40 @@ CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
 
 
+def handle_exception(show_traceback=False):
+    """Custom exception handler for CloudOS CLI"""
+    def exception_handler(exc_type, exc_value, exc_traceback):
+        # Handle keyboard interrupt gracefully
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.exit(1)
+        
+        if show_traceback:
+            # Show full traceback for debugging
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        else:
+            # Show only the error message
+            click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
+        
+        sys.exit(1)
+    
+    return exception_handler
+
+
 @click.group()
+@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks')
 @click.version_option(__version__)
 @click.pass_context
-def run_cloudos_cli(ctx):
+def run_cloudos_cli(ctx, debug):
     """CloudOS python package: a package for interacting with CloudOS."""
     ctx.ensure_object(dict)
+    ctx.obj['debug'] = debug
+    
+    # Set up custom exception handling based on debug flag
+    if not debug:
+        sys.excepthook = handle_exception(show_traceback=False)
+    else:
+        sys.excepthook = handle_exception(show_traceback=True)
+    
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -3913,4 +3942,14 @@ def reset_organisation_image(ctx,
 
 
 if __name__ == "__main__":
-    run_cloudos_cli()
+    try:
+        run_cloudos_cli()
+    except Exception as e:
+        # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
+        debug_mode = '--debug' in sys.argv
+        
+        if debug_mode:
+            traceback.print_exc()
+        else:
+            click.echo(click.style(f"Error: {e}", fg='red'), err=True)
+        sys.exit(1)
