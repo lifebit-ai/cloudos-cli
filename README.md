@@ -196,11 +196,159 @@ To get general information about the tool:
 ```bash
 cloudos --help
 ```
+```console
+Usage: cloudos [OPTIONS] COMMAND [ARGS]...                                     
+                                                                                
+ CloudOS python package: a package for interacting with CloudOS.                
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --version      Show the version and exit.                                    │
+│ --help         Show this message and exit.                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ bash         CloudOS bash functionality.                                     │
+│ configure    CloudOS configuration.                                          │
+│ cromwell     Cromwell server functionality: check status, start and stop.    │
+│ datasets     CloudOS datasets functionality.                                 │
+│ job          CloudOS job functionality: run, check and abort jobs in         │
+│              CloudOS.                                                        │
+│ procurement  CloudOS procurement functionality.                              │
+│ project      CloudOS project functionality: list and create projects in      │
+│              CloudOS.                                                        │
+│ queue        CloudOS job queue functionality.                                │
+│ workflow     CloudOS workflow functionality: list and import workflows.      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+``` 
+
 
 This will tell you the implemented commands. Each implemented command has its own subcommands with its own `--help`:
 
 ```bash
 cloudos job run --help
+```
+```console
+Usage: cloudos job run [OPTIONS]                                                                                       
+                                                                                                                        
+ Submit a job to CloudOS.                                                                                               
+                                                                                                                        
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --apikey                         -k  TEXT                                   Your CloudOS API key [required]       │
+│ *  --cloudos-url                    -c  TEXT                                   The CloudOS url you are trying to     │
+│                                                                                access to.                            │
+│                                                                                Default=https://cloudos.lifebit.ai.   │
+│                                                                                [required]                            │
+│ *  --workspace-id                       TEXT                                   The specific CloudOS workspace id.    │
+│                                                                                [required]                            │
+│ *  --project-name                       TEXT                                   The name of a CloudOS project.        │
+│                                                                                [required]                            │
+│ *  --workflow-name                      TEXT                                   The name of a CloudOS workflow or     │
+│                                                                                pipeline.                             │
+│                                                                                [required]                            │
+│    --last                                                                      When the workflows are duplicated,    │
+│                                                                                use the latest imported workflow (by  │
+│                                                                                date).                                │
+│    --job-config                         TEXT                                   A config file similar to a            │
+│                                                                                nextflow.config file, but only with   │
+│                                                                                the parameters to use with your job.  │
+│    --parameter                      -p  TEXT                                   A single parameter to pass to the job │
+│                                                                                call. It should be in the following   │
+│                                                                                form: parameter_name=parameter_value. │
+│                                                                                E.g.: -p input=s3://path_to_my_file.  │
+│                                                                                You can use this option as many times │
+│                                                                                as parameters you want to include.    │
+│    --nextflow-profile                   TEXT                                   A comma separated string indicating   │
+│                                                                                the nextflow profile/s to use with    │
+│                                                                                your job.                             │
+│    --nextflow-version                   [22.10.8|24.04.4|22.11.1-edge|latest]  Nextflow version to use when          │
+│                                                                                executing the workflow in CloudOS.    │
+│                                                                                Default=22.10.8.                      │
+│    --git-commit                         TEXT                                   The git commit hash to run for the    │
+│                                                                                selected pipeline. If not specified   │
+│                                                                                it defaults to the last commit of the │
+│                                                                                default branch.                       │
+│    --git-tag                            TEXT                                   The tag to run for the selected       │
+│                                                                                pipeline. If not specified it         │
+│                                                                                defaults to the last commit of the    │
+│                                                                                default branch.                       │
+│    --git-branch                         TEXT                                   The branch to run for the selected    │
+│                                                                                pipeline. If not specified it         │
+│                                                                                defaults to the last commit of the    │
+│                                                                                default branch.                       │
+│    --job-name                           TEXT                                   The name of the job. Default=new_job. │
+│    --resumable                                                                 Whether to make the job able to be    │
+│                                                                                resumed or not.                       │
+│    --do-not-save-logs                                                          Avoids process log saving. If you     │
+│                                                                                select this option, your job process  │
+│                                                                                logs will not be stored.              │
+│    --job-queue                          TEXT                                   Name of the job queue to use with a   │
+│                                                                                batch job.                            │
+│    --instance-type                      TEXT                                   The type of compute instance to use   │
+│                                                                                as master node.                       │
+│                                                                                Default=c5.xlarge(aws)|Standard_D4as… │
+│    --instance-disk                      INTEGER                                The disk space of the master node     │
+│                                                                                instance, in GB. Default=500.         │
+│    --storage-mode                       TEXT                                   Either 'lustre' or 'regular'.         │
+│                                                                                Indicates if the user wants to select │
+│                                                                                regular or lustre storage.            │
+│                                                                                Default=regular.                      │
+│    --lustre-size                        INTEGER                                The lustre storage to be used when    │
+│                                                                                --storage-mode=lustre, in GB. It      │
+│                                                                                should be 1200 or a multiple of it.   │
+│                                                                                Default=1200.                         │
+│    --wait-completion                                                           Whether to wait to job completion and │
+│                                                                                report final job status.              │
+│    --wait-time                          INTEGER                                Max time to wait (in seconds) to job  │
+│                                                                                completion. Default=3600.             │
+│    --wdl-mainfile                       TEXT                                   For WDL workflows, which mainFile     │
+│                                                                                (.wdl) is configured to use.          │
+│    --wdl-importsfile                    TEXT                                   For WDL workflows, which importsFile  │
+│                                                                                (.zip) is configured to use.          │
+│    --cromwell-token                 -t  TEXT                                   Specific Cromwell server              │
+│                                                                                authentication token. Currently, not  │
+│                                                                                necessary as apikey can be used       │
+│                                                                                instead, but maintained for backwards │
+│                                                                                compatibility.                        │
+│    --repository-platform                [github|gitlab|bitbucketServer]        Name of the repository platform of    │
+│                                                                                the workflow. Default=github.         │
+│    --execution-platform                 [aws|azure|hpc]                        Name of the execution platform        │
+│                                                                                implemented in your CloudOS.          │
+│                                                                                Default=aws.                          │
+│    --hpc-id                             TEXT                                   ID of your HPC, only applicable when  │
+│                                                                                --execution-platform=hpc.             │
+│                                                                                Default=660fae20f93358ad61e0104b      │
+│    --azure-worker-instance-type         TEXT                                   The worker node instance type to be   │
+│                                                                                used in azure.                        │
+│                                                                                Default=Standard_D4as_v4              │
+│    --azure-worker-instance-disk         INTEGER                                The disk size in GB for the worker    │
+│                                                                                node to be used in azure. Default=100 │
+│    --azure-worker-instance-spot                                                Whether the azure worker nodes have   │
+│                                                                                to be spot instances or not.          │
+│    --cost-limit                         FLOAT                                  Add a cost limit to your job.         │
+│                                                                                Default=30.0 (For no cost limit       │
+│                                                                                please use -1).                       │
+│    --accelerate-file-staging                                                   Enables AWS S3 mountpoint for quicker │
+│                                                                                file staging.                         │
+│    --use-private-docker-repository                                             Allows to use private docker          │
+│                                                                                repository for running jobs. The      │
+│                                                                                Docker user account has to be already │
+│                                                                                linked to CloudOS.                    │
+│    --verbose                                                                   Whether to print information messages │
+│                                                                                or not.                               │
+│    --request-interval                   INTEGER                                Time interval to request (in seconds) │
+│                                                                                the job status. For large jobs is     │
+│                                                                                important to use a high number to     │
+│                                                                                make fewer requests so that is not    │
+│                                                                                considered spamming by the API.       │
+│                                                                                Default=30.                           │
+│    --disable-ssl-verification                                                  Disable SSL certificate verification. │
+│                                                                                Please, remember that this option is  │
+│                                                                                not generally recommended for         │
+│                                                                                security reasons.                     │
+│    --ssl-cert                           TEXT                                   Path to your SSL certificate file.    │
+│    --profile                            TEXT                                   Profile to use from the config file   │
+│    --help                                                                      Show this message and exit.           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
 ```
 
 ---
@@ -219,15 +367,11 @@ The job commands allow you to submit, monitor, and manage computational workflow
 
 #### Submit a Job
 
-Submit Nextflow workflows to CloudOS using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, and parameter sets.
+You can submit Nextflow workflows to CloudOS using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameter etc..
 
 First, configure your local environment to ease parameters input. We will try to submit a small toy example already available.
 
 ```bash
-MY_API_KEY="xxxxx"
-CLOUDOS="https://cloudos.lifebit.ai"
-WORKSPACE_ID="xxxxx"
-PROJECT_NAME="API jobs"
 WORKFLOW_NAME="rnatoy"
 JOB_PARAMS="cloudos_cli/examples/rnatoy.config"
 ```
@@ -246,12 +390,9 @@ To submit our job:
 
 ```bash
 cloudos job run \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
     --job-config $JOB_PARAMS \
+    --profile <my_profile> \
     --resumable
 ```
 
@@ -259,11 +400,9 @@ In addition, parameters can also be specified using the command-line `-p` or `--
 
 ```bash
 cloudos job run \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME" \
     --workflow-name $WORKFLOW_NAME \
+    --job-config $JOB_PARAMS \
+    --profile <my_profile> \
     --parameter reads=s3://lifebit-featured-datasets/pipelines/rnatoy-data \
     --parameter genome=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa \
     --parameter annot=s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff \
@@ -282,9 +421,7 @@ A bash job can be sent to CloudOS using the command `bash` and the subcommand `j
 WORKFLOW_NAME="ubuntu"  # This should be a bash workflow
 cloudos bash job \
     --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME" \
+    --profile my_profile \
     --workflow-name $WORKFLOW_NAME \
     --parameter -test_variable=value \
     --parameter --flag=activate \
@@ -302,10 +439,7 @@ When running a bash array job, you can specify an array file containing sample i
 
 ```bash
 cloudos bash array-job \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --project-name "$PROJECT_NAME" \
+    --profile my_profile \
     --workflow-name $WORKFLOW_NAME \
     --array-file <ARRAY_FILE> \
     --separator comma \
@@ -321,8 +455,7 @@ Monitor the current status of your submitted jobs to track progress and identify
 
 ```bash
 cloudos job status \
-    --apikey $MY_API_KEY \
-    --cloudos-url $CLOUDOS \
+    --profile my_profile \
     --job-id <JOB_ID>
 ```
 
@@ -348,9 +481,7 @@ Get an overview of all jobs in your workspace with filtering and export options.
 
 ```bash
 cloudos job list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --output-format csv \
     --all-fields
 ```
@@ -361,9 +492,7 @@ Stop running or queued jobs when needed. This is useful for canceling long-runni
 
 ```bash
 cloudos job abort \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --job-ids "<JOB_ID_1>,<JOB_ID_2>"
 ```
 
@@ -373,9 +502,7 @@ Access job execution logs and output files for debugging and result retrieval. L
 
 ```bash
 cloudos job logs \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --job-id <JOB_ID>
 ```
 
@@ -409,9 +536,7 @@ Browse all available workflows in your CloudOS workspace. This helps you discove
 
 ```bash
 cloudos workflow list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --output-format csv \
     --all-fields
 ```
@@ -422,9 +547,7 @@ Add new Nextflow workflows to your CloudOS workspace from GitHub, GitLab, or Bit
 
 ```bash
 cloudos workflow import \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --workflow-url <WORKFLOW_URL> \
     --workflow-name <NEW_NAME> \
     --repository-platform github
@@ -442,9 +565,7 @@ View all projects available in your CloudOS workspace to understand your organiz
 
 ```bash
 cloudos project list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --output-format csv \
     --all-fields
 ```
@@ -455,9 +576,7 @@ Establish new projects for organizing your research work. Projects serve as cont
 
 ```bash
 cloudos project create \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --new-project "My New Project"
 ```
 
@@ -473,9 +592,7 @@ View available computational queues and their configurations. This information i
 
 ```bash
 cloudos queue list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile my_profile \
     --output-format json \
     --output-basename "available_queues"
 ```
@@ -515,7 +632,7 @@ cloudos datasets mv <source_path> <destination_path> --profile <profile> --desti
 Change file and folder names while keeping them in the same location. This helps maintain organized file structures and clear naming conventions.
 
 ```bash
-cloudos datasets rename <path> <new_name>
+cloudos datasets rename <path> <new_name> --profile my_profile 
 ```
 
 #### Copy Files
@@ -547,7 +664,7 @@ cloudos datasets link <S3_OR_FILE_EXPLORER_PATH> --profile <profile> [--session-
 Create new organizational folders within your projects to maintain structured data hierarchies.
 
 ```bash
-cloudos datasets mkdir <new_folder_path>
+cloudos datasets mkdir <new_folder_path> --profile my_profile 
 ```
 
 #### Remove Files or Folders
@@ -555,7 +672,7 @@ cloudos datasets mkdir <new_folder_path>
 Delete unnecessary files or empty folders from your File Explorer. Note that this removes files from CloudOS but not from underlying cloud storage.
 
 ```bash
-cloudos datasets rm <path>
+cloudos datasets rm <path> --profile my_profile
 ```
 
 ---
@@ -609,7 +726,7 @@ cloudos procurement images reset \
 
 ---
 
-### Cromwell
+<!-- ### Cromwell
 
 Manage Cromwell servers for running WDL (Workflow Description Language) pipelines. Cromwell is required for executing WDL workflows and needs to be running before submitting WDL jobs.
 
@@ -652,7 +769,7 @@ cloudos job run \
   --wdl-importsfile <IMPORTSFILE> \
   --job-config <JOB_PARAMS> \
   --wait-completion
-```
+``` -->
 
 ---
 
