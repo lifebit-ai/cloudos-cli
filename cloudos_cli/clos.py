@@ -227,8 +227,6 @@ class Cloudos:
         workdir_bucket_o = workdir_bucket_r.json()
         if len(workdir_bucket_o) > 1:
             raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
-
-        
         workdir_bucket_info = workdir_bucket_o[0]
         if workdir_bucket_info["folderType"] == "S3Folder":
             cloud_name = "aws"
