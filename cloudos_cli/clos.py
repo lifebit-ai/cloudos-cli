@@ -209,12 +209,9 @@ class Cloudos:
         elif r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
-        logs_obj = r_json["logs"]
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
-        container_name = cloud_storage["container"]
         workdir_id = r_json["resumeWorkDir"]
 
         # This will fail, as the API endpoint is not open. This works when adding
@@ -231,7 +228,14 @@ class Cloudos:
         if len(workdir_bucket_o) > 1:
             raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
 
+        
         workdir_bucket_info = workdir_bucket_o[0]
+        if workdir_bucket_info["folderType"] == "S3Folder":
+            cloud_name = "aws"
+        elif workdir_bucket_info["folderType"] == "AzureBlobFolder":
+            cloud_name = "azure"
+        else:
+            raise ValueError("Unsupported cloud provider")
         if cloud_name == "aws":
             bucket_name = workdir_bucket_info["s3BucketName"]
             bucket_path = workdir_bucket_info["s3Prefix"]
