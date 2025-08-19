@@ -145,7 +145,7 @@ cloudos --help
 │ configure              CloudOS configuration.                                                                                                                   │
 │ cromwell               Cromwell server functionality: check status, start and stop.                                                                             │
 │ job                    CloudOS job functionality: run, check and abort jobs in CloudOS.                                                                         │
-│ project                CloudOS project functionality: list projects in CloudOS.                                                                                 │
+│ project                CloudOS project functionality: list and create projects in CloudOS.                                                                       │
 │ queue                  CloudOS job queue functionality.                                                                                                         │
 │ workflow               CloudOS workflow functionality: list and import workflows.                                                                               │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -740,16 +740,15 @@ This file can later be used when running a job with `cloudos job run --job-confi
 > [!NOTE]
 > Job details can only be retrieved for a single user, cannot see other user's job details.
 
-#### Get a list of your jobs from a CloudOS workspace
+#### Get a list of workspace jobs from a CloudOS
 
-You can get a summary of your last 30 submitted jobs (or your selected number of last jobs using `--last-n-jobs n`
-parameter) in two different formats:
+You can get a summary of the workspace's last 30 submitted jobs (or a selected number of last jobs using `--last-n-jobs n` parameter) in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the
 available columns using the `--all-fields` argument.
-- JSON: all the available information from your jobs, in JSON format.
+- JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enabled for this format).
 
-To get a list with your last 30 submitted jobs to a given workspace, in CSV format, use
+To get a list with the workspace's last 30 submitted jobs, in CSV format, use
 the following command:
 
 ```bash
@@ -771,7 +770,7 @@ Executing list...
 
 In addition, a file named `joblist.csv` is created.
 
-To get the same information, but for all your jobs and in JSON format, use the following command:
+To get the same information, but for all the workspace's jobs and in JSON format, use the following command:
 
 ```bash
 cloudos job list \
@@ -910,6 +909,25 @@ The expected output is something similar to:
 Executing list...
 	Workflow list collected with a total of 320 projects.
 	Workflow list saved to project_list.csv
+```
+
+#### Create a new project in CloudOS
+
+You can create a new project in your CloudOS workspace using the `project create` command.
+This command requires the name of the new project and will return the project ID upon successful creation.
+
+```bash
+cloudos project create \
+    --cloudos-url $CLOUDOS \
+    --apikey $MY_API_KEY \
+    --workspace-id $WORKSPACE_ID \
+    --new-project "My New Project"
+```
+
+The expected output is something similar to:
+
+```console
+	Project "My New Project" created successfully with ID: 64f1a23b8e4c9d001234abcd
 ```
 
 #### Get a list of the available job queues

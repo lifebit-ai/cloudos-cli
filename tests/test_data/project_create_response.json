@@ -1,0 +1,16 @@
+{
+    "_id": "64a7b1c2f8d9e1a2b3c4d5e6",
+    "name": "test-project",
+    "user": {
+        "id": "60bf3b9b303ee601a69e4856",
+        "name": "Test",
+        "surname": "User",
+        "email": "test.user@lifebit.ai"
+    },
+    "team": "614af4dc31de9201a5c3ce48",
+    "createdAt": "2023-07-07T10:30:00.000Z",
+    "updatedAt": "2023-07-07T10:30:00.000Z",
+    "workflowCount": 0,
+    "jobCount": 0,
+    "notebookSessionCount": 0
+}
