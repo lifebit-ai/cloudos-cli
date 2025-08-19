@@ -39,19 +39,14 @@ def test_process_job_list_output_correct_headers(mocked_requests_get):
 
 def test_process_job_list_df_values_equal(mocked_requests_get,):
     """
-    Testing to check the values are the same. 3 columns (parameters,
-    workflow.description and masterInstanceStorageCost) have been removed.
-    Parameters has" added during making the csv, masterInstanceStorageCost
-    there is a rounding error and workflow.description has nan.
+    Testing to check the values are the same. Updated to use new column structure.
     """
     df = Cloudos.process_job_list(mocked_requests_get)
-    columns_to_compare = ['_id', 'team', 'name', 'status',
+    columns_to_compare = ['_id', 'name', 'status',
                           'startTime', 'endTime', 'createdAt', 'updatedAt',
-                          'computeCostSpent', 'user.id',
-                          'workflow._id', 'workflow.name', 'workflow.createdAt',
-                          'workflow.updatedAt', 'workflow.workflowType',
-                          'project._id', 'project.name',
-                          'project.createdAt', 'project.updatedAt']
+                          'realInstancesExecutionCost', 'user.name', 'user.surname',
+                          'workflow.name', 'project.name',
+                          'revision.commit', 'storageMode', 'workflow.repository.url']
     assert np.all(df[columns_to_compare] == output_df[columns_to_compare])
 
 

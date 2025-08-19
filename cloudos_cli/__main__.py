@@ -9,6 +9,7 @@ from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
+import traceback
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -36,12 +37,40 @@ CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
 
 
+def handle_exception(show_traceback=False):
+    """Custom exception handler for CloudOS CLI"""
+    def exception_handler(exc_type, exc_value, exc_traceback):
+        # Handle keyboard interrupt gracefully
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.exit(1)
+        
+        if show_traceback:
+            # Show full traceback for debugging
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        else:
+            # Show only the error message
+            click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
+        
+        sys.exit(1)
+    
+    return exception_handler
+
+
 @click.group()
+@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks')
 @click.version_option(__version__)
 @click.pass_context
-def run_cloudos_cli(ctx):
+def run_cloudos_cli(ctx, debug):
     """CloudOS python package: a package for interacting with CloudOS."""
     ctx.ensure_object(dict)
+    ctx.obj['debug'] = debug
+    
+    # Set up custom exception handling based on debug flag
+    if not debug:
+        sys.excepthook = handle_exception(show_traceback=False)
+    else:
+        sys.excepthook = handle_exception(show_traceback=True)
+    
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -79,7 +108,8 @@ def run_cloudos_cli(ctx):
                 'import': shared_config
             },
             'project': {
-                'list': shared_config
+                'list': shared_config,
+                'create': shared_config
             },
             'cromwell': {
                 'status': shared_config,
@@ -139,7 +169,8 @@ def run_cloudos_cli(ctx):
                 'import': shared_config
             },
             'project': {
-                'list': shared_config
+                'list': shared_config,
+                'create': shared_config
             },
             'cromwell': {
                 'status': shared_config,
@@ -186,7 +217,7 @@ def workflow():
 
 @run_cloudos_cli.group()
 def project():
-    """CloudOS project functionality: list projects in CloudOS."""
+    """CloudOS project functionality: list and create projects in CloudOS."""
     print(project.__doc__ + '\n')
 
 
@@ -1174,17 +1205,17 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
+              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
               default='csv')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
-                    'when --output-format=csv'),
+                    'when --output-format=csv. Automatically enabled for json output.'),
               is_flag=True)
 @click.option('--last-n-jobs',
-              help=("The number of last user's jobs to retrieve. You can use 'all' to " +
-                    "retrieve all user's jobs. Default=30."),
+              help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
+                    "retrieve all workspace jobs. Default=30."),
               default='30')
 @click.option('--page',
               help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
@@ -1219,7 +1250,7 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect all your jobs from a CloudOS workspace in CSV format."""
+    """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
     profile = profile or ctx.default_map['job']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1268,6 +1299,7 @@ def list_jobs(ctx,
         except ValueError:
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
+
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
@@ -1279,15 +1311,14 @@ def list_jobs(ctx,
                   'using --page parameter.')
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
-        my_jobs.to_csv(outfile, index=False)
-        print(f'\tJob list collected with a total of {my_jobs.shape[0]} jobs.')
+        cl.save_job_list_to_csv(my_jobs, outfile)
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_jobs_r))
         print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
+        print(f'\tJob list saved to {outfile}')
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tJob list saved to {outfile}')
 
 
 @job.command('abort')
@@ -1699,6 +1730,93 @@ def list_projects(ctx,
     else:
         raise ValueError('Unrecognised output format. Please use one of [csv|json]')
     print(f'\tProject list saved to {outfile}')
+
+
+@project.command('create')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--new-project',
+              help='The name for the new project.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def create_project(ctx,
+                   apikey,
+                   cloudos_url,
+                   workspace_id,
+                   new_project,
+                   verbose,
+                   disable_ssl_verification,
+                   ssl_cert,
+                   profile):
+    """Create a new project in CloudOS."""
+    profile = profile or ctx.default_map['project']['create']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            project_name=new_project
+        )
+    )
+    # replace the profile parameters with arguments given by the user
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+
+    # verify ssl configuration
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Print basic output
+    if verbose:
+        print(f'\tUsing CloudOS URL: {cloudos_url}')
+        print(f'\tUsing workspace: {workspace_id}')
+        print(f'\tProject name: {new_project}')
+
+    cl = Cloudos(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None)
+
+    try:
+        project_id = cl.create_project(workspace_id, new_project, verify_ssl)
+        print(f'\tProject "{new_project}" created successfully with ID: {project_id}')
+        if verbose:
+            print(f'\tProject URL: {cloudos_url}/app/projects/{project_id}')
+    except Exception as e:
+        print(f'\tError creating project: {str(e)}')
+        sys.exit(1)
 
 
 @cromwell.command('status')
@@ -3824,4 +3942,14 @@ def reset_organisation_image(ctx,
 
 
 if __name__ == "__main__":
-    run_cloudos_cli()
+    try:
+        run_cloudos_cli()
+    except Exception as e:
+        # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
+        debug_mode = '--debug' in sys.argv
+        
+        if debug_mode:
+            traceback.print_exc()
+        else:
+            click.echo(click.style(f"Error: {e}", fg='red'), err=True)
+        sys.exit(1)
