@@ -21,6 +21,8 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
+from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
+import logging
 
 
 # GLOBAL VARS
@@ -43,11 +45,13 @@ def handle_exception(show_traceback=False):
         # Handle keyboard interrupt gracefully
         if issubclass(exc_type, KeyboardInterrupt):
             sys.exit(1)
-        
+        # Add to log
         if show_traceback:
+            logger.error(e, exc_info=True)
             # Show full traceback for debugging
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         else:
+            logger.error(e)
             # Show only the error message
             click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
         
@@ -64,7 +68,7 @@ def run_cloudos_cli(ctx, debug):
     """CloudOS python package: a package for interacting with CloudOS."""
     ctx.ensure_object(dict)
     ctx.obj['debug'] = debug
-    
+    update_command_context_from_click(ctx)
     # Set up custom exception handling based on debug flag
     if not debug:
         sys.excepthook = handle_exception(show_traceback=False)
@@ -3942,14 +3946,19 @@ def reset_organisation_image(ctx,
 
 
 if __name__ == "__main__":
+    # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
+    debug_mode = '--debug' in sys.argv
+    # Setup logging
+    setup_logging(debug_mode)
+    logger = logging.getLogger("CloudOS")
     try:
         run_cloudos_cli()
+
     except Exception as e:
-        # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
-        debug_mode = '--debug' in sys.argv
-        
         if debug_mode:
+            logger.error(e, exc_info=True)
             traceback.print_exc()
         else:
+            logger.error(e)
             click.echo(click.style(f"Error: {e}", fg='red'), err=True)
         sys.exit(1)
