@@ -402,6 +402,18 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
+        if not workspace_id or not isinstance(workspace_id, str):
+            raise ValueError("Invalid workspace_id: must be a non-empty string")
+    
+        if last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
+            raise ValueError("last_n_jobs must be a positive integer or 'all'")
+        
+        # Validate filter_status values
+        if filter_status:
+            valid_statuses = ['completed', 'running', 'failed', 'aborted', 'queued', 'pending', 'initializing']
+            if filter_status.lower() not in valid_statuses:
+                raise ValueError(f"Invalid filter_status '{filter_status}'. Valid values: {', '.join(valid_statuses)}")
+
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
@@ -419,7 +431,7 @@ class Cloudos:
         
         # Add simple server-side filters
         if filter_status:
-            params["status"] = filter_status
+            params["status"] = filter_status.lower()
         if filter_job_name:
             params["name"] = filter_job_name
         if filter_job_id:
