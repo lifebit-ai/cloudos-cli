@@ -357,8 +357,13 @@ class Cloudos:
         return r
 
     def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
-                     verify=True):
-        """Get jobs from a CloudOS workspace.
+                     verify=True, filter_status=None, filter_job_name=None,
+                     filter_project=None, filter_workflow=None, filter_job_id=None,
+                     filter_only_mine=False, filter_owner=None, filtering_queue=None):
+        """Get jobs from a CloudOS workspace with optional filtering.
+        
+        Fetches jobs page by page, applies all filters after fetching.
+        Stops when enough jobs are collected or no more jobs are available.
 
         Parameters
         ----------
@@ -368,13 +373,29 @@ class Cloudos:
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs.
         page : int
-            Response page to get.
+            Response page to get (ignored when using filters - starts from page 1).
         archived : bool
             When True, only the archived jobs are retrieved.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        filter_status : string, optional
+            Filter jobs by status (e.g., 'completed', 'running', 'failed').
+        filter_job_name : string, optional
+            Filter jobs by name.
+        filter_project : string, optional
+            Filter jobs by project name (will be resolved to project ID).
+        filter_workflow : string, optional
+            Filter jobs by workflow name (will be resolved to workflow ID).
+        filter_job_id : string, optional
+            Filter jobs by specific job ID.
+        filter_only_mine : bool, optional
+            Filter to show only jobs belonging to the current user.
+        filter_owner : string, optional
+            Filter jobs by owner username (will be resolved to user ID).
+        filtering_queue : string, optional
+            Filter jobs by queue name (local filtering, will be resolved to queue ID).
 
         Returns
         -------
@@ -385,35 +406,153 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        if archived:
-            archived_status = "true"
-        else:
-            archived_status = "false"
-        r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
-                               self.cloudos_url, workspace_id, page, archived_status),
-                               headers=headers, verify=verify)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        content = json.loads(r.content)
-        n_jobs = len(content['jobs'])
-        if last_n_jobs == 'all':
-            jobs_to_get = n_jobs
-        elif last_n_jobs > 0:
-            jobs_to_get = last_n_jobs - n_jobs
-        else:
-            raise TypeError("[ERROR] Please select an int > 0 or 'all' for 'last_n_jobs'")
-        if jobs_to_get == 0 or n_jobs == 0:
-            return content['jobs']
-        if jobs_to_get > 0:
-            if last_n_jobs == 'all':
-                next_to_get = 'all'
-            else:
-                next_to_get = jobs_to_get
-            return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
-                                                       page=page+1, archived=archived,
-                                                       verify=verify)
-        if jobs_to_get < 0:
-            return content['jobs'][:jobs_to_get]
+        
+        # Build query parameters for server-side filtering
+        params = {
+            "teamId": workspace_id,
+            "archived.status": str(archived).lower(),
+            "limit": 50,  # Use a reasonable page size
+            "page": 1     # Always start from page 1
+        }
+        
+        # --- Resolve IDs once (before pagination loop) ---
+        
+        # Add simple server-side filters
+        if filter_status:
+            params["status"] = filter_status
+        if filter_job_name:
+            params["name"] = filter_job_name
+        if filter_job_id:
+            params["id"] = filter_job_id
+            
+        # Resolve project name to ID
+        if filter_project:
+            try:
+                project_id = self.get_project_id_from_name(workspace_id, filter_project, verify=verify)
+                if project_id:
+                    params["project.id"] = project_id
+                else:
+                    raise ValueError(f"Project '{filter_project}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving project '{filter_project}': {str(e)}")
+        
+        # Resolve workflow name to ID
+        if filter_workflow:
+            try:
+                workflow_content = self.get_workflow_content(workspace_id, filter_workflow, verify=verify)
+                if workflow_content and workflow_content.get("workflows"):
+                    # Extract the first (and should be only) workflow from the list
+                    workflow = workflow_content["workflows"][0]
+                    workflow_id = workflow.get("_id")
+                    if workflow_id:
+                        params["workflow.id"] = workflow_id
+                    else:
+                        raise ValueError(f"Workflow '{filter_workflow}' not found.")
+                else:
+                    raise ValueError(f"Workflow '{filter_workflow}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving workflow '{filter_workflow}': {str(e)}")
+        
+        # Get current user ID for filter_only_mine
+        if filter_only_mine:
+            try:
+                user_info = self.get_user_info(verify=verify)
+                user_id = user_info.get("id") or user_info.get("_id")
+                if user_id:
+                    params["user.id"] = user_id
+                else:
+                    raise ValueError("Could not retrieve current user information.")
+            except Exception as e:
+                raise ValueError(f"Error getting current user info: {str(e)}")
+        
+        # Resolve owner username to user ID
+        if filter_owner:
+            try:
+                search_headers = {
+                    "Content-type": "application/json",
+                    "apikey": self.apikey
+                }
+                search_params = {
+                    "q": filter_owner,
+                    "teamId": workspace_id
+                }
+                ## the following endpoint is not open
+                user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
+                                                 params=search_params, headers=search_headers, verify=verify)
+                if user_search_r.status_code >= 400:
+                    raise ValueError(f"Error searching for user '{filter_owner}'")
+                
+                user_search_content = user_search_r.json()
+                print(user_search_content)
+                if user_search_content and len(user_search_content) > 0:
+                    user_match = None
+                    for user in user_search_content:
+                        if user.get("username") == filter_owner or user.get("name") == filter_owner:
+                            user_match = user
+                            break
+                    
+                    if user_match:
+                        params["user.id"] = user_match.get("_id")
+                    else:
+                        raise ValueError(f"User '{filter_owner}' not found.")
+                else:
+                    raise ValueError(f"User '{filter_owner}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
+
+        # --- Fetch jobs page by page ---
+        all_jobs = []
+        current_page = 1
+        
+        while True:
+            params["page"] = current_page
+            
+            r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params, headers=headers, verify=verify)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            
+            content = r.json()
+            page_jobs = content.get('jobs', [])
+            
+            # No jobs returned, we've reached the end
+            if not page_jobs:
+                break
+                
+            all_jobs.extend(page_jobs)
+            
+            # Check if we have enough jobs or reached the last page
+            if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
+                break
+            if len(page_jobs) < params["limit"]:
+                break  # Last page (fewer jobs than requested page size)
+                
+            current_page += 1
+
+        # --- Local queue filtering (not supported by API) ---
+        if filtering_queue:
+            try:
+                from cloudos_cli.queue.queue import Queue
+                queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
+                queues = queue_api.get_job_queues()
+                
+                queue_id = None
+                for queue in queues:
+                    if queue.get("label") == filtering_queue or queue.get("name") == filtering_queue:
+                        queue_id = queue.get("id") or queue.get("_id")
+                        break
+                
+                if not queue_id:
+                    raise ValueError(f"Queue with name '{filtering_queue}' not found in workspace '{workspace_id}'")
+                
+                all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
+            except Exception as e:
+                raise ValueError(f"Error filtering by queue '{filtering_queue}': {str(e)}")
+
+        # --- Apply limit after all filtering ---
+        if last_n_jobs != 'all' and isinstance(last_n_jobs, int) and last_n_jobs > 0:
+            all_jobs = all_jobs[:last_n_jobs]
+
+        return all_jobs
 
     @staticmethod
     def process_job_list(r, all_fields=False):
@@ -1199,7 +1338,6 @@ class Cloudos:
             response = retry_requests_get(url, headers=headers, verify=verify)
             # return all content
             content = json.loads(response.content)
-
         if response.status_code >= 400:
             raise BadRequestException(response)
 
