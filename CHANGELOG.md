@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.51.0 (2025-08-18)
+
+### Feat
+
+- Adds support for querying the working directory of a job.
+
 ## v2.50.0 (2025-08-14)
 
 ### Feat
