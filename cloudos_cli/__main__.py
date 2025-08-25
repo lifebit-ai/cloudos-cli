@@ -101,7 +101,8 @@ def run_cloudos_cli(ctx, debug):
                 'list': shared_config,
                 'logs': shared_config,
                 'results': shared_config,
-                'details': shared_config
+                'details': shared_config,
+                'clone': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -162,7 +163,8 @@ def run_cloudos_cli(ctx, debug):
                 'list': shared_config,
                 'logs': shared_config,
                 'results': shared_config,
-                'details': shared_config
+                'details': shared_config,
+                'clone': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -1417,6 +1419,166 @@ def abort_jobs(ctx,
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
+
+
+@job.command('clone')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--queue-name',
+              help='Name of the job queue to use for the cloned job.')
+@click.option('--cost-limit',
+              help='Cost limit for the cloned job (use -1 for no limit).',
+              type=float)
+@click.option('--master-instance',
+              help='Master instance type for the cloned job (e.g., c5.xlarge).')
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--job-name',
+              help='Name for the cloned job. If not provided, "_clone" will be appended to the original name.')
+@click.option('--nextflow-version',
+              help='Nextflow version to use for the cloned job.',
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
+@click.option('--branch',
+              help='Git branch to use for the cloned job.')
+@click.option('--nextflow-profile',
+              help='Nextflow profile to use for the cloned job.')
+@click.option('--save-logs',
+              help='Whether to save process logs for the cloned job.',
+              type=bool)
+@click.option('--use-fusion',
+              help='Whether to use fusion filesystem for the cloned job.',
+              type=bool)
+@click.option('--project-name',
+              help='Project name to use instead of the original (will look up project ID).')
+@click.option('-p',
+              '--parameter',
+              multiple=True,
+              help=('Parameter to override in the cloned job. Format: parameter_name=parameter_value. ' +
+                    'Can be used multiple times.'))
+@click.option('--array-file',
+              help='Path to array file for Docker workflows (only applicable for Docker workflow types).')
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile',
+              help='Profile to use from the config file',
+              default=None)
+@click.pass_context
+def clone_job(ctx,
+              apikey,
+              cloudos_url,
+              workspace_id,
+              queue_name,
+              cost_limit,
+              master_instance,
+              job_id,
+              job_name,
+              nextflow_version,
+              branch,
+              nextflow_profile,
+              save_logs,
+              use_fusion,
+              project_name,
+              parameter,
+              array_file,
+              verbose,
+              disable_ssl_verification,
+              ssl_cert,
+              profile):
+    """Clone an existing job with optional parameter overrides."""
+    profile = profile or ctx.default_map['job']['clone']['profile']
+
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+
+    # Determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    print('Cloning job...')
+    if verbose:
+        print('\t...Preparing objects')
+
+    # Create Job object (we need project_name and workflow_name, but workflow_name will be overridden)
+
+    job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, None, workflow_id=1234,
+               mainfile=None, importsfile=None,verify=verify_ssl)
+
+    if verbose:
+        print('\tThe following Job object was created:')
+        print('\t' + str(job_obj) + '\n')
+        print(f'\tCloning job {job_id} in workspace: {workspace_id}')
+
+    try:
+        # Clone the job with provided overrides
+        cloned_job_id = job_obj.clone_job(
+            source_job_id=job_id,
+            queue_name=queue_name,
+            cost_limit=cost_limit,
+            master_instance=master_instance,
+            job_name=job_name,
+            nextflow_version=nextflow_version,
+            branch=branch,
+            profile=nextflow_profile,
+            save_logs=save_logs,
+            use_fusion=use_fusion,
+            project_name=project_name,
+            parameters=list(parameter) if parameter else None,
+            array_file=array_file,
+            verify=verify_ssl
+        )
+        if verbose:
+            print(f'\tCloned job ID: {cloned_job_id}')
+
+        print(f"Job successfully cloned. New job ID: {cloned_job_id}")
+
+    except BadRequestException as e:
+        if verbose:
+            print(f'\tError details: {e}')
+        raise click.ClickException(f"Failed to clone job: {e}")
+    except Exception as e:
+        if verbose:
+            print(f'\tError details: {e}')
+        raise click.ClickException(f"An error occurred while cloning the job: {e}")
 
 
 @workflow.command('list')
