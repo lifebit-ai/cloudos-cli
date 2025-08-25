@@ -359,7 +359,7 @@ class Cloudos:
     def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
-                     filter_only_mine=False, filter_owner=None, filtering_queue=None):
+                     filter_only_mine=False, filter_owner=None, filter_queue=None):
         """Get jobs from a CloudOS workspace with optional filtering.
         
         Fetches jobs page by page, applies all filters after fetching.
@@ -394,7 +394,7 @@ class Cloudos:
             Filter to show only jobs belonging to the current user.
         filter_owner : string, optional
             Filter jobs by owner username (will be resolved to user ID).
-        filtering_queue : string, optional
+        filter_queue : string, optional
             Filter jobs by queue name (local filtering, will be resolved to queue ID).
 
         Returns
@@ -541,7 +541,7 @@ class Cloudos:
             current_page += 1
 
         # --- Local queue filtering (not supported by API) ---
-        if filtering_queue:
+        if filter_queue:
             try:
                 from cloudos_cli.queue.queue import Queue
                 queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
@@ -549,16 +549,16 @@ class Cloudos:
                 
                 queue_id = None
                 for queue in queues:
-                    if queue.get("label") == filtering_queue or queue.get("name") == filtering_queue:
+                    if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
                         queue_id = queue.get("id") or queue.get("_id")
                         break
                 
                 if not queue_id:
-                    raise ValueError(f"Queue with name '{filtering_queue}' not found in workspace '{workspace_id}'")
+                    raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
                 
                 all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
             except Exception as e:
-                raise ValueError(f"Error filtering by queue '{filtering_queue}': {str(e)}")
+                raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
 
         # --- Apply limit after all filtering ---
         if last_n_jobs != 'all' and isinstance(last_n_jobs, int) and last_n_jobs > 0:

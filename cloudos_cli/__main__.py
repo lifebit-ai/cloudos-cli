@@ -1333,7 +1333,7 @@ def list_jobs(ctx,
                                 filter_job_id=filter_job_id,
                                 filter_only_mine=filter_only_mine,
                                 filter_owner=filter_owner,
-                                filtering_queue=filter_queue)
+                                filter_queue=filter_queue)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
