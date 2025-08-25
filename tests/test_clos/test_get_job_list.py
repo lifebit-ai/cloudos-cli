@@ -27,7 +27,7 @@ def test_get_job_list_correct_response():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=50&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -60,7 +60,7 @@ def test_get_job_list_incorrect_response():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=50&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,

@@ -28,7 +28,7 @@ def test_bad_request_exception():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=50&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,
