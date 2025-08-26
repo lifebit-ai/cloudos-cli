@@ -949,85 +949,6 @@ class Job(Cloudos):
             raise BadRequestException(r)
         return json.loads(r.content)
 
-    def get_job_queues(self, verify=True):
-        """Get available job queues for the workspace.
-        
-        Parameters
-        ----------
-        verify : [bool|string]
-            Whether to use SSL verification or not. Alternatively, if
-            a string is passed, it will be interpreted as the path to
-            the SSL certificate file.
-            
-        Returns
-        -------
-        list
-            List of available job queues with their details.
-        """
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
-        url = f"{self.cloudos_url}/api/v1/teams/aws/v2/job-queues?teamId={self.workspace_id}"
-        r = retry_requests_get(url, headers=headers, verify=verify)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        return json.loads(r.content)
-
-    def get_workflow_by_id(self, workflow_id, verify=True):
-        """Get workflow details by ID.
-        
-        Parameters
-        ----------
-        workflow_id : str
-            The CloudOS workflow ID.
-        verify : [bool|string]
-            Whether to use SSL verification or not. Alternatively, if
-            a string is passed, it will be interpreted as the path to
-            the SSL certificate file.
-            
-        Returns
-        -------
-        dict
-            The workflow details.
-        """
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
-        url = f"{self.cloudos_url}/api/v2/workflows/{workflow_id}?teamId={self.workspace_id}"
-        r = retry_requests_get(url, headers=headers, verify=verify)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        return json.loads(r.content)
-
-    def find_queue_by_name(self, queue_name, job_queues):
-        """Find job queue ID by name.
-        
-        Parameters
-        ----------
-        queue_name : str
-            Name of the job queue to find.
-        job_queues : list
-            List of job queues returned by get_job_queues().
-            
-        Returns
-        -------
-        str
-            The job queue ID if found.
-            
-        Raises
-        ------
-        ValueError
-            If the queue name is not found.
-        """
-        for queue in job_queues:
-            if queue.get('name') == queue_name:
-                return queue.get('_id')
-        
-        available_queues = [q.get('name') for q in job_queues]
-        raise ValueError(f"Queue '{queue_name}' not found. Available queues: {available_queues}")
-
     def update_parameter_value(self, parameters, param_name, new_value):
         """Update a parameter value in the parameters list.
         
@@ -1076,7 +997,6 @@ class Job(Cloudos):
                   use_fusion=None,
                   project_name=None,
                   parameters=None,
-                  array_file=None,
                   verify=True):
         """Clone an existing job with optional parameter overrides.
         
@@ -1106,8 +1026,6 @@ class Job(Cloudos):
             Project name override (will look up new project ID).
         parameters : list, optional
             List of parameter overrides in format ['param1=value1', 'param2=value2'].
-        array_file : str, optional
-            Path to array file for Docker workflows.
         verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1131,10 +1049,6 @@ class Job(Cloudos):
         # Override job name if provided
         if job_name:
             cloned_payload['name'] = job_name
-        else:
-            # Default: add "_clone" suffix
-            original_name = cloned_payload.get('name', 'job')
-            cloned_payload['name'] = f"{original_name}_clone"
 
         # Override cost limit if provided
         if cost_limit is not None:
@@ -1176,11 +1090,23 @@ class Job(Cloudos):
 
         # Handle job queue override
         if queue_name:
-            job_queues = self.get_job_queues(verify=verify)
-            queue_id = self.find_queue_by_name(queue_name, job_queues)
-            if 'batch' not in cloned_payload:
-                cloned_payload['batch'] = {'enabled': True}
-            cloned_payload['batch']['jobQueue'] = queue_id
+            try:
+                from cloudos_cli.queue.queue import Queue
+                queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, self.workspace_id, verify)
+                queues = queue_api.get_job_queues()
+
+                queue_id = None
+                for queue in queues:
+                    if queue.get("label") == queue_name or queue.get("name") == queue_name:
+                        queue_id = queue.get("id") or queue.get("_id")
+                        break
+                #if 'batch' not in cloned_payload:
+                #    cloned_payload['batch'] = {'enabled': True}
+                cloned_payload['batch']['jobQueue'] = queue_id
+                if not queue_id:
+                    raise ValueError(f"Queue with name '{queue_name}' not found in workspace '{self.workspace_id}'")
+            except Exception as e:
+                raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
 
         # Handle parameter overrides
         if parameters:
@@ -1191,20 +1117,15 @@ class Job(Cloudos):
                 if not self.update_parameter_value(cloned_parameters, param_name, param_value):
                     # Parameter not found, add as new parameter
                     # Determine workflow type to set proper prefix and format
-                    if 'command' in cloned_payload: # Docker workflow
-                        processed_param = self.docker_workflow_param_processing(f"--{param_name}={param_value}", self.project_name)
-                        cloned_parameters.append(processed_param)
-                    else: # Nextflow/WDL workflow
-                        prefix = "" if 'cromwellCloudResources' in cloned_payload else "--" # WDL vs Nextflow
-                        new_param = {
-                            "prefix": prefix,
-                            "name": param_name,
-                            "parameterKind": "textValue",
-                            "textValue": param_value
-                        }
-                        cloned_parameters.append(new_param)
+                    prefix = "--" if param_override.startswith('--') else ("-" if param_override.startswith('-') else "")
+                    new_param = {
+                        "prefix": prefix,
+                        "name": param_name,
+                        "parameterKind": "textValue",
+                        "textValue": param_value
+                    }
+                    cloned_parameters.append(new_param)
             cloned_payload['parameters'] = cloned_parameters
-
 
         # setup project name
         if project_name:
@@ -1212,52 +1133,12 @@ class Job(Cloudos):
             project_id = self.get_project_id_from_name(self.workspace_id, project_name, verify=verify)
             cloned_payload['project'] = project_id
 
-        # Handle array file for Docker workflows
-        if array_file:
-            # Check if this is a Docker workflow
-            if 'command' not in cloned_payload:
-                raise ValueError("--array-file option is only supported for Docker workflows")
-
-            # Get workflow details to verify it's a Docker workflow
-            workflow_details = self.get_workflow_by_id(cloned_payload['workflow'], verify=verify)
-            if workflow_details.get('workflowType') != 'docker':
-                raise ValueError("--array-file option is only supported for Docker workflows")
-
-            # Process array file (this would need the datasets functionality)
-            from cloudos_cli.datasets import Datasets
-            ds = Datasets(self.cloudos_url, self.apikey, self.workspace_id, self.project_name, verify=verify)
-
-            # Set up array file in payload - this is a simplified version
-            # In practice, you'd need to process the array file path and get the file ID
-            array_file_path = Path(array_file)
-            array_file_dir = str(array_file_path.parent)
-            array_file_name = array_file_path.name
-
-            result = ds.list_folder_content(array_file_dir)
-            array_file_id = None
-            for file in result['files']:
-                if file.get("name") == array_file_name:
-                    array_file_id = file.get("_id")
-                    break
-
-            if not array_file_id:
-                raise ValueError(f'Array file "{array_file_name}" not found in directory "{array_file_dir}"')
-
-            cloned_payload['arrayFile'] = {
-                "dataItem": {
-                    "kind": "File", 
-                    "item": array_file_id
-                },
-                "separator": "," # Default separator, could be made configurable
-            }
-        
         # Send the cloned job
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        # print("cloned payload: ", cloned_payload)
-        # exit()
+
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(cloned_payload), 
                                 headers=headers, 

@@ -1445,7 +1445,7 @@ def abort_jobs(ctx,
               help='The job id in CloudOS to search for.',
               required=True)
 @click.option('--job-name',
-              help='Name for the cloned job. If not provided, "_clone" will be appended to the original name.')
+              help='Name for the cloned job.')
 @click.option('--nextflow-version',
               help='Nextflow version to use for the cloned job.',
               type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
@@ -1460,14 +1460,12 @@ def abort_jobs(ctx,
               help='Whether to use fusion filesystem for the cloned job.',
               type=bool)
 @click.option('--project-name',
-              help='Project name to use instead of the original (will look up project ID).')
+              help='Project name to use instead of the original.')
 @click.option('-p',
               '--parameter',
               multiple=True,
               help=('Parameter to override in the cloned job. Format: parameter_name=parameter_value. ' +
                     'Can be used multiple times.'))
-@click.option('--array-file',
-              help='Path to array file for Docker workflows (only applicable for Docker workflow types).')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1497,7 +1495,6 @@ def clone_job(ctx,
               use_fusion,
               project_name,
               parameter,
-              array_file,
               verbose,
               disable_ssl_verification,
               ssl_cert,
@@ -1525,7 +1522,8 @@ def clone_job(ctx,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
-            workspace_id=workspace_id
+            workspace_id=workspace_id,
+            project_name=project_name
         )
     )
     apikey = user_options['apikey']
@@ -1538,9 +1536,8 @@ def clone_job(ctx,
     if verbose:
         print('\t...Preparing objects')
 
-    # Create Job object (we need project_name and workflow_name, but workflow_name will be overridden)
-
-    job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, None, workflow_id=1234,
+    # Create Job object (set dummy values for project_name and workflow_name, since they come from the cloned job)
+    job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                mainfile=None, importsfile=None,verify=verify_ssl)
 
     if verbose:
@@ -1561,9 +1558,9 @@ def clone_job(ctx,
             profile=nextflow_profile,
             save_logs=save_logs,
             use_fusion=use_fusion,
-            project_name=project_name,
+            # only when explicitly setting --project-name will be overridden, else using the original project
+            project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
             parameters=list(parameter) if parameter else None,
-            array_file=array_file,
             verify=verify_ssl
         )
         if verbose:
@@ -1574,11 +1571,11 @@ def clone_job(ctx,
     except BadRequestException as e:
         if verbose:
             print(f'\tError details: {e}')
-        raise click.ClickException(f"Failed to clone job: {e}")
+        raise ValueError(f"Failed to clone job: {e}")
     except Exception as e:
         if verbose:
             print(f'\tError details: {e}')
-        raise click.ClickException(f"An error occurred while cloning the job: {e}")
+        raise ValueError(f"An error occurred while cloning the job: {e}")
 
 
 @workflow.command('list')
