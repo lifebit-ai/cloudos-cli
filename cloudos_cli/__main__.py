@@ -3087,7 +3087,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is not modifiable.",
+            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is an S3 folder and only virtual folders can be selected as a destination for moving items.",
                    err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
