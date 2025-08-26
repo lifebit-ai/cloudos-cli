@@ -6,7 +6,6 @@
 
 - Adds support for job cloning with 'cloudos job clone' command
 - Enables cloning existing jobs with parameter overrides including queue-name, cost-limit, master-instance, job-name, nextflow-version, branch, nextflow-profile, save-logs, use-fusion, workflow-name, and parameter
-- Supports array-file option for Docker workflow types
 - Provides comprehensive parameter validation and error handling for job cloning operations
 
 ## v2.50.0 (2025-08-14)
