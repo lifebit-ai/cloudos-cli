@@ -1434,38 +1434,46 @@ def abort_jobs(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=True)
-@click.option('--queue-name',
-              help='Name of the job queue to use for the cloned job.')
-@click.option('--cost-limit',
-              help='Cost limit for the cloned job (use -1 for no limit).',
-              type=float)
-@click.option('--master-instance',
-              help='Master instance type for the cloned job (e.g., c5.xlarge).')
-@click.option('--job-id',
-              help='The job id in CloudOS to search for.',
-              required=True)
-@click.option('--job-name',
-              help='Name for the cloned job.')
-@click.option('--nextflow-version',
-              help='Nextflow version to use for the cloned job.',
-              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
-@click.option('--branch',
-              help='Git branch to use for the cloned job.')
-@click.option('--nextflow-profile',
-              help='Nextflow profile to use for the cloned job.')
-@click.option('--save-logs',
-              help='Whether to save process logs for the cloned job.',
-              type=bool)
-@click.option('--use-fusion',
-              help='Whether to use fusion filesystem for the cloned job.',
-              type=bool)
 @click.option('--project-name',
-              help='Project name to use instead of the original.')
+              help='The name of a CloudOS project.')
 @click.option('-p',
               '--parameter',
               multiple=True,
-              help=('Parameter to override in the cloned job. Format: parameter_name=parameter_value. ' +
-                    'Can be used multiple times.'))
+              help=('A single parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p input=s3://path_to_my_file. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--nextflow-profile',
+              help=('A comma separated string indicating the nextflow profile/s ' +
+                    'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
+@click.option('--git-branch',
+              help=('The branch to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--job-name',
+              help='The name of the job. Default=new_job.')
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--job-queue',
+              help='Name of the job queue to use with a batch job.')
+@click.option('--instance-type',
+              help=('The type of compute instance to use as master node. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'))
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--accelerate-file-staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1483,18 +1491,18 @@ def clone_job(ctx,
               apikey,
               cloudos_url,
               workspace_id,
-              queue_name,
-              cost_limit,
-              master_instance,
-              job_id,
-              job_name,
-              nextflow_version,
-              branch,
-              nextflow_profile,
-              save_logs,
-              use_fusion,
               project_name,
               parameter,
+              nextflow_profile,
+              nextflow_version,
+              git_branch,
+              job_name,
+              do_not_save_logs,
+              job_queue,
+              instance_type,
+              cost_limit,
+              job_id,
+              accelerate_file_staging,
               verbose,
               disable_ssl_verification,
               ssl_cert,
@@ -1549,15 +1557,15 @@ def clone_job(ctx,
         # Clone the job with provided overrides
         cloned_job_id = job_obj.clone_job(
             source_job_id=job_id,
-            queue_name=queue_name,
+            queue_name=job_queue,
             cost_limit=cost_limit,
-            master_instance=master_instance,
+            master_instance=instance_type,
             job_name=job_name,
             nextflow_version=nextflow_version,
-            branch=branch,
+            branch=git_branch,
             profile=nextflow_profile,
-            save_logs=save_logs,
-            use_fusion=use_fusion,
+            save_logs=do_not_save_logs,
+            use_fusion=accelerate_file_staging,
             # only when explicitly setting --project-name will be overridden, else using the original project
             project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
             parameters=list(parameter) if parameter else None,
