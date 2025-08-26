@@ -1,0 +1,26 @@
+{"total":1, "projects": [
+    {
+        "_id": "new_project_id_123",
+        "user": {
+            "id": "XXX",
+            "name": "XXX",
+            "surname": "XXX",
+            "phone": "+111111",
+            "email": "XXX@lifebit.ai",
+            "picture": "https://gravatar.com/avatar/e6c086f690e18028314a233394c4e4b9?d=identicon",
+            "username": "lifebittester",
+            "createdAt": "2023-04-25T18:31:07.158Z",
+            "companyName": "lifebit",
+            "emailVerified": true,
+            "isActive": true
+        },
+        "name": "new-project-name",
+        "description": "Testing new project",
+        "externalId": null,
+        "createdAt": "2023-04-25T18:31:07.158Z",
+        "isEnabled": true,
+        "accessConditions": {"public": false},
+        "isArchived": false,
+        "starred": false
+    }
+]}
