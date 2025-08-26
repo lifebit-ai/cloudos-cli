@@ -392,6 +392,8 @@ class Cloudos:
             Filter jobs by specific job ID.
         filter_only_mine : bool, optional
             Filter to show only jobs belonging to the current user.
+        filter_owner : string, optional
+            Filter jobs by owner username (will be resolved to user ID).
         filter_queue : string, optional
             Filter jobs by queue name (local filtering, will be resolved to queue ID).
 
@@ -475,6 +477,40 @@ class Cloudos:
             except Exception as e:
                 raise ValueError(f"Error getting current user info: {str(e)}")
         
+        # Resolve owner username to user ID
+        if filter_owner:
+            try:
+                search_headers = {
+                    "Content-type": "application/json",
+                    "apikey": self.apikey
+                }
+                search_params = {
+                    "q": filter_owner,
+                    "teamId": workspace_id
+                }
+                ## the following endpoint is not open
+                user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
+                                                 params=search_params, headers=search_headers, verify=verify)
+                if user_search_r.status_code >= 400:
+                    raise ValueError(f"Error searching for user '{filter_owner}'")
+                
+                user_search_content = user_search_r.json()
+                print(user_search_content)
+                if user_search_content and len(user_search_content) > 0:
+                    user_match = None
+                    for user in user_search_content:
+                        if user.get("username") == filter_owner or user.get("name") == filter_owner:
+                            user_match = user
+                            break
+                    
+                    if user_match:
+                        params["user.id"] = user_match.get("_id")
+                    else:
+                        raise ValueError(f"User '{filter_owner}' not found.")
+                else:
+                    raise ValueError(f"User '{filter_owner}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
 
         # --- Fetch jobs page by page ---
         all_jobs = []

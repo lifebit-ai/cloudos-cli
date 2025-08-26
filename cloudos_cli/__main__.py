@@ -1238,8 +1238,8 @@ def job_details(ctx,
 @click.option('--filter-only-mine',
               help='Filter to show only jobs belonging to the current user.',
               is_flag=True)
-#@click.option('--filter-owner',
-#              help='Filter jobs by owner username.')
+@click.option('--filter-owner',
+             help='Filter jobs by owner username.')
 @click.option('--filter-queue',
               help='Filter jobs by queue name (local filtering).')
 @click.option('--verbose',
@@ -1332,7 +1332,7 @@ def list_jobs(ctx,
                                 filter_workflow=filter_workflow,
                                 filter_job_id=filter_job_id,
                                 filter_only_mine=filter_only_mine,
-                                #filter_owner=filter_owner,
+                                filter_owner=filter_owner,
                                 filter_queue=filter_queue)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
