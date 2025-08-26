@@ -392,8 +392,6 @@ class Cloudos:
             Filter jobs by specific job ID.
         filter_only_mine : bool, optional
             Filter to show only jobs belonging to the current user.
-        filter_owner : string, optional
-            Filter jobs by owner username (will be resolved to user ID).
         filter_queue : string, optional
             Filter jobs by queue name (local filtering, will be resolved to queue ID).
 
