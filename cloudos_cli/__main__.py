@@ -1242,7 +1242,7 @@ def job_details(ctx,
               help='Filter to show only jobs belonging to the current user.',
               is_flag=True)
 @click.option('--filter-queue',
-              help='Filter jobs by queue name.')
+              help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)

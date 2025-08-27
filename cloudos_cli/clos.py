@@ -394,6 +394,8 @@ class Cloudos:
             Filter to show only jobs belonging to the current user.
         filter_queue : string, optional
             Filter jobs by queue name (will be resolved to queue ID).
+            Only applies to jobs running in batch environment.
+            Non-batch jobs are preserved in results as they don't use queues.
         last : bool, optional
             When workflows are duplicated, use the latest imported workflow (by date).
 
@@ -509,20 +511,24 @@ class Cloudos:
         # --- Local queue filtering (not supported by API) ---
         if filter_queue:
             try:
-                from cloudos_cli.queue.queue import Queue
-                queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
-                queues = queue_api.get_job_queues()
-                
-                queue_id = None
-                for queue in queues:
-                    if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
-                        queue_id = queue.get("id") or queue.get("_id")
-                        break
-                
-                if not queue_id:
-                    raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
-                
-                all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
+                batch_jobs=[job for job in all_jobs if job.get("batch", {})]
+                if batch_jobs:
+                    from cloudos_cli.queue.queue import Queue
+                    queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
+                    queues = queue_api.get_job_queues()
+                    
+                    queue_id = None
+                    for queue in queues:
+                        if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
+                            queue_id = queue.get("id") or queue.get("_id")
+                            break
+                    
+                    if not queue_id:
+                        raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
+                    
+                    all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
+                else:
+                    raise ValueError(f"Error filtering by queue '{filter_queue}': The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
             except Exception as e:
                 raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
 
