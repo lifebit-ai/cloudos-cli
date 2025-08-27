@@ -577,7 +577,13 @@ class Cloudos:
         if all_fields:
             df = df_full
         else:
-            df = df_full.loc[:, COLUMNS]
+            # Only select columns that actually exist in the DataFrame
+            existing_columns = [col for col in COLUMNS if col in df_full.columns]
+            if existing_columns:
+                df = df_full.loc[:, existing_columns]
+            else:
+                # If none of the predefined columns exist, return the full DataFrame
+                df = df_full
         return df
 
     def reorder_job_list(self, my_jobs_df, filename='my_jobs.csv'):
