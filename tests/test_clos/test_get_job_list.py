@@ -54,7 +54,7 @@ def test_get_job_list_incorrect_response():
     error_message = {"statusCode": 400, "code": "BadRequest",
                      "message": "Bad Request.", "time": "2022-11-23_17:31:07"}
     error_json = json.dumps(error_message)
-    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 50, "page": 1}
+    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 100, "page": 1}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
