@@ -78,7 +78,7 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68497c969750c32eba238ce6"
+        JOB_ID="68a44e5350f7b17cc3c38559"
         cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
