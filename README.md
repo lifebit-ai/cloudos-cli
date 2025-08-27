@@ -590,7 +590,7 @@ cloudos job clone \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
-    --source-job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
 ```
 
 Clone with parameter overrides:
@@ -599,52 +599,36 @@ cloudos job clone \
     --cloudos-url $CLOUDOS \
     --apikey $MY_API_KEY \
     --workspace-id $WORKSPACE_ID \
-    --source-job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --queue-name "high-priority-queue" \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
     --cost-limit 50.0 \
-    --master-instance "c5.2xlarge" \
+    --instance-type "c5.2xlarge" \
     --job-name "cloned_analysis_v2" \
     --nextflow-version "24.04.4" \
-    --branch "dev" \
+    --git-branch "dev" \
     --nextflow-profile "production" \
-    --save-logs true \
-    --use-fusion true \
+    --do-not-save-logs true \
+    --accelerate-file-staging true \
     --workflow-name "updated-workflow" \
     -p "input=s3://new-bucket/input.csv" \
     -p "output_dir=s3://new-bucket/results"
 ```
 
-For Docker workflows with array files:
-```console
-cloudos job clone \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --source-job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --array-file "Data/sample_array.csv" \
-    -p "extra_param=new_value"
-```
-
 Available override options:
-- `--queue-name`: Specify a different job queue
+- `--job-queue`: Specify a different job queue
 - `--cost-limit`: Set a new cost limit (use -1 for no limit)
-- `--master-instance`: Change the master instance type
+- `--instance-type`: Change the master instance type
 - `--job-name`: Assign a custom name to the cloned job
 - `--nextflow-version`: Use a different Nextflow version
-- `--branch`: Switch to a different git branch
+- `--git-branch`: Switch to a different git branch
 - `--nextflow-profile`: Change the Nextflow profile
-- `--save-logs`: Enable/disable log saving
-- `--use-fusion`: Enable/disable fusion filesystem
+- `--do-not-save-logs`: Enable/disable log saving
+- `--accelerate-file-staging`: Enable/disable fusion filesystem
 - `--workflow-name`: Use a different workflow
 - `-p, --parameter`: Override or add parameters (can be used multiple times)
-- `--array-file`: Specify an array file for Docker workflows
 
-Notes:
-- The `--array-file` option is only supported for Docker workflow types
-- Parameters can be overridden or new ones can be added using `-p` option
-- If `--job-name` is not provided, "_clone" will be appended to the original job name
-- The clone command validates parameter compatibility and provides helpful error messages
-
+> [!NOTE]
+> Parameters can be overridden or new ones can be added using `-p` option
 
 #### Executor support
 
