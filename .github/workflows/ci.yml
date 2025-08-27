@@ -373,7 +373,8 @@ jobs:
           --project-name "$PROJECT_NAME" \
           --workflow-name plink2 \
           --apikey "$CLOUDOS_TOKEN" \
-          --cloudos-url "$CLOUDOS_URL"
+          --cloudos-url "$CLOUDOS_URL" \
+          --wait-completion
   bash_array_job_run_and_multiple_projects:
     runs-on: ubuntu-latest
     strategy:
