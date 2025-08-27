@@ -78,7 +78,7 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68af3164ea894436054dd54b"
+        JOB_ID="68af3290ea894436054de39b"
         cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
@@ -103,7 +103,7 @@ jobs:
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repository-platform gitlab
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lifebit-ai/spammer-nf --repository-platform gitlab
   import_github:
     runs-on: ubuntu-latest
     strategy:
@@ -416,7 +416,8 @@ jobs:
           --separator "," \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
-          --parameter --file=ci-testing/Data/bash_array/input.csv
+          --parameter --file=ci-testing/Data/bash_array/input.csv \
+          --wait-completion
   dataset_copy_and_remove:
           runs-on: ubuntu-latest
           strategy:
