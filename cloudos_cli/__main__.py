@@ -1469,7 +1469,7 @@ def abort_jobs(ctx,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The CloudOS job id of the job to be cloned.',
               required=True)
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
