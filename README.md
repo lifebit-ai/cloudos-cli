@@ -594,9 +594,7 @@ cloudos job clone \
 Clone with parameter overrides:
 ```console
 cloudos job clone \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
+    --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
     --job-queue "high-priority-queue" \
     --cost-limit 50.0 \
