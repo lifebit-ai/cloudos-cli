@@ -423,7 +423,7 @@ class Cloudos:
         params = {
             "teamId": workspace_id,
             "archived.status": str(archived).lower(),
-            "limit": 50,  # Use a reasonable page size
+            "limit": 100,  # Use a reasonable page size
             "page": 1     # Always start from page 1
         }
         
