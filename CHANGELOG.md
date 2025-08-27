@@ -4,7 +4,7 @@
 
 ### Feat
 
--  Implements filtering options for `cloudos job list` (`filter_status`, `filter_job_name`,`filter_project`, `filter_workflow`, `filter_job_id`, `filter_only_mine` , `filter_owner`,`filter_queue` )
+-  Implements filtering options for `cloudos job list` (`filter_status`, `filter_job_name`, `filter_project`, `filter_workflow`, `filter_job_id`, `filter_only_mine` , `filter_owner`, `filter_queue` )
 
 
 ## v2.51.0 (2025-08-21)
