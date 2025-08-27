@@ -363,6 +363,7 @@ jobs:
         PR_NUMBER: ${{ github.event.number }}
       run: |
         cloudos bash job \
+          --memory 2 \
           --parameter -test=value \
           --parameter --gaq=test \
           --job-name "$JOB_NAME_BASE" \
@@ -402,6 +403,7 @@ jobs:
       run: |
         cloudos bash array-job \
           --instance-type c4.large \
+          --memory 2 \
           --parameter -test=value \
           --parameter --gaq=test \
           --array-parameter --array_var=title \
