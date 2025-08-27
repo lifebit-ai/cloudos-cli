@@ -359,7 +359,7 @@ class Cloudos:
     def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
-                     filter_only_mine=False, filter_owner=None, filter_queue=None):
+                     filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
         """Get jobs from a CloudOS workspace with optional filtering.
         
         Fetches jobs page by page, applies all filters after fetching.
@@ -393,7 +393,9 @@ class Cloudos:
         filter_only_mine : bool, optional
             Filter to show only jobs belonging to the current user.
         filter_queue : string, optional
-            Filter jobs by queue name (local filtering, will be resolved to queue ID).
+            Filter jobs by queue name (will be resolved to queue ID).
+        last : bool, optional
+            When workflows are duplicated, use the latest imported workflow (by date).
 
         Returns
         -------
@@ -449,7 +451,7 @@ class Cloudos:
         # Resolve workflow name to ID
         if filter_workflow:
             try:
-                workflow_content = self.get_workflow_content(workspace_id, filter_workflow, verify=verify)
+                workflow_content = self.get_workflow_content(workspace_id, filter_workflow, verify=verify, last=last)
                 if workflow_content and workflow_content.get("workflows"):
                     # Extract the first (and should be only) workflow from the list
                     workflow = workflow_content["workflows"][0]

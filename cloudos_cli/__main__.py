@@ -1228,18 +1228,21 @@ def job_details(ctx,
 @click.option('--filter-status',
               help='Filter jobs by status (e.g., completed, running, failed, aborted).')
 @click.option('--filter-job-name',
-              help='Filter jobs by job name.')
+              help='Filter jobs by job name ( case insensitive ).')
 @click.option('--filter-project',
               help='Filter jobs by project name.')
 @click.option('--filter-workflow',
               help='Filter jobs by workflow/pipeline name.')
+@click.option('--last',
+              help=('When workflows are duplicated, use the latest imported workflow (by date).'),
+              is_flag=True)
 @click.option('--filter-job-id',
               help='Filter jobs by specific job ID.')
 @click.option('--filter-only-mine',
               help='Filter to show only jobs belonging to the current user.',
               is_flag=True)
 @click.option('--filter-queue',
-              help='Filter jobs by queue name (local filtering).')
+              help='Filter jobs by queue name.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1265,6 +1268,7 @@ def list_jobs(ctx,
               filter_job_name,
               filter_project,
               filter_workflow,
+              last,
               filter_job_id,
               filter_only_mine,
               #filter_owner,
@@ -1330,7 +1334,8 @@ def list_jobs(ctx,
                                 filter_workflow=filter_workflow,
                                 filter_job_id=filter_job_id,
                                 filter_only_mine=filter_only_mine,
-                                filter_queue=filter_queue)
+                                filter_queue=filter_queue,
+                                last=last)
     if len(my_jobs_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
