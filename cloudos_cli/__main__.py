@@ -1455,13 +1455,14 @@ def abort_jobs(ctx,
                     'If not specified it defaults to the last commit ' +
                     'of the default branch.'))
 @click.option('--job-name',
-              help='The name of the job. Default=new_job.')
+              help='The name of the job. If not set, will take the name of the cloned job.')
 @click.option('--do-not-save-logs',
               help=('Avoids process log saving. If you select this option, your job process ' +
                     'logs will not be stored.'),
               is_flag=True)
 @click.option('--job-queue',
-              help='Name of the job queue to use with a batch job.')
+              help=('Name of the job queue to use with a batch job. ' +
+                   'In Azure workspaces, this option is ignored.'))
 @click.option('--instance-type',
               help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'))
@@ -1473,6 +1474,9 @@ def abort_jobs(ctx,
               required=True)
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
+@click.option('--resumable',
+              help='Whether to make the job able to be resumed or not.',
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -1503,6 +1507,7 @@ def clone_job(ctx,
               cost_limit,
               job_id,
               accelerate_file_staging,
+              resumable,
               verbose,
               disable_ssl_verification,
               ssl_cert,
@@ -1564,8 +1569,9 @@ def clone_job(ctx,
             nextflow_version=nextflow_version,
             branch=git_branch,
             profile=nextflow_profile,
-            save_logs=do_not_save_logs,
+            do_not_save_logs=do_not_save_logs,
             use_fusion=accelerate_file_staging,
+            resumable=resumable,
             # only when explicitly setting --project-name will be overridden, else using the original project
             project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
             parameters=list(parameter) if parameter else None,

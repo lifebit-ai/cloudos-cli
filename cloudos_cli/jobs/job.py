@@ -974,7 +974,7 @@ class Job(Cloudos):
                 elif param.get('parameterKind') == 'dataItem':
                     # For data items, we need to process the value to get file/folder ID
                     # This is a simplified version - in practice you'd need more logic
-                    if new_value.startswith('s3://'):
+                    if new_value.startswith('s3://') or new_value.startswith('az://'):
                         param['textValue'] = new_value
                         param['parameterKind'] = 'textValue'
                     else:
@@ -993,8 +993,9 @@ class Job(Cloudos):
                   nextflow_version=None,
                   branch=None,
                   profile=None,
-                  save_logs=None,
+                  do_not_save_logs=None,
                   use_fusion=None,
+                  resumable=None,
                   project_name=None,
                   parameters=None,
                   verify=True):
@@ -1018,10 +1019,12 @@ class Job(Cloudos):
             Git branch override.
         profile : str, optional
             Nextflow profile override.
-        save_logs : bool, optional
+        do_not_save_logs : bool, optional
             Whether to save logs override.
         use_fusion : bool, optional
             Whether to use fusion filesystem override.
+        resumable : bool, optional
+            Whether to make the job resumable or not.
         project_name : str, optional
             Project name override (will look up new project ID).
         parameters : list, optional
@@ -1065,6 +1068,9 @@ class Job(Cloudos):
         # Override nextflow version if provided (only for non-docker workflows)
         if nextflow_version and 'nextflowVersion' in cloned_payload:
             cloned_payload['nextflowVersion'] = nextflow_version
+        elif nextflow_version and cloned_payload['executionPlatform'] == 'azure' and\
+            nextflow_version not in ['22.11.1-edge', 'latest']:
+            print("[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
         # Override branch if provided
         if branch:
@@ -1081,32 +1087,39 @@ class Job(Cloudos):
             cloned_payload['profile'] = profile
 
         # Override save logs if provided
-        if save_logs is not None:
-            cloned_payload['saveProcessLogs'] = save_logs
+        if do_not_save_logs:
+            cloned_payload['saveProcessLogs'] = do_not_save_logs
 
         # Override use fusion if provided
-        if use_fusion is not None:
+        if use_fusion and cloned_payload['executionPlatform'] != 'azure':
             cloned_payload['usesFusionFileSystem'] = use_fusion
+        else:
+            print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+
+        # Override resumable if provided
+        if resumable:
+            cloned_payload['resumable'] = resumable
 
         # Handle job queue override
         if queue_name:
-            try:
-                from cloudos_cli.queue.queue import Queue
-                queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, self.workspace_id, verify)
-                queues = queue_api.get_job_queues()
+            if cloned_payload['executionPlatform'] != 'azure':
+                try:
+                    from cloudos_cli.queue.queue import Queue
+                    queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, self.workspace_id, verify)
+                    queues = queue_api.get_job_queues()
 
-                queue_id = None
-                for queue in queues:
-                    if queue.get("label") == queue_name or queue.get("name") == queue_name:
-                        queue_id = queue.get("id") or queue.get("_id")
-                        break
-                #if 'batch' not in cloned_payload:
-                #    cloned_payload['batch'] = {'enabled': True}
-                cloned_payload['batch']['jobQueue'] = queue_id
-                if not queue_id:
-                    raise ValueError(f"Queue with name '{queue_name}' not found in workspace '{self.workspace_id}'")
-            except Exception as e:
-                raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
+                    queue_id = None
+                    for queue in queues:
+                        if queue.get("label") == queue_name or queue.get("name") == queue_name:
+                            queue_id = queue.get("id") or queue.get("_id")
+                            break
+                    cloned_payload['batch']['jobQueue'] = queue_id
+                    if not queue_id:
+                        raise ValueError(f"Queue with name '{queue_name}' not found in workspace '{self.workspace_id}'")
+                except Exception as e:
+                    raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
+            else:
+                print("[Message]: Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
         # Handle parameter overrides
         if parameters:
@@ -1149,5 +1162,5 @@ class Job(Cloudos):
 
         j_id = json.loads(r.content)["jobId"]
         print('\tJob successfully cloned and launched to CloudOS, please check the ' +
-              f'following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}')
+              f"following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}\n")
         return j_id

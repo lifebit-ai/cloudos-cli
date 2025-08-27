@@ -191,7 +191,7 @@ def test_clone_job_with_overrides():
         nextflow_version="24.04.4",
         branch="develop",
         profile="test",
-        save_logs=False,
+        do_not_save_logs=False,
         use_fusion=True,
         parameters=["--input=s3://new-bucket/new-input.txt", "--threads=8"]
     )

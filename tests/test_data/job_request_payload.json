@@ -4,6 +4,7 @@
     "name": "original_job_name",
     "project": "60b8c2f1a5b6d3001234abcd",
     "workflow": "60b8c2f1a5b6d3001234wxyz",
+    "executionPlatform":"aws",
     "parameters": [
         {
             "prefix": "--",
