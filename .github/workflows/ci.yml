@@ -79,11 +79,11 @@ jobs:
         CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
       run: |
         # Test filtering by status, project  and workflow name
-        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-status completed --filter-project cloudos-cli-tests --filter-workflow post-gwas-target-identification --last --last-n-jobs 10
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-status completed --filter-project cloudos-cli-tests  cloudos job list --profile stg-tests --filter-status completed --filter-project cloudos-cli-tests  --filter-workflow GH-rnatoy --last --last-n-jobs 10
         # Test filtering job id
-        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id 68aec0c89f2b615779a677ca 
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id 68aec3309f2b615779a6842e 
         # Test filtering job name
-        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-name "post-gwas-target-identification" --last-n-jobs 10
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-name "cloudos-cli-CI-test" --last-n-jobs 10
         # Test filtering by only mine
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-only-mine --last-n-jobs 10
         # Test filtering by queue
