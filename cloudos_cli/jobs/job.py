@@ -1093,7 +1093,7 @@ class Job(Cloudos):
         # Override use fusion if provided
         if use_fusion and cloned_payload['executionPlatform'] != 'azure':
             cloned_payload['usesFusionFileSystem'] = use_fusion
-        else:
+        elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
             print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
 
         # Override resumable if provided
