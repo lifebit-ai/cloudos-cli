@@ -582,8 +582,8 @@ class Cloudos:
             if existing_columns:
                 df = df_full.loc[:, existing_columns]
             else:
-                # If none of the predefined columns exist, return the full DataFrame
-                df = df_full
+                # If none of the predefined columns exist, raise missing error
+                raise ValueError(f"None of the predefined columns {COLUMNS} exist in retrieved columns:{list(df_full.columns)}")
         return df
 
     def reorder_job_list(self, my_jobs_df, filename='my_jobs.csv'):
