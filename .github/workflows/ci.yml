@@ -401,6 +401,7 @@ jobs:
         PR_NUMBER: ${{ github.event.number }}
       run: |
         cloudos bash array-job \
+          --instance-type c4.large \
           --parameter -test=value \
           --parameter --gaq=test \
           --array-parameter --array_var=title \
