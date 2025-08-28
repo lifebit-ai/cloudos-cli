@@ -1,10 +1,23 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.50.1 (2025-08-18)
+## v2.55.0 (2025-08-28)
 
 ### Feat
 
 - Improves documentation
+
+## v2.52.0 (2025-08-25)
+
+### Feat
+
+-  Implements filtering options for `cloudos job list` (`filter_status`, `filter_job_name`, `filter_project`, `filter_workflow`, `filter_job_id`, `filter_only_mine` , `filter_owner`, `filter_queue` )
+
+
+## v2.51.0 (2025-08-21)
+
+### Fix
+
+- set image name 
 
 ## v2.50.0 (2025-08-14)
 
