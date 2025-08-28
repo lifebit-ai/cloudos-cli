@@ -1,0 +1,16 @@
+[
+    {
+        "id": "queue_id_1",
+        "_id": "queue_id_1", 
+        "name": "test-queue",
+        "label": "test-queue",
+        "description": "Test queue for testing"
+    },
+    {
+        "id": "queue_id_2",
+        "_id": "queue_id_2",
+        "name": "production-queue", 
+        "label": "production-queue",
+        "description": "Production queue"
+    }
+]

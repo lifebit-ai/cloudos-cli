@@ -921,3 +921,246 @@ class Job(Cloudos):
                 "parameterKind": "textValue",
                 "textValue": f"{rest}"
             }
+
+    def get_job_request_payload(self, job_id, verify=True):
+        """Get the original request payload for a job.
+        
+        Parameters
+        ----------
+        job_id : str
+            The CloudOS job ID to get the payload for.
+        verify : [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+            
+        Returns
+        -------
+        dict
+            The original job request payload.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload?teamId={self.workspace_id}"
+        r = retry_requests_get(url, headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)
+
+    def update_parameter_value(self, parameters, param_name, new_value):
+        """Update a parameter value in the parameters list.
+        
+        Parameters
+        ----------
+        parameters : list
+            List of parameter dictionaries.
+        param_name : str
+            Name of the parameter to update.
+        new_value : str
+            New value for the parameter.
+            
+        Returns
+        -------
+        bool
+            True if parameter was found and updated, False otherwise.
+        """
+        for param in parameters:
+            if param.get('name') == param_name:
+                # Handle different parameter kinds
+                if param.get('parameterKind') == 'textValue':
+                    param['textValue'] = new_value
+                elif param.get('parameterKind') == 'dataItem':
+                    # For data items, we need to process the value to get file/folder ID
+                    # This is a simplified version - in practice you'd need more logic
+                    if new_value.startswith('s3://') or new_value.startswith('az://'):
+                        param['textValue'] = new_value
+                        param['parameterKind'] = 'textValue'
+                    else:
+                        # Try to process as file/data item
+                        processed_param = self.docker_workflow_param_processing(f"--{param_name}={new_value}", self.project_name)
+                        param.update(processed_param)
+                return True
+        return False
+
+    def clone_job(self, 
+                  source_job_id,
+                  queue_name=None,
+                  cost_limit=None,
+                  master_instance=None,
+                  job_name=None,
+                  nextflow_version=None,
+                  branch=None,
+                  profile=None,
+                  do_not_save_logs=None,
+                  use_fusion=None,
+                  resumable=None,
+                  project_name=None,
+                  parameters=None,
+                  verify=True):
+        """Clone an existing job with optional parameter overrides.
+        
+        Parameters
+        ----------
+        source_job_id : str
+            The CloudOS job ID to clone from.
+        queue_name : str, optional
+            Name of the job queue to use.
+        cost_limit : float, optional
+            Job cost limit override.
+        master_instance : str, optional
+            Master instance type override.
+        job_name : str, optional
+            New job name.
+        nextflow_version : str, optional
+            Nextflow version override.
+        branch : str, optional
+            Git branch override.
+        profile : str, optional
+            Nextflow profile override.
+        do_not_save_logs : bool, optional
+            Whether to save logs override.
+        use_fusion : bool, optional
+            Whether to use fusion filesystem override.
+        resumable : bool, optional
+            Whether to make the job resumable or not.
+        project_name : str, optional
+            Project name override (will look up new project ID).
+        parameters : list, optional
+            List of parameter overrides in format ['param1=value1', 'param2=value2'].
+        verify : [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+            
+        Returns
+        -------
+        str
+            The CloudOS job ID of the cloned job.
+        """
+        # Get the original job payload
+        original_payload = self.get_job_request_payload(source_job_id, verify=verify)
+
+        # Create a copy of the payload for modification
+        cloned_payload = json.loads(json.dumps(original_payload))
+
+        # remove unwanted fields
+        del cloned_payload['_id']
+        del cloned_payload['resourceId']
+
+        # Override job name if provided
+        if job_name:
+            cloned_payload['name'] = job_name
+
+        # Override cost limit if provided
+        if cost_limit is not None:
+            if 'execution' not in cloned_payload:
+                cloned_payload['execution'] = {}
+            cloned_payload['execution']['computeCostLimit'] = cost_limit
+
+        # Override master instance if provided
+        if master_instance:
+            if 'masterInstance' not in cloned_payload:
+                cloned_payload['masterInstance'] = {'requestedInstance': {}}
+            cloned_payload['masterInstance']['requestedInstance']['type'] = master_instance
+
+        # Override nextflow version if provided (only for non-docker workflows)
+        if nextflow_version and 'nextflowVersion' in cloned_payload:
+            cloned_payload['nextflowVersion'] = nextflow_version
+        elif nextflow_version and cloned_payload['executionPlatform'] == 'azure' and\
+            nextflow_version not in ['22.11.1-edge', 'latest']:
+            print("[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
+
+        # Override branch if provided
+        if branch:
+            if 'revision' not in cloned_payload:
+                cloned_payload['revision'] = {}
+            cloned_payload['revision']['revisionType'] = 'branch'
+            cloned_payload['revision']['branch'] = branch
+            # Clear other revision types
+            cloned_payload['revision'].pop('commit', None)
+            cloned_payload['revision'].pop('tag', None)
+
+        # Override profile if provided
+        if profile:
+            cloned_payload['profile'] = profile
+
+        # Override save logs if provided
+        if do_not_save_logs:
+            cloned_payload['saveProcessLogs'] = do_not_save_logs
+
+        # Override use fusion if provided
+        if use_fusion and cloned_payload['executionPlatform'] != 'azure':
+            cloned_payload['usesFusionFileSystem'] = use_fusion
+        elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
+            print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+
+        # Override resumable if provided
+        if resumable:
+            cloned_payload['resumable'] = resumable
+
+        # Handle job queue override
+        if queue_name:
+            if cloned_payload['executionPlatform'] != 'azure':
+                try:
+                    from cloudos_cli.queue.queue import Queue
+                    queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, self.workspace_id, verify)
+                    queues = queue_api.get_job_queues()
+
+                    queue_id = None
+                    for queue in queues:
+                        if queue.get("label") == queue_name or queue.get("name") == queue_name:
+                            queue_id = queue.get("id") or queue.get("_id")
+                            break
+                    cloned_payload['batch']['jobQueue'] = queue_id
+                    if not queue_id:
+                        raise ValueError(f"Queue with name '{queue_name}' not found in workspace '{self.workspace_id}'")
+                except Exception as e:
+                    raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
+            else:
+                print("[Message]: Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
+
+        # Handle parameter overrides
+        if parameters:
+            cloned_parameters = cloned_payload.get('parameters', [])
+            for param_override in parameters:
+                param_name, param_value = param_override.split('=', 1)
+                param_name = param_name.lstrip('-') # Remove leading dashes
+                if not self.update_parameter_value(cloned_parameters, param_name, param_value):
+                    # Parameter not found, add as new parameter
+                    # Determine workflow type to set proper prefix and format
+                    prefix = "--" if param_override.startswith('--') else ("-" if param_override.startswith('-') else "")
+                    new_param = {
+                        "prefix": prefix,
+                        "name": param_name,
+                        "parameterKind": "textValue",
+                        "textValue": param_value
+                    }
+                    cloned_parameters.append(new_param)
+            cloned_payload['parameters'] = cloned_parameters
+
+        # setup project name
+        if project_name:
+            # get project ID
+            project_id = self.get_project_id_from_name(self.workspace_id, project_name, verify=verify)
+            cloned_payload['project'] = project_id
+
+        # Send the cloned job
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
+                                data=json.dumps(cloned_payload), 
+                                headers=headers, 
+                                verify=verify)
+
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        j_id = json.loads(r.content)["jobId"]
+        print('\tJob successfully cloned and launched to CloudOS, please check the ' +
+              f"following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}\n")
+        return j_id
