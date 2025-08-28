@@ -528,7 +528,7 @@ class Cloudos:
                     
                     all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
                 else:
-                    raise ValueError(f"Error filtering by queue '{filter_queue}': The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
+                    raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
             except Exception as e:
                 raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
 
