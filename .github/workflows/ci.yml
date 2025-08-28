@@ -497,5 +497,4 @@ jobs:
           --cloudos-url $CLOUDOS_URL \
           --apikey $CLOUDOS_TOKEN \
           --workspace-id $CLOUDOS_WORKSPACE_ID \
-          --job-id $JOB_ID \
-          --wait-completion
+          --job-id $JOB_ID
