@@ -580,6 +580,52 @@ Aborting jobs...
 ```
 
 
+#### Clone a job with optional parameter overrides
+
+The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+
+Basic usage:
+```console
+cloudos job clone \
+    --profile MY_PROFILE
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+Clone with parameter overrides:
+```console
+cloudos job clone \
+    --profile MY_PROFILE
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "cloned_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    --do-not-save-logs true \
+    --accelerate-file-staging true \
+    --workflow-name "updated-workflow" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+Available override options:
+- `--job-queue`: Specify a different job queue
+- `--cost-limit`: Set a new cost limit (use -1 for no limit)
+- `--instance-type`: Change the master instance type
+- `--job-name`: Assign a custom name to the cloned job
+- `--nextflow-version`: Use a different Nextflow version
+- `--git-branch`: Switch to a different git branch
+- `--nextflow-profile`: Change the Nextflow profile
+- `--do-not-save-logs`: Enable/disable log saving
+- `--accelerate-file-staging`: Enable/disable fusion filesystem
+- `--workflow-name`: Use a different workflow
+- `-p, --parameter`: Override or add parameters (can be used multiple times)
+
+> [!NOTE]
+> Parameters can be overridden or new ones can be added using `-p` option
+
 #### Executor support
 
 CloudOS supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.

@@ -1,0 +1,42 @@
+{
+    "_id": "616ee9681b866a01d69fa1cd",
+    "resourceId": "original_resource_id",
+    "name": "original_job_name",
+    "project": "60b8c2f1a5b6d3001234abcd",
+    "workflow": "60b8c2f1a5b6d3001234wxyz",
+    "executionPlatform":"aws",
+    "parameters": [
+        {
+            "prefix": "--",
+            "name": "input",
+            "parameterKind": "textValue",
+            "textValue": "s3://bucket/input.txt"
+        },
+        {
+            "prefix": "--",
+            "name": "output_dir",
+            "parameterKind": "textValue", 
+            "textValue": "s3://bucket/output/"
+        }
+    ],
+    "execution": {
+        "computeCostLimit": 30.0
+    },
+    "masterInstance": {
+        "requestedInstance": {
+            "type": "c5.xlarge"
+        }
+    },
+    "nextflowVersion": "22.10.8",
+    "revision": {
+        "revisionType": "branch",
+        "branch": "main"
+    },
+    "profile": "standard",
+    "saveProcessLogs": true,
+    "usesFusionFileSystem": false,
+    "batch": {
+        "enabled": true,
+        "jobQueue": "default_queue_id"
+    }
+}
