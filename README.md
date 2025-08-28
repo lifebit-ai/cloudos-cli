@@ -38,6 +38,7 @@ Python package for interacting with CloudOS
     - [Submit a Job](#submit-a-job)
     - [Get Job Logs](#get-job-logs)
     - [Get Job Results](#get-job-results)
+    - [Clone Job](#clone-job)
     - [Abort Jobs](#abort-jobs)
     - [Check Job Status](#check-job-status)
     - [Get Job Details](#get-job-details)
@@ -791,6 +792,53 @@ Executing results...
 results: s3://path/to/location/of/results/results/
 ```
 
+#### Clone job
+
+The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+
+Basic usage:
+```console
+cloudos job clone \
+    --profile MY_PROFILE
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+Clone with parameter overrides:
+```console
+cloudos job clone \
+    --profile MY_PROFILE
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "cloned_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    --do-not-save-logs true \
+    --accelerate-file-staging true \
+    --workflow-name "updated-workflow" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+Available override options:
+- `--job-queue`: Specify a different job queue
+- `--cost-limit`: Set a new cost limit (use -1 for no limit)
+- `--instance-type`: Change the master instance type
+- `--job-name`: Assign a custom name to the cloned job
+- `--nextflow-version`: Use a different Nextflow version
+- `--git-branch`: Switch to a different git branch
+- `--nextflow-profile`: Change the Nextflow profile
+- `--do-not-save-logs`: Enable/disable log saving
+- `--accelerate-file-staging`: Enable/disable fusion filesystem
+- `--workflow-name`: Use a different workflow
+- `-p, --parameter`: Override or add parameters (can be used multiple times)
+
+> [!NOTE]
+> Parameters can be overridden or new ones can be added using `-p` option
+
+
 #### Abort Jobs
 
 Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
@@ -916,6 +964,40 @@ Executing list...
 	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
 ```
+
+You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
+
+**Available filters:**
+
+- **`--filter-status`**: Filter jobs by execution status (e.g., completed, running, failed, aborted, queued, pending, initializing)
+- **`--filter-job-name`**: Filter jobs by job name (case insensitive partial matching)
+- **`--filter-project`**: Filter jobs by project name (exact match required)
+- **`--filter-workflow`**: Filter jobs by workflow/pipeline name (exact match required)
+- **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
+- **`--filter-only-mine`**: Show only jobs belonging to the current user
+- **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
+
+Here following are some examples:
+
+Get all completed jobs from the last 50 jobs:
+```bash
+cloudos job list --profile my_profile --last-n-jobs 50 --filter-status completed
+```
+
+Find jobs with "analysis" in the name from a specific project:
+```bash
+cloudos job list --profile my_profile --filter-job-name analysis --filter-project "My Research Project"
+```
+
+Get all jobs using a specific workflow and queue:
+```bash
+cloudos job list --profile my_profile --filter-workflow rnatoy --filter-queue high-priority-queue
+```
+
+> [!NOTE]
+> - Project and workflow names must match exactly (case sensitive)
+> - Job name filtering is case insensitive and supports partial matches
+> - The `--last` flag can be used with `--filter-workflow` when multiple workflows have the same name
 
 
 
