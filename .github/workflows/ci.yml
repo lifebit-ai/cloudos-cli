@@ -493,4 +493,9 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         JOB_ID: "68b01090c99eb7bd2ff53c0b"
       run: |
-        cloudos job clone --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
+        cloudos job clone \
+          --cloudos-url $CLOUDOS_URL \
+          --apikey $CLOUDOS_TOKEN \
+          --workspace-id $CLOUDOS_WORKSPACE_ID \
+          --job-id $JOB_ID \
+          --wait-completion
