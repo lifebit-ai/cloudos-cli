@@ -22,14 +22,13 @@ def test_bad_request_exception():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "page": 1,
-              "archived.status": "false"}
+    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 100, "page": 1}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&page=1&archived.status=false"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=100&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,
