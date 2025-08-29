@@ -30,7 +30,7 @@ Python package for interacting with CloudOS
   - [Workflow](#workflow)
     - [List All Available Workflows](#list-all-available-workflows)
     - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
-  - [Job](#job)
+  - [Nextflow Jobs](#nextflow-jobs)
     - [Submit a Job](#submit-a-job)
     - [Get Job Logs](#get-job-logs)
     - [Get Job Results](#get-job-results)
@@ -455,7 +455,7 @@ cloudos workflow import --profile my_profile --workflow-url "https://github.com/
 > NOTE: Importing workflows using cloudos-cli is not yet available in all CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
 
 
-### Job
+### Nextflow Jobs
 
 The job commands allow you to submit, monitor, and manage computational workflows on CloudOS. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.
 
