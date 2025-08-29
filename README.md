@@ -580,20 +580,20 @@ Aborting jobs...
 ```
 
 
-#### Clone a job with optional parameter overrides
+#### Clone/resume a job with optional parameter overrides
 
-The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+The `clone` and `resume` commands allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
 
 Basic usage:
 ```console
-cloudos job clone \
+cloudos job clone/resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
 ```
 
-Clone with parameter overrides:
+Clone/resume with parameter overrides:
 ```console
-cloudos job clone \
+cloudos job clone/resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
     --job-queue "high-priority-queue" \
@@ -614,7 +614,7 @@ Available override options:
 - `--job-queue`: Specify a different job queue
 - `--cost-limit`: Set a new cost limit (use -1 for no limit)
 - `--instance-type`: Change the master instance type
-- `--job-name`: Assign a custom name to the cloned job
+- `--job-name`: Assign a custom name to the cloned/resumed job
 - `--nextflow-version`: Use a different Nextflow version
 - `--git-branch`: Switch to a different git branch
 - `--nextflow-profile`: Change the Nextflow profile

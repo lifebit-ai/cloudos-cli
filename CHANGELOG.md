@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.54.0 (2025-08-29)
+
+### Feat
+
+- Adds support for resuming jobs
+
 ## v2.53.0 (2025-08-25)
 
 ### Feat
