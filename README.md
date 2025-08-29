@@ -10,8 +10,8 @@ Python package for interacting with CloudOS
 
 - [Requirements](#requirements)
 - [Installation](#installation)
-  - [Docker Image](#docker-image)
   - [From PyPI](#from-pypi)
+  - [Docker Image](#docker-image)
   - [From Github](#from-github)
 - [Usage](#usage)
 - [Configuration](#configuration)
@@ -27,10 +27,6 @@ Python package for interacting with CloudOS
     - [Create Projects](#create-projects)
   - [Queue](#queue)
     - [List Queues](#list-queues)
-  - [Procurement](#procurement)
-    - [List Procurement Images](#list-procurement-images)
-    - [Set Procurement Organization Image](#set-procurement-organization-image)
-    - [Reset Procurement Organization Image](#reset-procurement-organization-image)
   - [Workflow](#workflow)
     - [List All Available Workflows](#list-all-available-workflows)
     - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
@@ -56,6 +52,10 @@ Python package for interacting with CloudOS
     - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
     - [Create Folder](#create-folder)
     - [Remove Files or Folders](#remove-files-or-folders)
+  - [Procurement](#procurement)
+    - [List Procurement Images](#list-procurement-images)
+    - [Set Procurement Organization Image](#set-procurement-organization-image)
+    - [Reset Procurement Organization Image](#reset-procurement-organization-image)
   - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
     - [Manage Cromwell Server](#manage-cromwell-server)
     - [Run WDL Workflows](#run-wdl-workflows)
@@ -83,6 +83,26 @@ rich_click>=1.8.2
 
 CloudOS CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.
 
+### From PyPI
+
+The repository is also available from [PyPI](https://pypi.org/project/cloudos-cli/):
+
+```bash
+pip install cloudos-cli
+```
+
+To update CloudOS CLI to the latest version using pip, you can run:
+
+```bash
+pip install --upgrade cloudos-cli
+```
+
+To check your current version:
+
+```bash
+cloudos --version
+```
+
 ### Docker Image
 
 It is recommended to install it as a docker image using the `Dockerfile` and the `environment.yml` files provided.
@@ -93,13 +113,6 @@ To run the existing docker image at `quay.io`:
 docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 ```
 
-### From PyPI
-
-The repository is also available from [PyPI](https://pypi.org/project/cloudos-cli/):
-
-```bash
-pip install cloudos-cli
-```
 
 ### From Github
 
@@ -154,137 +167,61 @@ cloudos --help
 This will tell you the implemented commands. Each implemented command has its own subcommands with its own `--help`:
 
 ```bash
-cloudos job run --help
+cloudos job list --help
 ```
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.50.1
+Version: 2.55.0
 
 CloudOS job functionality: run, check and abort jobs in CloudOS.
 
-                                                                                                                        
- Usage: cloudos job run [OPTIONS]                                                                                       
-                                                                                                                        
- Submit a job to CloudOS.                                                                                               
-                                                                                                                        
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --apikey                         -k  TEXT                                   Your CloudOS API key [required]       │
-│ *  --cloudos-url                    -c  TEXT                                   The CloudOS url you are trying to     │
-│                                                                                access to.                            │
-│                                                                                Default=https://cloudos.lifebit.ai.   │
-│                                                                                [required]                            │
-│ *  --workspace-id                       TEXT                                   The specific CloudOS workspace id.    │
-│                                                                                [required]                            │
-│ *  --project-name                       TEXT                                   The name of a CloudOS project.        │
-│                                                                                [required]                            │
-│ *  --workflow-name                      TEXT                                   The name of a CloudOS workflow or     │
-│                                                                                pipeline.                             │
-│                                                                                [required]                            │
-│    --last                                                                      When the workflows are duplicated,    │
-│                                                                                use the latest imported workflow (by  │
-│                                                                                date).                                │
-│    --job-config                         TEXT                                   A config file similar to a            │
-│                                                                                nextflow.config file, but only with   │
-│                                                                                the parameters to use with your job.  │
-│    --parameter                      -p  TEXT                                   A single parameter to pass to the job │
-│                                                                                call. It should be in the following   │
-│                                                                                form: parameter_name=parameter_value. │
-│                                                                                E.g.: -p input=s3://path_to_my_file.  │
-│                                                                                You can use this option as many times │
-│                                                                                as parameters you want to include.    │
-│    --nextflow-profile                   TEXT                                   A comma separated string indicating   │
-│                                                                                the nextflow profile/s to use with    │
-│                                                                                your job.                             │
-│    --nextflow-version                   [22.10.8|24.04.4|22.11.1-edge|latest]  Nextflow version to use when          │
-│                                                                                executing the workflow in CloudOS.    │
-│                                                                                Default=22.10.8.                      │
-│    --git-commit                         TEXT                                   The git commit hash to run for the    │
-│                                                                                selected pipeline. If not specified   │
-│                                                                                it defaults to the last commit of the │
-│                                                                                default branch.                       │
-│    --git-tag                            TEXT                                   The tag to run for the selected       │
-│                                                                                pipeline. If not specified it         │
-│                                                                                defaults to the last commit of the    │
-│                                                                                default branch.                       │
-│    --git-branch                         TEXT                                   The branch to run for the selected    │
-│                                                                                pipeline. If not specified it         │
-│                                                                                defaults to the last commit of the    │
-│                                                                                default branch.                       │
-│    --job-name                           TEXT                                   The name of the job. Default=new_job. │
-│    --resumable                                                                 Whether to make the job able to be    │
-│                                                                                resumed or not.                       │
-│    --do-not-save-logs                                                          Avoids process log saving. If you     │
-│                                                                                select this option, your job process  │
-│                                                                                logs will not be stored.              │
-│    --job-queue                          TEXT                                   Name of the job queue to use with a   │
-│                                                                                batch job.                            │
-│    --instance-type                      TEXT                                   The type of compute instance to use   │
-│                                                                                as master node.                       │
-│                                                                                Default=c5.xlarge(aws)|Standard_D4as… │
-│    --instance-disk                      INTEGER                                The disk space of the master node     │
-│                                                                                instance, in GB. Default=500.         │
-│    --storage-mode                       TEXT                                   Either 'lustre' or 'regular'.         │
-│                                                                                Indicates if the user wants to select │
-│                                                                                regular or lustre storage.            │
-│                                                                                Default=regular.                      │
-│    --lustre-size                        INTEGER                                The lustre storage to be used when    │
-│                                                                                --storage-mode=lustre, in GB. It      │
-│                                                                                should be 1200 or a multiple of it.   │
-│                                                                                Default=1200.                         │
-│    --wait-completion                                                           Whether to wait to job completion and │
-│                                                                                report final job status.              │
-│    --wait-time                          INTEGER                                Max time to wait (in seconds) to job  │
-│                                                                                completion. Default=3600.             │
-│    --wdl-mainfile                       TEXT                                   For WDL workflows, which mainFile     │
-│                                                                                (.wdl) is configured to use.          │
-│    --wdl-importsfile                    TEXT                                   For WDL workflows, which importsFile  │
-│                                                                                (.zip) is configured to use.          │
-│    --cromwell-token                 -t  TEXT                                   Specific Cromwell server              │
-│                                                                                authentication token. Currently, not  │
-│                                                                                necessary as apikey can be used       │
-│                                                                                instead, but maintained for backwards │
-│                                                                                compatibility.                        │
-│    --repository-platform                [github|gitlab|bitbucketServer]        Name of the repository platform of    │
-│                                                                                the workflow. Default=github.         │
-│    --execution-platform                 [aws|azure|hpc]                        Name of the execution platform        │
-│                                                                                implemented in your CloudOS.          │
-│                                                                                Default=aws.                          │
-│    --hpc-id                             TEXT                                   ID of your HPC, only applicable when  │
-│                                                                                --execution-platform=hpc.             │
-│                                                                                Default=660fae20f93358ad61e0104b      │
-│    --azure-worker-instance-type         TEXT                                   The worker node instance type to be   │
-│                                                                                used in azure.                        │
-│                                                                                Default=Standard_D4as_v4              │
-│    --azure-worker-instance-disk         INTEGER                                The disk size in GB for the worker    │
-│                                                                                node to be used in azure. Default=100 │
-│    --azure-worker-instance-spot                                                Whether the azure worker nodes have   │
-│                                                                                to be spot instances or not.          │
-│    --cost-limit                         FLOAT                                  Add a cost limit to your job.         │
-│                                                                                Default=30.0 (For no cost limit       │
-│                                                                                please use -1).                       │
-│    --accelerate-file-staging                                                   Enables AWS S3 mountpoint for quicker │
-│                                                                                file staging.                         │
-│    --use-private-docker-repository                                             Allows to use private docker          │
-│                                                                                repository for running jobs. The      │
-│                                                                                Docker user account has to be already │
-│                                                                                linked to CloudOS.                    │
-│    --verbose                                                                   Whether to print information messages │
-│                                                                                or not.                               │
-│    --request-interval                   INTEGER                                Time interval to request (in seconds) │
-│                                                                                the job status. For large jobs is     │
-│                                                                                important to use a high number to     │
-│                                                                                make fewer requests so that is not    │
-│                                                                                considered spamming by the API.       │
-│                                                                                Default=30.                           │
-│    --disable-ssl-verification                                                  Disable SSL certificate verification. │
-│                                                                                Please, remember that this option is  │
-│                                                                                not generally recommended for         │
-│                                                                                security reasons.                     │
-│    --ssl-cert                           TEXT                                   Path to your SSL certificate file.    │
-│    --profile                            TEXT                                   Profile to use from the config file   │
-│    --help                                                                      Show this message and exit.           │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+                                                                                                            
+ Usage: cloudos job list [OPTIONS]                                                                          
+                                                                                                            
+ Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     
+                                                                                                            
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --apikey                    -k  TEXT        Your CloudOS API key [required]                           │
+│ *  --cloudos-url               -c  TEXT        The CloudOS url you are trying to access to.              │
+│                                                Default=https://cloudos.lifebit.ai.                       │
+│                                                [required]                                                │
+│ *  --workspace-id                  TEXT        The specific CloudOS workspace id. [required]             │
+│    --output-basename               TEXT        Output file base name to save jobs list. Default=joblist  │
+│    --output-format                 [csv|json]  The desired file format (file extension) for the output.  │
+│                                                For json option --all-fields will be automatically set to │
+│                                                True. Default=csv.                                        │
+│    --all-fields                                Whether to collect all available fields from jobs or just │
+│                                                the preconfigured selected fields. Only applicable when   │
+│                                                --output-format=csv. Automatically enabled for json       │
+│                                                output.                                                   │
+│    --last-n-jobs                   TEXT        The number of last workspace jobs to retrieve. You can    │
+│                                                use 'all' to retrieve all workspace jobs. Default=30.     │
+│    --page                          INTEGER     Response page to retrieve. If --last-n-jobs is set, then  │
+│                                                --page value corresponds to the first page to retrieve.   │
+│                                                Default=1.                                                │
+│    --archived                                  When this flag is used, only archived jobs list is        │
+│                                                collected.                                                │
+│    --filter-status                 TEXT        Filter jobs by status (e.g., completed, running, failed,  │
+│                                                aborted).                                                 │
+│    --filter-job-name               TEXT        Filter jobs by job name ( case insensitive ).             │
+│    --filter-project                TEXT        Filter jobs by project name.                              │
+│    --filter-workflow               TEXT        Filter jobs by workflow/pipeline name.                    │
+│    --last                                      When workflows are duplicated, use the latest imported    │
+│                                                workflow (by date).                                       │
+│    --filter-job-id                 TEXT        Filter jobs by specific job ID.                           │
+│    --filter-only-mine                          Filter to show only jobs belonging to the current user.   │
+│    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │
+│                                                in batch environment. Non-batch jobs are preserved in     │
+│                                                results.                                                  │
+│    --verbose                                   Whether to print information messages or not.             │
+│    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │
+│                                                that this option is not generally recommended for         │
+│                                                security reasons.                                         │
+│    --ssl-cert                      TEXT        Path to your SSL certificate file.                        │
+│    --profile                       TEXT        Profile to use from the config file                       │
+│    --help                                      Show this message and exit.                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ---
@@ -443,125 +380,6 @@ This command will output the list of available job queues in JSON format and sav
 
 Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues. Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the `--job-queue` parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
 
-### Procurement
-
-CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
-
-#### List Procurement Images
-
-You can get a list of images associated with organizations of a given procurement using the `cloudos procurement images ls` command. This command provides paginated results showing image configurations and metadata.
-
-To list images for a specific procurement, use the following command:
-
-```bash
-cloudos procurement images ls \
-    -- profile procurement_profile 
-    --procurement-id "your_procurement_id_here"
-```
-
-**Command options:**
-
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
-- `--page`: The response page number (default: 1)
-- `--limit`: The page size limit (default: 10)
-- `--disable-ssl-verification`: Disable SSL certificate verification
-- `--ssl-cert`: Path to your SSL certificate file
-- `--profile`: Profile to use from the config file
-
-**Example usage:**
-
-```bash
-# List images for the procurement (first page, 10 items)
-cloudos procurement images ls --profile procurement_profile --procurement-id "your_procurement_id_here"
-```
-
-To get more results per page or navigate to different pages:
-
-```bash
-# Get 25 images from page 2
-cloudos procurement images ls --profile procurement_profile --page 2 --limit 25 --procurement-id "your_procurement_id_here"
-```
-
-
-
-**Output format:**
-
-The command returns detailed information about image configurations and pagination metadata in JSON format, including:
-
-- **Image configurations**: Details about available container images
-- **Pagination metadata**: Information about total pages, current page, and available items
-
-This is particularly useful for understanding what container images are available across different organizations within your procurement and for programmatic access to image inventory.
-
-#### Set Procurement Organization Image
-
-You can set a custom image ID or name for an organization within a procurement using the `cloudos procurement images set` command. This allows you to override the default CloudOS images with your own custom images for specific organizations.
-
-To set a custom image for an organization, use the following command:
-
-```bash
-cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "custom-image-name" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
-```
-
-**Set command options:**
-
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
-- `--organisation-id`: The organization ID where the change will be applied (required)
-- `--image-type`: The CloudOS resource image type (required). Possible values:
-  - `RegularInteractiveSessions`
-  - `SparkInteractiveSessions`
-  - `RStudioInteractiveSessions`
-  - `JupyterInteractiveSessions`
-  - `JobDefault`
-  - `NextflowBatchComputeEnvironment`
-- `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
-- `--image-id`: The new image ID value (required)
-- `--image-name`: The new image name value (optional)
-- `--disable-ssl-verification`: Disable SSL certificate verification
-- `--ssl-cert`: Path to your SSL certificate file
-- `--profile`: Profile to use from the config file
-
-**Set command example:**
-
-```bash
-# Set custom image for job execution
-cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "my-custom-job-image" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
-```
-
-#### Reset Procurement Organization Image
-
-You can reset an organization's image configuration back to CloudOS defaults using the `cloudos procurement images reset` command. This removes any custom image configurations and restores the original CloudOS defaults.
-
-To reset an organization's image to defaults, use the following command:
-
-```bash
-cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
-```
-
-**Reset command options:**
-
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
-- `--organisation-id`: The organization ID where the change will be applied (required)
-- `--image-type`: The CloudOS resource image type (required). Same values as for `set` command
-- `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
-- `--disable-ssl-verification`: Disable SSL certificate verification
-- `--ssl-cert`: Path to your SSL certificate file
-- `--profile`: Profile to use from the config file
-
-**Reset command example:**
-
-```bash
-# Reset image configuration to CloudOS defaults
-cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
-```
 
 ### Workflow
 
@@ -927,7 +745,7 @@ This file can later be used when running a job with `cloudos job run --job-confi
 > [!NOTE]
 > Job details can only be retrieved for a single user, cannot see other user's job details.
 
-### Get Job Workdir
+#### Get Job Workdir
 
 To get the working directory of a job submitted to CloudOS:
 
@@ -1357,6 +1175,127 @@ cloudos datasets rm <path> --profile my_profile
 ```
 
 ---
+
+### Procurement
+
+CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
+
+#### List Procurement Images
+
+You can get a list of images associated with organizations of a given procurement using the `cloudos procurement images ls` command. This command provides paginated results showing image configurations and metadata.
+
+To list images for a specific procurement, use the following command:
+
+```bash
+cloudos procurement images ls \
+    -- profile procurement_profile 
+    --procurement-id "your_procurement_id_here"
+```
+
+**Command options:**
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--page`: The response page number (default: 1)
+- `--limit`: The page size limit (default: 10)
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+**Example usage:**
+
+```bash
+# List images for the procurement (first page, 10 items)
+cloudos procurement images ls --profile procurement_profile --procurement-id "your_procurement_id_here"
+```
+
+To get more results per page or navigate to different pages:
+
+```bash
+# Get 25 images from page 2
+cloudos procurement images ls --profile procurement_profile --page 2 --limit 25 --procurement-id "your_procurement_id_here"
+```
+
+
+
+**Output format:**
+
+The command returns detailed information about image configurations and pagination metadata in JSON format, including:
+
+- **Image configurations**: Details about available container images
+- **Pagination metadata**: Information about total pages, current page, and available items
+
+This is particularly useful for understanding what container images are available across different organizations within your procurement and for programmatic access to image inventory.
+
+#### Set Procurement Organization Image
+
+You can set a custom image ID or name for an organization within a procurement using the `cloudos procurement images set` command. This allows you to override the default CloudOS images with your own custom images for specific organizations.
+
+To set a custom image for an organization, use the following command:
+
+```bash
+cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "custom-image-name" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+```
+
+**Set command options:**
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--organisation-id`: The organization ID where the change will be applied (required)
+- `--image-type`: The CloudOS resource image type (required). Possible values:
+  - `RegularInteractiveSessions`
+  - `SparkInteractiveSessions`
+  - `RStudioInteractiveSessions`
+  - `JupyterInteractiveSessions`
+  - `JobDefault`
+  - `NextflowBatchComputeEnvironment`
+- `--provider`: The cloud provider (required). Currently only `aws` is supported
+- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--image-id`: The new image ID value (required)
+- `--image-name`: The new image name value (optional)
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+**Set command example:**
+
+```bash
+# Set custom image for job execution
+cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "my-custom-job-image" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+```
+
+#### Reset Procurement Organization Image
+
+You can reset an organization's image configuration back to CloudOS defaults using the `cloudos procurement images reset` command. This removes any custom image configurations and restores the original CloudOS defaults.
+
+To reset an organization's image to defaults, use the following command:
+
+```bash
+cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+```
+
+**Reset command options:**
+
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--organisation-id`: The organization ID where the change will be applied (required)
+- `--image-type`: The CloudOS resource image type (required). Same values as for `set` command
+- `--provider`: The cloud provider (required). Currently only `aws` is supported
+- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+**Reset command example:**
+
+```bash
+# Reset image configuration to CloudOS defaults
+cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+```
+
 
 ### Cromwell and WDL Pipeline Support
 
