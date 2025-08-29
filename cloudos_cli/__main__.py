@@ -3668,7 +3668,32 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     # Minimal folder validation and improved error messages
     is_s3 = path.startswith("s3://")
     is_folder = True
-    if not is_s3:
+    
+    if is_s3:
+        # S3 path validation - use heuristics to determine if it's likely a folder
+        try:
+            # If path ends with '/', it's likely a folder
+            if path.endswith('/'):
+                is_folder = True
+            else:
+                # Check the last part of the path
+                path_parts = path.rstrip("/").split("/")
+                if path_parts:
+                    last_part = path_parts[-1]
+                    # If the last part has no dot, it's likely a folder
+                    if '.' not in last_part:
+                        is_folder = True
+                    else:
+                        # If it has a dot, it might be a file - set to None for warning
+                        is_folder = None
+                else:
+                    # Empty path parts, set to None for uncertainty
+                    is_folder = None
+        except Exception:
+            # If we can't parse the S3 path, set to None for uncertainty
+            is_folder = None
+    else:
+        # File Explorer path validation (existing logic)
         try:
             datasets = Datasets(
                 cloudos_url=cloudos_url,
@@ -3698,11 +3723,13 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
             is_folder = None
 
     if is_folder is False:
-        click.echo("[ERROR] You can only link folders, not files. Please link the parent folder instead.", err=True)
+        if is_s3:
+            click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
+        else:
+            click.echo("[ERROR] You can only link folders, not files. Please link the parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[ERROR] Could not determine if the S3 path is a folder. Please ensure you are linking a folder, not a file.", err=True)
-        return
+        click.echo("[WARNING] Could not determine if the S3 path is a folder. Proceeding with linking, but if it fails, please ensure you are linking a folder, not a file.", err=True)
 
     try:
         link_p.link_folder(path, session_id)
