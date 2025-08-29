@@ -8,7 +8,7 @@ import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
-from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException, JobAccessDeniedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
@@ -206,6 +206,9 @@ class Cloudos:
         r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
+        elif r.status_code == 403:
+            # Handle 403 with more informative error message
+            self._handle_job_access_denied(j_id, workspace_id, verify)
         elif r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
@@ -235,6 +238,40 @@ class Cloudos:
         else:
             raise ValueError("Unsupported cloud provider")
         return workdir_path
+
+    def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
+        """
+        Handle 403 errors with more informative messages by checking job ownership
+        """
+        try:
+            # Try to get current user info
+            current_user = self.get_user_info(verify)
+            current_user_name = f"{current_user.get('name', '')} {current_user.get('surname', '')}".strip()
+            if not current_user_name:
+                current_user_name = current_user.get('email', 'Unknown')
+        except Exception:
+            current_user_name = None
+
+        try:
+            # Try to get job info from job list to see the owner
+            jobs = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            job_owner_name = None
+            
+            for job in jobs:
+                if job.get('_id') == job_id:
+                    user_info = job.get('user', {})
+                    job_owner_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+                    if not job_owner_name:
+                        job_owner_name = user_info.get('email', 'Unknown')
+                    break
+            
+            raise JobAccessDeniedException(job_id, job_owner_name, current_user_name)
+        except JobAccessDeniedException:
+            # Re-raise the specific exception
+            raise
+        except Exception:
+            # If we can't get detailed info, fall back to generic message
+            raise JobAccessDeniedException(job_id)
 
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """
