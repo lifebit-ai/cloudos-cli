@@ -3295,7 +3295,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is an S3 folder and only virtual folders can be selected as a destination for moving items.",
+            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
                    err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
@@ -3934,10 +3934,10 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         if is_s3:
             click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
         else:
-            click.echo("[ERROR] You can only link folders, not files. Please link the parent folder instead.", err=True)
+            click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[WARNING] Could not determine if the S3 path is a folder. Proceeding with linking, but if it fails, please ensure you are linking a folder, not a file.", err=True)
+        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
 
     try:
         link_p.link_folder(path, session_id)
