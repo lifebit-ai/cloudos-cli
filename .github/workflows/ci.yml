@@ -135,7 +135,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="68b0488c628f9dd83daf7e93"
-        cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+        cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
     strategy:

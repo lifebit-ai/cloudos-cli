@@ -27,15 +27,12 @@ def test_get_job_workdir_aws_correct_response():
         "_id": JOB_ID,
         "team": WORKSPACE_ID,
         "resumeWorkDir": WORKDIR_ID,
-        "status": "completed"
+        "status": "completed",
+        "logs": {
+            "s3BucketName": "my-bucket",
+            "s3Prefix": "jobs/logs/path"
+        }
     }
-    
-    # Mock folder details response for AWS S3
-    folder_response = [{
-        "folderType": "S3Folder",
-        "s3BucketName": "my-bucket",
-        "s3Prefix": "jobs/workdir/path"
-    }]
     
     header = {
         "Content-type": "application/json",
@@ -51,13 +48,12 @@ def test_get_job_workdir_aws_correct_response():
         status=200
     )
     
-    # Mock GET method for folder details
+    # Mock cloud detection requests (for AWS, we don't need the azure endpoint)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/folders",
-        json=folder_response,
-        headers=header,
-        status=200
+        url=f"{CLOUDOS_URL}/api/v1/cloud/azure",
+        json=None,
+        status=404
     )
     
     # start cloudOS service
@@ -66,8 +62,8 @@ def test_get_job_workdir_aws_correct_response():
     # get workdir path
     workdir_path = clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
     
-    # check the response
-    expected_path = "s3://my-bucket/jobs/workdir/path"
+    # check the response (workdir path should replace /logs with /work)
+    expected_path = "s3://my-bucket/jobs/work/path"
     assert workdir_path == expected_path
 
 
@@ -82,15 +78,13 @@ def test_get_job_workdir_azure_correct_response():
         "_id": JOB_ID,
         "team": WORKSPACE_ID,
         "resumeWorkDir": WORKDIR_ID,
-        "status": "completed"
+        "status": "completed",
+        "logs": {
+            "blobStorageAccountName": WORKSPACE_ID,
+            "blobContainerName": "my-container",
+            "blobPrefix": "jobs/logs/path"
+        }
     }
-    
-    # Mock folder details response for Azure Blob
-    folder_response = [{
-        "folderType": "AzureBlobFolder",
-        "blobContainerName": "my-container",
-        "blobPrefix": "jobs/workdir/path"
-    }]
     
     header = {
         "Content-type": "application/json",
@@ -106,12 +100,11 @@ def test_get_job_workdir_azure_correct_response():
         status=200
     )
     
-    # Mock GET method for folder details
+    # Mock Azure cloud detection request
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/folders",
-        json=folder_response,
-        headers=header,
+        url=f"{CLOUDOS_URL}/api/v1/cloud/azure",
+        json={"storage": {"storageAccount": "testaccount"}},
         status=200
     )
     
@@ -121,8 +114,8 @@ def test_get_job_workdir_azure_correct_response():
     # get workdir path
     workdir_path = clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
     
-    # check the response
-    expected_path = f"az://{WORKSPACE_ID}.blob.core.windows.net/my-container/jobs/workdir/path"
+    # check the response (workdir path should replace /logs with /work)
+    expected_path = f"az://testaccount.blob.core.windows.net/my-container/jobs/work/path"
     assert workdir_path == expected_path
 
 
@@ -226,7 +219,7 @@ def test_get_job_workdir_unsupported_cloud():
     """
     Test 'get_job_workdir' to fail with unsupported cloud provider
     """
-    # Mock job details response
+    # Mock job details response without logs (so it falls back to folder approach)
     job_response = {
         "_id": JOB_ID,
         "team": WORKSPACE_ID,

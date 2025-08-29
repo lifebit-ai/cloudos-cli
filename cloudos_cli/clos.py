@@ -216,28 +216,66 @@ class Cloudos:
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
         
-        # Get workdir information from logs object using the same pattern as get_job_logs
-        logs_obj = r_json["logs"]
-        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
-        container_name = cloud_storage["container"]
-        prefix_name = cloud_storage["prefix"]
-        logs_bucket = logs_obj[container_name]
-        logs_path = logs_obj[prefix_name]
-        
-        # Construct workdir path by replacing '/logs' with '/work' in the logs path
-        workdir_path_suffix = logs_path.replace('/logs', '/work')
-        
-        if cloud_name == "aws":
-            workdir_path = f"s3://{logs_bucket}/{workdir_path_suffix}"
-        elif cloud_name == "azure":
-            storage_account_prefix = ''
-            cloude_scheme = cloud_storage["scheme"]
-            if cloude_scheme == 'az':
-                storage_account_prefix = f"az://{cloud_meta['storage']['storageAccount']}.blob.core.windows.net"
-            workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
+        # Check if logs field exists, if not fall back to original folder-based approach
+        if "logs" in r_json:
+            # Get workdir information from logs object using the same pattern as get_job_logs
+            logs_obj = r_json["logs"]
+            cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+            container_name = cloud_storage["container"]
+            prefix_name = cloud_storage["prefix"]
+            logs_bucket = logs_obj[container_name]
+            logs_path = logs_obj[prefix_name]
+            
+            # Construct workdir path by replacing '/logs' with '/work' in the logs path
+            workdir_path_suffix = logs_path.replace('/logs', '/work')
+            
+            if cloud_name == "aws":
+                workdir_path = f"s3://{logs_bucket}/{workdir_path_suffix}"
+            elif cloud_name == "azure":
+                storage_account_prefix = ''
+                cloude_scheme = cloud_storage["scheme"]
+                if cloude_scheme == 'az':
+                    storage_account_prefix = f"az://{cloud_meta['storage']['storageAccount']}.blob.core.windows.net"
+                workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
         else:
-            raise ValueError("Unsupported cloud provider")
-        return workdir_path
+            # Fallback to original folder-based approach for backward compatibility
+            workdir_id = r_json["resumeWorkDir"]
+
+            # This will fail, as the API endpoint is not open. This works when adding
+            # the authorisation bearer token manually to the headers
+            workdir_bucket_r = retry_requests_get(f"{cloudos_url}/api/v1/folders",
+                                                    params=dict(id=workdir_id, teamId=workspace_id), 
+                                                    headers=headers, verify=verify)
+            if workdir_bucket_r.status_code == 401:
+                raise NotAuthorisedException
+            elif workdir_bucket_r.status_code >= 400:
+                raise BadRequestException(workdir_bucket_r)
+
+            workdir_bucket_o = workdir_bucket_r.json()
+            if len(workdir_bucket_o) > 1:
+                raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
+            workdir_bucket_info = workdir_bucket_o[0]
+            if workdir_bucket_info["folderType"] == "S3Folder":
+                cloud_name = "aws"
+            elif workdir_bucket_info["folderType"] == "AzureBlobFolder":
+                cloud_name = "azure"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            if cloud_name == "aws":
+                bucket_name = workdir_bucket_info["s3BucketName"]
+                bucket_path = workdir_bucket_info["s3Prefix"]
+                workdir_path = f"s3://{bucket_name}/{bucket_path}"
+            elif cloud_name == "azure":
+                storage_account = f"az://{workspace_id}.blob.core.windows.net"
+                container_name = workdir_bucket_info["blobContainerName"]
+                blob_prefix = workdir_bucket_info["blobPrefix"]
+                workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
 
     def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
         """
@@ -314,7 +352,6 @@ class Cloudos:
                 if filename == "trace.txt":
                     filename = "Trace file"
                 logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
-        breakpoint()
         return logs
 
     def get_job_results(self, j_id, workspace_id, verify=True):
