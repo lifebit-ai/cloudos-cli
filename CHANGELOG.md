@@ -2,13 +2,19 @@
 
 
 
-## v2.54.0 (2025-08-27)
+## v2.55.0 (2025-08-27)
 
 ### Feat
 - changes column name in datasets ls --details command from "File Name" to "Virtual Name".
 - Improved error message when attempting to move an item to an S3 folder
 - Changed terminology in messages in datasets rm
 - Added validation to ensure only folders can be linked and improves error message
+
+## v2.54.0 (2025-08-29)
+
+### Feat
+
+- Adds support for resuming jobs
 
 ## v2.53.0 (2025-08-25)
 
