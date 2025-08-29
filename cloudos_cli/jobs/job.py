@@ -1079,7 +1079,10 @@ class Job(Cloudos):
         del cloned_payload['_id']
         del cloned_payload['resourceId']
         if mode == "resume":
-            cloned_payload['resumeWorkDir'] = self.get_resume_work_dir(source_job_id, verify=verify)
+            try:
+                cloned_payload['resumeWorkDir'] = self.get_resume_work_dir(source_job_id, verify=verify)
+            except Exception as e:
+                print(f"Failed to get resume work directory: {e}, the job was not set as resumable when originally run\n")
 
         # Override job name if provided
         if job_name:
@@ -1131,9 +1134,9 @@ class Job(Cloudos):
         # Override resumable if provided
         if resumable and mode == "clone":
             cloned_payload['resumable'] = resumable
-        else:
-            print("[Message]: 'resumable' option is only applicable when cloning a job, ignoring '--resumable' flag.\n")
-
+        elif resumable and mode == "resume":
+            print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
+        print(f"payload: {cloned_payload}")
         # Handle job queue override
         if queue_name:
             if cloned_payload['executionPlatform'] != 'azure':
