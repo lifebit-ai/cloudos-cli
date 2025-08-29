@@ -611,7 +611,39 @@ Executing results...
 results: s3://path/to/location/of/results/results/
 ```
 
+<<<<<<< HEAD
 #### Clone or Resume job
+=======
+#### Query working directory of job
+
+To get the working directory of a job submitted to CloudOS:
+
+```shell
+cloudos job workdir \
+    --apikey $MY_API_KEY \
+    --cloudos-url $CLOUDOS \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+Or with a defined profile:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The output should be something similar to:
+
+```console
+CloudOS job functionality: run, check and abort jobs in CloudOS.
+
+Finding working directory path...
+Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
+```
+
+#### Abort single or multiple jobs from CloudOS
+>>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 
 The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
 The `resume` command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
@@ -621,16 +653,33 @@ These commands are particularly useful for re-running jobs with slight modificat
 > Only job initially run with `--resumable` can be resumed.
 
 
+<<<<<<< HEAD
 Cloning basic usage:
+=======
+Aborting jobs...
+        Job 680a3cf80e56949775c02f16 aborted successfully.
+```
+
+
+#### Clone/resume a job with optional parameter overrides
+
+The `clone` and `resume` commands allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+
+Basic usage:
+>>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 ```console
-cloudos job clone \
+cloudos job clone/resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
 ```
 
+<<<<<<< HEAD
 Cloning with parameter overrides:
+=======
+Clone/resume with parameter overrides:
+>>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 ```console
-cloudos job clone \
+cloudos job clone/resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
     --job-queue "high-priority-queue" \
@@ -677,7 +726,7 @@ Available override options:
 - `--job-queue`: Specify a different job queue
 - `--cost-limit`: Set a new cost limit (use -1 for no limit)
 - `--instance-type`: Change the master instance type
-- `--job-name`: Assign a custom name to the cloned job
+- `--job-name`: Assign a custom name to the cloned/resumed job
 - `--nextflow-version`: Use a different Nextflow version
 - `--git-branch`: Switch to a different git branch
 - `--nextflow-profile`: Change the Nextflow profile

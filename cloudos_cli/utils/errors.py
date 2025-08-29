@@ -78,3 +78,21 @@ class NoCloudForWorkspaceException(Exception):
         msg = f"Workspace ID {workspace_id} is not associated with supported cloud providers. Check the workspace ID"
         super(NoCloudForWorkspaceException, self).__init__(msg)
         self.workspace_id = workspace_id
+
+
+class JobAccessDeniedException(Exception):
+    def __init__(self, job_id, job_owner_name=None, current_user_name=None):
+        if job_owner_name and current_user_name:
+            msg = (f"Access denied to job {job_id}. This job belongs to {job_owner_name}, "
+                   f"but you are authenticated as {current_user_name}. "
+                   f"You can only access jobs that belong to your account.")
+        elif job_owner_name:
+            msg = (f"Access denied to job {job_id}. This job belongs to {job_owner_name}. "
+                   f"You can only access jobs that belong to your account.")
+        else:
+            msg = (f"Access denied to job {job_id}. You can only access jobs that belong to your account. "
+                   f"This job may belong to another user or you may not have the required permissions.")
+        super(JobAccessDeniedException, self).__init__(msg)
+        self.job_id = job_id
+        self.job_owner_name = job_owner_name
+        self.current_user_name = current_user_name
