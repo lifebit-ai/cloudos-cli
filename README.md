@@ -42,6 +42,7 @@ Python package for interacting with CloudOS
     - [Abort Jobs](#abort-jobs)
     - [Check Job Status](#check-job-status)
     - [Get Job Details](#get-job-details)
+    - [Get Job Workdir](#get-job-workdir)
     - [List Jobs](#list-jobs)
   - [Bash Jobs](#bash-jobs)
     - [Send Array Job](#send-array-job)
@@ -925,6 +926,25 @@ This file can later be used when running a job with `cloudos job run --job-confi
 
 > [!NOTE]
 > Job details can only be retrieved for a single user, cannot see other user's job details.
+
+### Get Job Workdir
+
+To get the working directory of a job submitted to CloudOS:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The output should be something similar to:
+
+```console
+CloudOS job functionality: run, check and abort jobs in CloudOS.
+
+Finding working directory path...
+Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
+```
 
 #### List Jobs
 
