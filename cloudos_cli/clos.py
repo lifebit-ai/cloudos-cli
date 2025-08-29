@@ -2,12 +2,13 @@
 This is the main class of the package.
 """
 
+from numpy import r_
 import requests
 import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
-from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException, JobAccessDeniedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
@@ -191,6 +192,124 @@ class Cloudos:
         if contents_req.status_code >= 400:
             raise BadRequestException(contents_req)
         return contents_req.json()["contents"]
+
+    def get_job_workdir(self, j_id, workspace_id, verify=True):
+        """
+        Get the working directory for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code == 403:
+            # Handle 403 with more informative error message
+            self._handle_job_access_denied(j_id, workspace_id, verify)
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        job_workspace = r_json["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        
+        # Check if logs field exists, if not fall back to original folder-based approach
+        if "logs" in r_json:
+            # Get workdir information from logs object using the same pattern as get_job_logs
+            logs_obj = r_json["logs"]
+            cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+            container_name = cloud_storage["container"]
+            prefix_name = cloud_storage["prefix"]
+            logs_bucket = logs_obj[container_name]
+            logs_path = logs_obj[prefix_name]
+            
+            # Construct workdir path by replacing '/logs' with '/work' in the logs path
+            workdir_path_suffix = logs_path.replace('/logs', '/work')
+            
+            if cloud_name == "aws":
+                workdir_path = f"s3://{logs_bucket}/{workdir_path_suffix}"
+            elif cloud_name == "azure":
+                storage_account_prefix = ''
+                cloude_scheme = cloud_storage["scheme"]
+                if cloude_scheme == 'az':
+                    storage_account_prefix = f"az://{cloud_meta['storage']['storageAccount']}.blob.core.windows.net"
+                workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
+        else:
+            # Fallback to original folder-based approach for backward compatibility
+            workdir_id = r_json["resumeWorkDir"]
+
+            # This will fail, as the API endpoint is not open. This works when adding
+            # the authorisation bearer token manually to the headers
+            workdir_bucket_r = retry_requests_get(f"{cloudos_url}/api/v1/folders",
+                                                    params=dict(id=workdir_id, teamId=workspace_id), 
+                                                    headers=headers, verify=verify)
+            if workdir_bucket_r.status_code == 401:
+                raise NotAuthorisedException
+            elif workdir_bucket_r.status_code >= 400:
+                raise BadRequestException(workdir_bucket_r)
+
+            workdir_bucket_o = workdir_bucket_r.json()
+            if len(workdir_bucket_o) > 1:
+                raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
+            workdir_bucket_info = workdir_bucket_o[0]
+            if workdir_bucket_info["folderType"] == "S3Folder":
+                cloud_name = "aws"
+            elif workdir_bucket_info["folderType"] == "AzureBlobFolder":
+                cloud_name = "azure"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            if cloud_name == "aws":
+                bucket_name = workdir_bucket_info["s3BucketName"]
+                bucket_path = workdir_bucket_info["s3Prefix"]
+                workdir_path = f"s3://{bucket_name}/{bucket_path}"
+            elif cloud_name == "azure":
+                storage_account = f"az://{workspace_id}.blob.core.windows.net"
+                container_name = workdir_bucket_info["blobContainerName"]
+                blob_prefix = workdir_bucket_info["blobPrefix"]
+                workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
+
+    def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
+        """
+        Handle 403 errors with more informative messages by checking job ownership
+        """
+        try:
+            # Try to get current user info
+            current_user = self.get_user_info(verify)
+            current_user_name = f"{current_user.get('name', '')} {current_user.get('surname', '')}".strip()
+            if not current_user_name:
+                current_user_name = current_user.get('email', 'Unknown')
+        except Exception:
+            current_user_name = None
+
+        try:
+            # Try to get job info from job list to see the owner
+            jobs = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            job_owner_name = None
+            
+            for job in jobs:
+                if job.get('_id') == job_id:
+                    user_info = job.get('user', {})
+                    job_owner_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+                    if not job_owner_name:
+                        job_owner_name = user_info.get('email', 'Unknown')
+                    break
+            
+            raise JobAccessDeniedException(job_id, job_owner_name, current_user_name)
+        except JobAccessDeniedException:
+            # Re-raise the specific exception
+            raise
+        except Exception:
+            # If we can't get detailed info, fall back to generic message
+            raise JobAccessDeniedException(job_id)
 
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """

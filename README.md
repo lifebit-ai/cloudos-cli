@@ -562,6 +562,34 @@ Executing results...
 results: s3://path/to/location/of/results/results/
 ```
 
+#### Query working directory of job
+
+To get the working directory of a job submitted to CloudOS:
+
+```shell
+cloudos job workdir \
+    --apikey $MY_API_KEY \
+    --cloudos-url $CLOUDOS \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+Or with a defined profile:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The output should be something similar to:
+
+```console
+CloudOS job functionality: run, check and abort jobs in CloudOS.
+
+Finding working directory path...
+Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
+```
+
 #### Abort single or multiple jobs from CloudOS
 
 Aborts jobs in the CloudOS workspace that are either running or initialising. It can be used with one or more job IDs provided as a comma separated string using the `--job-ids` parameter.

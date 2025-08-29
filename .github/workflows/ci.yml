@@ -88,7 +88,6 @@ jobs:
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-only-mine --last-n-jobs 10
         # Test filtering by queue
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "job_queue_nextflow" --last-n-jobs 10
-
   job_details:
     runs-on: ubuntu-latest
     strategy:
@@ -113,6 +112,30 @@ jobs:
       run: |
         JOB_ID="68af3290ea894436054de39b"
         cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  job_workdir:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+      run: |
+        JOB_ID="68b0488c628f9dd83daf7e93"
+        cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
     strategy:
