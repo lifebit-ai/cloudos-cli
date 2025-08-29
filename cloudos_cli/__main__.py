@@ -3045,7 +3045,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"File Name", "Storage Path".'),
+                    '"Virtual Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -3114,7 +3114,7 @@ def list_files(ctx,
             table.add_column("Owner", style="white")
             table.add_column("Size", style="magenta")
             table.add_column("Last Updated", style="green")
-            table.add_column("File Name", style="bold", overflow="fold")
+            table.add_column("Virtual Name", style="bold", overflow="fold")
             table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
 
             for item in contents:
@@ -3305,7 +3305,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is not modifiable.",
+            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
                    err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
@@ -3795,20 +3795,20 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
                    err=True)
         sys.exit(1)
-    click.echo(f"Deleting {kind} '{item_name}' from '{parent_path or '[root]'}'...")
+    click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
             click.secho(
-                f"[SUCCESS] {kind} '{item_name}' was deleted from '{parent_path or '[root]'}'.",
+                f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
                 fg="green", bold=True
             )
             click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
-            click.echo(f"[ERROR] Deletion failed: {response.status_code} - {response.text}", err=True)
+            click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)
     except Exception as e:
-        click.echo(f"[ERROR] Delete operation failed: {str(e)}", err=True)
+        click.echo(f"[ERROR] Remove operation failed: {str(e)}", err=True)
         sys.exit(1)
 
 
@@ -3882,7 +3882,79 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         project_name=project_name,
         verify=verify_ssl
     )
-    link_p.link_folder(path, session_id)
+
+    # Minimal folder validation and improved error messages
+    is_s3 = path.startswith("s3://")
+    is_folder = True
+    
+    if is_s3:
+        # S3 path validation - use heuristics to determine if it's likely a folder
+        try:
+            # If path ends with '/', it's likely a folder
+            if path.endswith('/'):
+                is_folder = True
+            else:
+                # Check the last part of the path
+                path_parts = path.rstrip("/").split("/")
+                if path_parts:
+                    last_part = path_parts[-1]
+                    # If the last part has no dot, it's likely a folder
+                    if '.' not in last_part:
+                        is_folder = True
+                    else:
+                        # If it has a dot, it might be a file - set to None for warning
+                        is_folder = None
+                else:
+                    # Empty path parts, set to None for uncertainty
+                    is_folder = None
+        except Exception:
+            # If we can't parse the S3 path, set to None for uncertainty
+            is_folder = None
+    else:
+        # File Explorer path validation (existing logic)
+        try:
+            datasets = Datasets(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                workspace_id=workspace_id,
+                project_name=project_name,
+                verify=verify_ssl,
+                cromwell_token=None
+            )
+            parts = path.strip("/").split("/")
+            parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
+            item_name = parts[-1]
+            contents = datasets.list_folder_content(parent_path)
+            found = None
+            for item in contents.get("folders", []):
+                if item.get("name") == item_name:
+                    found = item
+                    break
+            if not found:
+                for item in contents.get("files", []):
+                    if item.get("name") == item_name:
+                        found = item
+                        break
+            if found and ("folderType" not in found):
+                is_folder = False
+        except Exception:
+            is_folder = None
+
+    if is_folder is False:
+        if is_s3:
+            click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
+        else:
+            click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
+        return
+    elif is_folder is None and is_s3:
+        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
+
+    try:
+        link_p.link_folder(path, session_id)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not link folder: {e}", err=True)
+        if is_s3:
+            click.echo("If you are linking an S3 path, please ensure it is a folder.", err=True)
 
 
 @images.command(name="ls")

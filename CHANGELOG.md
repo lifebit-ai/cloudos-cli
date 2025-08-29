@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+
+
+## v2.55.0 (2025-08-27)
+
+### Feat
+- changes column name in datasets ls --details command from "File Name" to "Virtual Name".
+- Improved error message when attempting to move an item to an S3 folder
+- Changed terminology in messages in datasets rm
+- Added validation to ensure only folders can be linked and improves error message
+
 ## v2.54.0 (2025-08-29)
 
 ### Feat
@@ -25,6 +35,7 @@
 ### Fix
 
 - set image name 
+
 
 ## v2.50.0 (2025-08-14)
 
