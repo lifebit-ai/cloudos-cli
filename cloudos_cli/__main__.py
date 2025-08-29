@@ -102,7 +102,8 @@ def run_cloudos_cli(ctx, debug):
                 'logs': shared_config,
                 'results': shared_config,
                 'details': shared_config,
-                'clone': shared_config
+                'clone': shared_config,
+                'resume': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -164,7 +165,8 @@ def run_cloudos_cli(ctx, debug):
                 'logs': shared_config,
                 'results': shared_config,
                 'details': shared_config,
-                'clone': shared_config
+                'clone': shared_config,
+                'resume': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -207,7 +209,7 @@ def run_cloudos_cli(ctx, debug):
 
 @run_cloudos_cli.group()
 def job():
-    """CloudOS job functionality: run, check and abort jobs in CloudOS."""
+    """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
@@ -1455,8 +1457,7 @@ def abort_jobs(ctx,
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
 
-
-@job.command('clone')
+@click.command()
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -1526,7 +1527,7 @@ def abort_jobs(ctx,
               help='Profile to use from the config file',
               default=None)
 @click.pass_context
-def clone_job(ctx,
+def clone_resume(ctx,
               apikey,
               cloudos_url,
               workspace_id,
@@ -1547,8 +1548,13 @@ def clone_job(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Clone an existing job with optional parameter overrides."""
-    profile = profile or ctx.default_map['job']['clone']['profile']
+    if ctx.info_name == "clone":
+        mode, action = "clone", "cloning"
+    elif ctx.info_name == "resume":
+        mode, action = "resume", "resuming"
+
+    f"""{mode.capitalize()} an existing job with optional parameter overrides."""
+    profile = profile or ctx.default_map['job'][mode]['profile']
 
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1580,7 +1586,6 @@ def clone_job(ctx,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    print('Cloning job...')
     if verbose:
         print('\t...Preparing objects')
 
@@ -1591,11 +1596,11 @@ def clone_job(ctx,
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(job_obj) + '\n')
-        print(f'\tCloning job {job_id} in workspace: {workspace_id}')
+        print(f'\t{action.capitalize()} job {job_id} in workspace: {workspace_id}')
 
     try:
-        # Clone the job with provided overrides
-        cloned_job_id = job_obj.clone_job(
+        # Clone/resume the job with provided overrides
+        cloned_resumed_job_id = job_obj.clone_or_resume_job(
             source_job_id=job_id,
             queue_name=job_queue,
             cost_limit=cost_limit,
@@ -1610,21 +1615,25 @@ def clone_job(ctx,
             # only when explicitly setting --project-name will be overridden, else using the original project
             project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
             parameters=list(parameter) if parameter else None,
-            verify=verify_ssl
+            verify=verify_ssl,
+            mode=mode
         )
         if verbose:
-            print(f'\tCloned job ID: {cloned_job_id}')
+            print(f'\t{mode.capitalize()}d job ID: {cloned_resumed_job_id}')
 
-        print(f"Job successfully cloned. New job ID: {cloned_job_id}")
+        print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
         if verbose:
             print(f'\tError details: {e}')
-        raise ValueError(f"Failed to clone job: {e}")
+        raise ValueError(f"Failed to {mode} job: {e}")
     except Exception as e:
         if verbose:
             print(f'\tError details: {e}')
-        raise ValueError(f"An error occurred while cloning the job: {e}")
+        raise ValueError(f"An error occurred while {action} the job: {e}")
+# Register the same function under two names
+job.add_command(clone_resume, "clone")
+job.add_command(clone_resume, "resume")
 
 
 @workflow.command('list')

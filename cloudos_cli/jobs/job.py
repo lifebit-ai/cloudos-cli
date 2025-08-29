@@ -984,7 +984,34 @@ class Job(Cloudos):
                 return True
         return False
 
-    def clone_job(self, 
+    def get_resume_work_dir(self, job_id, verify=True):
+        """Get the resume work directory id for a job.
+
+        Parameters
+        ----------
+        job_id : str
+            The CloudOS job ID to get the resume work directory for.
+        verify : [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        str
+            The resume work directory id.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}?teamId={self.workspace_id}"
+        r = retry_requests_get(url, headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)["resumeWorkDir"]
+
+    def clone_or_resume_job(self, 
                   source_job_id,
                   queue_name=None,
                   cost_limit=None,
@@ -998,13 +1025,14 @@ class Job(Cloudos):
                   resumable=None,
                   project_name=None,
                   parameters=None,
-                  verify=True):
-        """Clone an existing job with optional parameter overrides.
+                  verify=True,
+                  mode=None):
+        """Clone or resume an existing job with optional parameter overrides.
         
         Parameters
         ----------
         source_job_id : str
-            The CloudOS job ID to clone from.
+            The CloudOS job ID to clone/resume from.
         queue_name : str, optional
             Name of the job queue to use.
         cost_limit : float, optional
@@ -1033,11 +1061,13 @@ class Job(Cloudos):
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
-            
+        mode : str, optional
+            The mode to use for the job (e.g. "clone", "resume").
+
         Returns
         -------
         str
-            The CloudOS job ID of the cloned job.
+            The CloudOS job ID of the cloned/resumed job.
         """
         # Get the original job payload
         original_payload = self.get_job_request_payload(source_job_id, verify=verify)
@@ -1048,6 +1078,8 @@ class Job(Cloudos):
         # remove unwanted fields
         del cloned_payload['_id']
         del cloned_payload['resourceId']
+        if mode == "resume":
+            cloned_payload['resumeWorkDir'] = self.get_resume_work_dir(source_job_id, verify=verify)
 
         # Override job name if provided
         if job_name:
@@ -1151,7 +1183,6 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(cloned_payload), 
                                 headers=headers, 
@@ -1161,6 +1192,6 @@ class Job(Cloudos):
             raise BadRequestException(r)
 
         j_id = json.loads(r.content)["jobId"]
-        print('\tJob successfully cloned and launched to CloudOS, please check the ' +
+        print(f'\tJob successfully {mode}d and launched to CloudOS, please check the ' +
               f"following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}\n")
         return j_id
