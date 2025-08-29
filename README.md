@@ -34,7 +34,7 @@ Python package for interacting with CloudOS
     - [Submit a Job](#submit-a-job)
     - [Get Job Logs](#get-job-logs)
     - [Get Job Results](#get-job-results)
-    - [Clone Job](#clone-job)
+    - [Clone or Resume Job](#clone-or-resume-job)
     - [Abort Jobs](#abort-jobs)
     - [Check Job Status](#check-job-status)
     - [Get Job Details](#get-job-details)
@@ -611,20 +611,48 @@ Executing results...
 results: s3://path/to/location/of/results/results/
 ```
 
-#### Clone job
+#### Clone or Resume job
 
-The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
+The `resume` command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
+These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
 
-Basic usage:
+Cloning basic usage:
 ```console
 cloudos job clone \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
 ```
 
-Clone with parameter overrides:
+Cloning with parameter overrides:
 ```console
 cloudos job clone \
+    --profile MY_PROFILE
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "cloned_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    --do-not-save-logs true \
+    --accelerate-file-staging true \
+    --workflow-name "updated-workflow" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+Resuming a job without parameter overrides
+```console
+cloudos job resume \
+    --profile MY_PROFILE
+    --job-id JOB_ID
+```
+
+Resuming with parameter overrides:
+```console
+cloudos job resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
     --job-queue "high-priority-queue" \
