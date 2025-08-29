@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+
+## v2.57.0 (2025-08-29)
+
+### Feat
+
+- Improves documentation
+
 ## v2.56.0 (2025-08-18)
 
 ### Feat
@@ -28,6 +35,7 @@
 - Adds support for job cloning with 'cloudos job clone' command
 - Enables cloning existing jobs with parameter overrides including queue-name, cost-limit, master-instance, job-name, nextflow-version, branch, nextflow-profile, save-logs, use-fusion, workflow-name, and parameter
 - Provides comprehensive parameter validation and error handling for job cloning operations
+
 
 ## v2.52.0 (2025-08-25)
 
