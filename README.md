@@ -611,9 +611,9 @@ Executing results...
 results: s3://path/to/location/of/results/results/
 ```
 
-<<<<<<< HEAD
+
 #### Clone or Resume job
-=======
+
 #### Query working directory of job
 
 To get the working directory of a job submitted to CloudOS:
@@ -643,7 +643,6 @@ Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.
 ```
 
 #### Abort single or multiple jobs from CloudOS
->>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 
 The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
 The `resume` command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
@@ -653,9 +652,9 @@ These commands are particularly useful for re-running jobs with slight modificat
 > Only job initially run with `--resumable` can be resumed.
 
 
-<<<<<<< HEAD
+
 Cloning basic usage:
-=======
+
 Aborting jobs...
         Job 680a3cf80e56949775c02f16 aborted successfully.
 ```
@@ -666,18 +665,16 @@ Aborting jobs...
 The `clone` and `resume` commands allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
 
 Basic usage:
->>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 ```console
 cloudos job clone/resume \
     --profile MY_PROFILE
     --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
 ```
 
-<<<<<<< HEAD
+
 Cloning with parameter overrides:
-=======
+
 Clone/resume with parameter overrides:
->>>>>>> 5186f7140f897ca86754fa56c0255b460903bb36
 ```console
 cloudos job clone/resume \
     --profile MY_PROFILE
