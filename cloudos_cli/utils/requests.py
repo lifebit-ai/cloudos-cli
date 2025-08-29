@@ -38,7 +38,7 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
 
     # Make a request using the session object
     response = session.get(url, **kwargs)
-    print(response)
+
     return response
 
 
