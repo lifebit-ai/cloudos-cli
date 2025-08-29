@@ -617,6 +617,10 @@ The `clone` command allows you to create a new job based on an existing job's co
 The `resume` command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
 These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
 
+> [!NOTE]
+> Only job initially run with `--resumable` can be resumed.
+
+
 Cloning basic usage:
 ```console
 cloudos job clone \
