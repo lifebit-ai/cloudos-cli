@@ -108,7 +108,7 @@ def test_clone_job_basic():
     )
 
     # Test basic cloning
-    result_job_id = job.clone_job(source_job_id=SOURCE_JOB_ID)
+    result_job_id = job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
 
     assert result_job_id == CLONED_JOB_ID
     assert isinstance(result_job_id, str)
@@ -183,7 +183,7 @@ def test_clone_job_with_overrides():
     )
 
     # Test cloning with overrides
-    result_job_id = job.clone_job(
+    result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
         job_name="cloned_job_test",
         cost_limit=50.0,
@@ -275,7 +275,7 @@ def test_clone_job_with_queue_override(mock_queue_class):
     )
 
     # Test cloning with queue override
-    result_job_id = job.clone_job(
+    result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
         queue_name="test-queue"
     )
@@ -361,7 +361,7 @@ def test_clone_job_with_project_override():
     )
 
     # Test cloning with project override
-    result_job_id = job.clone_job(
+    result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
         project_name="new-project-name"
     )
@@ -432,7 +432,7 @@ def test_clone_job_get_payload_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.clone_job(source_job_id=SOURCE_JOB_ID)
+        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
@@ -508,7 +508,7 @@ def test_clone_job_create_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.clone_job(source_job_id=SOURCE_JOB_ID)
+        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
@@ -577,7 +577,7 @@ def test_clone_job_invalid_queue_name(mock_queue_class):
 
     # Test cloning with invalid queue name
     with pytest.raises(ValueError, match="Queue with name 'invalid-queue' not found"):
-        job.clone_job(
+        job.clone_or_resume_job(
             source_job_id=SOURCE_JOB_ID,
             queue_name="invalid-queue"
         )
