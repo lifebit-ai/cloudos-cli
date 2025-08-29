@@ -1,12 +1,35 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.52.1 (2025-08-27)
+
+
+## v2.54.0 (2025-08-27)
 
 ### Feat
 - changes column name in datasets ls --details command from "File Name" to "Virtual Name".
 - Improved error message when attempting to move an item to an S3 folder
 - Changed terminology in messages in datasets rm
 - Added validation to ensure only folders can be linked and improves error message
+
+## v2.53.0 (2025-08-25)
+
+### Feat
+
+- Adds support for job cloning with 'cloudos job clone' command
+- Enables cloning existing jobs with parameter overrides including queue-name, cost-limit, master-instance, job-name, nextflow-version, branch, nextflow-profile, save-logs, use-fusion, workflow-name, and parameter
+- Provides comprehensive parameter validation and error handling for job cloning operations
+
+## v2.52.0 (2025-08-25)
+
+### Feat
+
+-  Implements filtering options for `cloudos job list` (`filter_status`, `filter_job_name`, `filter_project`, `filter_workflow`, `filter_job_id`, `filter_only_mine` , `filter_owner`, `filter_queue` )
+
+## v2.51.0 (2025-08-21)
+
+### Fix
+
+- set image name 
+
 
 ## v2.50.0 (2025-08-14)
 
