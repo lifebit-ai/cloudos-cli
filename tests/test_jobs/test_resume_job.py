@@ -1,16 +1,17 @@
-"""pytest added for testing Job.clone_job() method
+"""pytest added for testing Job.clone_or_resume_job() method with mode='resume'
 
-This test file provides comprehensive testing for the job cloning functionality in CloudOS CLI.
+This test file provides comprehensive testing for the job resume functionality in CloudOS CLI.
 It covers:
-- Basic job cloning
+- Basic job resuming 
 - Parameter overrides (job name, cost limit, instance type, etc.)
 - Job queue override
-- Project name override  
+- Project name override
 - Error handling for API failures
-- Direct testing of get_job_request_payload method
+- Direct testing of get_resume_work_dir method
 
 The tests use mocked API responses to simulate CloudOS server interactions without 
-requiring actual server connections.
+requiring actual server connections. The main difference from clone tests is that
+resume calls the additional get_resume_work_dir() method which hits the 'api/v1/jobs' endpoint.
 """
 import json
 import mock
@@ -28,7 +29,8 @@ WORKSPACE_ID = 'lv89ufc838sdig'
 PROJECT_NAME = "lifebit-testing"
 WORKFLOW_NAME = "nf-core-deepvariant"
 SOURCE_JOB_ID = "616ee9681b866a01d69fa1cd"
-CLONED_JOB_ID = "617ff9681b866a01d69fa2de"
+RESUMED_JOB_ID = "617ff9681b866a01d69fa2de"
+RESUME_WORK_DIR = "6846b0fd7fa0203cbc02f951"
 
 # Test data files
 JOB_PAYLOAD_INPUT = "tests/test_data/job_request_payload.json"
@@ -36,19 +38,21 @@ CLONE_RESPONSE_INPUT = "tests/test_data/clone_job_response.json"
 PROJECTS_INPUT = "tests/test_data/projects.json"
 WORKFLOWS_INPUT = "tests/test_data/workflows.json"
 QUEUES_INPUT = "tests/test_data/job_queues.json"
+JOB_DETAILS_INPUT = "tests/test_data/get_job_details.json"
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_clone_job_basic():
+def test_resume_job_basic():
     """
-    Test basic job cloning functionality
+    Test basic job resume functionality
     """
     # Load test data
     job_payload = load_json_file(JOB_PAYLOAD_INPUT)
     clone_response = load_json_file(CLONE_RESPONSE_INPUT)
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
+    job_details = load_json_file(JOB_DETAILS_INPUT)
 
     # Set up headers
     headers = {
@@ -61,6 +65,15 @@ def test_clone_job_basic():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
         body=job_payload,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details (resume work dir)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
@@ -107,24 +120,25 @@ def test_clone_job_basic():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test basic cloning
-    result_job_id = job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
+    # Test basic resuming with mode="resume"
+    result_job_id = job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID, mode="resume")
 
-    assert result_job_id == CLONED_JOB_ID
+    assert result_job_id == RESUMED_JOB_ID
     assert isinstance(result_job_id, str)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_clone_job_with_overrides():
+def test_resume_job_with_overrides():
     """
-    Test job cloning with parameter overrides
+    Test job resume with parameter overrides
     """
     # Load test data
     job_payload = load_json_file(JOB_PAYLOAD_INPUT)
     clone_response = load_json_file(CLONE_RESPONSE_INPUT)
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
+    job_details = load_json_file(JOB_DETAILS_INPUT)
 
     headers = {
         "Content-type": "application/json",
@@ -136,6 +150,15 @@ def test_clone_job_with_overrides():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
         body=job_payload,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details (resume work dir)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
@@ -182,10 +205,11 @@ def test_clone_job_with_overrides():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test cloning with overrides
+    # Test resume with overrides
     result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
-        job_name="cloned_job_test",
+        mode="resume",
+        job_name="resumed_job_test",
         cost_limit=50.0,
         master_instance="c5.2xlarge",
         nextflow_version="24.04.4",
@@ -196,16 +220,16 @@ def test_clone_job_with_overrides():
         parameters=["--input=s3://new-bucket/new-input.txt", "--threads=8"]
     )
 
-    assert result_job_id == CLONED_JOB_ID
+    assert result_job_id == RESUMED_JOB_ID
     assert isinstance(result_job_id, str)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @mock.patch('cloudos_cli.queue.queue.Queue')
 @responses.activate
-def test_clone_job_with_queue_override(mock_queue_class):
+def test_resume_job_with_queue_override(mock_queue_class):
     """
-    Test job cloning with job queue override
+    Test job resume with job queue override
     """
     # Load test data
     job_payload = load_json_file(JOB_PAYLOAD_INPUT)
@@ -213,6 +237,7 @@ def test_clone_job_with_queue_override(mock_queue_class):
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
     queues_data = json.loads(load_json_file(QUEUES_INPUT))
+    job_details = load_json_file(JOB_DETAILS_INPUT)
 
     headers = {
         "Content-type": "application/json", 
@@ -224,6 +249,15 @@ def test_clone_job_with_queue_override(mock_queue_class):
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
         body=job_payload,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details (resume work dir)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
@@ -274,21 +308,22 @@ def test_clone_job_with_queue_override(mock_queue_class):
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test cloning with queue override
+    # Test resume with queue override
     result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
+        mode="resume",
         queue_name="test-queue"
     )
 
-    assert result_job_id == CLONED_JOB_ID
+    assert result_job_id == RESUMED_JOB_ID
     mock_queue_instance.get_job_queues.assert_called_once()
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate 
-def test_clone_job_with_project_override():
+def test_resume_job_with_project_override():
     """
-    Test job cloning with project name override
+    Test job resume with project name override
     """
     # Load test data
     job_payload = load_json_file(JOB_PAYLOAD_INPUT)
@@ -296,6 +331,7 @@ def test_clone_job_with_project_override():
     projects_data = load_json_file(PROJECTS_INPUT)
     new_project_data = load_json_file("tests/test_data/new_project.json")
     workflows_data = load_json_file(WORKFLOWS_INPUT)
+    job_details = load_json_file(JOB_DETAILS_INPUT)
 
     headers = {
         "Content-type": "application/json",
@@ -307,6 +343,15 @@ def test_clone_job_with_project_override():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
         body=job_payload,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details (resume work dir)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
@@ -360,20 +405,21 @@ def test_clone_job_with_project_override():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test cloning with project override
+    # Test resume with project override
     result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
+        mode="resume",
         project_name="new-project-name"
     )
 
-    assert result_job_id == CLONED_JOB_ID
+    assert result_job_id == RESUMED_JOB_ID
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_clone_job_get_payload_error():
+def test_resume_job_get_payload_error():
     """
-    Test clone_job when getting job payload fails
+    Test resume_job when getting job payload fails
     """
     # Load test data for initialization
     projects_data = load_json_file(PROJECTS_INPUT)
@@ -432,19 +478,20 @@ def test_clone_job_get_payload_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
+        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID, mode="resume")
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_clone_job_create_error():
+def test_resume_job_create_error():
     """
-    Test clone_job when creating cloned job fails
+    Test resume_job when creating resumed job fails
     """
     # Load test data
     job_payload = load_json_file(JOB_PAYLOAD_INPUT)
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
+    job_details = load_json_file(JOB_DETAILS_INPUT)
 
     headers = {
         "Content-type": "application/json",
@@ -456,6 +503,15 @@ def test_clone_job_create_error():
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
         body=job_payload,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details (resume work dir) - success
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
@@ -508,89 +564,17 @@ def test_clone_job_create_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID)
-
-
-@mock.patch('cloudos_cli.clos', mock.MagicMock())
-@mock.patch('cloudos_cli.queue.queue.Queue')
-@responses.activate
-def test_clone_job_invalid_queue_name(mock_queue_class):
-    """
-    Test clone_job with invalid queue name raises ValueError
-    """
-    # Load test data
-    job_payload = load_json_file(JOB_PAYLOAD_INPUT)
-    projects_data = load_json_file(PROJECTS_INPUT)
-    workflows_data = load_json_file(WORKFLOWS_INPUT)
-    queues_data = json.loads(load_json_file(QUEUES_INPUT))
-
-    headers = {
-        "Content-type": "application/json",
-        "apikey": APIKEY
-    }
-
-    # Mock GET request for job payload
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
-        body=job_payload,
-        headers=headers,
-        status=200
-    )
-
-    # Mock GET requests for projects and workflows
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search={PROJECT_NAME}",
-        body=projects_data,
-        headers=headers,
-        status=200
-    )
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}",
-        body=workflows_data,
-        headers=headers,
-        status=200
-    )
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize=10",
-        body=workflows_data,
-        headers=headers,
-        status=200
-    )
-
-    # Mock Queue class
-    mock_queue_instance = mock_queue_class.return_value
-    mock_queue_instance.get_job_queues.return_value = queues_data
-
-    # Create Job object
-    job = Job(
-        apikey=APIKEY,
-        cloudos_url=CLOUDOS_URL,
-        workspace_id=WORKSPACE_ID,
-        cromwell_token=None,
-        project_name=PROJECT_NAME,
-        workflow_name=WORKFLOW_NAME
-    )
-
-    # Test cloning with invalid queue name
-    with pytest.raises(ValueError, match="Queue with name 'invalid-queue' not found"):
-        job.clone_or_resume_job(
-            source_job_id=SOURCE_JOB_ID,
-            queue_name="invalid-queue"
-        )
+        job.clone_or_resume_job(source_job_id=SOURCE_JOB_ID, mode="resume")
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_request_payload():
+def test_get_resume_work_dir():
     """
-    Test get_job_request_payload method directly
+    Test get_resume_work_dir method directly
     """
     # Load test data
-    job_payload_data = json.loads(load_json_file(JOB_PAYLOAD_INPUT))
+    job_details = load_json_file(JOB_DETAILS_INPUT)
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
 
@@ -599,16 +583,16 @@ def test_get_job_request_payload():
         "apikey": APIKEY
     }
 
-    # Mock GET request for job payload
+    # Mock GET request for job details
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
-        body=json.dumps(job_payload_data),
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
+        body=job_details,
         headers=headers,
         status=200
     )
 
-    # Mock GET requests for projects and workflows
+    # Mock GET requests for Job initialization
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search={PROJECT_NAME}",
@@ -641,61 +625,62 @@ def test_get_job_request_payload():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test get_job_request_payload
-    result = job.get_job_request_payload(SOURCE_JOB_ID)
+    # Test get_resume_work_dir method
+    resume_work_dir = job.get_resume_work_dir(SOURCE_JOB_ID)
 
-    assert result == job_payload_data
-    assert result["_id"] == SOURCE_JOB_ID
-    assert result["name"] == "original_job_name"
+    assert resume_work_dir == RESUME_WORK_DIR
+    assert isinstance(resume_work_dir, str)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_get_job_request_payload_error():
+def test_get_resume_work_dir_error():
     """
-    Test get_job_request_payload when API returns error
+    Test get_resume_work_dir when API call fails
     """
+    # Load test data for initialization
+    projects_data = load_json_file(PROJECTS_INPUT)
+    workflows_data = load_json_file(WORKFLOWS_INPUT)
+    
     headers = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    projects_data = load_json_file(PROJECTS_INPUT)
-    workflows_data = load_json_file(WORKFLOWS_INPUT)
 
-    # Mock GET request for job payload - return error
+    # Mock GET requests for Job initialization
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search={PROJECT_NAME}",
+        body=projects_data,
+        headers=headers,
+        status=200
+    )
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}",
+        body=workflows_data,
+        headers=headers,
+        status=200
+    )
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize=10",
+        body=workflows_data,
+        headers=headers,
+        status=200
+    )
+
+    # Mock GET request for job details - return error
     error_message = {"statusCode": 404, "code": "NotFound",
                      "message": "Job not found", "time": "2025-04-25_17:31:07"}
     error_json = json.dumps(error_message)
 
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}/request-payload?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
         body=error_json,
         headers=headers,
         status=404
-    )
-
-    # Mock GET requests for projects and workflows
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search={PROJECT_NAME}",
-        body=projects_data,
-        headers=headers,
-        status=200
-    )
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}",
-        body=workflows_data,
-        headers=headers,
-        status=200
-    )
-    responses.add(
-        responses.GET,
-        url=f"{CLOUDOS_URL}/api/v3/workflows?teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize=10",
-        body=workflows_data,
-        headers=headers,
-        status=200
     )
 
     # Create Job object
@@ -710,4 +695,4 @@ def test_get_job_request_payload_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.get_job_request_payload(SOURCE_JOB_ID)
+        job.get_resume_work_dir(SOURCE_JOB_ID)
