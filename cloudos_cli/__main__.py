@@ -1586,6 +1586,7 @@ def clone_resume(ctx,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
+    print(f'{action.capitalize()} job...')
     if verbose:
         print('\t...Preparing objects')
 

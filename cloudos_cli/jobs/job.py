@@ -1129,8 +1129,10 @@ class Job(Cloudos):
             print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
 
         # Override resumable if provided
-        if resumable:
+        if resumable and mode == "clone":
             cloned_payload['resumable'] = resumable
+        else:
+            print("[Message]: 'resumable' option is only applicable when cloning a job, ignoring '--resumable' flag.\n")
 
         # Handle job queue override
         if queue_name:
