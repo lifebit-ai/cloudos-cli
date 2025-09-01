@@ -57,7 +57,7 @@ def test_filter_by_status():
     expected_params = {
         "teamId": WORKSPACE_ID,
         "archived.status": "false",
-        "limit": 50,
+        "limit": 100,
         "page": 1,
         "status": "completed"
     }
@@ -78,7 +78,7 @@ def test_filter_by_job_name():
     expected_params = {
         "teamId": WORKSPACE_ID,
         "archived.status": "false",
-        "limit": 50,
+        "limit": 100,
         "page": 1,
         "name": "test-job-1"
     }
@@ -98,7 +98,7 @@ def test_filter_by_job_id():
     expected_params = {
         "teamId": WORKSPACE_ID,
         "archived.status": "false",
-        "limit": 50,
+        "limit": 100,
         "page": 1,
         "id": "job1"
     }
@@ -124,7 +124,7 @@ def test_filter_only_mine():
     expected_params = {
         "teamId": WORKSPACE_ID,
         "archived.status": "false",
-        "limit": 50,
+        "limit": 100,
         "page": 1,
         "user.id": USER_ID
     }
