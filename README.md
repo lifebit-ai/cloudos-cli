@@ -169,15 +169,7 @@ This will tell you the implemented commands. Each implemented command has its ow
 ```bash
 cloudos job list --help
 ```
-```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.58.0
-
-CloudOS job functionality: run, check and abort jobs in CloudOS.
-
-                                                                                                            
- Usage: cloudos job list [OPTIONS]                                                                          
+```console                                                                                                      Usage: cloudos job list [OPTIONS]                                                                          
                                                                                                             
  Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     
                                                                                                             
