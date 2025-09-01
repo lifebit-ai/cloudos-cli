@@ -1423,7 +1423,21 @@ def list_jobs(ctx,
                                 filter_queue=filter_queue,
                                 last=last)
     if len(my_jobs_r) == 0:
-        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+        # Check if any filtering options are being used
+        filters_used = any([
+            filter_status,
+            filter_job_name,
+            filter_project,
+            filter_workflow,
+            filter_job_id,
+            filter_only_mine,
+            filter_owner,
+            filter_queue
+        ])
+        
+        if filters_used:
+            print('\t[Message] A total of 0 jobs collected.')
+        elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
                   'has no jobs created yet.')
         else:

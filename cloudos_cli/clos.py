@@ -420,6 +420,63 @@ class Cloudos:
             }
         return headers
 
+    def resolve_user_id(self, filter_owner, workspace_id, verify=True):
+        """Resolve a username or display name to a user ID.
+
+        Parameters
+        ----------
+        filter_owner : str
+            The username or display name to search for.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        str
+            The user ID corresponding to the filter_owner.
+
+        Raises
+        ------
+        ValueError
+            If the user cannot be found or if there's an error during the search.
+        """
+        try:
+            search_headers = {
+                "Content-type": "application/json",
+                "apikey": self.apikey
+            }
+            search_params = {
+                "q": filter_owner,
+                "teamId": workspace_id
+            }
+            # Note: this endpoint may not be open in all CloudOS instances
+            user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
+                                             params=search_params, headers=search_headers, verify=verify)
+            if user_search_r.status_code >= 400:
+                raise ValueError(f"Error searching for user '{filter_owner}'")
+            
+            user_search_content = user_search_r.json()
+            user_items = user_search_content.get('items', [])
+            if user_items and len(user_items) > 0:
+                user_match = None
+                for user in user_items:
+                    if user.get("username") == filter_owner or user.get("name") == filter_owner:
+                        user_match = user
+                        break
+                
+                if user_match:
+                    return user_match.get("id")
+                else:
+                    raise ValueError(f"User '{filter_owner}' not found.")
+            else:
+                raise ValueError(f"User '{filter_owner}' not found.")
+        except Exception as e:
+            raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
+
     def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
 
@@ -602,38 +659,8 @@ class Cloudos:
         
         # Resolve owner username to user ID
         if filter_owner:
-            try:
-                search_headers = {
-                    "Content-type": "application/json",
-                    "apikey": self.apikey
-                }
-                search_params = {
-                    "q": filter_owner,
-                    "teamId": workspace_id
-                }
-                ## the following endpoint is not open
-                user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
-                                                 params=search_params, headers=search_headers, verify=verify)
-                if user_search_r.status_code >= 400:
-                    raise ValueError(f"Error searching for user '{filter_owner}'")
-                
-                user_search_content = user_search_r.json()
-                user_items = user_search_content.get('items', [])
-                if user_items and len(user_items) > 0:
-                    user_match = None
-                    for user in user_items:
-                        if user.get("username") == filter_owner or user.get("name") == filter_owner:
-                            user_match = user
-                            break
-                    
-                    if user_match:
-                        params["user.id"] = user_match.get("id")
-                    else:
-                        raise ValueError(f"User '{filter_owner}' not found.")
-                else:
-                    raise ValueError(f"User '{filter_owner}' not found.")
-            except Exception as e:
-                raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
+            user_id = self.resolve_user_id(filter_owner, workspace_id, verify)
+            params["user.id"] = user_id
 
         # --- Fetch jobs page by page ---
         all_jobs = []
