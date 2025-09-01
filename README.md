@@ -172,7 +172,7 @@ cloudos job list --help
 ```console
 CloudOS python package: a package for interacting with CloudOS.
 
-Version: 2.55.0
+Version: 2.58.0
 
 CloudOS job functionality: run, check and abort jobs in CloudOS.
 
@@ -214,6 +214,7 @@ CloudOS job functionality: run, check and abort jobs in CloudOS.
 │    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │
 │                                                in batch environment. Non-batch jobs are preserved in     │
 │                                                results.                                                  │
+│    --filter-owner                  TEXT        Filter jobs by owner username.                            │
 │    --verbose                                   Whether to print information messages or not.             │
 │    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │
 │                                                that this option is not generally recommended for         │
