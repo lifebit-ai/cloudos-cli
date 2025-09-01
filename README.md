@@ -169,15 +169,7 @@ This will tell you the implemented commands. Each implemented command has its ow
 ```bash
 cloudos job list --help
 ```
-```console
-CloudOS python package: a package for interacting with CloudOS.
-
-Version: 2.55.0
-
-CloudOS job functionality: run, check and abort jobs in CloudOS.
-
-                                                                                                            
- Usage: cloudos job list [OPTIONS]                                                                          
+```console                                                                                                      Usage: cloudos job list [OPTIONS]                                                                          
                                                                                                             
  Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     
                                                                                                             
@@ -214,6 +206,7 @@ CloudOS job functionality: run, check and abort jobs in CloudOS.
 │    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │
 │                                                in batch environment. Non-batch jobs are preserved in     │
 │                                                results.                                                  │
+│    --filter-owner                  TEXT        Filter jobs by owner username.                            │
 │    --verbose                                   Whether to print information messages or not.             │
 │    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │
 │                                                that this option is not generally recommended for         │
@@ -891,6 +884,7 @@ You find specific jobs within your workspace using the listing filtering options
 - **`--filter-workflow`**: Filter jobs by workflow/pipeline name (exact match required)
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
+- **`--filter-owner`**: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be "Name Surname")
 - **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
 
 Here following are some examples:

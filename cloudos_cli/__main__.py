@@ -1326,6 +1326,8 @@ def job_details(ctx,
               is_flag=True)
 @click.option('--filter-queue',
               help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
+@click.option('--filter-owner',
+             help='Filter jobs by owner username.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1354,7 +1356,7 @@ def list_jobs(ctx,
               last,
               filter_job_id,
               filter_only_mine,
-              #filter_owner,
+              filter_owner,
               filter_queue,
               verbose,
               disable_ssl_verification,
@@ -1417,10 +1419,25 @@ def list_jobs(ctx,
                                 filter_workflow=filter_workflow,
                                 filter_job_id=filter_job_id,
                                 filter_only_mine=filter_only_mine,
+                                filter_owner=filter_owner,
                                 filter_queue=filter_queue,
                                 last=last)
     if len(my_jobs_r) == 0:
-        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+        # Check if any filtering options are being used
+        filters_used = any([
+            filter_status,
+            filter_job_name,
+            filter_project,
+            filter_workflow,
+            filter_job_id,
+            filter_only_mine,
+            filter_owner,
+            filter_queue
+        ])
+        
+        if filters_used:
+            print('\t[Message] A total of 0 jobs collected.')
+        elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
                   'has no jobs created yet.')
         else:
