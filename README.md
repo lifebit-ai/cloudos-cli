@@ -891,6 +891,7 @@ You find specific jobs within your workspace using the listing filtering options
 - **`--filter-workflow`**: Filter jobs by workflow/pipeline name (exact match required)
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
+- **`--filter-owner`**: Show only job for the specified owner(exact match required, i.e needs to be in quotes and be name and surname)
 - **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
 
 Here following are some examples:
