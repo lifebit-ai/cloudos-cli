@@ -618,16 +618,16 @@ class Cloudos:
                     raise ValueError(f"Error searching for user '{filter_owner}'")
                 
                 user_search_content = user_search_r.json()
-                print(user_search_content)
-                if user_search_content and len(user_search_content) > 0:
+                user_items = user_search_content.get('items', [])
+                if user_items and len(user_items) > 0:
                     user_match = None
-                    for user in user_search_content:
+                    for user in user_items:
                         if user.get("username") == filter_owner or user.get("name") == filter_owner:
                             user_match = user
                             break
                     
                     if user_match:
-                        params["user.id"] = user_match.get("_id")
+                        params["user.id"] = user_match.get("id")
                     else:
                         raise ValueError(f"User '{filter_owner}' not found.")
                 else:
