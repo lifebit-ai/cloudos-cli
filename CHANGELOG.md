@@ -1,5 +1,10 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.58.0 (2025-09-01)
+
+### Feat
+
+- Adds job owner filtering
 
 ## v2.57.0 (2025-08-29)
 
