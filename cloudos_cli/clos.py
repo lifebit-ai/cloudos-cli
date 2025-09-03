@@ -686,7 +686,7 @@ class Cloudos:
             if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
                 break
             if len(page_jobs) < params["limit"]:
-                break  # Last page (fewer jobs than requested page size)
+                break # Last page (fewer jobs than requested page size)
                 
             current_page += 1
 
@@ -818,7 +818,7 @@ class Cloudos:
                         try:
                             return datetime.fromisoformat(x.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S UTC')
                         except (ValueError, TypeError):
-                            return x  # Return original value if parsing fails
+                            return x # Return original value if parsing fails
                     return None
                 jobs_df[col] = jobs_df[col].apply(format_time)
 
@@ -1531,3 +1531,44 @@ class Cloudos:
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
+
+    def get_job_costs(self, job_id, workspace_id, page=1, limit=100, verify=True):
+        """
+        Get cost information for a specific job.
+
+        Parameters
+        ----------
+        job_id : str
+            The job ID to get costs for
+        workspace_id : str
+            The workspace ID
+        page : int
+            Page number for pagination (default: 1)
+        limit : int
+            Number of results per page (default: 100)
+        verify : bool or str
+            SSL verification setting
+
+        Returns
+        -------
+        requests.Response
+            Response object containing cost data
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/costs/compute"
+        params = {
+            "page": page,
+            "limit": limit,
+            "teamId": workspace_id
+        }
+
+        r = retry_requests_get(url, headers=headers, params=params, verify=verify)
+
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        return r

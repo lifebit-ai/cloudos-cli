@@ -21,6 +21,7 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
+from cloudos_cli.cost.cost import CostViewer
 
 
 # GLOBAL VARS
@@ -1552,6 +1553,84 @@ def abort_jobs(ctx,
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
+
+
+@job.command('cost')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to get costs for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_cost(ctx,
+             apikey,
+             cloudos_url,
+             workspace_id,
+             job_id,
+             verbose,
+             disable_ssl_verification,
+             ssl_cert,
+             profile):
+    """Retrieve job cost information in CloudOS."""
+    profile = profile or ctx.default_map['job']['cost']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+
+    print('Retrieving cost information...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    
+    cost_viewer = CostViewer(cloudos_url, apikey)
+    if verbose:
+        print(f'\tSearching for cost data for job id: {job_id}')
+    
+    # Display costs with pagination
+    cost_viewer.display_costs(job_id, workspace_id, verify_ssl)
+
 
 @click.command()
 @click.option('-k',
