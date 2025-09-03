@@ -80,6 +80,7 @@ class Cloudos:
             "apikey": self.apikey
         }
         base_url = f"{self.cloudos_url}/api/v2/job-process-metrics/process-info/{job_id}/{user_id}"
+        
         for status in statuses:
             params = {
                 "limit": 50,
@@ -88,13 +89,22 @@ class Cloudos:
             }
             try:
                 r = retry_requests_get(base_url, params=params, headers=headers, verify=verify)
-                if r.status_code >= 400:
-                    summary[status] = "Error"
+                if r.status_code == 401:
+                    raise NotAuthorisedException
+                elif r.status_code == 403:
+                    raise JobAccessDeniedException(job_id)
+                elif r.status_code >= 400:
+                    raise BadRequestException(r)
                 else:
                     data = r.json()
                     summary[status] = len(data) if isinstance(data, list) else 0
+            except (NotAuthorisedException, JobAccessDeniedException, BadRequestException):
+                # Re-raise these specific exceptions
+                raise
             except Exception:
-                summary[status] = "Error"
+                # For other exceptions, raise BadRequestException to be consistent
+                raise BadRequestException(r if 'r' in locals() else None)
+        
         return summary
 
     def wait_job_completion(self, job_id, wait_time=3600, request_interval=30, verbose=False,

@@ -5,7 +5,7 @@ import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.queue.queue import Queue
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import BadRequestException, NotAuthorisedException, JobAccessDeniedException
 import json
 import time
 import sys
@@ -1238,12 +1238,35 @@ def job_details(ctx,
                 process_table = Table(title="Process Summary")
                 process_table.add_column("Status", style="cyan", no_wrap=True)
                 process_table.add_column("Count", style="magenta")
+                
+                # Map status names for display
+                status_display_map = {
+                    "NEW": "Pending",
+                    "SUBMITTED": "Submitted",
+                    "RUNNING": "Running",
+                    "RETRIED": "Retried",
+                    "CACHED": "Cached",
+                    "COMPLETED": "Completed",
+                    "FAILED": "Failed",
+                    "ABORTED": "Aborted"
+                }
+                
                 for status, count in process_summary.items():
-                    process_table.add_row(status, str(count))
+                    display_status = status_display_map.get(status, status)
+                    process_table.add_row(display_status, str(count))
                 console.print(process_table)
+            except JobAccessDeniedException:
+                if verbose:
+                    print("[Warning] Process summary unavailable: Access denied for this job.")
+            except NotAuthorisedException:
+                if verbose:
+                    print("[Warning] Process summary unavailable: Authentication failed.")
+            except BadRequestException:
+                if verbose:
+                    print("[Warning] Process summary unavailable: Unable to retrieve process data.")
             except Exception as e:
                 if verbose:
-                    print(f"[Warning] Could not retrieve process summary: {e}")
+                    print(f"[Warning] Process summary unavailable: {e}")
         else:
             if verbose:
                 print("[Warning] Could not determine user_id or workspace_id for process summary.")
@@ -1293,9 +1316,36 @@ def job_details(ctx,
         if user_id and workspace_id:
             try:
                 process_summary = cl.get_process_summary(job_id, user_id, workspace_id, verify_ssl)
-                job_details_json["Process Summary"] = process_summary
+                
+                # Map status names for JSON output
+                status_display_map = {
+                    "NEW": "Pending",
+                    "SUBMITTED": "Submitted",
+                    "RUNNING": "Running",
+                    "RETRIED": "Retried",
+                    "CACHED": "Cached",
+                    "COMPLETED": "Completed",
+                    "FAILED": "Failed",
+                    "ABORTED": "Aborted"
+                }
+                
+                # Convert status names in the process summary
+                mapped_process_summary = {}
+                for status, count in process_summary.items():
+                    display_status = status_display_map.get(status, status)
+                    mapped_process_summary[display_status] = count
+                
+                job_details_json["Process Summary"] = mapped_process_summary
+            except JobAccessDeniedException:
+                job_details_json["Process Summary"] = "Access denied for this job"
+            except NotAuthorisedException:
+                job_details_json["Process Summary"] = "Authentication failed"
+            except BadRequestException:
+                job_details_json["Process Summary"] = "Unable to retrieve process data"
             except Exception as e:
-                job_details_json["Process Summary"] = f"Error retrieving process summary: {e}"
+                job_details_json["Process Summary"] = f"Error: {e}"
+        else:
+            job_details_json["Process Summary"] = "Unable to determine user ID or workspace ID from job details"
 
         # Write the JSON object to a file
         with open(f"{output_basename}.json", "w") as json_file:
