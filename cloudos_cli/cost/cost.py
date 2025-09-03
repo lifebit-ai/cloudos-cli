@@ -52,12 +52,78 @@ class CostViewer:
             "teamId": workspace_id
         }
 
-        r = retry_requests_get(url, headers=headers, params=params, verify=verify)
+        # r = retry_requests_get(url, headers=headers, params=params, verify=verify)
 
-        if r.status_code >= 400:
-            raise BadRequestException(r)
+        # if r.status_code >= 400:
+        #     raise BadRequestException(r)
 
-        return r.json()
+        # return r.json()
+        # Mock response data that matches the expected API format
+        mock_response = {
+            "master": {
+            "id": "i-00e328d0c4fe4bc17",
+            "machineType": "c4.large",
+            "isCostSaving": False,
+            "startTime": "2025-09-01T15:23:59.246Z",
+            "endTime": "2025-09-01T15:26:15.291Z",
+            "instancePricePerHour": {"amount": 0.1, "currencyCode": "USD"},
+            "storage": {"usageQuantity": 600, "usageUnit": "Gb"},
+            "storagePricePerHour": {"amount": 0.0684931506849315, "currencyCode": "USD"},
+            "totalPrice": {"amount": 0.0043287037037037035, "currencyCode": "USD"},
+            },
+            "workers": [
+            {
+                "id": "i-0d1d9e96cda992e74",
+                "machineType": "m4.xlarge",
+                "isCostSaving": True,
+                "startTime": "2025-09-01T15:25:02.935Z",
+                "endTime": "2025-09-01T15:26:13.116Z",
+                "instancePricePerHour": {"amount": 0.0981, "currencyCode": "USD"},
+                "storage": {"usageQuantity": 1009, "usageUnit": "Gb"},
+                "storagePricePerHour": {"amount": 0, "currencyCode": "USD"},
+                "totalPrice": {"amount": 0.0019075000000000003, "currencyCode": "USD"},
+            },
+            {
+                "id": "i-0a2b3c4d5e6f7g8h9",
+                "machineType": "m5.large",
+                "isCostSaving": False,
+                "startTime": "2025-09-01T15:25:10.000Z",
+                "endTime": "2025-09-01T15:26:10.000Z",
+                "instancePricePerHour": {"amount": 0.1200, "currencyCode": "USD"},
+                "storage": {"usageQuantity": 500, "usageUnit": "Gb"},
+                "storagePricePerHour": {"amount": 0.0500, "currencyCode": "USD"},
+                "totalPrice": {"amount": 0.002500, "currencyCode": "USD"},
+            },
+            {
+                "id": "i-1a2b3c4d5e6f7g8h0",
+                "machineType": "t3.medium",
+                "isCostSaving": True,
+                "startTime": "2025-09-01T15:25:20.000Z",
+                "endTime": "2025-09-01T15:26:00.000Z",
+                "instancePricePerHour": {"amount": 0.0500, "currencyCode": "USD"},
+                "storage": {"usageQuantity": 250, "usageUnit": "Gb"},
+                "storagePricePerHour": {"amount": 0.0250, "currencyCode": "USD"},
+                "totalPrice": {"amount": 0.001000, "currencyCode": "USD"},
+            },
+            {
+                "id": "i-2a3b4c5d6e7f8g9h1",
+                "machineType": "c5.xlarge",
+                "isCostSaving": False,
+                "startTime": "2025-09-01T15:25:30.000Z",
+                "endTime": "2025-09-01T15:26:20.000Z",
+                "instancePricePerHour": {"amount": 0.2000, "currencyCode": "USD"},
+                "storage": {"usageQuantity": 750, "usageUnit": "Gb"},
+                "storagePricePerHour": {"amount": 0.0750, "currencyCode": "USD"},
+                "totalPrice": {"amount": 0.003750, "currencyCode": "USD"},
+            }
+            ],
+            "paginationMetadata": {
+            "Pagination-Count": 4,
+            "Pagination-Page": 1,
+            "Pagination-Limit": 100,
+            },
+        }
+        return mock_response
 
     def _calculate_runtime(self, start_time_str, end_time_str):
         """Calculate runtime between two timestamp strings."""
