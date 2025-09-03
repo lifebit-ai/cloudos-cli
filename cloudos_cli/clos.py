@@ -2,12 +2,13 @@
 This is the main class of the package.
 """
 
+from numpy import r_
 import requests
 import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
-from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException, JobAccessDeniedException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
@@ -192,6 +193,124 @@ class Cloudos:
             raise BadRequestException(contents_req)
         return contents_req.json()["contents"]
 
+    def get_job_workdir(self, j_id, workspace_id, verify=True):
+        """
+        Get the working directory for the specified job
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code == 403:
+            # Handle 403 with more informative error message
+            self._handle_job_access_denied(j_id, workspace_id, verify)
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        r_json = r.json()
+        job_workspace = r_json["team"]
+        if job_workspace != workspace_id:
+            raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        
+        # Check if logs field exists, if not fall back to original folder-based approach
+        if "logs" in r_json:
+            # Get workdir information from logs object using the same pattern as get_job_logs
+            logs_obj = r_json["logs"]
+            cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+            container_name = cloud_storage["container"]
+            prefix_name = cloud_storage["prefix"]
+            logs_bucket = logs_obj[container_name]
+            logs_path = logs_obj[prefix_name]
+            
+            # Construct workdir path by replacing '/logs' with '/work' in the logs path
+            workdir_path_suffix = logs_path.replace('/logs', '/work')
+            
+            if cloud_name == "aws":
+                workdir_path = f"s3://{logs_bucket}/{workdir_path_suffix}"
+            elif cloud_name == "azure":
+                storage_account_prefix = ''
+                cloude_scheme = cloud_storage["scheme"]
+                if cloude_scheme == 'az':
+                    storage_account_prefix = f"az://{cloud_meta['storage']['storageAccount']}.blob.core.windows.net"
+                workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
+        else:
+            # Fallback to original folder-based approach for backward compatibility
+            workdir_id = r_json["resumeWorkDir"]
+
+            # This will fail, as the API endpoint is not open. This works when adding
+            # the authorisation bearer token manually to the headers
+            workdir_bucket_r = retry_requests_get(f"{cloudos_url}/api/v1/folders",
+                                                    params=dict(id=workdir_id, teamId=workspace_id), 
+                                                    headers=headers, verify=verify)
+            if workdir_bucket_r.status_code == 401:
+                raise NotAuthorisedException
+            elif workdir_bucket_r.status_code >= 400:
+                raise BadRequestException(workdir_bucket_r)
+
+            workdir_bucket_o = workdir_bucket_r.json()
+            if len(workdir_bucket_o) > 1:
+                raise ValueError(f"Request returned more than one result for folder id {workdir_id}")
+            workdir_bucket_info = workdir_bucket_o[0]
+            if workdir_bucket_info["folderType"] == "S3Folder":
+                cloud_name = "aws"
+            elif workdir_bucket_info["folderType"] == "AzureBlobFolder":
+                cloud_name = "azure"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            if cloud_name == "aws":
+                bucket_name = workdir_bucket_info["s3BucketName"]
+                bucket_path = workdir_bucket_info["s3Prefix"]
+                workdir_path = f"s3://{bucket_name}/{bucket_path}"
+            elif cloud_name == "azure":
+                storage_account = f"az://{workspace_id}.blob.core.windows.net"
+                container_name = workdir_bucket_info["blobContainerName"]
+                blob_prefix = workdir_bucket_info["blobPrefix"]
+                workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
+            else:
+                raise ValueError("Unsupported cloud provider")
+            return workdir_path
+
+    def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
+        """
+        Handle 403 errors with more informative messages by checking job ownership
+        """
+        try:
+            # Try to get current user info
+            current_user = self.get_user_info(verify)
+            current_user_name = f"{current_user.get('name', '')} {current_user.get('surname', '')}".strip()
+            if not current_user_name:
+                current_user_name = current_user.get('email', 'Unknown')
+        except Exception:
+            current_user_name = None
+
+        try:
+            # Try to get job info from job list to see the owner
+            jobs = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            job_owner_name = None
+            
+            for job in jobs:
+                if job.get('_id') == job_id:
+                    user_info = job.get('user', {})
+                    job_owner_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+                    if not job_owner_name:
+                        job_owner_name = user_info.get('email', 'Unknown')
+                    break
+            
+            raise JobAccessDeniedException(job_id, job_owner_name, current_user_name)
+        except JobAccessDeniedException:
+            # Re-raise the specific exception
+            raise
+        except Exception:
+            # If we can't get detailed info, fall back to generic message
+            raise JobAccessDeniedException(job_id)
+
     def get_job_logs(self, j_id, workspace_id, verify=True):
         """
         Get the location of the logs for the specified job
@@ -301,6 +420,63 @@ class Cloudos:
             }
         return headers
 
+    def resolve_user_id(self, filter_owner, workspace_id, verify=True):
+        """Resolve a username or display name to a user ID.
+
+        Parameters
+        ----------
+        filter_owner : str
+            The username or display name to search for.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        str
+            The user ID corresponding to the filter_owner.
+
+        Raises
+        ------
+        ValueError
+            If the user cannot be found or if there's an error during the search.
+        """
+        try:
+            search_headers = {
+                "Content-type": "application/json",
+                "apikey": self.apikey
+            }
+            search_params = {
+                "q": filter_owner,
+                "teamId": workspace_id
+            }
+            # Note: this endpoint may not be open in all CloudOS instances
+            user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
+                                             params=search_params, headers=search_headers, verify=verify)
+            if user_search_r.status_code >= 400:
+                raise ValueError(f"Error searching for user '{filter_owner}'")
+            
+            user_search_content = user_search_r.json()
+            user_items = user_search_content.get('items', [])
+            if user_items and len(user_items) > 0:
+                user_match = None
+                for user in user_items:
+                    if user.get("username") == filter_owner or user.get("name") == filter_owner:
+                        user_match = user
+                        break
+                
+                if user_match:
+                    return user_match.get("id")
+                else:
+                    raise ValueError(f"User '{filter_owner}' not found.")
+            else:
+                raise ValueError(f"User '{filter_owner}' not found.")
+        except Exception as e:
+            raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
+
     def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
 
@@ -357,8 +533,13 @@ class Cloudos:
         return r
 
     def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
-                     verify=True):
-        """Get jobs from a CloudOS workspace.
+                     verify=True, filter_status=None, filter_job_name=None,
+                     filter_project=None, filter_workflow=None, filter_job_id=None,
+                     filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
+        """Get jobs from a CloudOS workspace with optional filtering.
+        
+        Fetches jobs page by page, applies all filters after fetching.
+        Stops when enough jobs are collected or no more jobs are available.
 
         Parameters
         ----------
@@ -368,52 +549,176 @@ class Cloudos:
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs.
         page : int
-            Response page to get.
+            Response page to get (ignored when using filters - starts from page 1).
         archived : bool
             When True, only the archived jobs are retrieved.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        filter_status : string, optional
+            Filter jobs by status (e.g., 'completed', 'running', 'failed').
+        filter_job_name : string, optional
+            Filter jobs by name.
+        filter_project : string, optional
+            Filter jobs by project name (will be resolved to project ID).
+        filter_workflow : string, optional
+            Filter jobs by workflow name (will be resolved to workflow ID).
+        filter_job_id : string, optional
+            Filter jobs by specific job ID.
+        filter_only_mine : bool, optional
+            Filter to show only jobs belonging to the current user.
+        filter_owner : string, optional
+            Filter jobs by owner username (will be resolved to user ID).
+        filter_queue : string, optional
+            Filter jobs by queue name (will be resolved to queue ID).
+            Only applies to jobs running in batch environment.
+            Non-batch jobs are preserved in results as they don't use queues.
+        last : bool, optional
+            When workflows are duplicated, use the latest imported workflow (by date).
 
         Returns
         -------
         r : list
             A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
+        if not workspace_id or not isinstance(workspace_id, str):
+            raise ValueError("Invalid workspace_id: must be a non-empty string")
+    
+        if last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
+            raise ValueError("last_n_jobs must be a positive integer or 'all'")
+        
+        # Validate filter_status values
+        if filter_status:
+            valid_statuses = ['completed', 'running', 'failed', 'aborted', 'queued', 'pending', 'initializing']
+            if filter_status.lower() not in valid_statuses:
+                raise ValueError(f"Invalid filter_status '{filter_status}'. Valid values: {', '.join(valid_statuses)}")
+
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        if archived:
-            archived_status = "true"
-        else:
-            archived_status = "false"
-        r = retry_requests_get("{}/api/v2/jobs?teamId={}&page={}&archived.status={}".format(
-                               self.cloudos_url, workspace_id, page, archived_status),
-                               headers=headers, verify=verify)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        content = json.loads(r.content)
-        n_jobs = len(content['jobs'])
-        if last_n_jobs == 'all':
-            jobs_to_get = n_jobs
-        elif last_n_jobs > 0:
-            jobs_to_get = last_n_jobs - n_jobs
-        else:
-            raise TypeError("[ERROR] Please select an int > 0 or 'all' for 'last_n_jobs'")
-        if jobs_to_get == 0 or n_jobs == 0:
-            return content['jobs']
-        if jobs_to_get > 0:
-            if last_n_jobs == 'all':
-                next_to_get = 'all'
-            else:
-                next_to_get = jobs_to_get
-            return content['jobs'] + self.get_job_list(workspace_id, last_n_jobs=next_to_get,
-                                                       page=page+1, archived=archived,
-                                                       verify=verify)
-        if jobs_to_get < 0:
-            return content['jobs'][:jobs_to_get]
+        
+        # Build query parameters for server-side filtering
+        params = {
+            "teamId": workspace_id,
+            "archived.status": str(archived).lower(),
+            "limit": 100,  # Use a reasonable page size
+            "page": 1     # Always start from page 1
+        }
+        
+        # --- Resolve IDs once (before pagination loop) ---
+        
+        # Add simple server-side filters
+        if filter_status:
+            params["status"] = filter_status.lower()
+        if filter_job_name:
+            params["name"] = filter_job_name
+        if filter_job_id:
+            params["id"] = filter_job_id
+            
+        # Resolve project name to ID
+        if filter_project:
+            try:
+                project_id = self.get_project_id_from_name(workspace_id, filter_project, verify=verify)
+                if project_id:
+                    params["project.id"] = project_id
+                else:
+                    raise ValueError(f"Project '{filter_project}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving project '{filter_project}': {str(e)}")
+        
+        # Resolve workflow name to ID
+        if filter_workflow:
+            try:
+                workflow_content = self.get_workflow_content(workspace_id, filter_workflow, verify=verify, last=last)
+                if workflow_content and workflow_content.get("workflows"):
+                    # Extract the first (and should be only) workflow from the list
+                    workflow = workflow_content["workflows"][0]
+                    workflow_id = workflow.get("_id")
+                    if workflow_id:
+                        params["workflow.id"] = workflow_id
+                    else:
+                        raise ValueError(f"Workflow '{filter_workflow}' not found.")
+                else:
+                    raise ValueError(f"Workflow '{filter_workflow}' not found.")
+            except Exception as e:
+                raise ValueError(f"Error resolving workflow '{filter_workflow}': {str(e)}")
+        
+        # Get current user ID for filter_only_mine
+        if filter_only_mine:
+            try:
+                user_info = self.get_user_info(verify=verify)
+                user_id = user_info.get("id") or user_info.get("_id")
+                if user_id:
+                    params["user.id"] = user_id
+                else:
+                    raise ValueError("Could not retrieve current user information.")
+            except Exception as e:
+                raise ValueError(f"Error getting current user info: {str(e)}")
+        
+        # Resolve owner username to user ID
+        if filter_owner:
+            user_id = self.resolve_user_id(filter_owner, workspace_id, verify)
+            params["user.id"] = user_id
+
+        # --- Fetch jobs page by page ---
+        all_jobs = []
+        current_page = 1
+        
+        while True:
+            params["page"] = current_page
+            
+            r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params, headers=headers, verify=verify)
+            if r.status_code >= 400:
+                raise BadRequestException(r)
+            
+            content = r.json()
+            page_jobs = content.get('jobs', [])
+            
+            # No jobs returned, we've reached the end
+            if not page_jobs:
+                break
+                
+            all_jobs.extend(page_jobs)
+            
+            # Check if we have enough jobs or reached the last page
+            if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
+                break
+            if len(page_jobs) < params["limit"]:
+                break  # Last page (fewer jobs than requested page size)
+                
+            current_page += 1
+
+        # --- Local queue filtering (not supported by API) ---
+        if filter_queue:
+            try:
+                batch_jobs=[job for job in all_jobs if job.get("batch", {})]
+                if batch_jobs:
+                    from cloudos_cli.queue.queue import Queue
+                    queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
+                    queues = queue_api.get_job_queues()
+                    
+                    queue_id = None
+                    for queue in queues:
+                        if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
+                            queue_id = queue.get("id") or queue.get("_id")
+                            break
+                    
+                    if not queue_id:
+                        raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
+                    
+                    all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
+                else:
+                    raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
+            except Exception as e:
+                raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
+
+        # --- Apply limit after all filtering ---
+        if last_n_jobs != 'all' and isinstance(last_n_jobs, int) and last_n_jobs > 0:
+            all_jobs = all_jobs[:last_n_jobs]
+
+        return all_jobs
 
     @staticmethod
     def process_job_list(r, all_fields=False):
@@ -460,7 +765,13 @@ class Cloudos:
         if all_fields:
             df = df_full
         else:
-            df = df_full.loc[:, COLUMNS]
+            # Only select columns that actually exist in the DataFrame
+            existing_columns = [col for col in COLUMNS if col in df_full.columns]
+            if existing_columns:
+                df = df_full.loc[:, existing_columns]
+            else:
+                # If none of the predefined columns exist, raise missing error
+                raise ValueError(f"None of the predefined columns {COLUMNS} exist in retrieved columns:{list(df_full.columns)}")
         return df
 
     def reorder_job_list(self, my_jobs_df, filename='my_jobs.csv'):
@@ -1199,7 +1510,6 @@ class Cloudos:
             response = retry_requests_get(url, headers=headers, verify=verify)
             # return all content
             content = json.loads(response.content)
-
         if response.status_code >= 400:
             raise BadRequestException(response)
 

@@ -53,9 +53,41 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  job_list_filtering:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Test job list filtering
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+      run: |
+        # Test filtering by status, project  and workflow name
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-status completed --filter-project cloudos-cli-tests  --filter-workflow GH-rnatoy --last --last-n-jobs 10
+        # Test filtering job id
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id 68af3e26628f9dd83dae1c05 
+        # Test filtering job name
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-name "cloudos-cli-CI-test" --last-n-jobs 10
+        # Test filtering by only mine
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-only-mine --last-n-jobs 10
+        # Test filtering by queue
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "job_queue_nextflow" --last-n-jobs 10
   job_details:
     runs-on: ubuntu-latest
     strategy:
@@ -76,10 +108,34 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68497c969750c32eba238ce6"
+        JOB_ID="68af3290ea894436054de39b"
         cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  job_workdir:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+      run: |
+        JOB_ID="68b0488c628f9dd83daf7e93"
+        cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
     strategy:
@@ -100,10 +156,10 @@ jobs:
         env:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-          CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+          CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lb-ortiz/spammer-nf --repository-platform gitlab
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lifebit-ai/spammer-nf --repository-platform gitlab
   import_github:
     runs-on: ubuntu-latest
     strategy:
@@ -124,7 +180,7 @@ jobs:
         env:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-          CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+          CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
@@ -151,14 +207,14 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
         JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
         PR_NUMBER: ${{ github.event.number }}
-        INSTANCE_TYPE: "c5.large"
+        INSTANCE_TYPE: "c4.large"
       run: |
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
         cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
@@ -187,7 +243,7 @@ jobs:
         env:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-          CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+          CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
@@ -211,7 +267,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
   project_list:
@@ -234,7 +290,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
   queue_list:
@@ -257,7 +313,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
   dataset_list:
@@ -281,7 +337,7 @@ jobs:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         PROJECT_NAME: "cloudos-cli-tests"
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets ls --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
   dataset_move:
@@ -305,7 +361,7 @@ jobs:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         PROJECT_NAME: "cloudos-cli-tests"
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME"  Data/mv_test 
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name lm-test Data/test_mv
@@ -330,7 +386,7 @@ jobs:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         PROJECT_NAME: "cloudos-cli-tests"
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_rename new_renamed_folder
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/new_renamed_folder test_rename
@@ -355,7 +411,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "plink2"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job"
@@ -363,6 +419,8 @@ jobs:
         PR_NUMBER: ${{ github.event.number }}
       run: |
         cloudos bash job \
+          --instance-type c4.large \
+          --memory 2 \
           --parameter -test=value \
           --parameter --gaq=test \
           --job-name "$JOB_NAME_BASE" \
@@ -371,7 +429,8 @@ jobs:
           --project-name "$PROJECT_NAME" \
           --workflow-name plink2 \
           --apikey "$CLOUDOS_TOKEN" \
-          --cloudos-url "$CLOUDOS_URL"
+          --cloudos-url "$CLOUDOS_URL" \
+          --wait-completion
   bash_array_job_run_and_multiple_projects:
     runs-on: ubuntu-latest
     strategy:
@@ -393,7 +452,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "plink2"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job"
@@ -401,6 +460,8 @@ jobs:
         PR_NUMBER: ${{ github.event.number }}
       run: |
         cloudos bash array-job \
+          --instance-type c4.large \
+          --memory 2 \
           --parameter -test=value \
           --parameter --gaq=test \
           --array-parameter --array_var=title \
@@ -413,7 +474,8 @@ jobs:
           --separator "," \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
-          --parameter --file=ci-testing/Data/bash_array/input.csv
+          --parameter --file=ci-testing/Data/bash_array/input.csv \
+          --wait-completion
   dataset_copy_and_remove:
           runs-on: ubuntu-latest
           strategy:
@@ -435,7 +497,7 @@ jobs:
               CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
               CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
               PROJECT_NAME: "cloudos-cli-tests"
-              CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+              CLOUDOS_URL: "https://cloudos.lifebit.ai"
             run: |
               cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy
               cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv
@@ -460,7 +522,7 @@ jobs:
                     CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
                     CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
                     PROJECT_NAME: "cloudos-cli-tests"
-                    CLOUDOS_URL: "https://stg.sdlc.lifebit.ai"
+                    CLOUDOS_URL: "https://cloudos.lifebit.ai"
                   run: |
                     cloudos datasets mkdir --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
                     cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test

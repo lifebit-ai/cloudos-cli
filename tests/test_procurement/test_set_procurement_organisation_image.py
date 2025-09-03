@@ -27,7 +27,8 @@ def test_set_procurement_organisation_image():
         "imageType": "JobDefault",
         "provider": "aws",
         "region": "eu-west-2",
-        "imageId": "ami-0123456789abcdef0"
+        "imageId": "ami-0123456789abcdef0",
+        "imageName": "Custom-Job-Image"
     }
 
     # Mock endpoint
@@ -106,7 +107,8 @@ def test_set_procurement_organisation_image_different_types():
             "imageType": image_type,
             "provider": "aws",
             "region": "eu-west-2",
-            "imageId": f"ami-{image_type.lower()[:8]}123"
+            "imageId": f"ami-{image_type.lower()[:8]}123",
+            "imageName": f"Custom-{image_type}-Image"
         }
 
         responses.add(
@@ -162,7 +164,8 @@ def test_set_procurement_organisation_image_without_image_name():
         "imageType": "JobDefault",
         "provider": "aws",
         "region": "eu-west-2",
-        "imageId": "ami-0123456789abcdef0"
+        "imageId": "ami-0123456789abcdef0",
+        "imageName": None
     }
 
     responses.add(

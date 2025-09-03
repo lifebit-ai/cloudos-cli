@@ -113,6 +113,7 @@ class Images(Cloudos):
         payload = {
             "organisationId": organisation_id,
             "imageType": image_type,
+            "imageName": image_name,
             "provider": provider,
             "region": region,
             "imageId": image_id

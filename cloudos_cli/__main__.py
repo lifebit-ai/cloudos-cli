@@ -104,8 +104,11 @@ def run_cloudos_cli(ctx, debug):
                 'status': shared_config,
                 'list': shared_config,
                 'logs': shared_config,
+                'workdir': shared_config,
                 'results': shared_config,
-                'details': shared_config
+                'details': shared_config,
+                'clone': shared_config,
+                'resume': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -165,8 +168,11 @@ def run_cloudos_cli(ctx, debug):
                 'status': shared_config,
                 'list': shared_config,
                 'logs': shared_config,
+                'workdir': shared_config,
                 'results': shared_config,
-                'details': shared_config
+                'details': shared_config,
+                'clone': shared_config,
+                'resume': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -209,7 +215,7 @@ def run_cloudos_cli(ctx, debug):
 
 @run_cloudos_cli.group()
 def job():
-    """CloudOS job functionality: run, check and abort jobs in CloudOS."""
+    """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
@@ -805,6 +811,83 @@ def job_status(ctx,
           'or repeat the command you just used.')
 
 
+@job.command('workdir')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to search for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+def job_workdir(ctx,
+             apikey,
+             cloudos_url,
+             workspace_id,
+             job_id,
+             verbose,
+             disable_ssl_verification,
+             ssl_cert,
+             profile):
+    """Get the path to the working directory of a specified job."""
+    profile = profile or ctx.default_map['job']['workdir']['profile']
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+    # determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id
+        )
+    )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+
+    print('Finding working directory path...')
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tSearching for job id: {job_id}')
+    workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
+    print(f"Working directory for job {job_id}: {workdir}")
+
+
 @job.command('logs')
 @click.option('-k',
               '--apikey',
@@ -1229,6 +1312,26 @@ def job_details(ctx,
 @click.option('--archived',
               help=('When this flag is used, only archived jobs list is collected.'),
               is_flag=True)
+@click.option('--filter-status',
+              help='Filter jobs by status (e.g., completed, running, failed, aborted).')
+@click.option('--filter-job-name',
+              help='Filter jobs by job name ( case insensitive ).')
+@click.option('--filter-project',
+              help='Filter jobs by project name.')
+@click.option('--filter-workflow',
+              help='Filter jobs by workflow/pipeline name.')
+@click.option('--last',
+              help=('When workflows are duplicated, use the latest imported workflow (by date).'),
+              is_flag=True)
+@click.option('--filter-job-id',
+              help='Filter jobs by specific job ID.')
+@click.option('--filter-only-mine',
+              help='Filter to show only jobs belonging to the current user.',
+              is_flag=True)
+@click.option('--filter-queue',
+              help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
+@click.option('--filter-owner',
+             help='Filter jobs by owner username.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1250,6 +1353,15 @@ def list_jobs(ctx,
               last_n_jobs,
               page,
               archived,
+              filter_status,
+              filter_job_name,
+              filter_project,
+              filter_workflow,
+              last,
+              filter_job_id,
+              filter_only_mine,
+              filter_owner,
+              filter_queue,
               verbose,
               disable_ssl_verification,
               ssl_cert,
@@ -1304,9 +1416,32 @@ def list_jobs(ctx,
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl)
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl,
+                                filter_status=filter_status,
+                                filter_job_name=filter_job_name,
+                                filter_project=filter_project,
+                                filter_workflow=filter_workflow,
+                                filter_job_id=filter_job_id,
+                                filter_only_mine=filter_only_mine,
+                                filter_owner=filter_owner,
+                                filter_queue=filter_queue,
+                                last=last)
     if len(my_jobs_r) == 0:
-        if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+        # Check if any filtering options are being used
+        filters_used = any([
+            filter_status,
+            filter_job_name,
+            filter_project,
+            filter_workflow,
+            filter_job_id,
+            filter_only_mine,
+            filter_owner,
+            filter_queue
+        ])
+        
+        if filters_used:
+            print('\t[Message] A total of 0 jobs collected.')
+        elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
             print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
                   'has no jobs created yet.')
         else:
@@ -1421,6 +1556,185 @@ def abort_jobs(ctx,
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
+
+@click.command()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--project-name',
+              help='The name of a CloudOS project.')
+@click.option('-p',
+              '--parameter',
+              multiple=True,
+              help=('A single parameter to pass to the job call. It should be in the ' +
+                    'following form: parameter_name=parameter_value. E.g.: ' +
+                    '-p input=s3://path_to_my_file. You can use this option as many ' +
+                    'times as parameters you want to include.'))
+@click.option('--nextflow-profile',
+              help=('A comma separated string indicating the nextflow profile/s ' +
+                    'to use with your job.'))
+@click.option('--nextflow-version',
+              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+                    'Default=22.10.8.'),
+              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
+@click.option('--git-branch',
+              help=('The branch to run for the selected pipeline. ' +
+                    'If not specified it defaults to the last commit ' +
+                    'of the default branch.'))
+@click.option('--job-name',
+              help='The name of the job. If not set, will take the name of the cloned job.')
+@click.option('--do-not-save-logs',
+              help=('Avoids process log saving. If you select this option, your job process ' +
+                    'logs will not be stored.'),
+              is_flag=True)
+@click.option('--job-queue',
+              help=('Name of the job queue to use with a batch job. ' +
+                   'In Azure workspaces, this option is ignored.'))
+@click.option('--instance-type',
+              help=('The type of compute instance to use as master node. ' +
+                    'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'))
+@click.option('--cost-limit',
+              help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
+              type=float)
+@click.option('--job-id',
+              help='The CloudOS job id of the job to be cloned.',
+              required=True)
+@click.option('--accelerate-file-staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
+@click.option('--resumable',
+              help='Whether to make the job able to be resumed or not.',
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile',
+              help='Profile to use from the config file',
+              default=None)
+@click.pass_context
+def clone_resume(ctx,
+              apikey,
+              cloudos_url,
+              workspace_id,
+              project_name,
+              parameter,
+              nextflow_profile,
+              nextflow_version,
+              git_branch,
+              job_name,
+              do_not_save_logs,
+              job_queue,
+              instance_type,
+              cost_limit,
+              job_id,
+              accelerate_file_staging,
+              resumable,
+              verbose,
+              disable_ssl_verification,
+              ssl_cert,
+              profile):
+    if ctx.info_name == "clone":
+        mode, action = "clone", "cloning"
+    elif ctx.info_name == "resume":
+        mode, action = "resume", "resuming"
+
+    f"""{mode.capitalize()} an existing job with optional parameter overrides."""
+    profile = profile or ctx.default_map['job'][mode]['profile']
+
+    # Create a dictionary with required and non-required params
+    required_dict = {
+        'apikey': True,
+        'workspace_id': True,
+        'workflow_name': False,
+        'project_name': False,
+        'procurement_id': False
+    }
+
+    # Determine if the user provided all required parameters
+    config_manager = ConfigurationProfile()
+    user_options = (
+        config_manager.load_profile_and_validate_data(
+            ctx,
+            INIT_PROFILE,
+            CLOUDOS_URL,
+            profile=profile,
+            required_dict=required_dict,
+            apikey=apikey,
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            project_name=project_name
+        )
+    )
+    apikey = user_options['apikey']
+    cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    print(f'{action.capitalize()} job...')
+    if verbose:
+        print('\t...Preparing objects')
+
+    # Create Job object (set dummy values for project_name and workflow_name, since they come from the cloned job)
+    job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
+               mainfile=None, importsfile=None,verify=verify_ssl)
+
+    if verbose:
+        print('\tThe following Job object was created:')
+        print('\t' + str(job_obj) + '\n')
+        print(f'\t{action.capitalize()} job {job_id} in workspace: {workspace_id}')
+
+    try:
+        # Clone/resume the job with provided overrides
+        cloned_resumed_job_id = job_obj.clone_or_resume_job(
+            source_job_id=job_id,
+            queue_name=job_queue,
+            cost_limit=cost_limit,
+            master_instance=instance_type,
+            job_name=job_name,
+            nextflow_version=nextflow_version,
+            branch=git_branch,
+            profile=nextflow_profile,
+            do_not_save_logs=do_not_save_logs,
+            use_fusion=accelerate_file_staging,
+            resumable=resumable,
+            # only when explicitly setting --project-name will be overridden, else using the original project
+            project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
+            parameters=list(parameter) if parameter else None,
+            verify=verify_ssl,
+            mode=mode
+        )
+        if verbose:
+            print(f'\t{mode.capitalize()}d job ID: {cloned_resumed_job_id}')
+
+        print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
+
+    except BadRequestException as e:
+        if verbose:
+            print(f'\tError details: {e}')
+        raise ValueError(f"Failed to {mode} job: {e}")
+    except Exception as e:
+        if verbose:
+            print(f'\tError details: {e}')
+        raise ValueError(f"An error occurred while {action} the job: {e}")
+# Register the same function under two names
+job.add_command(clone_resume, "clone")
+job.add_command(clone_resume, "resume")
 
 
 @workflow.command('list')
@@ -2831,7 +3145,7 @@ def run_bash_array_job(ctx,
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
-                    '"File Name", "Storage Path".'),
+                    '"Virtual Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
 def list_files(ctx,
@@ -2900,7 +3214,7 @@ def list_files(ctx,
             table.add_column("Owner", style="white")
             table.add_column("Size", style="magenta")
             table.add_column("Last Updated", style="green")
-            table.add_column("File Name", style="bold", overflow="fold")
+            table.add_column("Virtual Name", style="bold", overflow="fold")
             table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
 
             for item in contents:
@@ -3091,7 +3405,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_item_name}' could not be moved to '{destination_path}' as the destination folder is not modifiable.",
+            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
                    err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
@@ -3581,20 +3895,20 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
                    err=True)
         sys.exit(1)
-    click.echo(f"Deleting {kind} '{item_name}' from '{parent_path or '[root]'}'...")
+    click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
             click.secho(
-                f"[SUCCESS] {kind} '{item_name}' was deleted from '{parent_path or '[root]'}'.",
+                f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
                 fg="green", bold=True
             )
             click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
-            click.echo(f"[ERROR] Deletion failed: {response.status_code} - {response.text}", err=True)
+            click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)
     except Exception as e:
-        click.echo(f"[ERROR] Delete operation failed: {str(e)}", err=True)
+        click.echo(f"[ERROR] Remove operation failed: {str(e)}", err=True)
         sys.exit(1)
 
 
@@ -3668,7 +3982,79 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         project_name=project_name,
         verify=verify_ssl
     )
-    link_p.link_folder(path, session_id)
+
+    # Minimal folder validation and improved error messages
+    is_s3 = path.startswith("s3://")
+    is_folder = True
+    
+    if is_s3:
+        # S3 path validation - use heuristics to determine if it's likely a folder
+        try:
+            # If path ends with '/', it's likely a folder
+            if path.endswith('/'):
+                is_folder = True
+            else:
+                # Check the last part of the path
+                path_parts = path.rstrip("/").split("/")
+                if path_parts:
+                    last_part = path_parts[-1]
+                    # If the last part has no dot, it's likely a folder
+                    if '.' not in last_part:
+                        is_folder = True
+                    else:
+                        # If it has a dot, it might be a file - set to None for warning
+                        is_folder = None
+                else:
+                    # Empty path parts, set to None for uncertainty
+                    is_folder = None
+        except Exception:
+            # If we can't parse the S3 path, set to None for uncertainty
+            is_folder = None
+    else:
+        # File Explorer path validation (existing logic)
+        try:
+            datasets = Datasets(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                workspace_id=workspace_id,
+                project_name=project_name,
+                verify=verify_ssl,
+                cromwell_token=None
+            )
+            parts = path.strip("/").split("/")
+            parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
+            item_name = parts[-1]
+            contents = datasets.list_folder_content(parent_path)
+            found = None
+            for item in contents.get("folders", []):
+                if item.get("name") == item_name:
+                    found = item
+                    break
+            if not found:
+                for item in contents.get("files", []):
+                    if item.get("name") == item_name:
+                        found = item
+                        break
+            if found and ("folderType" not in found):
+                is_folder = False
+        except Exception:
+            is_folder = None
+
+    if is_folder is False:
+        if is_s3:
+            click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
+        else:
+            click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
+        return
+    elif is_folder is None and is_s3:
+        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
+
+    try:
+        link_p.link_folder(path, session_id)
+    except Exception as e:
+        click.echo(f"[ERROR] Could not link folder: {e}", err=True)
+        if is_s3:
+            click.echo("If you are linking an S3 path, please ensure it is a folder.", err=True)
 
 
 @images.command(name="ls")
