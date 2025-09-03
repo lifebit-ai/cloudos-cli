@@ -158,3 +158,4 @@ tests/.env
 tests/test_data/.cloudos/
 tests/test_import/localtest_e2e.py
 *.csv
+.cloudos/

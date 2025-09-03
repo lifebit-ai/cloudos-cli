@@ -42,16 +42,20 @@ INIT_PROFILE = 'initialisingProfile'
 def handle_exception(show_traceback=False):
     """Custom exception handler for CloudOS CLI"""
     def exception_handler(exc_type, exc_value, exc_traceback):
+        # Initialise logger
+        debug_mode = '--debug' in sys.argv
+        setup_logging(debug_mode)
+        logger = logging.getLogger("CloudOS")
         # Handle keyboard interrupt gracefully
         if issubclass(exc_type, KeyboardInterrupt):
             sys.exit(1)
         if show_traceback:
-            logger.error(exc_value, exc_info=True)
             # Show full traceback for debugging
+            logger.error(exc_value, exc_info=True)
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         else:
-            logger.error(exc_value)
             # Show only the error message
+            logger.error(exc_value)
             click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
         sys.exit(1)
     return exception_handler
