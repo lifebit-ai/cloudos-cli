@@ -1,8 +1,13 @@
-import sys, os, json, datetime as dt
-import logging, logging.config
+import sys
+import os
+import json
+import datetime as dt
+import logging
+import logging.config
 import copy
 
 _cmd_filter_instance = None
+
 
 class LogFormatter(logging.Formatter):
     def __init__(self, *, fmt_keys=None):
@@ -18,7 +23,7 @@ class LogFormatter(logging.Formatter):
             "message": record.getMessage(),
             "timestamp": dt.datetime.fromtimestamp(record.created, tz=dt.timezone.utc).isoformat(),
         }
-        if record.exc_info: 
+        if record.exc_info:
             always["exc_info"] = self.formatException(record.exc_info)
 
         out = {}
@@ -114,7 +119,6 @@ def setup_logging(debug):
             "command": "command",
             "params": "params",
     }
-    
     config = copy.deepcopy(LOG_CONFIG)
 
     # build a timestamped log filename
@@ -135,7 +139,6 @@ def setup_logging(debug):
     for handle in root.handlers:
         log_formatter = LogFormatter(fmt_keys=formatter)
         handle.setFormatter(log_formatter)
-
 
 
 def update_command_context_from_click(ctx):

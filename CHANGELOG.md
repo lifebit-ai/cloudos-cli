@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.59.0 (2025-09-03)
+
+### Feat
+
+- Implements error logging
+
 ## v2.58.0 (2025-09-01)
 
 ### Feat

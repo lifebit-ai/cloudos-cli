@@ -45,18 +45,15 @@ def handle_exception(show_traceback=False):
         # Handle keyboard interrupt gracefully
         if issubclass(exc_type, KeyboardInterrupt):
             sys.exit(1)
-        # Add to log
         if show_traceback:
-            logger.error(e, exc_info=True)
+            logger.error(exc_value, exc_info=True)
             # Show full traceback for debugging
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         else:
-            logger.error(e)
+            logger.error(exc_value)
             # Show only the error message
             click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
-        
         sys.exit(1)
-    
     return exception_handler
 
 
@@ -74,7 +71,6 @@ def run_cloudos_cli(ctx, debug):
         sys.excepthook = handle_exception(show_traceback=False)
     else:
         sys.excepthook = handle_exception(show_traceback=True)
-    
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -287,6 +283,7 @@ def configure(ctx, profile, make_default):
         config_manager.create_profile_from_input(profile_name=profile)
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
+
 
 @job.command('run')
 @click.option('-k',
@@ -839,14 +836,14 @@ def job_status(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def job_workdir(ctx,
-             apikey,
-             cloudos_url,
-             workspace_id,
-             job_id,
-             verbose,
-             disable_ssl_verification,
-             ssl_cert,
-             profile):
+                apikey,
+                cloudos_url,
+                workspace_id,
+                job_id,
+                verbose,
+                disable_ssl_verification,
+                ssl_cert,
+                profile):
     """Get the path to the working directory of a specified job."""
     profile = profile or ctx.default_map['job']['workdir']['profile']
     # Create a dictionary with required and non-required params
@@ -1331,7 +1328,7 @@ def job_details(ctx,
 @click.option('--filter-queue',
               help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
 @click.option('--filter-owner',
-             help='Filter jobs by owner username.')
+              help='Filter jobs by owner username.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1438,7 +1435,6 @@ def list_jobs(ctx,
             filter_owner,
             filter_queue
         ])
-        
         if filters_used:
             print('\t[Message] A total of 0 jobs collected.')
         elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
@@ -1557,6 +1553,7 @@ def abort_jobs(ctx,
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
 
+
 @click.command()
 @click.option('-k',
               '--apikey',
@@ -1598,7 +1595,7 @@ def abort_jobs(ctx,
               is_flag=True)
 @click.option('--job-queue',
               help=('Name of the job queue to use with a batch job. ' +
-                   'In Azure workspaces, this option is ignored.'))
+                    'In Azure workspaces, this option is ignored.'))
 @click.option('--instance-type',
               help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'))
@@ -1628,26 +1625,26 @@ def abort_jobs(ctx,
               default=None)
 @click.pass_context
 def clone_resume(ctx,
-              apikey,
-              cloudos_url,
-              workspace_id,
-              project_name,
-              parameter,
-              nextflow_profile,
-              nextflow_version,
-              git_branch,
-              job_name,
-              do_not_save_logs,
-              job_queue,
-              instance_type,
-              cost_limit,
-              job_id,
-              accelerate_file_staging,
-              resumable,
-              verbose,
-              disable_ssl_verification,
-              ssl_cert,
-              profile):
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 project_name,
+                 parameter,
+                 nextflow_profile,
+                 nextflow_version,
+                 git_branch,
+                 job_name,
+                 do_not_save_logs,
+                 job_queue,
+                 instance_type,
+                 cost_limit,
+                 job_id,
+                 accelerate_file_staging,
+                 resumable,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
     elif ctx.info_name == "resume":
@@ -1692,7 +1689,7 @@ def clone_resume(ctx,
 
     # Create Job object (set dummy values for project_name and workflow_name, since they come from the cloned job)
     job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
-               mainfile=None, importsfile=None,verify=verify_ssl)
+                     mainfile=None, importsfile=None, verify=verify_ssl)
 
     if verbose:
         print('\tThe following Job object was created:')
@@ -1732,6 +1729,8 @@ def clone_resume(ctx,
         if verbose:
             print(f'\tError details: {e}')
         raise ValueError(f"An error occurred while {action} the job: {e}")
+
+
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
 job.add_command(clone_resume, "resume")
@@ -2981,11 +2980,11 @@ def run_bash_array_job(ctx,
 
     # setup separators for API and array file (the're different)
     separators = {
-        ",": { "api": ",", "file": "," },
-        ";": { "api": "%3B", "file": ";" },
-        "space": { "api": "+", "file": " " },
-        "tab": { "api": "tab", "file": "tab" },
-        "|": { "api": "%7C", "file": "|" }
+        ",": {"api": ",", "file": ","},
+        ";": {"api": "%3B", "file": ";"},
+        "space": {"api": "+", "file": " "},
+        "tab": {"api": "tab", "file": "tab"},
+        "|": {"api": "%7C", "file": "|"}
     }
 
     # setup important options for the job
@@ -3297,9 +3296,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
      E.g.: 'Data/folderB'
     """
-
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
-    
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
@@ -3404,9 +3401,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         # Normalize kind: top-level datasets are kind=Dataset, all other folders are kind=Folder
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
-        elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
-                   err=True)
+        elif folder_type == "S3Folder":
+            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. " +
+                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
+                       err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
@@ -3448,9 +3446,16 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
-                    workspace_id, project_name,
-                    disable_ssl_verification, ssl_cert, profile):
+def renaming_item(ctx,
+                  source_path,
+                  new_name,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  project_name,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
     """
     Rename a file or folder in a CloudOS project.
 
@@ -3560,9 +3565,17 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
-                  workspace_id, project_name, destination_project_name,
-                  disable_ssl_verification, ssl_cert, profile):
+def copy_item_cli(ctx,
+                  source_path,
+                  destination_path,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  project_name,
+                  destination_project_name,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
     """
     Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
 
@@ -3664,9 +3677,9 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
-        elif destination_folder.get("folderType")=="S3Folder":
+        elif destination_folder.get("folderType") == "S3Folder":
             click.echo(f"[ERROR] Item '{source_name}' could not be copied to '{destination_path}' as the destination folder is not modifiable.",
-                   err=True)
+                       err=True)
             sys.exit(1)
         else:
             destination_kind = "Folder"
@@ -3889,9 +3902,9 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
         sys.exit(1)
 
-    item_id = found_item.get("_id",'')
+    item_id = found_item.get("_id", '')
     kind = "Folder" if "folderType" in found_item else "File"
-    if item_id=='':
+    if item_id == '':
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
                    err=True)
         sys.exit(1)
@@ -3927,11 +3940,20 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
-def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+def link(ctx,
+         path,
+         apikey,
+         cloudos_url,
+         project_name,
+         workspace_id,
+         session_id,
+         disable_ssl_verification,
+         ssl_cert,
+         profile):
     """
     Link a folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 folder to link or relative to File Explorer. 
+    PATH [path]: the full path to the S3 folder to link or relative to File Explorer.
     E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
 
@@ -3986,7 +4008,6 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     # Minimal folder validation and improved error messages
     is_s3 = path.startswith("s3://")
     is_folder = True
-    
     if is_s3:
         # S3 path validation - use heuristics to determine if it's likely a folder
         try:
@@ -4047,7 +4068,9 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
             click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
+        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.",
+                   err=True)
 
     try:
         link_p.link_folder(path, session_id)
@@ -4153,8 +4176,14 @@ def list_images(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
-            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+              type=click.Choice([
+                  'RegularInteractiveSessions',
+                  'SparkInteractiveSessions',
+                  'RStudioInteractiveSessions',
+                  'JupyterInteractiveSessions',
+                  'JobDefault',
+                  'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--image-id', help='The new image id value.', required=True)
@@ -4251,8 +4280,14 @@ def set_organisation_image(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
-            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+              type=click.Choice([
+                  'RegularInteractiveSessions',
+                  'SparkInteractiveSessions',
+                  'RStudioInteractiveSessions',
+                  'JupyterInteractiveSessions',
+                  'JobDefault',
+                  'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--disable-ssl-verification',
