@@ -1060,8 +1060,8 @@ def job_results(ctx,
               default='stdout')
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
-                    'Default=job_details'),
-              default='job_details',
+                    'Default=job-id'),
+              default=None,
               required=False)
 @click.option('--parameters',
               help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
@@ -1115,6 +1115,10 @@ def job_details(ctx,
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     execution_platform = user_options['execution_platform']
+
+    # Set default output basename to job_id if not provided
+    if output_basename is None:
+        output_basename = job_id
 
     print('Executing details...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1223,6 +1227,26 @@ def job_details(ctx,
                                         f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
 
         console.print(table)
+
+        # --- Process summary table ---
+        # Get user_id and workspace_id from job details
+        user_id = j_details_h.get("user", {}).get("_id") or j_details_h.get("userId")
+        workspace_id = j_details_h.get("team") or j_details_h.get("workspaceId")
+        if user_id and workspace_id:
+            try:
+                process_summary = cl.get_process_summary(job_id, user_id, workspace_id, verify_ssl)
+                process_table = Table(title="Process Summary")
+                process_table.add_column("Status", style="cyan", no_wrap=True)
+                process_table.add_column("Count", style="magenta")
+                for status, count in process_summary.items():
+                    process_table.add_row(status, str(count))
+                console.print(process_table)
+            except Exception as e:
+                if verbose:
+                    print(f"[Warning] Could not retrieve process summary: {e}")
+        else:
+            if verbose:
+                print("[Warning] Could not determine user_id or workspace_id for process summary.")
     else:
         # Create a JSON object with the key-value pairs
         job_details_json = {
@@ -1262,6 +1286,16 @@ def job_details(ctx,
                 job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
             except KeyError:
                 job_details_json["Worker Node"] = "Not Specified"
+
+        # Add process summary to JSON output
+        user_id = j_details_h.get("user", {}).get("_id") or j_details_h.get("userId")
+        workspace_id = j_details_h.get("team") or j_details_h.get("workspaceId")
+        if user_id and workspace_id:
+            try:
+                process_summary = cl.get_process_summary(job_id, user_id, workspace_id, verify_ssl)
+                job_details_json["Process Summary"] = process_summary
+            except Exception as e:
+                job_details_json["Process Summary"] = f"Error retrieving process summary: {e}"
 
         # Write the JSON object to a file
         with open(f"{output_basename}.json", "w") as json_file:

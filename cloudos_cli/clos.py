@@ -68,6 +68,35 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def get_process_summary(self, job_id, user_id, workspace_id, verify=True):
+        """
+        Get process summary counts for each status for a job.
+        Returns a dict: {status: count}
+        """
+        statuses = ["NEW", "SUBMITTED", "RUNNING", "RETRIED", "CACHED", "COMPLETED", "FAILED", "ABORTED"]
+        summary = {}
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        base_url = f"{self.cloudos_url}/api/v2/job-process-metrics/process-info/{job_id}/{user_id}"
+        for status in statuses:
+            params = {
+                "limit": 50,
+                "status": status,
+                "teamId": workspace_id
+            }
+            try:
+                r = retry_requests_get(base_url, params=params, headers=headers, verify=verify)
+                if r.status_code >= 400:
+                    summary[status] = "Error"
+                else:
+                    data = r.json()
+                    summary[status] = len(data) if isinstance(data, list) else 0
+            except Exception:
+                summary[status] = "Error"
+        return summary
+
     def wait_job_completion(self, job_id, wait_time=3600, request_interval=30, verbose=False,
                             verify=True):
         """Checks job status from CloudOS and wait for its complation.
