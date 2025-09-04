@@ -5,6 +5,8 @@ import datetime as dt
 import logging
 import logging.config
 import copy
+from pathlib import Path
+
 
 _cmd_filter_instance = None
 
@@ -123,7 +125,7 @@ def setup_logging(debug):
 
     # build a timestamped log filename
     ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = ".cloudos/logs"
+    log_dir = os.path.join(Path.home(), ".cloudos/logs")
     os.makedirs(log_dir, exist_ok=True)
     config["handlers"]["file"]["filename"] = os.path.join(log_dir, f"cloudos-{ts}.jsonl")
 
