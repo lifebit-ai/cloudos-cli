@@ -3661,7 +3661,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType")=="S3Folder":
-            click.echo(f"[ERROR] Unable to copy item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
+            click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
                    err=True)
             sys.exit(1)
         else:
