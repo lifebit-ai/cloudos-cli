@@ -3661,7 +3661,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType")=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_name}' could not be copied to '{destination_path}' as the destination folder is not modifiable.",
+            click.echo(f"[ERROR] Unable to copy item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
                    err=True)
             sys.exit(1)
         else:
@@ -3810,10 +3810,11 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.option('--force', is_flag=True, help='Force removal of files.')
 @click.pass_context
 def rm_item(ctx, target_path, apikey, cloudos_url,
             workspace_id, project_name,
-            disable_ssl_verification, ssl_cert, profile):
+            disable_ssl_verification, ssl_cert, profile, force):
     """
     Delete a file or folder in a CloudOS project.
 
@@ -3891,15 +3892,28 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
                    err=True)
         sys.exit(1)
+    
+    # Check if the item is managed by Lifebit
+    is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
+    if is_managed_by_lifebit and not force:
+        click.echo(f"[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
+        sys.exit(1)
+    
     click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
-            click.secho(
-                f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
-                fg="green", bold=True
-            )
-            click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
+            if is_managed_by_lifebit:
+                click.secho(
+                    f"[SUCCESS] {kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
+                    fg="green", bold=True
+                )
+            else:
+                click.secho(
+                    f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
+                    fg="green", bold=True
+                )
+                click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
             click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)
@@ -4040,7 +4054,7 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         if is_s3:
             click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
         else:
-            click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
+            click.echo("[ERROR] Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
         click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
