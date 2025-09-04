@@ -3978,6 +3978,10 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     session_id = user_options['session_id']
     project_name = user_options['project_name']
 
+    # Check for session_id
+    if not session_id:
+        raise click.UsageError("Session ID is required, please provide one using --session-id or setting it in your profile.")
+
     if not path.startswith("s3://") and project_name is None:
         # for non-s3 paths we need the project, for S3 we don't
         raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
