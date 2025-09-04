@@ -871,6 +871,11 @@ def job_workdir(ctx,
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
 
+    # Check if job_id is provided
+    if not job_id:
+        click.echo("[ERROR] Job ID is required, please provide one using --job-id.", err=True)
+        sys.exit(1)
+
     print('Finding working directory path...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -880,8 +885,16 @@ def job_workdir(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-    print(f"Working directory for job {job_id}: {workdir}")
+    
+    try:
+        workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
+        print(f"Working directory for job {job_id}: {workdir}")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve working directory for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('logs')
