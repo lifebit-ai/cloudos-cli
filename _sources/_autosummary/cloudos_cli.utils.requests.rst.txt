@@ -1,0 +1,15 @@
+cloudos\_cli.utils.requests
+===========================
+
+.. automodule:: cloudos_cli.utils.requests
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      retry_requests_delete
+      retry_requests_get
+      retry_requests_post
+      retry_requests_put
+   

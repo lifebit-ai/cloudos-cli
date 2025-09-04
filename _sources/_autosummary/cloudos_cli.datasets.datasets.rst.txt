@@ -1,0 +1,12 @@
+cloudos\_cli.datasets.datasets
+==============================
+
+.. automodule:: cloudos_cli.datasets.datasets
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Datasets
+   

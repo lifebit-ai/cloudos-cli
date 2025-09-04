@@ -1,0 +1,13 @@
+cloudos\_cli.utils.resources
+============================
+
+.. automodule:: cloudos_cli.utils.resources
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      format_bytes
+      ssl_selector
+   

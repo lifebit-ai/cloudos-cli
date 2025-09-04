@@ -1,0 +1,13 @@
+cloudos\_cli.jobs
+=================
+
+.. automodule:: cloudos_cli.jobs
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   job

@@ -1,0 +1,1613 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.07.19 -->
+        <title>cloudos_cli.jobs.job - CloudOS CLI Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=25af2a20" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">CloudOS CLI Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">CloudOS CLI Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html#cloudos-cli">cloudos-cli</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../modules.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.html">cloudos_cli</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of cloudos_cli</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli._version.html">cloudos_cli._version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for cloudos_cli.jobs.job</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is the main class to create jobs.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadRequestException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_pattern</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span><span class="p">,</span> <span class="n">extract_project</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+
+<div class="viewcode-block" id="Job">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Job</span><span class="p">(</span><span class="n">Cloudos</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to store and operate jobs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cloudos_url : string</span>
+<span class="sd">        The CloudOS service url.</span>
+<span class="sd">    apikey : string</span>
+<span class="sd">        Your CloudOS API key.</span>
+<span class="sd">    cromwell_token : string</span>
+<span class="sd">        Cromwell server token.</span>
+<span class="sd">    workspace_id : string</span>
+<span class="sd">        The specific Cloudos workspace id.</span>
+<span class="sd">    project_name : string</span>
+<span class="sd">        The name of a CloudOS project.</span>
+<span class="sd">    workflow_name : string</span>
+<span class="sd">        The name of a CloudOS workflow or pipeline.</span>
+<span class="sd">    verify: [bool|string]</span>
+<span class="sd">        Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">        a string is passed, it will be interpreted as the path to</span>
+<span class="sd">        the SSL certificate file.</span>
+<span class="sd">    mainfile : string</span>
+<span class="sd">        The name of the mainFile used by the workflow. Required for WDL pipelines as different</span>
+<span class="sd">        mainFiles could be loaded for a single pipeline.</span>
+<span class="sd">    importsfile : string</span>
+<span class="sd">        The name of the importsFile used by the workflow. Optional and only used for WDL pipelines</span>
+<span class="sd">        as different importsFiles could be loaded for a single pipeline.</span>
+<span class="sd">    repository_platform : string</span>
+<span class="sd">        The name of the repository platform of the workflow.</span>
+<span class="sd">    project_id : string</span>
+<span class="sd">        The CloudOS project id for a given project name.</span>
+<span class="sd">    workflow_id : string</span>
+<span class="sd">        The CloudOS workflow id for a given workflow_name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">workflow_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">verify</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">mainfile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">importsfile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">repository_platform</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;github&#39;</span>
+    <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">workflow_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span>
+
+    <span class="nd">@project_id</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">property</span><span class="p">):</span>
+            <span class="c1"># Fetch the value as not defined by user.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_cloudos_id</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+                <span class="s1">&#39;projects&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span>
+                <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Let the user define the value.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">workflow_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_id</span>
+
+    <span class="nd">@workflow_id</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">workflow_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">property</span><span class="p">):</span>
+            <span class="c1"># Fetch the value as not defined by user.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_cloudos_id</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+                <span class="s1">&#39;workflows&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflow_name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mainfile</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">importsfile</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">repository_platform</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Let the user define the value.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_id</span> <span class="o">=</span> <span class="n">v</span>
+
+<div class="viewcode-block" id="Job.fetch_cloudos_id">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.fetch_cloudos_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_cloudos_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">apikey</span><span class="p">,</span>
+                         <span class="n">cloudos_url</span><span class="p">,</span>
+                         <span class="n">resource</span><span class="p">,</span>
+                         <span class="n">workspace_id</span><span class="p">,</span>
+                         <span class="n">name</span><span class="p">,</span>
+                         <span class="n">mainfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">importsfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">repository_platform</span><span class="o">=</span><span class="s1">&#39;github&#39;</span><span class="p">,</span>
+                         <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the cloudos id for a given name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        apikey : string</span>
+<span class="sd">            Your CloudOS API key</span>
+<span class="sd">        cloudos_url : string</span>
+<span class="sd">            The CloudOS service url.</span>
+<span class="sd">        resource : string</span>
+<span class="sd">            The resource you want to fetch from. E.g.: projects.</span>
+<span class="sd">        workspace_id : string</span>
+<span class="sd">            The specific Cloudos workspace id.</span>
+<span class="sd">        name : string</span>
+<span class="sd">            The name of a CloudOS resource element.</span>
+<span class="sd">        mainfile : string</span>
+<span class="sd">            The name of the mainFile used by the workflow. Only used when resource == &#39;workflows&#39;.</span>
+<span class="sd">            Required for WDL pipelines as different mainFiles could be loaded for a single</span>
+<span class="sd">            pipeline.</span>
+<span class="sd">        importsfile : string</span>
+<span class="sd">            The name of the importsFile used by the workflow. Optional and only used for WDL pipelines</span>
+<span class="sd">            as different importsFiles could be loaded for a single pipeline.</span>
+<span class="sd">        repository_platform : string</span>
+<span class="sd">            The name of the repository platform of the workflow resides.</span>
+<span class="sd">        verify: [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        project_id : string</span>
+<span class="sd">            The CloudOS project id for a given project name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allowed_resources</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;projects&#39;</span><span class="p">,</span> <span class="s1">&#39;workflows&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">resource</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_resources</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Your specified resource is not supported. &#39;</span> <span class="o">+</span>
+                             <span class="sa">f</span><span class="s1">&#39;Use one of the following: </span><span class="si">{</span><span class="n">allowed_resources</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resource</span> <span class="o">==</span> <span class="s1">&#39;workflows&#39;</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_workflow_content</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">last</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;workflows&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;workflowType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;docker&quot;</span> <span class="ow">and</span>
+                        <span class="ow">not</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;archived&quot;</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]):</span>
+                    <span class="k">return</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>  <span class="c1"># no mainfile or importsfile</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span>
+                        <span class="n">element</span><span class="p">[</span><span class="s2">&quot;repository&quot;</span><span class="p">][</span><span class="s2">&quot;platform&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">repository_platform</span> <span class="ow">and</span>
+                        <span class="ow">not</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;archived&quot;</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">mainfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;mainFile&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">mainfile</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">importsfile</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;importsFile&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="k">return</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="s2">&quot;importsFile&quot;</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;importsFile&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">importsfile</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">element</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">resource</span> <span class="o">==</span> <span class="s1">&#39;projects&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_project_id_from_name</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mainfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[ERROR] A workflow named </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> with a mainFile </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">mainfile</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="o">+</span>
+                             <span class="sa">f</span><span class="s1">&#39; and an importsFile </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">importsfile</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> was not found&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[ERROR] No </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> element in </span><span class="si">{</span><span class="n">resource</span><span class="si">}</span><span class="s1"> was found&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Job.convert_nextflow_to_json">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.convert_nextflow_to_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_nextflow_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">job_config</span><span class="p">,</span>
+                                 <span class="n">parameter</span><span class="p">,</span>
+                                 <span class="n">array_parameter</span><span class="p">,</span>
+                                 <span class="n">array_file_header</span><span class="p">,</span>
+                                 <span class="n">is_module</span><span class="p">,</span>
+                                 <span class="n">example_parameters</span><span class="p">,</span>
+                                 <span class="n">git_commit</span><span class="p">,</span>
+                                 <span class="n">git_tag</span><span class="p">,</span>
+                                 <span class="n">git_branch</span><span class="p">,</span>
+                                 <span class="n">project_id</span><span class="p">,</span>
+                                 <span class="n">workflow_id</span><span class="p">,</span>
+                                 <span class="n">job_name</span><span class="p">,</span>
+                                 <span class="n">resumable</span><span class="p">,</span>
+                                 <span class="n">save_logs</span><span class="p">,</span>
+                                 <span class="n">batch</span><span class="p">,</span>
+                                 <span class="n">job_queue_id</span><span class="p">,</span>
+                                 <span class="n">nextflow_profile</span><span class="p">,</span>
+                                 <span class="n">nextflow_version</span><span class="p">,</span>
+                                 <span class="n">instance_type</span><span class="p">,</span>
+                                 <span class="n">instance_disk</span><span class="p">,</span>
+                                 <span class="n">storage_mode</span><span class="p">,</span>
+                                 <span class="n">lustre_size</span><span class="p">,</span>
+                                 <span class="n">execution_platform</span><span class="p">,</span>
+                                 <span class="n">hpc_id</span><span class="p">,</span>
+                                 <span class="n">workflow_type</span><span class="p">,</span>
+                                 <span class="n">cromwell_id</span><span class="p">,</span>
+                                 <span class="n">azure_worker_instance_type</span><span class="p">,</span>
+                                 <span class="n">azure_worker_instance_disk</span><span class="p">,</span>
+                                 <span class="n">azure_worker_instance_spot</span><span class="p">,</span>
+                                 <span class="n">cost_limit</span><span class="p">,</span>
+                                 <span class="n">use_mountpoints</span><span class="p">,</span>
+                                 <span class="n">docker_login</span><span class="p">,</span>
+                                 <span class="n">command</span><span class="p">,</span>
+                                 <span class="n">cpus</span><span class="p">,</span>
+                                 <span class="n">memory</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a nextflow.config file into a json formatted dict.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_config : string</span>
+<span class="sd">            Path to a nextflow.config file with parameters scope.</span>
+<span class="sd">        parameter : tuple</span>
+<span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call.</span>
+<span class="sd">            They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
+<span class="sd">        array_parameter : tuple</span>
+<span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call</span>
+<span class="sd">            for array jobs. They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
+<span class="sd">        array_file_header : string</span>
+<span class="sd">            The header of the file containing the array parameters. It is used to</span>
+<span class="sd">            add the necessary column index for array file columns.</span>
+<span class="sd">        is_module : bool</span>
+<span class="sd">            Whether the job is a module or not. If True, the job will be</span>
+<span class="sd">            submitted as a module.</span>
+<span class="sd">        example_parameters : list</span>
+<span class="sd">            A list of dicts, with the parameters required for the API request in JSON format.</span>
+<span class="sd">            It is typically used to run curated pipelines using the already available</span>
+<span class="sd">            example parameters.</span>
+<span class="sd">        git_commit : string</span>
+<span class="sd">            The git commit hash of the pipeline to use. Equivalent to -r</span>
+<span class="sd">            option in Nextflow. If not specified, the last commit of the</span>
+<span class="sd">            default branch will be used.</span>
+<span class="sd">        git_tag : string</span>
+<span class="sd">            The tag of the pipeline to use. If not specified, the last</span>
+<span class="sd">            commit of the default branch will be used.</span>
+<span class="sd">        git_branch : string</span>
+<span class="sd">            The branch of the pipeline to use. If not specified, the last</span>
+<span class="sd">            commit of the default branch will be used.</span>
+<span class="sd">        project_id : string</span>
+<span class="sd">            The CloudOS project id for a given project name.</span>
+<span class="sd">        workflow_id : string</span>
+<span class="sd">            The CloudOS workflow id for a given workflow_name.</span>
+<span class="sd">        job_name : string.</span>
+<span class="sd">            The name to assign to the job.</span>
+<span class="sd">        resumable: bool</span>
+<span class="sd">            Whether to create a resumable job or not.</span>
+<span class="sd">        save_logs : bool</span>
+<span class="sd">            Whether to save job logs or not.</span>
+<span class="sd">        batch: bool</span>
+<span class="sd">            Whether to create an AWS batch job or not.</span>
+<span class="sd">        job_queue_id : string</span>
+<span class="sd">            Job queue Id to use in the batch job.</span>
+<span class="sd">        nextflow_profile: string</span>
+<span class="sd">            A comma separated string with the profiles to be used.</span>
+<span class="sd">        nextflow_version: string</span>
+<span class="sd">            Nextflow version to use when executing the workflow in CloudOS.</span>
+<span class="sd">        instance_type : string</span>
+<span class="sd">            Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</span>
+<span class="sd">        instance_disk : int</span>
+<span class="sd">            The disk space of the master node instance, in GB.</span>
+<span class="sd">        storage_mode : string</span>
+<span class="sd">            Either &#39;lustre&#39; or &#39;regular&#39;. Indicates if the user wants to select regular</span>
+<span class="sd">            or lustre storage.</span>
+<span class="sd">        lustre_size : int</span>
+<span class="sd">            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or</span>
+<span class="sd">            a multiple of it.</span>
+<span class="sd">        execution_platform : string [&#39;aws&#39;|&#39;azure&#39;|&#39;hpc&#39;]</span>
+<span class="sd">            The execution platform implemented in your CloudOS.</span>
+<span class="sd">        hpc_id : string</span>
+<span class="sd">            The ID of your HPC in CloudOS.</span>
+<span class="sd">        workflow_type : str</span>
+<span class="sd">            The type of workflow to run. It could be &#39;nextflow&#39;, &#39;wdl&#39; or &#39;docker&#39;.</span>
+<span class="sd">        cromwell_id : str</span>
+<span class="sd">            Cromwell server ID.</span>
+<span class="sd">        azure_worker_instance_type: str</span>
+<span class="sd">            The worker node instance type to be used in azure.</span>
+<span class="sd">        azure_worker_instance_disk: int</span>
+<span class="sd">            The disk size in GB for the worker node to be used in azure.</span>
+<span class="sd">        azure_worker_instance_spot: bool</span>
+<span class="sd">            Whether the azure worker nodes have to be spot instances or not.</span>
+<span class="sd">        cost_limit : float</span>
+<span class="sd">            Job cost limit. -1 means no cost limit.</span>
+<span class="sd">        use_mountpoints : bool</span>
+<span class="sd">            Whether to use or not AWS S3 mountpoint for quicker file staging.</span>
+<span class="sd">        docker_login : bool</span>
+<span class="sd">            Whether to use private docker images, provided the users have linked their docker.io accounts.</span>
+<span class="sd">        command : string</span>
+<span class="sd">            The command to run in bash jobs.</span>
+<span class="sd">        cpus : int</span>
+<span class="sd">            The number of CPUs to use for the bash jobs task&#39;s master node.</span>
+<span class="sd">        memory : int</span>
+<span class="sd">            The amount of memory, in GB, to use for the bash job task&#39;s master node.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        params : dict</span>
+<span class="sd">            A JSON formatted dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">workflow_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
+            <span class="c1"># This is required as non-resumable jobs fails always using WDL workflows.</span>
+            <span class="n">resumable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">nextflow_profile</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span>
+            <span class="n">job_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">example_parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No --job-config, --nextflow_profile, --parameter or &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;--example_parameters were specified,&#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;  please use at least one of these options.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span> <span class="ow">and</span> <span class="n">job_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No --job-config or --parameter were provided. At least one of &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;these are required for WDL workflows.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;docker&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No --parameter were provided. At least one of &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;these are required for bash workflows.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">job_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">reading</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">p_l</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">p_l</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                        <span class="n">reading</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">reading</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
+                                <span class="n">p_l_strip</span> <span class="o">=</span> <span class="n">p_l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                    <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">p_l_strip</span> <span class="o">=</span> <span class="n">p_l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                    <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p_l_strip</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                            <span class="k">elif</span> <span class="n">p_l_strip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span> <span class="ow">or</span> <span class="n">p_l_strip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                            <span class="k">elif</span> <span class="n">p_l_strip</span> <span class="o">==</span> <span class="s1">&#39;}&#39;</span><span class="p">:</span>
+                                <span class="n">reading</span> <span class="o">=</span> <span class="kc">False</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">p_list</span> <span class="o">=</span> <span class="n">p_l_strip</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+                                <span class="n">p_name</span> <span class="o">=</span> <span class="n">p_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                <span class="n">p_value</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify your &#39;</span> <span class="o">+</span>
+                                                     <span class="s1">&#39;parameters in &#39;</span> <span class="o">+</span>
+                                                     <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">job_config</span><span class="si">}</span><span class="s1"> using &#39;</span> <span class="o">+</span>
+                                                     <span class="s1">&#39;the </span><span class="se">\&#39;</span><span class="s1">=</span><span class="se">\&#39;</span><span class="s1"> as spacer. &#39;</span> <span class="o">+</span>
+                                                     <span class="s1">&#39;E.g: name = my_name&#39;</span><span class="p">)</span>
+                                <span class="k">elif</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
+                                    <span class="n">param</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">p_name</span><span class="p">,</span>
+                                             <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">}</span>
+                                    <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">param</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">p_name</span><span class="p">,</span>
+                                             <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">}</span>
+                                    <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflow_params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The </span><span class="si">{</span><span class="n">job_config</span><span class="si">}</span><span class="s1"> file did not contain any &#39;</span> <span class="o">+</span>
+                                 <span class="s1">&#39;valid parameter&#39;</span><span class="p">)</span>
+
+        <span class="c1"># array file specific parameters (from --array-parameter)</span>
+        <span class="k">if</span> <span class="n">array_parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">array_parameter</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ap_param</span> <span class="o">=</span> <span class="n">Job</span><span class="o">.</span><span class="n">split_array_file_params</span><span class="p">(</span><span class="n">array_parameter</span><span class="p">,</span> <span class="n">workflow_type</span><span class="p">,</span> <span class="n">array_file_header</span><span class="p">)</span>
+            <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap_param</span><span class="p">)</span>
+
+        <span class="c1"># general parameters (from --parameter)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameter</span><span class="p">:</span>
+                <span class="n">p_split</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p_split</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify -p / --parameter using a single </span><span class="se">\&#39;</span><span class="s1">=</span><span class="se">\&#39;</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                                     <span class="s1">&#39;as spacer. E.g: input=value&#39;</span><span class="p">)</span>
+                <span class="n">p_name</span> <span class="o">=</span> <span class="n">p_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">p_value</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;docker&#39;</span><span class="p">:</span>
+                    <span class="c1"># will differentiate between text, data items and glob patterns</span>
+                    <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">docker_workflow_param_processing</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
+                    <span class="n">param</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">p_name</span><span class="p">,</span>
+                             <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">}</span>
+                    <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">param</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">p_name</span><span class="p">,</span>
+                             <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">}</span>
+                    <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflow_params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The provided parameters are not valid: </span><span class="si">{</span><span class="n">parameter</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">example_parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">example_param</span> <span class="ow">in</span> <span class="n">example_parameters</span><span class="p">:</span>
+                <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">example_param</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;lustre&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[WARNING] Lustre storage has been selected. Please, be sure that this kind of &#39;</span> <span class="o">+</span>
+                  <span class="s1">&#39;storage is available in your CloudOS workspace.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lustre_size</span> <span class="o">%</span> <span class="mi">1200</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify a lustre storage size of 1200 or a multiple of it. &#39;</span> <span class="o">+</span>
+                                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">lustre_size</span><span class="si">}</span><span class="s1"> is not a valid number.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">storage_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lustre&#39;</span><span class="p">,</span> <span class="s1">&#39;regular&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, use either </span><span class="se">\&#39;</span><span class="s1">lustre</span><span class="se">\&#39;</span><span class="s1"> or </span><span class="se">\&#39;</span><span class="s1">regular</span><span class="se">\&#39;</span><span class="s1"> for --storage-mode &#39;</span> <span class="o">+</span>
+                             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">storage_mode</span><span class="si">}</span><span class="s1"> is not allowed&#39;</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">workflow_params</span><span class="p">,</span>
+            <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
+            <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="n">workflow_id</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">job_name</span><span class="p">,</span>
+            <span class="s2">&quot;resumable&quot;</span><span class="p">:</span> <span class="n">resumable</span><span class="p">,</span>
+            <span class="s2">&quot;saveProcessLogs&quot;</span><span class="p">:</span> <span class="n">save_logs</span><span class="p">,</span>
+            <span class="s2">&quot;executionPlatform&quot;</span><span class="p">:</span> <span class="n">execution_platform</span><span class="p">,</span>
+            <span class="s2">&quot;hpc&quot;</span><span class="p">:</span> <span class="n">hpc_id</span><span class="p">,</span>
+            <span class="s2">&quot;storageSizeInGb&quot;</span><span class="p">:</span> <span class="n">instance_disk</span><span class="p">,</span>
+            <span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;computeCostLimit&quot;</span><span class="p">:</span> <span class="n">cost_limit</span><span class="p">,</span>
+                <span class="s2">&quot;optim&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;lusterFsxStorageSizeInGb&quot;</span><span class="p">:</span> <span class="n">lustre_size</span><span class="p">,</span>
+            <span class="s2">&quot;storageMode&quot;</span><span class="p">:</span> <span class="n">storage_mode</span><span class="p">,</span>
+            <span class="s2">&quot;instanceType&quot;</span><span class="p">:</span> <span class="n">instance_type</span><span class="p">,</span>
+            <span class="s2">&quot;usesFusionFileSystem&quot;</span><span class="p">:</span> <span class="n">use_mountpoints</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">!=</span> <span class="s1">&#39;docker&#39;</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nextflowVersion&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
+        <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">&#39;hpc&#39;</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;masterInstance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;requestedInstance&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">instance_type</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="n">batch</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="n">job_queue_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;dockerLogin&quot;</span><span class="p">:</span> <span class="n">docker_login</span><span class="p">,</span>
+                <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="n">batch</span><span class="p">,</span>
+                <span class="s2">&quot;jobQueue&quot;</span><span class="p">:</span> <span class="n">job_queue_id</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_module</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;azureBatch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;vmType&quot;</span><span class="p">:</span> <span class="n">azure_worker_instance_type</span><span class="p">,</span>
+                <span class="s2">&quot;spot&quot;</span><span class="p">:</span> <span class="n">azure_worker_instance_spot</span><span class="p">,</span>
+                <span class="s2">&quot;diskSizeInGb&quot;</span><span class="p">:</span> <span class="n">azure_worker_instance_disk</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;docker&#39;</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="o">|</span> <span class="n">command</span>  <span class="c1"># add command to params as dict (python 3.9+)</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;resourceRequirements&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">cpus</span><span class="p">,</span>
+                <span class="s2">&quot;ram&quot;</span><span class="p">:</span> <span class="n">memory</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;cromwellCloudResources&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cromwell_id</span>
+        <span class="n">git_flag</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">git_tag</span><span class="p">,</span> <span class="n">git_commit</span><span class="p">,</span> <span class="n">git_branch</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">git_flag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify none or only one of --git-tag, &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;--git-branch or --git-commit options.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">sum</span><span class="p">(</span><span class="n">git_flag</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">revision_type</span> <span class="o">=</span> <span class="s1">&#39;tag&#39;</span> <span class="k">if</span> <span class="n">git_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;commit&#39;</span> <span class="k">if</span> <span class="n">git_commit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;branch&#39;</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;revisionType&quot;</span><span class="p">:</span> <span class="n">revision_type</span><span class="p">,</span>
+                <span class="s2">&quot;tag&quot;</span><span class="p">:</span> <span class="n">git_tag</span><span class="p">,</span>
+                <span class="s2">&quot;commit&quot;</span><span class="p">:</span> <span class="n">git_commit</span><span class="p">,</span>
+                <span class="s2">&quot;branch&quot;</span><span class="p">:</span> <span class="n">git_branch</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="n">nextflow_profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_profile</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+
+<div class="viewcode-block" id="Job.send_job">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.send_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">send_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">job_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">parameter</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">array_parameter</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">array_file_header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">is_module</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">example_parameters</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">git_commit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">git_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">git_branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">job_name</span><span class="o">=</span><span class="s1">&#39;new_job&#39;</span><span class="p">,</span>
+                 <span class="n">resumable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">save_logs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">batch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">job_queue_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">nextflow_profile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">nextflow_version</span><span class="o">=</span><span class="s1">&#39;22.10.8&#39;</span><span class="p">,</span>
+                 <span class="n">instance_type</span><span class="o">=</span><span class="s1">&#39;c5.xlarge&#39;</span><span class="p">,</span>
+                 <span class="n">instance_disk</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                 <span class="n">storage_mode</span><span class="o">=</span><span class="s1">&#39;regular&#39;</span><span class="p">,</span>
+                 <span class="n">lustre_size</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
+                 <span class="n">execution_platform</span><span class="o">=</span><span class="s1">&#39;aws&#39;</span><span class="p">,</span>
+                 <span class="n">hpc_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">workflow_type</span><span class="o">=</span><span class="s1">&#39;nextflow&#39;</span><span class="p">,</span>
+                 <span class="n">cromwell_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">azure_worker_instance_type</span><span class="o">=</span><span class="s1">&#39;Standard_D4as_v4&#39;</span><span class="p">,</span>
+                 <span class="n">azure_worker_instance_disk</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                 <span class="n">azure_worker_instance_spot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">cost_limit</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+                 <span class="n">use_mountpoints</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">docker_login</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">memory</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send a job to CloudOS.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_config : string</span>
+<span class="sd">            Path to a nextflow.config file with parameters scope.</span>
+<span class="sd">        parameter : tuple</span>
+<span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call.</span>
+<span class="sd">            They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
+<span class="sd">        array_parameter : tuple</span>
+<span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call</span>
+<span class="sd">            for array jobs. They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
+<span class="sd">        array_file_header : string</span>
+<span class="sd">            The header of the file containing the array parameters. It is used to</span>
+<span class="sd">            add the necessary column index for array file columns.</span>
+<span class="sd">        example_parameters : list</span>
+<span class="sd">            A list of dicts, with the parameters required for the API request in JSON format.</span>
+<span class="sd">            It is typically used to run curated pipelines using the already available</span>
+<span class="sd">            example parameters.</span>
+<span class="sd">        git_commit : string</span>
+<span class="sd">            The git commit hash of the pipeline to use. Equivalent to -r</span>
+<span class="sd">            option in Nextflow. If not specified, the last commit of the</span>
+<span class="sd">            default branch will be used.</span>
+<span class="sd">        git_tag : string</span>
+<span class="sd">            The tag of the pipeline to use. If not specified, the last</span>
+<span class="sd">            commit of the default branch will be used.</span>
+<span class="sd">        git_branch : string</span>
+<span class="sd">            The branch of the pipeline to use. If not specified, the last</span>
+<span class="sd">            commit of the default branch will be used.</span>
+<span class="sd">        job_name : string</span>
+<span class="sd">            The name to assign to the job.</span>
+<span class="sd">        resumable : bool</span>
+<span class="sd">            Whether to create a resumable job or not.</span>
+<span class="sd">        save_logs : bool</span>
+<span class="sd">            Whether to save job logs or not.</span>
+<span class="sd">        batch: bool</span>
+<span class="sd">            Whether to create an AWS batch job or not.</span>
+<span class="sd">        job_queue_id : string</span>
+<span class="sd">            Job queue Id to use in the batch job.</span>
+<span class="sd">        nextflow_profile: string</span>
+<span class="sd">            A comma separated string with the profiles to be used.</span>
+<span class="sd">        nextflow_version: string</span>
+<span class="sd">            Nextflow version to use when executing the workflow in CloudOS.</span>
+<span class="sd">        instance_type : string</span>
+<span class="sd">            Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</span>
+<span class="sd">        instance_disk : int</span>
+<span class="sd">            The disk space of the master node instance, in GB.</span>
+<span class="sd">        storage_mode : string</span>
+<span class="sd">            Either &#39;lustre&#39; or &#39;regular&#39;. Indicates if the user wants to select regular</span>
+<span class="sd">            or lustre storage.</span>
+<span class="sd">        lustre_size : int</span>
+<span class="sd">            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or</span>
+<span class="sd">            a multiple of it.</span>
+<span class="sd">        execution_platform : string [&#39;aws&#39;|&#39;azure&#39;|&#39;hpc&#39;]</span>
+<span class="sd">            The execution platform implemented in your CloudOS.</span>
+<span class="sd">        hpc_id : string</span>
+<span class="sd">            The ID of your HPC in CloudOS.</span>
+<span class="sd">        workflow_type : str</span>
+<span class="sd">            The type of workflow to run. It could be &#39;nextflow&#39;, &#39;wdl&#39; or &#39;docker&#39;.</span>
+<span class="sd">        cromwell_id : str</span>
+<span class="sd">            Cromwell server ID.</span>
+<span class="sd">        azure_worker_instance_type: str</span>
+<span class="sd">            The worker node instance type to be used in azure.</span>
+<span class="sd">        azure_worker_instance_disk: int</span>
+<span class="sd">            The disk size in GB for the worker node to be used in azure.</span>
+<span class="sd">        azure_worker_instance_spot: bool</span>
+<span class="sd">            Whether the azure worker nodes have to be spot instances or not.</span>
+<span class="sd">        cost_limit : float</span>
+<span class="sd">            Job cost limit. -1 means no cost limit.</span>
+<span class="sd">        use_mountpoints : bool</span>
+<span class="sd">            Whether to use or not AWS S3 mountpoint for quicker file staging.</span>
+<span class="sd">        docker_login : bool</span>
+<span class="sd">            Whether to use private docker images, provided the users have linked their docker.io accounts.</span>
+<span class="sd">        verify : [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+<span class="sd">        command : string</span>
+<span class="sd">            The command to run in bash jobs.</span>
+<span class="sd">        cpus : int</span>
+<span class="sd">            The number of CPUs to use for the bash jobs task&#39;s master node.</span>
+<span class="sd">        memory : int</span>
+<span class="sd">            The amount of memory, in GB, to use for the bash job task&#39;s master node.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        j_id : string</span>
+<span class="sd">            The CloudOS job id of the job just launched.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apikey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="n">cloudos_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span>
+        <span class="n">workspace_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span>
+        <span class="n">workflow_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow_id</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span>
+        <span class="c1"># Prepare api request for CloudOS to run a job</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="n">apikey</span>
+        <span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_nextflow_to_json</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span>
+                                               <span class="n">parameter</span><span class="p">,</span>
+                                               <span class="n">array_parameter</span><span class="p">,</span>
+                                               <span class="n">array_file_header</span><span class="p">,</span>
+                                               <span class="n">is_module</span><span class="p">,</span>
+                                               <span class="n">example_parameters</span><span class="p">,</span>
+                                               <span class="n">git_commit</span><span class="p">,</span>
+                                               <span class="n">git_tag</span><span class="p">,</span>
+                                               <span class="n">git_branch</span><span class="p">,</span>
+                                               <span class="n">project_id</span><span class="p">,</span>
+                                               <span class="n">workflow_id</span><span class="p">,</span>
+                                               <span class="n">job_name</span><span class="p">,</span>
+                                               <span class="n">resumable</span><span class="p">,</span>
+                                               <span class="n">save_logs</span><span class="p">,</span>
+                                               <span class="n">batch</span><span class="p">,</span>
+                                               <span class="n">job_queue_id</span><span class="p">,</span>
+                                               <span class="n">nextflow_profile</span><span class="p">,</span>
+                                               <span class="n">nextflow_version</span><span class="p">,</span>
+                                               <span class="n">instance_type</span><span class="p">,</span>
+                                               <span class="n">instance_disk</span><span class="p">,</span>
+                                               <span class="n">storage_mode</span><span class="p">,</span>
+                                               <span class="n">lustre_size</span><span class="p">,</span>
+                                               <span class="n">execution_platform</span><span class="p">,</span>
+                                               <span class="n">hpc_id</span><span class="p">,</span>
+                                               <span class="n">workflow_type</span><span class="p">,</span>
+                                               <span class="n">cromwell_id</span><span class="p">,</span>
+                                               <span class="n">azure_worker_instance_type</span><span class="p">,</span>
+                                               <span class="n">azure_worker_instance_disk</span><span class="p">,</span>
+                                               <span class="n">azure_worker_instance_spot</span><span class="p">,</span>
+                                               <span class="n">cost_limit</span><span class="p">,</span>
+                                               <span class="n">use_mountpoints</span><span class="p">,</span>
+                                               <span class="n">docker_login</span><span class="p">,</span>
+                                               <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
+                                               <span class="n">cpus</span><span class="o">=</span><span class="n">cpus</span><span class="p">,</span>
+                                               <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span>
+                                                                  <span class="n">workspace_id</span><span class="p">),</span>
+                                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">j_id</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job successfully launched to CloudOS, please check the &#39;</span> <span class="o">+</span>
+              <span class="sa">f</span><span class="s1">&#39;following link: </span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s1">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">j_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">j_id</span></div>
+
+
+<div class="viewcode-block" id="Job.retrieve_cols_from_array_file">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.retrieve_cols_from_array_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retrieve_cols_from_array_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array_file</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">separator</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve metadata for columns from an array file stored in a directory.</span>
+
+<span class="sd">        This method fetches the metadata of an array file by interacting with a directory service</span>
+<span class="sd">        and making an API call to retrieve the file&#39;s metadata.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        array_file : str</span>
+<span class="sd">            The path to the array file whose metadata is to be retrieved.</span>
+<span class="sd">        ds : object</span>
+<span class="sd">            The directory service object used to list folder content.</span>
+<span class="sd">        separator : str</span>
+<span class="sd">            The separator used in the array file.</span>
+<span class="sd">        verify_ssl : bool</span>
+<span class="sd">            Whether to verify SSL certificates during the API request.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the specified file is not found in the directory.</span>
+<span class="sd">        BadRequestException</span>
+<span class="sd">            If the API request to retrieve metadata fails with a status code &gt;= 400.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Response</span>
+<span class="sd">            The HTTP response object containing the metadata of the array file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Split the array_file path to get the directory and file name</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">array_file</span><span class="p">)</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># fetch the content of the directory</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+
+        <span class="c1"># retrieve the S3 bucket name and object key for the specified file</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">array_file_id</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">)</span>
+                <span class="n">s3_bucket_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s3BucketName&quot;</span><span class="p">)</span>
+                <span class="n">s3_object_key</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s3ObjectKey&quot;</span><span class="p">)</span>
+                <span class="n">s3_object_key_b64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">s3_object_key</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File &quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1">&quot; not found in the &quot;</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s1">&quot; folder of the project &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s1">&quot;.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># retrieve the metadata of the array file</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/jobs/array-file/metadata&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;?separator=</span><span class="si">{</span><span class="n">separator</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&amp;s3BucketName=</span><span class="si">{</span><span class="n">s3_bucket_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&amp;s3ObjectKey=</span><span class="si">{</span><span class="n">s3_object_key_b64</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&amp;teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+
+
+<div class="viewcode-block" id="Job.setup_params_array_file">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.setup_params_array_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_params_array_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_script_path</span><span class="p">,</span> <span class="n">ds_custom</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">separator</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets up a dictionary representing command parameters, including support for custom scripts</span>
+<span class="sd">        and array files, to be used in job execution.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_script_path : str</span>
+<span class="sd">            Path to the custom script file. If None, the command is treated as text.</span>
+<span class="sd">        ds_custom : object</span>
+<span class="sd">            An object providing access to folder content listing functionality.</span>
+<span class="sd">        command : str</span>
+<span class="sd">            The command to be executed, either as text or the name of a custom script.</span>
+<span class="sd">        separator : str</span>
+<span class="sd">            The separator to be used for the array file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary containing the command parameters, including:</span>
+<span class="sd">                - &quot;command&quot;: The command name or text.</span>
+<span class="sd">                - &quot;customScriptFile&quot; (optional): Details of the custom script file if provided.</span>
+<span class="sd">                - &quot;arrayFile&quot;: Details of the array file and its separator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_script_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">command_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">custom_script_path</span><span class="p">)</span>
+            <span class="n">command_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+            <span class="n">command_name</span> <span class="o">=</span> <span class="n">command_path</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">result_script</span> <span class="o">=</span> <span class="n">ds_custom</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">result_script</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
+                    <span class="n">custom_script_item</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="c1"># use this in case the command is in a custom script</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;customScriptFile&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;File&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_script_item</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># use this for text commands</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="n">command</span><span class="p">}</span>
+
+        <span class="c1"># add array-file</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">|</span> <span class="p">{</span>
+            <span class="s2">&quot;arrayFile&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">array_file_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;separator&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">separator</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">cmd</span></div>
+
+
+<div class="viewcode-block" id="Job.split_array_file_params">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.split_array_file_params">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">split_array_file_params</span><span class="p">(</span><span class="n">array_parameter</span><span class="p">,</span> <span class="n">workflow_type</span><span class="p">,</span> <span class="n">array_file_header</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Splits and processes array parameters for a given workflow type and array file header.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        array_parameter :   list</span>
+<span class="sd">            A list of strings representing array parameters in the format &quot;key=value&quot;.</span>
+<span class="sd">        workflow_type : str</span>
+<span class="sd">            The type of workflow, e.g., &#39;docker&#39;.</span>
+<span class="sd">        array_file_header : list</span>
+<span class="sd">            A list of dictionaries representing the header of the array file.</span>
+<span class="sd">            Each dictionary should contain &quot;name&quot; and &quot;index&quot; keys.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary containing processed parameter details, including:</span>
+<span class="sd">                - prefix (str): The prefix for the parameter (e.g., &quot;--&quot; or &quot;-&quot;).</span>
+<span class="sd">                - name (str): The name of the parameter with leading dashes stripped.</span>
+<span class="sd">                - parameterKind (str): The kind of parameter, set to &quot;arrayFileColumn&quot;.</span>
+<span class="sd">                - columnName (str): The name of the column derived from the parameter value.</span>
+<span class="sd">                - columnIndex (int): The index of the column in the array file header.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If an array parameter does not contain a &#39;=&#39; character or is improperly formatted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ap_param</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ap</span> <span class="ow">in</span> <span class="n">array_parameter</span><span class="p">:</span>
+            <span class="n">ap_split</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ap_split</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify -a / --array-parameter using a single </span><span class="se">\&#39;</span><span class="s1">=</span><span class="se">\&#39;</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                                <span class="s1">&#39;as spacer. E.g: input=value&#39;</span><span class="p">)</span>
+            <span class="n">ap_name</span> <span class="o">=</span> <span class="n">ap_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ap_value</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ap_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;docker&#39;</span><span class="p">:</span>
+                <span class="n">ap_prefix</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span> <span class="k">if</span> <span class="n">ap_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">ap_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">ap_param</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="n">ap_prefix</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">ap_name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">),</span>
+                    <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;arrayFileColumn&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;columnName&quot;</span><span class="p">:</span> <span class="n">ap_value</span><span class="p">,</span>
+                    <span class="s2">&quot;columnIndex&quot;</span><span class="p">:</span> <span class="nb">next</span><span class="p">((</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">array_file_header</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;id&quot;</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">ap_param</span></div>
+
+
+<div class="viewcode-block" id="Job.docker_workflow_param_processing">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.docker_workflow_param_processing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">docker_workflow_param_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">project_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes a Docker workflow parameter and determines its type and associated metadata.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param : str</span>
+<span class="sd">            The parameter string in the format &#39;--param_name=value&#39;.</span>
+<span class="sd">            It can represent a file path, a glob pattern, or a simple text value.</span>
+<span class="sd">        project_name : str</span>
+<span class="sd">            The name of the current project to use if no specific project is extracted from the parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary containing the processed parameter details. The structure of the dictionary depends on the type of the parameter:</span>
+<span class="sd">            - For glob patterns:</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;name&quot;: str,          # Parameter name without leading dashes.</span>
+<span class="sd">                &quot;prefix&quot;: str,        # Prefix (&#39;--&#39; or &#39;-&#39;) based on the parameter format.</span>
+<span class="sd">                &quot;globPattern&quot;: str,   # The glob pattern extracted from the parameter.</span>
+<span class="sd">                &quot;parameterKind&quot;: str, # Always &quot;globPattern&quot;.</span>
+<span class="sd">                &quot;folder&quot;: str         # Folder ID associated with the glob pattern.</span>
+<span class="sd">            - For file paths:</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;name&quot;: str,          # Parameter name without leading dashes.</span>
+<span class="sd">                &quot;prefix&quot;: str,        # Prefix (&#39;--&#39; or &#39;-&#39;) based on the parameter format.</span>
+<span class="sd">                &quot;parameterKind&quot;: str, # Always &quot;dataItem&quot;.</span>
+<span class="sd">                &quot;dataItem&quot;: {</span>
+<span class="sd">                    &quot;kind&quot;: str,      # Always &quot;File&quot;.</span>
+<span class="sd">                    &quot;item&quot;: str       # File ID associated with the file path.</span>
+<span class="sd">            - For text values:</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;name&quot;: str,          # Parameter name without leading dashes.</span>
+<span class="sd">                &quot;prefix&quot;: str,        # Prefix (&#39;--&#39; or &#39;-&#39;) based on the parameter format.</span>
+<span class="sd">                &quot;parameterKind&quot;: str, # Always &quot;textValue&quot;.</span>
+<span class="sd">                &quot;textValue&quot;: str      # The text value extracted from the parameter.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - The function uses helper methods `extract_project`, `classify_pattern`, and `get_file_or_folder_id` to process the parameter.</span>
+<span class="sd">        - If the parameter represents a file path or glob pattern, the function retrieves the corresponding file or folder ID from the cloud workspace.</span>
+<span class="sd">        - If the parameter does not match any specific pattern or file extension, it is treated as a simple text value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># split &#39;--param_name=example_test&#39;</span>
+        <span class="c1"># name -&gt; &#39;--param_name&#39;</span>
+        <span class="c1"># rest -&gt; &#39;example_test&#39;</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># e.g. &quot;/Project/Subproject/file.csv&quot;, project is &quot;Project&quot;</span>
+        <span class="c1"># e.g &quot;Data/input.csv&quot;, project is &#39;&#39;, leaving the global project name</span>
+        <span class="c1"># e.g &quot;-p --test=value&quot;, project is &#39;&#39;</span>
+        <span class="n">project</span><span class="p">,</span> <span class="n">file_path</span> <span class="o">=</span> <span class="n">extract_project</span><span class="p">(</span><span class="n">rest</span><span class="p">)</span>
+        <span class="n">current_project</span> <span class="o">=</span> <span class="n">project</span> <span class="k">if</span> <span class="n">project</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="n">project_name</span>
+
+        <span class="c1"># e.g. &quot;/Project/Subproject/file.csv&quot;</span>
+        <span class="n">command_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">command_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">command_name</span> <span class="o">=</span> <span class="n">command_path</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">command_name</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">classify_pattern</span><span class="p">(</span><span class="n">rest</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;regex&quot;</span><span class="p">,</span> <span class="s2">&quot;glob&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/Data&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Data&#39;</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;[ERROR] The file path inside the project must start with &#39;/Data&#39; or &#39;Data&#39;. &quot;</span><span class="p">)</span>
+
+            <span class="n">folder</span> <span class="o">=</span> <span class="n">get_file_or_folder_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">current_project</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span> <span class="n">command_dir</span><span class="p">,</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;globPattern&#39;</span><span class="p">:</span> <span class="n">command_name</span><span class="p">,</span>
+                <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;globPattern&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;folder&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="n">ext</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/Data&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Data&#39;</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;[ERROR] The file path inside the project must start with &#39;/Data&#39; or &#39;Data&#39;. &quot;</span><span class="p">)</span>
+
+            <span class="n">file</span> <span class="o">=</span> <span class="n">get_file_or_folder_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">current_project</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span> <span class="n">command_dir</span><span class="p">,</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;dataItem&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;File&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rest</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Job.get_job_request_payload">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_job_request_payload">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_request_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the original request payload for a job.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_id : str</span>
+<span class="sd">            The CloudOS job ID to get the payload for.</span>
+<span class="sd">        verify : [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The original job request payload.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/jobs/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/request-payload?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Job.update_parameter_value">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.update_parameter_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_parameter_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update a parameter value in the parameters list.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameters : list</span>
+<span class="sd">            List of parameter dictionaries.</span>
+<span class="sd">        param_name : str</span>
+<span class="sd">            Name of the parameter to update.</span>
+<span class="sd">        new_value : str</span>
+<span class="sd">            New value for the parameter.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if parameter was found and updated, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">param_name</span><span class="p">:</span>
+                <span class="c1"># Handle different parameter kinds</span>
+                <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameterKind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;textValue&#39;</span><span class="p">:</span>
+                    <span class="n">param</span><span class="p">[</span><span class="s1">&#39;textValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_value</span>
+                <span class="k">elif</span> <span class="n">param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameterKind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;dataItem&#39;</span><span class="p">:</span>
+                    <span class="c1"># For data items, we need to process the value to get file/folder ID</span>
+                    <span class="c1"># This is a simplified version - in practice you&#39;d need more logic</span>
+                    <span class="k">if</span> <span class="n">new_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">new_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;az://&#39;</span><span class="p">):</span>
+                        <span class="n">param</span><span class="p">[</span><span class="s1">&#39;textValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_value</span>
+                        <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameterKind&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;textValue&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Try to process as file/data item</span>
+                        <span class="n">processed_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">docker_workflow_param_processing</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">new_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+                        <span class="n">param</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">processed_param</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Job.get_resume_work_dir">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_resume_work_dir">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_resume_work_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the resume work directory id for a job.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_id : str</span>
+<span class="sd">            The CloudOS job ID to get the resume work directory for.</span>
+<span class="sd">        verify : [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The resume work directory id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/jobs/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Job.clone_or_resume_job">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.clone_or_resume_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone_or_resume_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                  <span class="n">source_job_id</span><span class="p">,</span>
+                  <span class="n">queue_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">cost_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">master_instance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">job_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">nextflow_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">profile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">do_not_save_logs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">use_fusion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">resumable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clone or resume an existing job with optional parameter overrides.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source_job_id : str</span>
+<span class="sd">            The CloudOS job ID to clone/resume from.</span>
+<span class="sd">        queue_name : str, optional</span>
+<span class="sd">            Name of the job queue to use.</span>
+<span class="sd">        cost_limit : float, optional</span>
+<span class="sd">            Job cost limit override.</span>
+<span class="sd">        master_instance : str, optional</span>
+<span class="sd">            Master instance type override.</span>
+<span class="sd">        job_name : str, optional</span>
+<span class="sd">            New job name.</span>
+<span class="sd">        nextflow_version : str, optional</span>
+<span class="sd">            Nextflow version override.</span>
+<span class="sd">        branch : str, optional</span>
+<span class="sd">            Git branch override.</span>
+<span class="sd">        profile : str, optional</span>
+<span class="sd">            Nextflow profile override.</span>
+<span class="sd">        do_not_save_logs : bool, optional</span>
+<span class="sd">            Whether to save logs override.</span>
+<span class="sd">        use_fusion : bool, optional</span>
+<span class="sd">            Whether to use fusion filesystem override.</span>
+<span class="sd">        resumable : bool, optional</span>
+<span class="sd">            Whether to make the job resumable or not.</span>
+<span class="sd">        project_name : str, optional</span>
+<span class="sd">            Project name override (will look up new project ID).</span>
+<span class="sd">        parameters : list, optional</span>
+<span class="sd">            List of parameter overrides in format [&#39;param1=value1&#39;, &#39;param2=value2&#39;].</span>
+<span class="sd">        verify : [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+<span class="sd">        mode : str, optional</span>
+<span class="sd">            The mode to use for the job (e.g. &quot;clone&quot;, &quot;resume&quot;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The CloudOS job ID of the cloned/resumed job.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the original job payload</span>
+        <span class="n">original_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_request_payload</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+
+        <span class="c1"># Create a copy of the payload for modification</span>
+        <span class="n">cloned_payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">original_payload</span><span class="p">))</span>
+
+        <span class="c1"># remove unwanted fields</span>
+        <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resourceId&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumeWorkDir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resume_work_dir</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get resume work directory: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, the job was not set as resumable when originally run</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Override job name if provided</span>
+        <span class="k">if</span> <span class="n">job_name</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_name</span>
+
+        <span class="c1"># Override cost limit if provided</span>
+        <span class="k">if</span> <span class="n">cost_limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;execution&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">][</span><span class="s1">&#39;computeCostLimit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost_limit</span>
+
+        <span class="c1"># Override master instance if provided</span>
+        <span class="k">if</span> <span class="n">master_instance</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;masterInstance&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;masterInstance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;requestedInstance&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;masterInstance&#39;</span><span class="p">][</span><span class="s1">&#39;requestedInstance&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_instance</span>
+
+        <span class="c1"># Override nextflow version if provided (only for non-docker workflows)</span>
+        <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">and</span> <span class="s1">&#39;nextflowVersion&#39;</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;nextflowVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
+        <span class="k">elif</span> <span class="n">nextflow_version</span> <span class="ow">and</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;executionPlatform&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span> <span class="ow">and</span>\
+            <span class="n">nextflow_version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;22.11.1-edge&#39;</span><span class="p">,</span> <span class="s1">&#39;latest&#39;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option &#39;--nextflow-version&#39; is ignored.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Override branch if provided</span>
+        <span class="k">if</span> <span class="n">branch</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;revision&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;branch&#39;</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">branch</span>
+            <span class="c1"># Clear other revision types</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Override profile if provided</span>
+        <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span>
+
+        <span class="c1"># Override save logs if provided</span>
+        <span class="k">if</span> <span class="n">do_not_save_logs</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;saveProcessLogs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">do_not_save_logs</span>
+
+        <span class="c1"># Override use fusion if provided</span>
+        <span class="k">if</span> <span class="n">use_fusion</span> <span class="ow">and</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;executionPlatform&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;usesFusionFileSystem&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">use_fusion</span>
+        <span class="k">elif</span> <span class="n">use_fusion</span> <span class="ow">and</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;executionPlatform&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: Azure workspace does not use fusion filesystem, option &#39;--accelerate-file-staging&#39; is ignored.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Override resumable if provided</span>
+        <span class="k">if</span> <span class="n">resumable</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;clone&quot;</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resumable</span>
+        <span class="k">elif</span> <span class="n">resumable</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: &#39;resumable&#39; option is only applicable when resuming a job, ignoring &#39;--resumable&#39; flag.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Handle job queue override</span>
+        <span class="k">if</span> <span class="n">queue_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;executionPlatform&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.queue.queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+                    <span class="n">queue_api</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cromwell_token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
+                    <span class="n">queues</span> <span class="o">=</span> <span class="n">queue_api</span><span class="o">.</span><span class="n">get_job_queues</span><span class="p">()</span>
+
+                    <span class="n">queue_id</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">for</span> <span class="n">queue</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">queue_name</span> <span class="ow">or</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">queue_name</span><span class="p">:</span>
+                            <span class="n">queue_id</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">)</span>
+                            <span class="k">break</span>
+                    <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;batch&#39;</span><span class="p">][</span><span class="s1">&#39;jobQueue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue_id</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">queue_id</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue with name &#39;</span><span class="si">{</span><span class="n">queue_name</span><span class="si">}</span><span class="s2">&#39; not found in workspace &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error filtering by queue &#39;</span><span class="si">{</span><span class="n">queue_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: Azure workspace does not use job queues, option &#39;--job-queue&#39; is ignored.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Handle parameter overrides</span>
+        <span class="k">if</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="n">cloned_parameters</span> <span class="o">=</span> <span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">param_override</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                <span class="n">param_name</span><span class="p">,</span> <span class="n">param_value</span> <span class="o">=</span> <span class="n">param_override</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">param_name</span> <span class="o">=</span> <span class="n">param_name</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="c1"># Remove leading dashes</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_parameter_value</span><span class="p">(</span><span class="n">cloned_parameters</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_value</span><span class="p">):</span>
+                    <span class="c1"># Parameter not found, add as new parameter</span>
+                    <span class="c1"># Determine workflow type to set proper prefix and format</span>
+                    <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span> <span class="k">if</span> <span class="n">param_override</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">param_override</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">new_param</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">,</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param_name</span><span class="p">,</span>
+                        <span class="s2">&quot;parameterKind&quot;</span><span class="p">:</span> <span class="s2">&quot;textValue&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;textValue&quot;</span><span class="p">:</span> <span class="n">param_value</span>
+                    <span class="p">}</span>
+                    <span class="n">cloned_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_param</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cloned_parameters</span>
+
+        <span class="c1"># setup project name</span>
+        <span class="k">if</span> <span class="n">project_name</span><span class="p">:</span>
+            <span class="c1"># get project ID</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_project_id_from_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project_id</span>
+
+        <span class="c1"># Send the cloned job</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cloned_payload</span><span class="p">),</span> 
+                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> 
+                                <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+        <span class="n">j_id</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job successfully </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">d and launched to CloudOS, please check the &#39;</span> <span class="o">+</span>
+              <span class="sa">f</span><span class="s2">&quot;following link: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">j_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">j_id</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Lifebit AI
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

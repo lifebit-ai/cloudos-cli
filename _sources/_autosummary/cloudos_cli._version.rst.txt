@@ -1,0 +1,6 @@
+﻿cloudos\_cli.\_version
+======================
+
+.. automodule:: cloudos_cli._version
+
+   

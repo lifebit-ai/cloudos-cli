@@ -1,0 +1,12 @@
+cloudos\_cli.link.link
+======================
+
+.. automodule:: cloudos_cli.link.link
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Link
+   

@@ -1,0 +1,18 @@
+cloudos\_cli.utils.array\_job
+=============================
+
+.. automodule:: cloudos_cli.utils.array_job
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      classify_pattern
+      extract_project
+      generate_datasets_for_project
+      get_file_or_folder_id
+      is_glob_pattern
+      is_probably_regex
+      is_valid_regex
+   

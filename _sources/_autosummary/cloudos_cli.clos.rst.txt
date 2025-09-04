@@ -1,0 +1,12 @@
+cloudos\_cli.clos
+=================
+
+.. automodule:: cloudos_cli.clos
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Cloudos
+   

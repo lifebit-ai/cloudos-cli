@@ -1,0 +1,12 @@
+cloudos\_cli.jobs.job
+=====================
+
+.. automodule:: cloudos_cli.jobs.job
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Job
+   

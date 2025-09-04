@@ -1,0 +1,12 @@
+cloudos\_cli.utils.cloud
+========================
+
+.. automodule:: cloudos_cli.utils.cloud
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      find_cloud
+   

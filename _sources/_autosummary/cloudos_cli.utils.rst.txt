@@ -1,0 +1,19 @@
+cloudos\_cli.utils
+==================
+
+.. automodule:: cloudos_cli.utils
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   array_job
+   cloud
+   details
+   errors
+   last_wf
+   requests
+   resources

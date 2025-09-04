@@ -1,0 +1,12 @@
+cloudos\_cli.queue.queue
+========================
+
+.. automodule:: cloudos_cli.queue.queue
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Queue
+   

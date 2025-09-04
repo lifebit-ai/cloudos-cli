@@ -1,0 +1,1074 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="cloudos_cli.configure" href="cloudos_cli.configure.html" /><link rel="prev" title="cloudos_cli" href="cloudos_cli.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.07.19 -->
+        <title>cloudos_cli.clos - CloudOS CLI Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=25af2a20" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">CloudOS CLI Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">CloudOS CLI Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html#cloudos-cli">cloudos-cli</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../modules.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="cloudos_cli.html">cloudos_cli</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of cloudos_cli</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">cloudos_cli.clos</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli._version.html">cloudos_cli._version</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">cloudos_cli.clos</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/_autosummary/cloudos_cli.clos.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-cloudos_cli.clos">
+<span id="cloudos-cli-clos"></span><h1>cloudos_cli.clos<a class="headerlink" href="#module-cloudos_cli.clos" title="Link to this heading">¶</a></h1>
+<p>This is the main class of the package.</p>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cloudos</span></code></a>(cloudos_url, apikey, cromwell_token)</p></td>
+<td><p>A simple class to contain the required connection information.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cloudos_cli.clos.</span></span><span class="sig-name descname"><span class="pre">Cloudos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple class to contain the required connection information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cloudos_url</strong> (<em>string</em>) – The CloudOS service url.</p></li>
+<li><p><strong>apikey</strong> (<em>string</em>) – Your CloudOS API key.</p></li>
+<li><p><strong>cromwell_token</strong> (<em>string</em>) – Cromwell server token. If None, apikey will be used instead.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.abort_job">
+<span class="sig-name descname"><span class="pre">abort_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.abort_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.abort_job" title="Link to this definition">¶</a></dt>
+<dd><p>Abort a job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job</strong> (<em>string</em>) – The CloudOS job id of the job to abort.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.apikey">
+<span class="sig-name descname"><span class="pre">apikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.clos.Cloudos.apikey" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.cloudos_url">
+<span class="sig-name descname"><span class="pre">cloudos_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.clos.Cloudos.cloudos_url" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.create_project">
+<span class="sig-name descname"><span class="pre">create_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.create_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.create_project" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new project in CloudOS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID where the project will be created.</p></li>
+<li><p><strong>project_name</strong> (<em>str</em>) – The name for the new project.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ID of the newly created project.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to create the project fails with a status code
+    indicating an error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.cromwell_switch">
+<span class="sig-name descname"><span class="pre">cromwell_switch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.cromwell_switch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.cromwell_switch" title="Link to this definition">¶</a></dt>
+<dd><p>Restart Cromwell server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id in which restart/stop Cromwell status.</p></li>
+<li><p><strong>action</strong> (<em>string</em><em> [</em><em>restart</em><em>|</em><em>stop</em><em>]</em>) – The action to perform.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.cromwell_token">
+<span class="sig-name descname"><span class="pre">cromwell_token</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.clos.Cloudos.cromwell_token" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.detect_workflow">
+<span class="sig-name descname"><span class="pre">detect_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.detect_workflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.detect_workflow" title="Link to this definition">¶</a></dt>
+<dd><p>Detects workflow type: nextflow or wdl.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>wt</strong> – The workflow type detected</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string [‘nextflow’|’wdl’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_cromwell_status">
+<span class="sig-name descname"><span class="pre">get_cromwell_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_cromwell_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_cromwell_status" title="Link to this definition">¶</a></dt>
+<dd><p>Get Cromwell server status from CloudOS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the Cromwell status.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_job_list">
+<span class="sig-name descname"><span class="pre">get_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_job_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_job_list" title="Link to this definition">¶</a></dt>
+<dd><p>Get jobs from a CloudOS workspace with optional filtering.</p>
+<p>Fetches jobs page by page, applies all filters after fetching.
+Stops when enough jobs are collected or no more jobs are available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the jobs.</p></li>
+<li><p><strong>last_n_jobs</strong> (<em>[</em><em>int</em><em> | </em><em>'all'</em><em>]</em>) – How many of the last jobs from the user to retrieve. You can specify a
+very large int or ‘all’ to get all user’s jobs.</p></li>
+<li><p><strong>page</strong> (<em>int</em>) – Response page to get (ignored when using filters - starts from page 1).</p></li>
+<li><p><strong>archived</strong> (<em>bool</em>) – When True, only the archived jobs are retrieved.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+<li><p><strong>filter_status</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by status (e.g., ‘completed’, ‘running’, ‘failed’).</p></li>
+<li><p><strong>filter_job_name</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by name.</p></li>
+<li><p><strong>filter_project</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by project name (will be resolved to project ID).</p></li>
+<li><p><strong>filter_workflow</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by workflow name (will be resolved to workflow ID).</p></li>
+<li><p><strong>filter_job_id</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by specific job ID.</p></li>
+<li><p><strong>filter_only_mine</strong> (<em>bool</em><em>, </em><em>optional</em>) – Filter to show only jobs belonging to the current user.</p></li>
+<li><p><strong>filter_owner</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by owner username (will be resolved to user ID).</p></li>
+<li><p><strong>filter_queue</strong> (<em>string</em><em>, </em><em>optional</em>) – Filter jobs by queue name (will be resolved to queue ID).
+Only applies to jobs running in batch environment.
+Non-batch jobs are preserved in results as they don’t use queues.</p></li>
+<li><p><strong>last</strong> (<em>bool</em><em>, </em><em>optional</em>) – When workflows are duplicated, use the latest imported workflow (by date).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – A list of dicts, each corresponding to a jobs from the user and the workspace.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_job_logs">
+<span class="sig-name descname"><span class="pre">get_job_logs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_job_logs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_job_logs" title="Link to this definition">¶</a></dt>
+<dd><p>Get the location of the logs for the specified job</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_job_results">
+<span class="sig-name descname"><span class="pre">get_job_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_job_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_job_results" title="Link to this definition">¶</a></dt>
+<dd><p>Get the location of the results for the specified job</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_job_status">
+<span class="sig-name descname"><span class="pre">get_job_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_job_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_job_status" title="Link to this definition">¶</a></dt>
+<dd><p>Get job status from CloudOS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_job_workdir">
+<span class="sig-name descname"><span class="pre">get_job_workdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_job_workdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_job_workdir" title="Link to this definition">¶</a></dt>
+<dd><p>Get the working directory for the specified job</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_project_id_from_name">
+<span class="sig-name descname"><span class="pre">get_project_id_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_project_id_from_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_project_id_from_name" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the project ID from its name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the project.</p></li>
+<li><p><strong>project_name</strong> (<em>str</em>) – The name of the project to search for.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The server response containing project details.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to retrieve the project fails with a status code
+    indicating an error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_project_list">
+<span class="sig-name descname"><span class="pre">get_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_project_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_project_list" title="Link to this definition">¶</a></dt>
+<dd><p>Get all the project from a CloudOS workspace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+<li><p><strong>get_all</strong> (<em>bool</em>) – Whether to get all available curated workflows or just the
+indicated page.</p></li>
+<li><p><strong>page</strong> (<em>int</em>) – The page number to retrieve, from the paginated response.</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – The number of workflows by page. From 1 to 1000.</p></li>
+<li><p><strong>max_page_size</strong> (<em>int</em>) – Max page size defined by the API server. It is currently 1000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_storage_contents">
+<span class="sig-name descname"><span class="pre">get_storage_contents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloud_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloud_meta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_storage_contents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_storage_contents" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves the contents of a storage container from the specified cloud service.</p>
+<p>This method fetches the contents of a specified path within a storage container
+on a cloud service (e.g., AWS S3 or Azure Blob). The request is authenticated
+using an API key and requires valid parameters such as the workspace ID and path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cloud_name</strong> (<em>str</em>) – The name of the cloud service (e.g., ‘aws’ or ‘azure’).</p></li>
+<li><p><strong>container</strong> (<em>str</em>) – The name of the storage container or bucket.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – The file path or directory within the storage container.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The identifier of the workspace or team.</p></li>
+<li><p><strong>verify</strong> (<em>bool</em>) – Whether to verify SSL certificates for the request.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of contents retrieved from the specified cloud storage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to retrieve the contents fails with a</p></li>
+<li><p><strong>status code indicating an error.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_user_info">
+<span class="sig-name descname"><span class="pre">get_user_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_user_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_user_info" title="Link to this definition">¶</a></dt>
+<dd><p>Gets user information from users/me endpoint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response content</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response.content</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_workflow_content">
+<span class="sig-name descname"><span class="pre">get_workflow_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_workflow_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_workflow_content" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the workflow content from API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The server response containing workflow details.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to retrieve the project fails with a status code
+    indicating an error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_workflow_list">
+<span class="sig-name descname"><span class="pre">get_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_workflow_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_workflow_list" title="Link to this definition">¶</a></dt>
+<dd><p>Get all the workflows from a CloudOS workspace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+<li><p><strong>get_all</strong> (<em>bool</em>) – Whether to get all available curated workflows or just the
+indicated page.</p></li>
+<li><p><strong>page</strong> (<em>int</em>) – The page number to retrieve, from the paginated response.</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – The number of workflows by page. From 1 to 1000.</p></li>
+<li><p><strong>max_page_size</strong> (<em>int</em>) – Max page size defined by the API server. It is currently 1000.</p></li>
+<li><p><strong>archived_status</strong> (<em>bool</em>) – Whether to retrieve archived workflows or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – A list of dicts, each corresponding to a workflow.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.get_workflow_max_pagination">
+<span class="sig-name descname"><span class="pre">get_workflow_max_pagination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.get_workflow_max_pagination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.get_workflow_max_pagination" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the workflows max pages from API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The server response with max pagination for workflows.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to retrieve the project fails with a status code
+    indicating an error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.is_module">
+<span class="sig-name descname"><span class="pre">is_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.is_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.is_module" title="Link to this definition">¶</a></dt>
+<dd><p>Detects whether the workflow is a system module or not.</p>
+<p>System modules use fixed queues, so this check is important to
+properly manage queue selection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True, if the workflow is a system module, false otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.process_job_list">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.process_job_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.process_job_list" title="Link to this definition">¶</a></dt>
+<dd><p>Process a job list from a self.get_job_list call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>list</em>) – A list of dicts, each corresponding to a job from the user and the workspace.</p></li>
+<li><p><strong>all_fields</strong> (<em>bool. Default=False</em>) – Whether to return a reduced version of the DataFrame containing
+only the selected columns or the full DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – A DataFrame with the requested columns from the jobs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.process_project_list">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.process_project_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.process_project_list" title="Link to this definition">¶</a></dt>
+<dd><p>Process a server response from a self.get_project_list call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>requests.models.Response</em>) – A list of dicts, each corresponding to a project.</p></li>
+<li><p><strong>all_fields</strong> (<em>bool. Default=False</em>) – Whether to return a reduced version of the DataFrame containing
+only the selected columns or the full DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – A DataFrame with the requested columns from the projects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.process_workflow_list">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.process_workflow_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.process_workflow_list" title="Link to this definition">¶</a></dt>
+<dd><p>Process a server response from a self.get_workflow_list call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>list</em>) – A list of dicts, each corresponding to a workflow.</p></li>
+<li><p><strong>all_fields</strong> (<em>bool. Default=False</em>) – Whether to return a reduced version of the DataFrame containing
+only the selected columns or the full DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – A DataFrame with the requested columns from the workflows.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.reorder_job_list">
+<span class="sig-name descname"><span class="pre">reorder_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_jobs_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'my_jobs.csv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.reorder_job_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.reorder_job_list" title="Link to this definition">¶</a></dt>
+<dd><p>Save a job list DataFrame to a CSV file with renamed and ordered columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>my_jobs_df</strong> (<em>pandas.DataFrame</em>) – A DataFrame containing job information from process_job_list.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The name of the file to save the DataFrame to. Default is ‘my_jobs.csv’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Saves the DataFrame to a CSV file with renamed and ordered columns.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.resolve_user_id">
+<span class="sig-name descname"><span class="pre">resolve_user_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.resolve_user_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.resolve_user_id" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve a username or display name to a user ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filter_owner</strong> (<em>str</em>) – The username or display name to search for.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The user ID corresponding to the filter_owner.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the user cannot be found or if there’s an error during the search.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.save_job_list_to_csv">
+<span class="sig-name descname"><span class="pre">save_job_list_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_jobs_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'my_jobs.csv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.save_job_list_to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.save_job_list_to_csv" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.wait_job_completion">
+<span class="sig-name descname"><span class="pre">wait_job_completion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.wait_job_completion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.wait_job_completion" title="Link to this definition">¶</a></dt>
+<dd><p>Checks job status from CloudOS and wait for its complation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
+<li><p><strong>wait_time</strong> (<em>int</em>) – Max time to wait (in seconds) to job completion.</p></li>
+<li><p><strong>request_interval</strong> (<em>int</em>) – Time interval (in seconds) to request job status.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to output status on every request or not.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict with three elements collected from the job status: ‘name’, ‘id’, ‘status’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.workflow_content_query">
+<span class="sig-name descname"><span class="pre">workflow_content_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'workflowType'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.workflow_content_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.workflow_content_query" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.clos.Cloudos.workflow_import">
+<span class="sig-name descname"><span class="pre">workflow_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_docs_link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/clos.html#Cloudos.workflow_import"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.clos.Cloudos.workflow_import" title="Link to this definition">¶</a></dt>
+<dd><p>Imports workflows to CloudOS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>workflow_url</strong> (<em>string</em>) – The URL of the workflow. Only Github or Bitbucket are allowed.</p></li>
+<li><p><strong>workflow_name</strong> (<em>string</em>) – A name for the imported pipeline in CloudOS.</p></li>
+<li><p><strong>repository_project_id</strong> (<em>int</em>) – The repository project ID.</p></li>
+<li><p><strong>workflow_docs_link</strong> (<em>string</em>) – Link to the documentation URL.</p></li>
+<li><p><strong>repository_id</strong> (<em>int</em>) – The repository ID. Only required for GitHub repositories.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>workflow_id</strong> – The newly imported worflow ID.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="cloudos_cli.configure.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">cloudos_cli.configure</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="cloudos_cli.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">cloudos_cli</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Lifebit AI
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">cloudos_cli.clos</a><ul>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos"><code class="docutils literal notranslate"><span class="pre">Cloudos</span></code></a><ul>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.abort_job"><code class="docutils literal notranslate"><span class="pre">Cloudos.abort_job()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.apikey"><code class="docutils literal notranslate"><span class="pre">Cloudos.apikey</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.cloudos_url"><code class="docutils literal notranslate"><span class="pre">Cloudos.cloudos_url</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.create_project"><code class="docutils literal notranslate"><span class="pre">Cloudos.create_project()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.cromwell_switch"><code class="docutils literal notranslate"><span class="pre">Cloudos.cromwell_switch()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.cromwell_token"><code class="docutils literal notranslate"><span class="pre">Cloudos.cromwell_token</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.detect_workflow"><code class="docutils literal notranslate"><span class="pre">Cloudos.detect_workflow()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_cromwell_status"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_cromwell_status()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_job_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_job_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_job_logs"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_job_logs()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_job_results"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_job_results()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_job_status"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_job_status()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_job_workdir"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_job_workdir()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_project_id_from_name"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_project_id_from_name()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_project_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_project_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_storage_contents"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_storage_contents()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_user_info"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_user_info()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_workflow_content"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_workflow_content()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_workflow_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_workflow_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.get_workflow_max_pagination"><code class="docutils literal notranslate"><span class="pre">Cloudos.get_workflow_max_pagination()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.is_module"><code class="docutils literal notranslate"><span class="pre">Cloudos.is_module()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.process_job_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.process_job_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.process_project_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.process_project_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.process_workflow_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.process_workflow_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.reorder_job_list"><code class="docutils literal notranslate"><span class="pre">Cloudos.reorder_job_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.resolve_user_id"><code class="docutils literal notranslate"><span class="pre">Cloudos.resolve_user_id()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.save_job_list_to_csv"><code class="docutils literal notranslate"><span class="pre">Cloudos.save_job_list_to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.wait_job_completion"><code class="docutils literal notranslate"><span class="pre">Cloudos.wait_job_completion()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.workflow_content_query"><code class="docutils literal notranslate"><span class="pre">Cloudos.workflow_content_query()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.clos.Cloudos.workflow_import"><code class="docutils literal notranslate"><span class="pre">Cloudos.workflow_import()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

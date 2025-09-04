@@ -1,0 +1,12 @@
+cloudos\_cli.configure.configure
+================================
+
+.. automodule:: cloudos_cli.configure.configure
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ConfigurationProfile
+   

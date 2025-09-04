@@ -1,0 +1,13 @@
+cloudos\_cli.datasets
+=====================
+
+.. automodule:: cloudos_cli.datasets
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   datasets

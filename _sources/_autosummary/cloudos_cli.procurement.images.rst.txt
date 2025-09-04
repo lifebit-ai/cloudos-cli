@@ -1,0 +1,12 @@
+cloudos\_cli.procurement.images
+===============================
+
+.. automodule:: cloudos_cli.procurement.images
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Images
+   

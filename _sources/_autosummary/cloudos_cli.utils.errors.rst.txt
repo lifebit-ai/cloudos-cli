@@ -1,0 +1,18 @@
+cloudos\_cli.utils.errors
+=========================
+
+.. automodule:: cloudos_cli.utils.errors
+
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AccountNotLinkedException
+      BadRequestException
+      JoBNotCompletedException
+      JobAccessDeniedException
+      NoCloudForWorkspaceException
+      NotAuthorisedException
+      TimeOutException
+   

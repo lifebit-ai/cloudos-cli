@@ -1,0 +1,1894 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="CLI Reference" href="cli.html" /><link rel="prev" title="Welcome to CloudOS CLI’s documentation!" href="index.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.07.19 -->
+        <title>Getting Started - CloudOS CLI Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=25af2a20" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #2b2b2b;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">CloudOS CLI Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">CloudOS CLI Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#cloudos-cli">cloudos-cli</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="modules.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.html">cloudos_cli</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of cloudos_cli</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli._version.html">cloudos_cli._version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.configure.html">cloudos_cli.configure</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of cloudos_cli.configure</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.datasets.html">cloudos_cli.datasets</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle navigation of cloudos_cli.datasets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle navigation of cloudos_cli.import_wf</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.jobs.html">cloudos_cli.jobs</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle navigation of cloudos_cli.jobs</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.link.html">cloudos_cli.link</a><input class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><div class="visually-hidden">Toggle navigation of cloudos_cli.link</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.procurement.html">cloudos_cli.procurement</a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><div class="visually-hidden">Toggle navigation of cloudos_cli.procurement</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.queue.html">cloudos_cli.queue</a><input class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><div class="visually-hidden">Toggle navigation of cloudos_cli.queue</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/cloudos_cli.utils.html">cloudos_cli.utils</a><input class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><div class="visually-hidden">Toggle navigation of cloudos_cli.utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/getting_started.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+</section>
+<section id="cloudos-cli">
+<h1>cloudos-cli<a class="headerlink" href="#cloudos-cli" title="Link to this heading">¶</a></h1>
+<p><a class="reference external" href="https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml"><img alt="CI_tests" src="https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml/badge.svg" /></a></p>
+<p>Python package for interacting with CloudOS</p>
+<hr class="docutils" />
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#requirements"><span class="std std-ref">Requirements</span></a></p></li>
+<li><p><a class="reference internal" href="#installation"><span class="std std-ref">Installation</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#from-pypi"><span class="xref myst">From PyPI</span></a></p></li>
+<li><p><a class="reference internal" href="#docker-image"><span class="xref myst">Docker Image</span></a></p></li>
+<li><p><a class="reference internal" href="#from-github"><span class="xref myst">From Github</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#usage"><span class="std std-ref">Usage</span></a></p></li>
+<li><p><a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#configure-default-profile"><span class="xref myst">Configure Default Profile</span></a></p></li>
+<li><p><a class="reference internal" href="#configure-named-profile"><span class="xref myst">Configure Named Profile</span></a></p></li>
+<li><p><a class="reference internal" href="#change-the-default-profile"><span class="xref myst">Change the Default Profile</span></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cloudos-configure-list-profiles"><span class="std std-ref">List Profiles</span></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cloudos-configure-remove-profile"><span class="std std-ref">Remove Profile</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#commands"><span class="std std-ref">Commands</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#configure"><span class="std std-ref">Configure</span></a></p></li>
+<li><p><a class="reference internal" href="#project"><span class="std std-ref">Project</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#list-projects"><span class="xref myst">List Projects</span></a></p></li>
+<li><p><a class="reference internal" href="#create-projects"><span class="xref myst">Create Projects</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#queue"><span class="std std-ref">Queue</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#list-queues"><span class="xref myst">List Queues</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#workflow"><span class="std std-ref">Workflow</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#list-all-available-workflows"><span class="xref myst">List All Available Workflows</span></a></p></li>
+<li><p><a class="reference internal" href="#import-a-nextflow-workflow"><span class="xref myst">Import a Nextflow Workflow</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#nextflow-jobs"><span class="xref myst">Nextflow Jobs</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#submit-a-job"><span class="xref myst">Submit a Job</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-logs"><span class="xref myst">Get Job Logs</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-results"><span class="xref myst">Get Job Results</span></a></p></li>
+<li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume Job</span></a></p></li>
+<li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p></li>
+<li><p><a class="reference internal" href="#check-job-status"><span class="xref myst">Check Job Status</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-details"><span class="xref myst">Get Job Details</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-workdir"><span class="xref myst">Get Job Workdir</span></a></p></li>
+<li><p><a class="reference internal" href="#list-jobs"><span class="xref myst">List Jobs</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#bash-jobs"><span class="xref myst">Bash Jobs</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#send-array-job"><span class="xref myst">Send Array Job</span></a></p></li>
+<li><p><a class="reference internal" href="#submit-a-bash-array-job"><span class="xref myst">Submit a Bash Array Job</span></a></p></li>
+<li><p><a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">Use multiple projects for files in –parameter option</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#datasets"><span class="std std-ref">Datasets</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#list-files"><span class="xref myst">List Files</span></a></p></li>
+<li><p><a class="reference internal" href="#move-files"><span class="xref myst">Move Files</span></a></p></li>
+<li><p><a class="reference internal" href="#rename-files"><span class="xref myst">Rename Files</span></a></p></li>
+<li><p><a class="reference internal" href="#copy-files"><span class="xref myst">Copy Files</span></a></p></li>
+<li><p><a class="reference internal" href="#link-s3-folders-to-interactive-analysis"><span class="xref myst">Link S3 Folders to Interactive Analysis</span></a></p></li>
+<li><p><a class="reference internal" href="#create-folder"><span class="xref myst">Create Folder</span></a></p></li>
+<li><p><a class="reference internal" href="#remove-files-or-folders"><span class="xref myst">Remove Files or Folders</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#procurement"><span class="std std-ref">Procurement</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#list-procurement-images"><span class="xref myst">List Procurement Images</span></a></p></li>
+<li><p><a class="reference internal" href="#set-procurement-organization-image"><span class="xref myst">Set Procurement Organization Image</span></a></p></li>
+<li><p><a class="reference internal" href="#reset-procurement-organization-image"><span class="xref myst">Reset Procurement Organization Image</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#cromwell-and-wdl-pipeline-support"><span class="xref myst">Cromwell and WDL Pipeline Support</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#manage-cromwell-server"><span class="xref myst">Manage Cromwell Server</span></a></p></li>
+<li><p><a class="reference internal" href="#run-wdl-workflows"><span class="xref myst">Run WDL Workflows</span></a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#python-api-usage"><span class="xref myst">Python API Usage</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#running-wdl-pipelines-using-your-own-scripts"><span class="xref myst">Running WDL pipelines using your own scripts</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#unit-testing"><span class="xref myst">Unit Testing</span></a></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<p>CloudOS CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">click</span><span class="o">&gt;=</span><span class="mf">8.0.1</span>
+<span class="n">pandas</span><span class="o">&gt;=</span><span class="mf">1.3.4</span>
+<span class="n">numpy</span><span class="o">&gt;=</span><span class="mf">1.26.4</span>
+<span class="n">requests</span><span class="o">&gt;=</span><span class="mf">2.26.0</span>
+<span class="n">rich_click</span><span class="o">&gt;=</span><span class="mf">1.8.2</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>CloudOS CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.</p>
+<section id="from-pypi">
+<h3>From PyPI<a class="headerlink" href="#from-pypi" title="Link to this heading">¶</a></h3>
+<p>The repository is also available from <a class="reference external" href="https://pypi.org/project/cloudos-cli/">PyPI</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>cloudos-cli
+</pre></div>
+</div>
+<p>To update CloudOS CLI to the latest version using pip, you can run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>cloudos-cli
+</pre></div>
+</div>
+<p>To check your current version:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>--version
+</pre></div>
+</div>
+</section>
+<section id="docker-image">
+<h3>Docker Image<a class="headerlink" href="#docker-image" title="Link to this heading">¶</a></h3>
+<p>It is recommended to install it as a docker image using the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> and the <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> files provided.</p>
+<p>To run the existing docker image at <code class="docutils literal notranslate"><span class="pre">quay.io</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>quay.io/lifebitaiorg/cloudos-cli:latest
+</pre></div>
+</div>
+</section>
+<section id="from-github">
+<h3>From Github<a class="headerlink" href="#from-github" title="Link to this heading">¶</a></h3>
+<p>You will need Python &gt;= 3.9 and pip installed.</p>
+<p>Clone the repo and install it using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/lifebit-ai/cloudos-cli
+<span class="nb">cd</span><span class="w"> </span>cloudos-cli
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+<blockquote>
+<div><p>NOTE: To be able to call the <code class="docutils literal notranslate"><span class="pre">cloudos</span></code> executable, ensure that the local clone of the <code class="docutils literal notranslate"><span class="pre">cloudos-cli</span></code> folder is included in the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable, using for example the command <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">PATH=&quot;/absolute/path/to/cloudos-cli:$PATH&quot;</span></code>.</p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h2>
+<p>CloudOS CLI can be used both as a command-line interface tool for interactive work and as a Python package for scripting and automation.</p>
+<p>To get general information about the tool:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>--help
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">                                                                                                                        </span>
+<span class="go"> Usage: cloudos [OPTIONS] COMMAND [ARGS]...                                                                             </span>
+<span class="go">                                                                                                                        </span>
+<span class="go"> CloudOS python package: a package for interacting with CloudOS.                                                        </span>
+<span class="go">                                                                                                                        </span>
+<span class="go">╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span class="go">│ --debug        Show detailed error information and tracebacks                                                        │</span>
+<span class="go">│ --version      Show the version and exit.                                                                            │</span>
+<span class="go">│ --help         Show this message and exit.                                                                           │</span>
+<span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+<span class="go">╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span class="go">│ bash               CloudOS bash functionality.                                                                       │</span>
+<span class="go">│ configure          CloudOS configuration.                                                                            │</span>
+<span class="go">│ cromwell           Cromwell server functionality: check status, start and stop.                                      │</span>
+<span class="go">│ datasets           CloudOS datasets functionality.                                                                   │</span>
+<span class="go">│ job                CloudOS job functionality: run, check and abort jobs in CloudOS.                                  │</span>
+<span class="go">│ procurement        CloudOS procurement functionality.                                                                │</span>
+<span class="go">│ project            CloudOS project functionality: list and create projects in CloudOS.                               │</span>
+<span class="go">│ queue              CloudOS job queue functionality.                                                                  │</span>
+<span class="go">│ workflow           CloudOS workflow functionality: list and import workflows.                                        │</span>
+<span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre></div>
+</div>
+<p>This will tell you the implemented commands. Each implemented command has its own subcommands with its own <code class="docutils literal notranslate"><span class="pre">--help</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--help
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">                                                                                                            </span>
+<span class="go"> Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     </span>
+<span class="go">                                                                                                            </span>
+<span class="go">╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span class="go">│ *  --apikey                    -k  TEXT        Your CloudOS API key [required]                           │</span>
+<span class="go">│ *  --cloudos-url               -c  TEXT        The CloudOS url you are trying to access to.              │</span>
+<span class="go">│                                                Default=https://cloudos.lifebit.ai.                       │</span>
+<span class="go">│                                                [required]                                                │</span>
+<span class="go">│ *  --workspace-id                  TEXT        The specific CloudOS workspace id. [required]             │</span>
+<span class="go">│    --output-basename               TEXT        Output file base name to save jobs list. Default=joblist  │</span>
+<span class="go">│    --output-format                 [csv|json]  The desired file format (file extension) for the output.  │</span>
+<span class="go">│                                                For json option --all-fields will be automatically set to │</span>
+<span class="go">│                                                True. Default=csv.                                        │</span>
+<span class="go">│    --all-fields                                Whether to collect all available fields from jobs or just │</span>
+<span class="go">│                                                the preconfigured selected fields. Only applicable when   │</span>
+<span class="go">│                                                --output-format=csv. Automatically enabled for json       │</span>
+<span class="go">│                                                output.                                                   │</span>
+<span class="go">│    --last-n-jobs                   TEXT        The number of last workspace jobs to retrieve. You can    │</span>
+<span class="go">│                                                use &#39;all&#39; to retrieve all workspace jobs. Default=30.     │</span>
+<span class="go">│    --page                          INTEGER     Response page to retrieve. If --last-n-jobs is set, then  │</span>
+<span class="go">│                                                --page value corresponds to the first page to retrieve.   │</span>
+<span class="go">│                                                Default=1.                                                │</span>
+<span class="go">│    --archived                                  When this flag is used, only archived jobs list is        │</span>
+<span class="go">│                                                collected.                                                │</span>
+<span class="go">│    --filter-status                 TEXT        Filter jobs by status (e.g., completed, running, failed,  │</span>
+<span class="go">│                                                aborted).                                                 │</span>
+<span class="go">│    --filter-job-name               TEXT        Filter jobs by job name ( case insensitive ).             │</span>
+<span class="go">│    --filter-project                TEXT        Filter jobs by project name.                              │</span>
+<span class="go">│    --filter-workflow               TEXT        Filter jobs by workflow/pipeline name.                    │</span>
+<span class="go">│    --last                                      When workflows are duplicated, use the latest imported    │</span>
+<span class="go">│                                                workflow (by date).                                       │</span>
+<span class="go">│    --filter-job-id                 TEXT        Filter jobs by specific job ID.                           │</span>
+<span class="go">│    --filter-only-mine                          Filter to show only jobs belonging to the current user.   │</span>
+<span class="go">│    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │</span>
+<span class="go">│                                                in batch environment. Non-batch jobs are preserved in     │</span>
+<span class="go">│                                                results.                                                  │</span>
+<span class="go">│    --filter-owner                  TEXT        Filter jobs by owner username.                            │</span>
+<span class="go">│    --verbose                                   Whether to print information messages or not.             │</span>
+<span class="go">│    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │</span>
+<span class="go">│                                                that this option is not generally recommended for         │</span>
+<span class="go">│                                                security reasons.                                         │</span>
+<span class="go">│    --ssl-cert                      TEXT        Path to your SSL certificate file.                        │</span>
+<span class="go">│    --profile                       TEXT        Profile to use from the config file                       │</span>
+<span class="go">│    --help                                      Show this message and exit.                               │</span>
+<span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
+<p>CloudOS CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple CloudOS environments.</p>
+<p>Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named <code class="docutils literal notranslate"><span class="pre">.cloudos</span></code> will be created, with files <code class="docutils literal notranslate"><span class="pre">credentials</span></code> and <code class="docutils literal notranslate"><span class="pre">config</span></code> also being created. The structure will look like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span>HOME
+<span class="go">    └── .cloudos/</span>
+<span class="go">          ├── credentials     # Stores API keys</span>
+<span class="go">          └── config          # Stores all other parameters</span>
+</pre></div>
+</div>
+<section id="configure-default-profile">
+<h3>Configure Default Profile<a class="headerlink" href="#configure-default-profile" title="Link to this heading">¶</a></h3>
+<p>To facilitate the reuse of required parameters, you can create profiles.</p>
+<p>To generate a profile called <code class="docutils literal notranslate"><span class="pre">default</span></code>, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure
+</pre></div>
+</div>
+<p>This will prompt you for API key, platform URL, project name, platform executor, repository provider, workflow name (if any), and session ID for interactive analysis. This becomes the default profile if no other profile is explicitly set. The default profile allows running all subcommands without adding the <code class="docutils literal notranslate"><span class="pre">--profile</span></code> option.</p>
+</section>
+<section id="configure-named-profile">
+<h3>Configure Named Profile<a class="headerlink" href="#configure-named-profile" title="Link to this heading">¶</a></h3>
+<p>To generate a named profile, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span>--profile<span class="w"> </span><span class="o">{</span>profile-name<span class="o">}</span>
+</pre></div>
+</div>
+<p>The same prompts will appear. If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.</p>
+<blockquote>
+<div><p>[!NOTE]
+When there is already at least 1 previous profile defined, a new question will appear asking to make the current profile as default</p>
+</div></blockquote>
+</section>
+<section id="change-the-default-profile">
+<h3>Change the Default Profile<a class="headerlink" href="#change-the-default-profile" title="Link to this heading">¶</a></h3>
+<p>Change the default profile with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span>--profile<span class="w"> </span><span class="o">{</span>other-profile<span class="o">}</span><span class="w"> </span>--make-default
+</pre></div>
+</div>
+</section>
+<section id="list-profiles">
+<h3>List Profiles<a class="headerlink" href="#list-profiles" title="Link to this heading">¶</a></h3>
+<p>View all configured profiles and identify the default:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span>list-profiles
+</pre></div>
+</div>
+<p>The response will look like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Available profiles:</span>
+<span class="go"> - default (default)</span>
+<span class="go"> - second-profile</span>
+<span class="go"> - third-profile</span>
+</pre></div>
+</div>
+</section>
+<section id="remove-profile">
+<h3>Remove Profile<a class="headerlink" href="#remove-profile" title="Link to this heading">¶</a></h3>
+<p>Remove any profile with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span>remove-profile<span class="w"> </span>--profile<span class="w"> </span>second-profile
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="configure">
+<h3>Configure<a class="headerlink" href="#configure" title="Link to this heading">¶</a></h3>
+<p>See <a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a> section above for detailed information on setting up profiles and managing your CloudOS CLI configuration.</p>
+</section>
+<section id="project">
+<h3>Project<a class="headerlink" href="#project" title="Link to this heading">¶</a></h3>
+<p>Projects in CloudOS provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.</p>
+<section id="list-projects">
+<h4>List Projects<a class="headerlink" href="#list-projects" title="Link to this heading">¶</a></h4>
+<p>You can get a summary of all available workspace projects in two different formats:</p>
+<ul class="simple">
+<li><p><strong>CSV</strong>: A table with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
+<li><p><strong>JSON</strong>: All available information from projects in JSON format</p></li>
+</ul>
+<p>To get a CSV table with all available projects for a given workspace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
+</pre></div>
+</div>
+<p>The expected output is something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Project list collected with a total of 320 projects.</span>
+<span class="go">	Project list saved to project_list.csv</span>
+</pre></div>
+</div>
+<p>To get the same information in JSON format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json
+</pre></div>
+</div>
+</section>
+<section id="create-projects">
+<h4>Create Projects<a class="headerlink" href="#create-projects" title="Link to this heading">¶</a></h4>
+<p>You can create a new project in your CloudOS workspace using the <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> command. This command requires the name of the new project and will return the project ID upon successful creation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--new-project<span class="w"> </span><span class="s2">&quot;My New Project&quot;</span>
+</pre></div>
+</div>
+<p>The expected output is something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">	Project &quot;My New Project&quot; created successfully with ID: 64f1a23b8e4c9d001234abcd</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="queue">
+<h3>Queue<a class="headerlink" href="#queue" title="Link to this heading">¶</a></h3>
+<p>Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the “Compute Resources” section in “Settings”. You can get a summary of all available workspace job queues in two formats:</p>
+<ul class="simple">
+<li><p><strong>CSV</strong>: A table with a selection of the available job queue information. You can get all information using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> flag</p></li>
+<li><p><strong>JSON</strong>: All available information from job queues in JSON format</p></li>
+</ul>
+<section id="list-queues">
+<h4>List Queues<a class="headerlink" href="#list-queues" title="Link to this heading">¶</a></h4>
+<p>This command allows you to view available computational queues and their configurations. Example command for getting all available job queues in JSON format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json<span class="w"> </span>--output-basename<span class="w"> </span><span class="s2">&quot;available_queues&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Job queue list collected with a total of 5 queues.</span>
+<span class="go">	Job queue list saved to available_queues.json</span>
+</pre></div>
+</div>
+<p>This command will output the list of available job queues in JSON format and save it to a file named <code class="docutils literal notranslate"><span class="pre">available_queues.json</span></code>. You can use <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">csv</span></code> for a CSV file, or omit <code class="docutils literal notranslate"><span class="pre">--output-basename</span></code> to print to the console.</p>
+<blockquote>
+<div><p>NOTE: The queue name that is visible in CloudOS and must be used with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter is the one in the <code class="docutils literal notranslate"><span class="pre">label</span></code> field.</p>
+</div></blockquote>
+<p><strong>Job queues for platform workflows</strong></p>
+<p>Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues. Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are “System Tools” and “Data Factory” workflows.</p>
+</section>
+</section>
+<section id="workflow">
+<h3>Workflow<a class="headerlink" href="#workflow" title="Link to this heading">¶</a></h3>
+<section id="list-all-available-workflows">
+<h4>List All Available Workflows<a class="headerlink" href="#list-all-available-workflows" title="Link to this heading">¶</a></h4>
+<p>You can get a summary of all available workspace workflows in two different formats:</p>
+<ul class="simple">
+<li><p><strong>CSV</strong>: A table with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
+<li><p><strong>JSON</strong>: All available information from workflows in JSON format</p></li>
+</ul>
+<p>To get a CSV table with all available workflows for a given workspace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
+</pre></div>
+</div>
+<p>The expected output is something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Workflow list collected with a total of 609 workflows.</span>
+<span class="go">	Workflow list saved to workflow_list.csv</span>
+</pre></div>
+</div>
+<p>To get the same information in JSON format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Workflow list collected with a total of 609 workflows.</span>
+<span class="go">	Workflow list saved to workflow_list.json</span>
+</pre></div>
+</div>
+<p>The collected workflows are those that can be found in the “WORKSPACE TOOLS” section in CloudOS.</p>
+</section>
+<section id="import-a-nextflow-workflow">
+<h4>Import a Nextflow Workflow<a class="headerlink" href="#import-a-nextflow-workflow" title="Link to this heading">¶</a></h4>
+<p>You can import new workflows to your CloudOS workspaces. The requirements are:</p>
+<ul class="simple">
+<li><p>The workflow must be a Nextflow pipeline</p></li>
+<li><p>The workflow repository must be located at GitHub, GitLab or BitBucket Server (specified by the <code class="docutils literal notranslate"><span class="pre">--repository-platform</span></code> option. Available options: <code class="docutils literal notranslate"><span class="pre">github</span></code>, <code class="docutils literal notranslate"><span class="pre">gitlab</span></code> and <code class="docutils literal notranslate"><span class="pre">bitbucketServer</span></code>)</p></li>
+<li><p>If your repository is private, you must have access to the repository and have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS</p></li>
+</ul>
+<p><strong>Usage of the workflow import command</strong></p>
+<p>To import GitHub workflows to CloudOS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example workflow to import: https://github.com/lifebit-ai/DeepVariant</span>
+cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant&quot;</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;new_name_for_the_github_workflow&quot;</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
+</pre></div>
+</div>
+<p>The expected output will be:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS workflow functionality: list and import workflows.</span>
+
+<span class="go">Executing workflow import...</span>
+
+<span class="go">	[Message] Only Nextflow workflows are currently supported.</span>
+
+<span class="go">	Workflow test_import_github_3 was imported successfully with the following ID: 6616a8cb454b09bbb3d9dc20</span>
+</pre></div>
+</div>
+<p>Optionally, you can add a link to your workflow documentation by providing the URL using the <code class="docutils literal notranslate"><span class="pre">--workflow-docs-link</span></code> parameter:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant&quot;</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;new_name_for_the_github_workflow&quot;</span><span class="w"> </span>--workflow-docs-link<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant/blob/master/README.md&quot;</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
+</pre></div>
+</div>
+<blockquote>
+<div><p>NOTE: Importing workflows using cloudos-cli is not yet available in all CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: <code class="docutils literal notranslate"><span class="pre">It</span> <span class="pre">seems</span> <span class="pre">your</span> <span class="pre">API</span> <span class="pre">key</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">authorised.</span> <span class="pre">Please</span> <span class="pre">check</span> <span class="pre">if</span> <span class="pre">your</span> <span class="pre">workspace</span> <span class="pre">has</span> <span class="pre">support</span> <span class="pre">for</span> <span class="pre">importing</span> <span class="pre">workflows</span> <span class="pre">using</span> <span class="pre">cloudos-cli</span></code>.</p>
+</div></blockquote>
+</section>
+</section>
+<section id="nextflow-jobs">
+<h3>Nextflow Jobs<a class="headerlink" href="#nextflow-jobs" title="Link to this heading">¶</a></h3>
+<p>The job commands allow you to submit, monitor, and manage computational workflows on CloudOS. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.</p>
+<section id="submit-a-job">
+<h4>Submit a Job<a class="headerlink" href="#submit-a-job" title="Link to this heading">¶</a></h4>
+<p>You can submit Nextflow workflows to CloudOS using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameters, etc.</p>
+<p>First, configure your local environment to ease parameter input. We will try to submit a small toy example already available:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable
+</pre></div>
+</div>
+<p>As you can see, a file with the job parameters is used to configure the job. This file could be a regular <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code> file or any file with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="p">{</span>
+        <span class="n">reads</span>   <span class="o">=</span> <span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">lifebit</span><span class="o">-</span><span class="n">featured</span><span class="o">-</span><span class="n">datasets</span><span class="o">/</span><span class="n">pipelines</span><span class="o">/</span><span class="n">rnatoy</span><span class="o">-</span><span class="n">data</span>
+        <span class="n">annot</span>   <span class="o">=</span> <span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">lifebit</span><span class="o">-</span><span class="n">featured</span><span class="o">-</span><span class="n">datasets</span><span class="o">/</span><span class="n">pipelines</span><span class="o">/</span><span class="n">rnatoy</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">ggal_1_48850000_49020000</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gff</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In addition, parameters can also be specified using the command-line <code class="docutils literal notranslate"><span class="pre">-p</span></code> or <code class="docutils literal notranslate"><span class="pre">--parameter</span></code>. For instance:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--parameter<span class="w"> </span><span class="nv">reads</span><span class="o">=</span>s3://lifebit-featured-datasets/pipelines/rnatoy-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--parameter<span class="w"> </span><span class="nv">genome</span><span class="o">=</span>s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--parameter<span class="w"> </span><span class="nv">annot</span><span class="o">=</span>s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resumable
+</pre></div>
+</div>
+<blockquote>
+<div><p>NOTE: options <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> and <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> are completely compatible and complementary, so you can use a <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> and add additional parameters using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> in the same call.</p>
+</div></blockquote>
+<p>If everything went well, you should see something like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
+<span class="go">	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355</span>
+<span class="go">	Your assigned job id is: 62c83a1191fe06013b7ef355</span>
+<span class="go">	Your current job status is: initializing</span>
+<span class="go">	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or use the following command:</span>
+<span class="go">    cloudos job status \</span>
+<span class="go">        --apikey $MY_API_KEY \</span>
+<span class="go">        --cloudos-url https://cloudos.lifebit.ai \</span>
+<span class="go">        --job-id 62c83a1191fe06013b7ef355</span>
+</pre></div>
+</div>
+<p>As you can see, the current status is <code class="docutils literal notranslate"><span class="pre">initializing</span></code>. This will change while the job progresses. To check the status, just apply the suggested command.</p>
+<p>Another option is to set the <code class="docutils literal notranslate"><span class="pre">--wait-completion</span></code> parameter, which runs the same job run command but waits for its completion:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable<span class="w"> </span>--wait-completion
+</pre></div>
+</div>
+<p>When setting this parameter, you can also set <code class="docutils literal notranslate"><span class="pre">--request-interval</span></code> to a bigger number (default is 30s) if the job is quite large. This will ensure that the status requests are not sent too close from each other and recognized as spam by the API.</p>
+<p>If the job takes less than <code class="docutils literal notranslate"><span class="pre">--wait-time</span></code> (3600 seconds by default), the previous command should have an output similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
+<span class="go">	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363</span>
+<span class="go">	Your assigned job id is: 62c83a6191fe06013b7ef363</span>
+<span class="go">	Please, wait until job completion or max wait time of 3600 seconds is reached.</span>
+<span class="go">	Your current job status is: initializing.</span>
+<span class="go">	Your current job status is: running.</span>
+<span class="go">	Your job took 420 seconds to complete successfully.</span>
+</pre></div>
+</div>
+<p>When there are duplicate <code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code> in the platform, you can add the <code class="docutils literal notranslate"><span class="pre">--last</span></code> flag to use the latest import of that pipeline in the workspace, based on the date.</p>
+<p><em>For example, the pipeline <code class="docutils literal notranslate"><span class="pre">lifebit-process</span></code> was imported on May 23 2025 and again on May 30 2025; with the <code class="docutils literal notranslate"><span class="pre">--last</span></code> flag, it will use the import of May 30, 2025.</em></p>
+<p><strong>AWS Executor Support</strong></p>
+<p>CloudOS supports <a class="reference external" href="https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch">AWS batch</a> executor by default.
+You can specify the AWS batch queue to use from the ones available in your workspace (see <a class="reference internal" href="#list-job-queues"><span class="xref myst">here</span></a>) by specifying its name with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. If none is specified, the most recent suitable queue in your workspace will be selected by default.</p>
+<p>Example command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable
+</pre></div>
+</div>
+<blockquote>
+<div><p>Note: From cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache <a class="reference external" href="https://www.nextflow.io/docs/latest/ignite.html#apache-ignite">ignite</a> executor is being removed progressively from CloudOS, so most likely will not be available in your CloudOS. Cloudos-cli still supports ignite during this period by adding the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag to the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command. Please note that if you use the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag in a CloudOS without ignite support, the command will fail.</p>
+</div></blockquote>
+<p><strong>Azure Execution Platform Support</strong></p>
+<p>CloudOS can also be configured to use Microsoft Azure compute platforms. If your CloudOS is configured to use Azure, you will need to take into consideration the following:</p>
+<ul class="simple">
+<li><p>When sending jobs to CloudOS using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command, please use the option <code class="docutils literal notranslate"><span class="pre">--execution-platform</span> <span class="pre">azure</span></code></p></li>
+<li><p>Due to the lack of AWS batch queues in Azure, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">queue</span> <span class="pre">list</span></code> command is not working</p></li>
+</ul>
+<p>Other than that, <code class="docutils literal notranslate"><span class="pre">cloudos-cli</span></code> will work very similarly. For instance, this is a typical send job command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable<span class="w"> </span>--execution-platform<span class="w"> </span>azure
+</pre></div>
+</div>
+<p><strong>HPC Execution Support</strong></p>
+<p>CloudOS is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command:</p>
+<ul class="simple">
+<li><p>Use the following parameter: <code class="docutils literal notranslate"><span class="pre">--execution-platform</span> <span class="pre">hpc</span></code></p></li>
+<li><p>Indicate the HPC ID using: <code class="docutils literal notranslate"><span class="pre">--hpc-id</span> <span class="pre">XXXX</span></code></p></li>
+</ul>
+<p>Example command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--execution-platform<span class="w"> </span>hpc<span class="w"> </span>--hpc-id<span class="w"> </span><span class="nv">$YOUR_HPC_ID</span>
+</pre></div>
+</div>
+<p>Please note that HPC execution does not support the following parameters and all of them will be ignored:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-queue</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--resumable</span> <span class="pre">|</span> <span class="pre">--do-not-save-logs</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance-type</span></code> | <code class="docutils literal notranslate"><span class="pre">--instance-disk</span></code> | <code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--storage-mode</span></code> | <code class="docutils literal notranslate"><span class="pre">--lustre-size</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--wdl-mainfile</span></code> | <code class="docutils literal notranslate"><span class="pre">--wdl-importsfile</span></code> | <code class="docutils literal notranslate"><span class="pre">--cromwell-token</span></code></p></li>
+</ul>
+</section>
+<section id="get-job-logs">
+<h4>Get Job Logs<a class="headerlink" href="#get-job-logs" title="Link to this heading">¶</a></h4>
+<p>The following command allows you to get the path to “Nextflow logs”, “Nextflow standard output”, and “trace” files. It can be used only on your user’s jobs, with any status.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing logs...</span>
+<span class="go">Logs URI: s3://path/to/location/of/logs</span>
+
+<span class="go">Nextflow log: s3://path/to/location/of/logs/.nextflow.log</span>
+
+<span class="go">Nextflow standard output: s3://path/to/location/of/logs/stdout.txt</span>
+
+<span class="go">Trace file: s3://path/to/location/of/logs/trace.txt</span>
+</pre></div>
+</div>
+</section>
+<section id="get-job-results">
+<h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
+<p>The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
+<span class="go">results: s3://path/to/location/of/results/results/</span>
+</pre></div>
+</div>
+</section>
+<section id="clone-or-resume-job">
+<h4>Clone or Resume job<a class="headerlink" href="#clone-or-resume-job" title="Link to this heading">¶</a></h4>
+</section>
+<section id="query-working-directory-of-job">
+<h4>Query working directory of job<a class="headerlink" href="#query-working-directory-of-job" title="Link to this heading">¶</a></h4>
+<p>To get the working directory of a job submitted to CloudOS:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--apikey<span class="w"> </span><span class="nv">$MY_API_KEY</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cloudos-url<span class="w"> </span><span class="nv">$CLOUDOS</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>Or with a defined profile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The output should be something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
+
+<span class="go">Finding working directory path...</span>
+<span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
+</pre></div>
+</div>
+</section>
+<section id="abort-single-or-multiple-jobs-from-cloudos">
+<h4>Abort single or multiple jobs from CloudOS<a class="headerlink" href="#abort-single-or-multiple-jobs-from-cloudos" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">clone</span></code> command allows you to create a new job based on an existing job’s configuration, with the ability to override specific parameters.
+The <code class="docutils literal notranslate"><span class="pre">resume</span></code> command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
+These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.</p>
+<blockquote>
+<div><p>[!NOTE]
+Only job initially run with <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> can be resumed.</p>
+</div></blockquote>
+<p>Cloning basic usage:</p>
+<p>Aborting jobs…
+Job 680a3cf80e56949775c02f16 aborted successfully.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+
+#### Clone/resume a job with optional parameter overrides
+
+The `clone` and `resume` commands allows you to create a new job based on an existing job&#39;s configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
+
+Basic usage:
+```console
+cloudos job clone/resume \
+    --profile MY_PROFILE
+    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;
+</pre></div>
+</div>
+<p>Cloning with parameter overrides:</p>
+<p>Clone/resume with parameter overrides:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job clone/resume \</span>
+<span class="go">    --profile MY_PROFILE</span>
+<span class="go">    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot; \</span>
+<span class="go">    --job-queue &quot;high-priority-queue&quot; \</span>
+<span class="go">    --cost-limit 50.0 \</span>
+<span class="go">    --instance-type &quot;c5.2xlarge&quot; \</span>
+<span class="go">    --job-name &quot;cloned_analysis_v2&quot; \</span>
+<span class="go">    --nextflow-version &quot;24.04.4&quot; \</span>
+<span class="go">    --git-branch &quot;dev&quot; \</span>
+<span class="go">    --nextflow-profile &quot;production&quot; \</span>
+<span class="go">    --do-not-save-logs true \</span>
+<span class="go">    --accelerate-file-staging true \</span>
+<span class="go">    --workflow-name &quot;updated-workflow&quot; \</span>
+<span class="go">    -p &quot;input=s3://new-bucket/input.csv&quot; \</span>
+<span class="go">    -p &quot;output_dir=s3://new-bucket/results&quot;</span>
+</pre></div>
+</div>
+<p>Resuming a job without parameter overrides</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job resume \</span>
+<span class="go">    --profile MY_PROFILE</span>
+<span class="go">    --job-id JOB_ID</span>
+</pre></div>
+</div>
+<p>Resuming with parameter overrides:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job resume \</span>
+<span class="go">    --profile MY_PROFILE</span>
+<span class="go">    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot; \</span>
+<span class="go">    --job-queue &quot;high-priority-queue&quot; \</span>
+<span class="go">    --cost-limit 50.0 \</span>
+<span class="go">    --instance-type &quot;c5.2xlarge&quot; \</span>
+<span class="go">    --job-name &quot;cloned_analysis_v2&quot; \</span>
+<span class="go">    --nextflow-version &quot;24.04.4&quot; \</span>
+<span class="go">    --git-branch &quot;dev&quot; \</span>
+<span class="go">    --nextflow-profile &quot;production&quot; \</span>
+<span class="go">    --do-not-save-logs true \</span>
+<span class="go">    --accelerate-file-staging true \</span>
+<span class="go">    --workflow-name &quot;updated-workflow&quot; \</span>
+<span class="go">    -p &quot;input=s3://new-bucket/input.csv&quot; \</span>
+<span class="go">    -p &quot;output_dir=s3://new-bucket/results&quot;</span>
+</pre></div>
+</div>
+<p>Available override options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-queue</span></code>: Specify a different job queue</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Set a new cost limit (use -1 for no limit)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance-type</span></code>: Change the master instance type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-name</span></code>: Assign a custom name to the cloned/resumed job</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code>: Use a different Nextflow version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--git-branch</span></code>: Switch to a different git branch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-profile</span></code>: Change the Nextflow profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--do-not-save-logs</span></code>: Enable/disable log saving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--accelerate-file-staging</span></code>: Enable/disable fusion filesystem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code>: Use a different workflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p,</span> <span class="pre">--parameter</span></code>: Override or add parameters (can be used multiple times)</p></li>
+</ul>
+<blockquote>
+<div><p>[!NOTE]
+Parameters can be overridden or new ones can be added using <code class="docutils literal notranslate"><span class="pre">-p</span></code> option</p>
+</div></blockquote>
+</section>
+<section id="abort-jobs">
+<h4>Abort Jobs<a class="headerlink" href="#abort-jobs" title="Link to this heading">¶</a></h4>
+<p>Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
+<span class="go">        Job 680a3cf80e56949775c02f16 aborted successfully.</span>
+</pre></div>
+</div>
+</section>
+<section id="check-job-status">
+<h4>Check Job Status<a class="headerlink" href="#check-job-status" title="Link to this heading">¶</a></h4>
+<p>To check the status of a submitted job, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The expected output should be something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing status...</span>
+<span class="go">	Your current job status is: completed</span>
+
+<span class="go">	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.</span>
+</pre></div>
+</div>
+</section>
+<section id="get-job-details">
+<h4>Get Job Details<a class="headerlink" href="#get-job-details" title="Link to this heading">¶</a></h4>
+<p>Details of a job, including cost, status, and timestamps, can be retrieved with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>job-details<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing details...</span>
+<span class="go">                                             Job Details                                              </span>
+<span class="go">┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
+<span class="go">┃ Field                    ┃ Value                                                                   ┃</span>
+<span class="go">┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
+<span class="go">│ Parameters               │ -test=value                                                             │</span>
+<span class="go">│                          │ --gaq=test                                                              │</span>
+<span class="go">│                          │ cryo=yes                                                                │</span>
+<span class="go">│ Command                  │ echo &#39;test&#39; &gt; new_file.txt                                              │</span>
+<span class="go">│ Revision                 │ sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233 │</span>
+<span class="go">│ Nextflow Version         │ None                                                                    │</span>
+<span class="go">│ Execution Platform       │ Batch AWS                                                               │</span>
+<span class="go">│ Profile                  │ None                                                                    │</span>
+<span class="go">│ Master Instance          │ c5.xlarge                                                               │</span>
+<span class="go">│ Storage                  │ 500                                                                     │</span>
+<span class="go">│ Job Queue                │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee                        │</span>
+<span class="go">│ Accelerated File Staging │ None                                                                    │</span>
+<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │</span>
+<span class="go">└──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘</span>
+</pre></div>
+</div>
+<p>To change this behaviour and save the details into a local JSON, the parameter <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> needs to be set as <code class="docutils literal notranslate"><span class="pre">--output-format=json</span></code>.</p>
+<p>By default, all details are saved in a file with the basename as <code class="docutils literal notranslate"><span class="pre">job_details</span></code>, for example <code class="docutils literal notranslate"><span class="pre">job_details.json</span></code> or <code class="docutils literal notranslate"><span class="pre">job_details.config.</span></code>. This can be changed with the parameter <code class="docutils literal notranslate"><span class="pre">--output-basename=new_filename</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">details</span></code> subcommand, can also take <code class="docutils literal notranslate"><span class="pre">--parameters</span></code> as an argument flag, which will create a new file <code class="docutils literal notranslate"><span class="pre">*.config</span></code> that holds all parameters as a Nexflow configuration file, example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">params {</span>
+<span class="go">    parameter_one = value_one</span>
+<span class="go">    parameter_two = value_two</span>
+<span class="go">    parameter_three = value_three</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>This file can later be used when running a job with <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span> <span class="pre">--job-config</span> <span class="pre">job_details.config</span> <span class="pre">...</span></code>.</p>
+<blockquote>
+<div><p>[!NOTE]
+Job details can only be retrieved for a single user, cannot see other user’s job details.</p>
+</div></blockquote>
+</section>
+<section id="get-job-workdir">
+<h4>Get Job Workdir<a class="headerlink" href="#get-job-workdir" title="Link to this heading">¶</a></h4>
+<p>To get the working directory of a job submitted to CloudOS:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The output should be something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
+
+<span class="go">Finding working directory path...</span>
+<span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
+</pre></div>
+</div>
+</section>
+<section id="list-jobs">
+<h4>List Jobs<a class="headerlink" href="#list-jobs" title="Link to this heading">¶</a></h4>
+<p>You can get a summary of the workspace’s last 30 submitted jobs (or a selected number of last jobs using <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span> <span class="pre">n</span></code> parameter) in two different formats:</p>
+<ul class="simple">
+<li><p>CSV: this is a table with a minimum predefined set of columns by default, or all the available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> argument.</p></li>
+<li><p>JSON: all the available information from the workspace jobs, in JSON format (<code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> is always enabled for this format).</p></li>
+</ul>
+<p>To get a list with the workspace’s last 30 submitted jobs, in CSV format, use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
+</pre></div>
+</div>
+<p>The expected output is something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Job list collected with a total of 30 jobs.</span>
+<span class="go">	Job list saved to joblist.csv</span>
+</pre></div>
+</div>
+<p>In addition, a file named <code class="docutils literal notranslate"><span class="pre">joblist.csv</span></code> is created.</p>
+<p>To get the same information, but for all the workspace’s jobs and in JSON format, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cloudos-url<span class="w"> </span><span class="nv">$CLOUDOS</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--apikey<span class="w"> </span><span class="nv">$MY_API_KEY</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--workspace-id<span class="w"> </span><span class="nv">$WORKSPACE_ID</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--last-n-jobs<span class="w"> </span>all<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-format<span class="w"> </span>json
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Job list collected with a total of 276 jobs.</span>
+<span class="go">	Job list saved to joblist.json</span>
+</pre></div>
+</div>
+<p>You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.</p>
+<p><strong>Available filters:</strong></p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-status</span></code></strong>: Filter jobs by execution status (e.g., completed, running, failed, aborted, queued, pending, initializing)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-job-name</span></code></strong>: Filter jobs by job name (case insensitive partial matching)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-project</span></code></strong>: Filter jobs by project name (exact match required)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-workflow</span></code></strong>: Filter jobs by workflow/pipeline name (exact match required)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-job-id</span></code></strong>: Filter jobs by specific job ID (exact match required)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-only-mine</span></code></strong>: Show only jobs belonging to the current user</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-owner</span></code></strong>: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be “Name Surname”)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-queue</span></code></strong>: Filter jobs by queue name (only applies to batch jobs)</p></li>
+</ul>
+<p>Here following are some examples:</p>
+<p>Get all completed jobs from the last 50 jobs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">50</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
+</pre></div>
+</div>
+<p>Find jobs with “analysis” in the name from a specific project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
+</pre></div>
+</div>
+<p>Get all jobs using a specific workflow and queue:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]</p>
+<ul class="simple">
+<li><p>Project and workflow names must match exactly (case sensitive)</p></li>
+<li><p>Job name filtering is case insensitive and supports partial matches</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">--last</span></code> flag can be used with <code class="docutils literal notranslate"><span class="pre">--filter-workflow</span></code> when multiple workflows have the same name</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="bash-jobs">
+<h3>Bash Jobs<a class="headerlink" href="#bash-jobs" title="Link to this heading">¶</a></h3>
+<p>Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.</p>
+<section id="send-array-job">
+<h4>Send Array Job<a class="headerlink" href="#send-array-job" title="Link to this heading">¶</a></h4>
+<p>A bash job can be sent to CloudOS using the command <code class="docutils literal notranslate"><span class="pre">bash</span></code> and the subcommand <code class="docutils literal notranslate"><span class="pre">job</span></code>. In this case, the <code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code> must be a bash job already present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>job<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--workflow-name<span class="w"> </span>ubuntu<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parameter<span class="w"> </span>-test_variable<span class="o">=</span>value<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parameter<span class="w"> </span>--flag<span class="o">=</span>activate<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parameter<span class="w"> </span><span class="nv">send</span><span class="o">=</span><span class="s2">&quot;yes&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="nv">$JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--command<span class="w"> </span><span class="s2">&quot;echo &#39;send&#39; &gt; new_file.txt&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--resumable
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--command</span></code> parameter is required and will setup the command for the parameters to run.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> can have a different prefix, either ‘–’, ‘-’, or ‘’, depending on the use case. These can be used as many times as needed.</p>
+<blockquote>
+<div><p>[!NOTE]
+At the moment only string values are allowed to the <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.</p>
+</div></blockquote>
+<p>If everything went well, you should see something like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS bash functionality.</span>
+
+<span class="go">        Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334</span>
+<span class="go">        Your assigned job id is: 682622d09f305de717327334</span>
+
+<span class="go">        Your current job status is: initializing</span>
+<span class="go">        To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334 or use the following command:</span>
+<span class="go">        cloudos job status \</span>
+<span class="go">                --apikey $MY_API_KEY \</span>
+<span class="go">                --cloudos-url https://cloudos.lifebit.ai \</span>
+<span class="go">                --job-id 682622d09f305de717327334</span>
+</pre></div>
+</div>
+<p>As you can see, the current status is <code class="docutils literal notranslate"><span class="pre">initializing</span></code>. This will change while the job progresses. To check the status, just apply the suggested command.</p>
+<p>Other options like <code class="docutils literal notranslate"><span class="pre">--wait-completion</span></code> are also available and work in the same way as for the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command.
+Check <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">bash</span> <span class="pre">job</span> <span class="pre">--help</span></code> for more details.</p>
+</section>
+<section id="submit-a-bash-array-job">
+<h4>Submit a Bash Array Job<a class="headerlink" href="#submit-a-bash-array-job" title="Link to this heading">¶</a></h4>
+<p>Run parallel bash jobs across multiple samples or datasets using array files. This is particularly useful for processing large datasets where each row represents a separate computational task.</p>
+<p>When running a bash array job, you can specify an array file containing sample information and process each row in parallel. The CLI validates column names and provides flexible parameter mapping.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--command<span class="w"> </span><span class="s2">&quot;echo {file}&quot;</span><span class="w"> </span>--array-file<span class="w"> </span>my_array.csv<span class="w"> </span>--separator<span class="w"> </span>,
+</pre></div>
+</div>
+<section id="options">
+<h5>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h5>
+<section id="array-file">
+<h6>Array File<a class="headerlink" href="#array-file" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--array-file</span></code></strong>: Specifies the path to a file containing a set of columns useful in running the bash job. This option is <strong>required</strong> when using the command <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">array-job</span></code>.</p></li>
+</ul>
+</section>
+<section id="separator">
+<h6>Separator<a class="headerlink" href="#separator" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--separator</span></code></strong>: Defines the separator to use in the array file. Supported separators include:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">,</span></code> (comma)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">;</span></code> (semicolon)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">space</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|</span></code> (pipe)
+This option is <strong>required</strong> when using the command <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">array-job</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="list-columns">
+<h6>List Columns<a class="headerlink" href="#list-columns" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--list-columns</span></code></strong>: Lists the columns available in the array file. This is useful for inspecting the structure of the file. This flag disables sending the job, it just prints the column list, one per line:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Columns:</span>
+<span class="go">    - column1</span>
+<span class="go">    - column2</span>
+<span class="go">    - column3</span>
+</pre></div>
+</div>
+</section>
+<section id="array-file-project">
+<h6>Array File Project<a class="headerlink" href="#array-file-project" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--array-file-project</span></code></strong>: Specifies the name of the project in which the array file is placed, if it is different from the project specified by <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>.</p></li>
+</ul>
+</section>
+<section id="disable-column-check">
+<h6>Disable Column Check<a class="headerlink" href="#disable-column-check" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--disable-column-check</span></code></strong>: Disables the validation of columns in the array file. This implies that each <code class="docutils literal notranslate"><span class="pre">--array-parameter</span></code> value is not checked against the header of the <code class="docutils literal notranslate"><span class="pre">--array-file</span></code>. For example, <code class="docutils literal notranslate"><span class="pre">--array-parameter</span> <span class="pre">--bar=foo</span></code>, without <code class="docutils literal notranslate"><span class="pre">--disable-column-check</span></code>, expects the array file to have column ‘foo’ inside the file header. If the column is not present, the CLI will throw an error. When <code class="docutils literal notranslate"><span class="pre">--disable-column-check</span></code> flag is added, the column check is not performed and the bash array job is sent to the platform.</p></li>
+</ul>
+<blockquote>
+<div><p>[!NOTE]
+Adding <code class="docutils literal notranslate"><span class="pre">--disable-column-check</span></code> will make the CLI command run without errors, but the errors might appear when checking the job in the platform, if the columns in the array file do not exists, as depicted with <code class="docutils literal notranslate"><span class="pre">--array-parameter</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="array-parameter">
+<h6>Array Parameter<a class="headerlink" href="#array-parameter" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">-a</span></code> / <code class="docutils literal notranslate"><span class="pre">--array-parameter</span></code></strong>: Allows specifying the column name present in the header of the array file. Each parameter should be in the format <code class="docutils literal notranslate"><span class="pre">arary_parameter_name=array_file_column</span></code>. For example:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">-a</span> <span class="pre">--test=value</span></code> or</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--array-parameter</span> <span class="pre">-test=value</span></code>
+specify a column named ‘value’ in the array file header. Adding array parameters not present in the header will cause an error. This option can be used multiple times to include as many array parameters as needed. This type of parameter is similar to <code class="docutils literal notranslate"><span class="pre">-p,</span> <span class="pre">--parameter</span></code>, both parameters can be interpolated in the bash array job command (either with <code class="docutils literal notranslate"><span class="pre">--command</span></code> or <code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code>), but this parameter can only be used to name the column present in the header of the array file.</p></li>
+</ul>
+</li>
+</ul>
+<p>For example, the array file has the following header:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">id,bgen,csv</span>
+<span class="go">1,s3://data/adipose.bgen,s3://data/adipose.csv</span>
+<span class="go">2,s3://data/blood.bgen,s3://data/blood.csv</span>
+<span class="go">3,s3://data/brain.bgen,s3://data/brain.csv</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>and in the command there is need to go over the <code class="docutils literal notranslate"><span class="pre">bgen</span></code> column, this can be specified as <code class="docutils literal notranslate"><span class="pre">--array-parameter</span> <span class="pre">file=bgen</span></code>, refering to the column in the header.</p>
+</section>
+<section id="custom-script-path">
+<h6>Custom Script Path<a class="headerlink" href="#custom-script-path" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code></strong>: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter <code class="docutils literal notranslate"><span class="pre">--command</span></code> is ignored. To ensure the script runs successfully, you must either:</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p>Use a Shebang Line at the Top of the Script</p></li>
+</ol>
+<p>The shebang (#!) tells the system which interpreter to use to run the script. The path should match absolute path to python or other interpreter installed inside the docker container.</p>
+<p>Examples:
+<code class="docutils literal notranslate"><span class="pre">#!/usr/bin/python3</span></code> –-&gt; for Python scripts
+<code class="docutils literal notranslate"><span class="pre">#!/usr/bin/Rscript</span></code> –-&gt; for R scripts
+<code class="docutils literal notranslate"><span class="pre">#!/bin/bash</span></code>        –-&gt; for Bash scripts</p>
+<p>Example Python Script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python3</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Or use an interpreter command in the executable field</p></li>
+</ol>
+<p>If your script doesn’t have a shebang line, you can execute it by explicitly specifying the interpreter in the executable command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">python my_script.py</span>
+<span class="go">Rscript my_script.R</span>
+<span class="go">bash my_script.sh</span>
+</pre></div>
+</div>
+<p>This assumes the interpreter is available on the container’s $PATH. If not, you can use the full absolute path instead:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">/usr/bin/python3 my_script.py</span>
+<span class="go">/usr/local/bin/Rscript my_script.R</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-script-project">
+<h6>Custom Script Project<a class="headerlink" href="#custom-script-project" title="Link to this heading">¶</a></h6>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--custom-script-project</span></code></strong>: Specifies the name of the project in which the custom script is placed, if it is different from the project specified by <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>.</p></li>
+</ul>
+<p>These options provide flexibility for configuring and running bash array jobs, allowing to tailor the execution for specific requirements.</p>
+</section>
+</section>
+</section>
+<section id="use-multiple-projects-for-files-in-parameter-option">
+<h4>Use multiple projects for files in <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option<a class="headerlink" href="#use-multiple-projects-for-files-in-parameter-option" title="Link to this heading">¶</a></h4>
+<p>The option <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> could specify a file input located in a different project than option <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>. The files can only be located inside the project’s <code class="docutils literal notranslate"><span class="pre">Data</span></code> subfolder, not <code class="docutils literal notranslate"><span class="pre">Cohorts</span></code> or <code class="docutils literal notranslate"><span class="pre">Analyses</span> <span class="pre">Results</span></code>. The accepted structures for different parameter projects are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=&lt;project&gt;/Data/file.txt&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=&lt;project&gt;/Data/subfolder/file.txt&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=Data/subfolder/file.txt&quot;</span></code> (the same project as <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=&lt;project&gt;/Data/subfolder/*.txt&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=&lt;project&gt;/Data/*.txt&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=Data/*.txt&quot;</span></code> (the same project as <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>)</p></li>
+</ul>
+<p>The project should be specified at the beginning of the file path. For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>-p<span class="w"> </span><span class="nv">file</span><span class="o">=</span>Data/input.csv
+</pre></div>
+</div>
+<p>This will point to the global project, specified with <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>. In contrast:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="nv">data</span><span class="o">=</span>Data/input.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="nv">exp</span><span class="o">=</span>PROJECT_EXPRESSION/Data/input.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">&quot;ADIPOSE&quot;</span>
+</pre></div>
+</div>
+<p>for parameter <code class="docutils literal notranslate"><span class="pre">exp</span></code> it will point to a project named <code class="docutils literal notranslate"><span class="pre">PROJECT_EXPRESSION</span></code> in the File Explorer, and <code class="docutils literal notranslate"><span class="pre">data</span></code> parameter will be found in the global project <code class="docutils literal notranslate"><span class="pre">ADIPOSE</span></code>.</p>
+<p>Apart from files, the parameter can also take glob patterns, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="nv">data</span><span class="o">=</span>Data/input.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="nv">exp</span><span class="o">=</span><span class="s2">&quot;PROJECT_EXPRESSION/Data/*.csv&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">&quot;ADIPOSE&quot;</span>
+</pre></div>
+</div>
+<p>will take all <code class="docutils literal notranslate"><span class="pre">csv</span></code> file extensions in the specified folder.</p>
+<blockquote>
+<div><p>[!NOTE]
+When specifying glob patterns, depending on the terminal it is best to add it in double quotes to avoid the terminal searching for the glob pattern locally, e.g. <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">exp=&quot;PROJECT_EXPRESSION/Data/*.csv&quot;</span></code>.</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!NOTE]
+Project names in the <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option can start with either forward slash <code class="docutils literal notranslate"><span class="pre">/</span></code> or without. The following are the same: <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">data=/PROJECT1/Data/input.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">data=PROJECT1/Data/input.csv</span></code>.</p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="datasets">
+<h3>Datasets<a class="headerlink" href="#datasets" title="Link to this heading">¶</a></h3>
+<p>Manage files and folders within your CloudOS File Explorer programmatically. These commands provide comprehensive file management capabilities for organizing research data and results.</p>
+<section id="list-files">
+<h4>List Files<a class="headerlink" href="#list-files" title="Link to this heading">¶</a></h4>
+<p>Browse files and folders within your CloudOS projects. Use the <code class="docutils literal notranslate"><span class="pre">--details</span></code> flag to get comprehensive information about file ownership, sizes, and modification dates.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>&lt;path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;
+</pre></div>
+</div>
+<p>The output of this command is a list of files and folders present in the specified project.</p>
+<blockquote>
+<div><p>[!NOTE]
+If the <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> is left empty, the command will return the list of folders present in the selected project.</p>
+</div></blockquote>
+<p>If you require more information on the files and folder listed, you can use the <code class="docutils literal notranslate"><span class="pre">--details</span></code> flag that will output a table containing the following columns:</p>
+<ul class="simple">
+<li><p>Type (folder or file)</p></li>
+<li><p>Owner</p></li>
+<li><p>Size (in human readable format)</p></li>
+<li><p>Last updated</p></li>
+<li><p>Virtual Name (the file or folder name)</p></li>
+<li><p>Storage Path</p></li>
+</ul>
+</section>
+<section id="move-files">
+<h4>Move Files<a class="headerlink" href="#move-files" title="Link to this heading">¶</a></h4>
+<p>Relocate files and folders within the same project or across different projects. This is useful for reorganizing data and moving results to appropriate locations.</p>
+<blockquote>
+<div><p>[!NOTE]
+Files and folders can be moved <strong>from</strong> <code class="docutils literal notranslate"><span class="pre">Data</span></code> or any of its subfolders (i.e <code class="docutils literal notranslate"><span class="pre">Data</span></code>, <code class="docutils literal notranslate"><span class="pre">Data/folder/file.txt</span></code>) <strong>to</strong> <code class="docutils literal notranslate"><span class="pre">Data</span></code> or any of its subfolders programmatically. Furthermore, only virtual folders can be destination folders.</p>
+</div></blockquote>
+<p>The move can happen <strong>within the same project</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>mv<span class="w"> </span>&lt;source_path&gt;<span class="w"> </span>&lt;destination_path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;
+</pre></div>
+</div>
+<p>But it can also happen <strong>across different projects</strong>  within the same workspace by specifying the destination project name.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>mv<span class="w"> </span>&lt;source_path&gt;<span class="w"> </span>&lt;destination_path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;<span class="w"> </span>--destination-project-name<span class="w"> </span>&lt;project&gt;
+</pre></div>
+</div>
+<p>Any of the <code class="docutils literal notranslate"><span class="pre">source_path</span></code> must be a full path, starting from the <code class="docutils literal notranslate"><span class="pre">Data</span></code> datasets and its folder; any <code class="docutils literal notranslate"><span class="pre">destination_path</span></code> must be a path starting with <code class="docutils literal notranslate"><span class="pre">Data</span></code> and finishing with the folder where to move the file/folder.</p>
+<p>An example of such command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cloudos</span> <span class="n">datasets</span> <span class="n">mv</span> <span class="n">Data</span><span class="o">/</span><span class="n">results</span><span class="o">/</span><span class="n">my_plot</span><span class="o">.</span><span class="n">png</span> <span class="n">Data</span><span class="o">/</span><span class="n">plots</span> 
+</pre></div>
+</div>
+</section>
+<section id="rename-files">
+<h4>Rename Files<a class="headerlink" href="#rename-files" title="Link to this heading">¶</a></h4>
+<p>Change file and folder names while keeping them in the same location. This helps maintain organized file structures and clear naming conventions.</p>
+<blockquote>
+<div><p>[!NOTE]
+Files and folders within the <code class="docutils literal notranslate"><span class="pre">Data</span></code> dataset can be renamed using the following command</p>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>rename<span class="w"> </span>&lt;path&gt;<span class="w"> </span>&lt;new_name&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">path</span></code> is the full path to the file/folder to be renamed and <code class="docutils literal notranslate"><span class="pre">new_name</span></code> is just the name, no path required, as the file will not be moved.</p>
+<blockquote>
+<div><p>[!NOTE]
+Renaming can only happen in files and folders that are present in the <code class="docutils literal notranslate"><span class="pre">Data</span></code> datasets and that were created or uploaded by your user.</p>
+</div></blockquote>
+</section>
+<section id="copy-files">
+<h4>Copy Files<a class="headerlink" href="#copy-files" title="Link to this heading">¶</a></h4>
+<p>Create copies of files and folders for backup purposes or to share data across projects without moving the original files.</p>
+<blockquote>
+<div><p>[!NOTE]
+Files and folders can be copied <strong>from</strong> anywhere in the project <strong>to</strong> <code class="docutils literal notranslate"><span class="pre">Data</span></code> or any of its subfolders programmatically (i.e <code class="docutils literal notranslate"><span class="pre">Data</span></code>, <code class="docutils literal notranslate"><span class="pre">Data/folder/file.txt</span></code>). Furthermore, only virtual folders can be destination folders.</p>
+</div></blockquote>
+<p>The copy can happen <strong>within the same project</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>cp<span class="w"> </span>&lt;source_path&gt;<span class="w"> </span>&lt;destination_path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;
+</pre></div>
+</div>
+<p>or it can happen <strong>across different projects</strong>  within the same workspace</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>cp<span class="w"> </span>&lt;source_path&gt;<span class="w"> </span>&lt;destination_path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;<span class="w"> </span>--destination-project-name<span class="w"> </span>&lt;project&gt;
+</pre></div>
+</div>
+<p>Any of the <code class="docutils literal notranslate"><span class="pre">source_path</span></code> must be a full path; any <code class="docutils literal notranslate"><span class="pre">destination_path</span></code> must be a path starting with <code class="docutils literal notranslate"><span class="pre">Data</span></code> and finishing with the folder where to move the file/folder.</p>
+<p>An example of such command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cloudos</span> <span class="n">datasets</span> <span class="n">cp</span> <span class="n">AnalysesResults</span><span class="o">/</span><span class="n">my_analysis</span><span class="o">/</span><span class="n">results</span><span class="o">/</span><span class="n">my_plot</span><span class="o">.</span><span class="n">png</span> <span class="n">Data</span><span class="o">/</span><span class="n">plots</span> 
+</pre></div>
+</div>
+</section>
+<section id="link-s3-folders-to-interactive-analysis">
+<h4>Link S3 Folders to Interactive Analysis<a class="headerlink" href="#link-s3-folders-to-interactive-analysis" title="Link to this heading">¶</a></h4>
+<p>Connect external S3 buckets or internal File Explorer folders to your interactive analysis sessions. This provides direct access to data without needing to copy files.</p>
+<p>This subcommand is using the option <code class="docutils literal notranslate"><span class="pre">--session-id</span></code> to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>link<span class="w"> </span>&lt;S3_FOLDER_COMPLETE_PATH_OR_VIRTUAL_FOLDER_PATH&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;
+</pre></div>
+</div>
+<p>For example, an s3 folder can be linked like follows</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos datasets link s3://bucket/path/folder --profile test --session-id 1234</span>
+</pre></div>
+</div>
+<p>A virtual folder can be linked like</p>
+<div class="highlight-concole notranslate"><div class="highlight"><pre><span></span>cloudos datasets link &quot;Analyses Results/HLA&quot; --session-id 1234
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]
+If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the <code class="docutils literal notranslate"><span class="pre">--apikey</span></code> needs to be added.</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!NOTE]
+Virtual folders in File Explorer, the ones a user has created in File explorer and are not actual storage locations, cannot be linked.</p>
+</div></blockquote>
+</section>
+<section id="create-folder">
+<h4>Create Folder<a class="headerlink" href="#create-folder" title="Link to this heading">¶</a></h4>
+<p>Create new organizational folders within your projects to maintain structured data hierarchies.</p>
+<blockquote>
+<div><p>[!NOTE]
+New folders can be created within the <code class="docutils literal notranslate"><span class="pre">Data</span></code> dataset and its subfolders.</p>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>mkdir<span class="w"> </span>&lt;new_folder_path&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>
+</pre></div>
+</div>
+</section>
+<section id="remove-files-or-folders">
+<h4>Remove Files or Folders<a class="headerlink" href="#remove-files-or-folders" title="Link to this heading">¶</a></h4>
+<p>Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from CloudOS but not from underlying cloud storage.</p>
+<blockquote>
+<div><p>[!NOTE]
+Files and folders can be removed from file explorer (in the <code class="docutils literal notranslate"><span class="pre">Data</span></code> datasets and its subfolders) and not from the corresponding cloud storage.</p>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>rm<span class="w"> </span>&lt;path&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="procurement">
+<h3>Procurement<a class="headerlink" href="#procurement" title="Link to this heading">¶</a></h3>
+<p>CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.</p>
+<section id="list-procurement-images">
+<h4>List Procurement Images<a class="headerlink" href="#list-procurement-images" title="Link to this heading">¶</a></h4>
+<p>You can get a list of images associated with organizations of a given procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">ls</span></code> command. This command provides paginated results showing image configurations and metadata.</p>
+<p>To list images for a specific procurement, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--<span class="w"> </span>profile<span class="w"> </span>procurement_profile<span class="w"> </span>
+<span class="w">    </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+</pre></div>
+</div>
+<p><strong>Command options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--page</span></code>: The response page number (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--limit</span></code>: The page size limit (default: 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from the config file</p></li>
+</ul>
+<p><strong>Example usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List images for the procurement (first page, 10 items)</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+</pre></div>
+</div>
+<p>To get more results per page or navigate to different pages:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get 25 images from page 2</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--limit<span class="w"> </span><span class="m">25</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+</pre></div>
+</div>
+<p><strong>Output format:</strong></p>
+<p>The command returns detailed information about image configurations and pagination metadata in JSON format, including:</p>
+<ul class="simple">
+<li><p><strong>Image configurations</strong>: Details about available container images</p></li>
+<li><p><strong>Pagination metadata</strong>: Information about total pages, current page, and available items</p></li>
+</ul>
+<p>This is particularly useful for understanding what container images are available across different organizations within your procurement and for programmatic access to image inventory.</p>
+</section>
+<section id="set-procurement-organization-image">
+<h4>Set Procurement Organization Image<a class="headerlink" href="#set-procurement-organization-image" title="Link to this heading">¶</a></h4>
+<p>You can set a custom image ID or name for an organization within a procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">set</span></code> command. This allows you to override the default CloudOS images with your own custom images for specific organizations.</p>
+<p>To set a custom image for an organization, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">&quot;ami-0123456789abcdef0&quot;</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">&quot;custom-image-name&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+</pre></div>
+</div>
+<p><strong>Set command options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--organisation-id</span></code>: The organization ID where the change will be applied (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The CloudOS resource image type (required). Possible values:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">RegularInteractiveSessions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SparkInteractiveSessions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RStudioInteractiveSessions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">JupyterInteractiveSessions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">JobDefault</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NextflowBatchComputeEnvironment</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--provider</span></code>: The cloud provider (required). Currently only <code class="docutils literal notranslate"><span class="pre">aws</span></code> is supported</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--region</span></code>: The cloud region (required). Currently only AWS regions are supported</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-id</span></code>: The new image ID value (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-name</span></code>: The new image name value (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from the config file</p></li>
+</ul>
+<p><strong>Set command example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set custom image for job execution</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">&quot;ami-0123456789abcdef0&quot;</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">&quot;my-custom-job-image&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="reset-procurement-organization-image">
+<h4>Reset Procurement Organization Image<a class="headerlink" href="#reset-procurement-organization-image" title="Link to this heading">¶</a></h4>
+<p>You can reset an organization’s image configuration back to CloudOS defaults using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">reset</span></code> command. This removes any custom image configurations and restores the original CloudOS defaults.</p>
+<p>To reset an organization’s image to defaults, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+</pre></div>
+</div>
+<p><strong>Reset command options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--organisation-id</span></code>: The organization ID where the change will be applied (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The CloudOS resource image type (required). Same values as for <code class="docutils literal notranslate"><span class="pre">set</span></code> command</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--provider</span></code>: The cloud provider (required). Currently only <code class="docutils literal notranslate"><span class="pre">aws</span></code> is supported</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--region</span></code>: The cloud region (required). Currently only AWS regions are supported</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from the config file</p></li>
+</ul>
+<p><strong>Reset command example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset image configuration to CloudOS defaults</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cromwell-and-wdl-pipeline-support">
+<h3>Cromwell and WDL Pipeline Support<a class="headerlink" href="#cromwell-and-wdl-pipeline-support" title="Link to this heading">¶</a></h3>
+<section id="manage-cromwell-server">
+<h4>Manage Cromwell Server<a class="headerlink" href="#manage-cromwell-server" title="Link to this heading">¶</a></h4>
+<p>In order to run WDL pipelines, a Cromwell server in CloudOS should be running. This server can be accessed to check its status, restart it or stop it, using the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Cromwell status</span>
+cloudos<span class="w"> </span>cromwell<span class="w"> </span>status<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing status...</span>
+<span class="go">	Current Cromwell server status is: Stopped</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Cromwell start</span>
+cloudos<span class="w"> </span>cromwell<span class="w"> </span>start<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Starting Cromwell server...</span>
+<span class="go">	Current Cromwell server status is: Initializing</span>
+
+<span class="go">	Current Cromwell server status is: Running</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Cromwell stop</span>
+cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Stopping Cromwell server...</span>
+<span class="go">	Current Cromwell server status is: Stopped</span>
+</pre></div>
+</div>
+</section>
+<section id="run-wdl-workflows">
+<h4>Run WDL Workflows<a class="headerlink" href="#run-wdl-workflows" title="Link to this heading">¶</a></h4>
+<p>To run WDL workflows, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command can be used normally, but adding two extra parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--wdl-mainfile</span></code>: name of the mainFile (*.wdl) file used by the CloudOS workflow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--wdl-importsfile</span></code> [Optional]: name of the workflow imported file (importsFile, *.zip).</p></li>
+</ul>
+<p>All the rest of the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> functionality is available.</p>
+<blockquote>
+<div><p>NOTE: WDL does not support <code class="docutils literal notranslate"><span class="pre">profiles</span></code> and therefore, <code class="docutils literal notranslate"><span class="pre">--nextflow-profile</span></code> option is not available. Instead, use <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> and/or <code class="docutils literal notranslate"><span class="pre">--parameter</span></code>. The format of the job config file is expected to be the same as for nextflow pipelines.</p>
+</div></blockquote>
+<p>Example of job config file for WDL workflows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>params<span class="w"> </span><span class="o">{</span>
+<span class="w"> </span>test.hello.name<span class="w"> </span><span class="o">=</span><span class="w"> </span>aasdajdad
+<span class="w">  </span>test.bye.nameTwo<span class="w"> </span><span class="o">=</span><span class="w"> </span>asijdadads
+<span class="w">  </span>test.number.x<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+<span class="w">  </span>test.greeter.morning<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">  </span>test.wf_hello_in<span class="w"> </span><span class="o">=</span><span class="w"> </span>bomba
+<span class="w">  </span>test.arrayTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;lala&quot;</span><span class="o">]</span>
+<span class="w">  </span>test.mapTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="s2">&quot;some&quot;</span>:<span class="s2">&quot;props&quot;</span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>NOTE: when using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option, if the value needs quotes (<code class="docutils literal notranslate"><span class="pre">&quot;</span></code>) you will need to escape them. E.g.: <code class="docutils literal notranslate"><span class="pre">--parameter</span> <span class="pre">test.arrayTest=[\&quot;lala\&quot;]</span></code></p>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--project-name<span class="w"> </span>wdl-test<span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;wdl-test&quot;</span><span class="w"> </span>--wdl-mainfile<span class="w"> </span>hello.wdl<span class="w"> </span>--wdl-importsfile<span class="w"> </span>imports_7mb.zip<span class="w"> </span>--job-config<span class="w"> </span>cloudos/examples/wdl.config<span class="w"> </span>--wait-completion
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
+<span class="go">    WDL workflow detected</span>
+
+<span class="go">    Current Cromwell server status is: Stopped</span>
+
+<span class="go">    Starting Cromwell server...</span>
+
+<span class="go">    Current Cromwell server status is: Initializing</span>
+
+
+<span class="go">    Current Cromwell server status is: Running</span>
+
+<span class="go">    *******************************************************************************</span>
+<span class="go">    [WARNING] Cromwell server is now running. Plase, remember to stop it when your</span>
+<span class="go">    job finishes. You can use the following command:</span>
+<span class="go">    cloudos cromwell stop \</span>
+<span class="go">        --cromwell-token $CROMWELL_TOKEN \</span>
+<span class="go">        --cloudos-url $CLOUDOS \</span>
+<span class="go">        --workspace-id $WORKSPACE_ID</span>
+<span class="go">    *******************************************************************************</span>
+
+<span class="go">	Job successfully launched to CloudOS, please check the following link: ****</span>
+<span class="go">	Your assigned job id is: ****</span>
+<span class="go">	Please, wait until job completion or max wait time of 3600 seconds is reached.</span>
+<span class="go">	Your current job status is: initializing.</span>
+<span class="go">	Your current job status is: running.</span>
+<span class="go">	Your job took 60 seconds to complete successfully.</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="python-api-usage">
+<h2>Python API Usage<a class="headerlink" href="#python-api-usage" title="Link to this heading">¶</a></h2>
+<p>To illustrate how to import the package and use its functionality inside
+your own python scripts, we will perform a job submission and check its
+status from inside a python script.</p>
+<p>Again, we will set up the environment to ease the work:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cloudos_cli.jobs.job</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jb</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+
+<span class="c1"># GLOBAL VARS.</span>
+<span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
+<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">&#39;https://cloudos.lifebit.ai&#39;</span>
+<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
+<span class="n">project_name</span> <span class="o">=</span> <span class="s1">&#39;API jobs&#39;</span>
+<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">&#39;rnatoy&#39;</span>
+<span class="n">job_config</span> <span class="o">=</span> <span class="s1">&#39;cloudos/examples/rnatoy.config&#39;</span>
+</pre></div>
+</div>
+<p>First, create the <code class="docutils literal notranslate"><span class="pre">Job</span></code> object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, send the job:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To check the status:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">)</span>
+<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The status will change while your job progresses, so to check again just
+repeat the above code.</p>
+<p>You can also collect your last 30 submitted jobs for a given workspace using the
+following command.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_jobs_r</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">my_jobs</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">process_job_list</span><span class="p">(</span><span class="n">my_jobs_r</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_jobs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or inspect all the available workflows for a given workspace using the
+following command.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_workflows_r</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_workflow_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">my_workflows</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">process_workflow_list</span><span class="p">(</span><span class="n">my_workflows_r</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_workflows</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similarly, you can inspect all the available projects for a given workspace using the
+following command.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_projects_r</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_project_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">my_projects</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">process_project_list</span><span class="p">(</span><span class="n">my_projects_r</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_projects</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="running-wdl-pipelines-using-your-own-scripts">
+<h3>Running WDL pipelines using your own scripts<a class="headerlink" href="#running-wdl-pipelines-using-your-own-scripts" title="Link to this heading">¶</a></h3>
+<p>You can even run WDL pipelines. First check the Cromwell server status and restart it if Stopped:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cloudos_cli.jobs.job</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jb</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+
+<span class="c1"># GLOBAL VARS.</span>
+<span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
+<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">&#39;https://cloudos.lifebit.ai&#39;</span>
+<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
+<span class="n">project_name</span> <span class="o">=</span> <span class="s1">&#39;wdl-test&#39;</span>
+<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">&#39;wdl- test&#39;</span>
+<span class="n">mainfile</span> <span class="o">=</span> <span class="s1">&#39;hello.wdl&#39;</span>
+<span class="n">importsfile</span> <span class="o">=</span> <span class="s1">&#39;imports_7mb.zip&#39;</span>
+<span class="n">job_config</span> <span class="o">=</span> <span class="s1">&#39;cloudos/examples/wdl.config&#39;</span>
+
+<span class="c1"># First create cloudos object</span>
+<span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">Cloudos</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># Then, check Cromwell status</span>
+<span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
+
+<span class="c1"># Start Cromwell server</span>
+<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;restart&#39;</span><span class="p">)</span>
+
+<span class="c1"># Check again Cromwell status (wait until status: &#39;Running&#39;)</span>
+<span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
+
+<span class="c1"># Send a job (wait until job has status: &#39;Completed&#39;)</span>
+<span class="n">j</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">mainfile</span><span class="p">,</span>
+           <span class="n">importsfile</span><span class="p">)</span>
+<span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span> <span class="n">workflow_type</span><span class="o">=</span><span class="s1">&#39;wdl&#39;</span><span class="p">,</span> <span class="n">cromwell_id</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;_id&quot;</span><span class="p">])</span>
+<span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">)</span>
+<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
+
+<span class="c1"># Stop Cromwell server</span>
+<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">)</span>
+
+<span class="c1"># Check again Cromwell status</span>
+<span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="unit-testing">
+<h2>Unit Testing<a class="headerlink" href="#unit-testing" title="Link to this heading">¶</a></h2>
+<p>Unit tests require 4 additional packages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span><span class="o">&gt;=</span><span class="mf">6.2.5</span>
+<span class="n">requests</span><span class="o">-</span><span class="n">mock</span><span class="o">&gt;=</span><span class="mf">1.9.3</span>
+<span class="n">responses</span><span class="o">&gt;=</span><span class="mf">0.21.0</span>
+<span class="n">mock</span><span class="o">&gt;=</span><span class="mf">3.0.5</span>
+</pre></div>
+</div>
+<p>Command to run tests from the <code class="docutils literal notranslate"><span class="pre">cloudos-cli</span></code> main folder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pytest</span> <span class="o">-</span><span class="n">s</span> <span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="cli.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">CLI Reference</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Home</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Lifebit AI
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,21 @@
+﻿cloudos\_cli
+============
+
+.. automodule:: cloudos_cli
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   clos
+   configure
+   datasets
+   import_wf
+   jobs
+   link
+   procurement
+   queue
+   utils

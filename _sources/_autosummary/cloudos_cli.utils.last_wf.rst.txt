@@ -1,0 +1,12 @@
+cloudos\_cli.utils.last\_wf
+===========================
+
+.. automodule:: cloudos_cli.utils.last_wf
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      youngest_workflow_id_by_name
+   

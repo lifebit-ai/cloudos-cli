@@ -1,0 +1,13 @@
+cloudos\_cli.procurement
+========================
+
+.. automodule:: cloudos_cli.procurement
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   images

@@ -1,0 +1,12 @@
+cloudos\_cli.utils.details
+==========================
+
+.. automodule:: cloudos_cli.utils.details
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_path
+   
