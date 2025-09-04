@@ -3889,7 +3889,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     item_id = found_item.get("_id",'')
     kind = "Folder" if "folderType" in found_item else "File"
     if item_id=='':
-        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
+        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is a s3 folder and their content cannot be modified.",
                    err=True)
         sys.exit(1)
     
