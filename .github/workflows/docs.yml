@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - sphinx-docs
   workflow_dispatch:
 
 jobs:
