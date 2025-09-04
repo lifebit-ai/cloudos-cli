@@ -6,7 +6,7 @@
 
 - Change error message when copying files to s3 folder
 - Change error message when removing user-uploaded files
-- Raises error messae if no session-id is provided to datasets link
+- Raises error message if no session-id is provided to datasets link
 - Added some error messages for job workdir
 
 ## v2.58.0 (2025-09-01)
