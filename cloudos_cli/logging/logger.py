@@ -6,6 +6,7 @@ import logging
 import logging.config
 import copy
 from pathlib import Path
+from cloudos_cli._version import __version__
 
 
 _cmd_filter_instance = None
@@ -22,6 +23,7 @@ class LogFormatter(logging.Formatter):
 
     def _prepare_log_dict(self, record: logging.LogRecord):
         always = {
+            "version": __version__,
             "message": record.getMessage(),
             "timestamp": dt.datetime.fromtimestamp(record.created, tz=dt.timezone.utc).isoformat(),
         }
@@ -105,6 +107,7 @@ LOG_CONFIG = {
 
 def setup_logging(debug):
     debug_fields = {
+            "version": "version",
             "level": "levelname",
             "timestamp": "timestamp",
             "message": "message",
@@ -114,6 +117,7 @@ def setup_logging(debug):
             "exc_info": "exc_info"
     }
     non_debug_fields = {
+            "version": "version",
             "level": "levelname",
             "timestamp": "timestamp",
             "message": "message",
