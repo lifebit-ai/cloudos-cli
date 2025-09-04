@@ -268,6 +268,12 @@ class TestSetupLogging:
         self.original_cwd = os.getcwd()
         os.chdir(self.temp_dir)
 
+        # Track log files for cleanup
+        self.log_dir = os.path.join(Path.home(), ".cloudos/logs")
+        self.log_files_before = set()
+        if os.path.exists(self.log_dir):
+            self.log_files_before = set(Path(self.log_dir).glob("cloudos-*.jsonl"))
+
     def teardown_method(self):
         """Cleanup after each test method"""
         # Restore original directory
@@ -276,6 +282,16 @@ class TestSetupLogging:
         # Clean up temporary directory
         import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+        # Clean up log files created during test
+        if os.path.exists(self.log_dir):
+            log_files_after = set(Path(self.log_dir).glob("cloudos-*.jsonl"))
+            new_log_files = log_files_after - self.log_files_before
+            for log_file in new_log_files:
+                try:
+                    log_file.unlink()
+                except FileNotFoundError:
+                    pass  # File already removed
 
         # Clear handlers
         logging.getLogger().handlers.clear()
@@ -422,6 +438,12 @@ class TestIntegration:
         self.original_cwd = os.getcwd()
         os.chdir(self.temp_dir)
 
+        # Track log files for cleanup
+        self.log_dir = os.path.join(Path.home(), ".cloudos/logs")
+        self.log_files_before = set()
+        if os.path.exists(self.log_dir):
+            self.log_files_before = set(Path(self.log_dir).glob("cloudos-*.jsonl"))
+
     def teardown_method(self):
         """Cleanup after each test method"""
         # Restore original directory
@@ -430,6 +452,16 @@ class TestIntegration:
         # Clean up temporary directory
         import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+        # Clean up log files created during test
+        if os.path.exists(self.log_dir):
+            log_files_after = set(Path(self.log_dir).glob("cloudos-*.jsonl"))
+            new_log_files = log_files_after - self.log_files_before
+            for log_file in new_log_files:
+                try:
+                    log_file.unlink()
+                except FileNotFoundError:
+                    pass  # File already removed
 
         # Clear handlers
         logging.getLogger().handlers.clear()
