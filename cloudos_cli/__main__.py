@@ -21,6 +21,8 @@ from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
+from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
+import logging
 
 
 # GLOBAL VARS
@@ -40,19 +42,22 @@ INIT_PROFILE = 'initialisingProfile'
 def handle_exception(show_traceback=False):
     """Custom exception handler for CloudOS CLI"""
     def exception_handler(exc_type, exc_value, exc_traceback):
+        # Initialise logger
+        debug_mode = '--debug' in sys.argv
+        setup_logging(debug_mode)
+        logger = logging.getLogger("CloudOS")
         # Handle keyboard interrupt gracefully
         if issubclass(exc_type, KeyboardInterrupt):
             sys.exit(1)
-        
         if show_traceback:
             # Show full traceback for debugging
+            logger.error(exc_value, exc_info=exc_value)
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         else:
             # Show only the error message
+            logger.error(exc_value)
             click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
-        
         sys.exit(1)
-    
     return exception_handler
 
 
@@ -62,15 +67,14 @@ def handle_exception(show_traceback=False):
 @click.pass_context
 def run_cloudos_cli(ctx, debug):
     """CloudOS python package: a package for interacting with CloudOS."""
+    update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
     ctx.obj['debug'] = debug
-    
     # Set up custom exception handling based on debug flag
     if not debug:
         sys.excepthook = handle_exception(show_traceback=False)
     else:
         sys.excepthook = handle_exception(show_traceback=True)
-    
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -260,6 +264,7 @@ def images():
 @click.pass_context
 def datasets(ctx):
     """CloudOS datasets functionality."""
+    update_command_context_from_click(ctx)
     if ctx.args and ctx.args[0] != 'ls':
         print(datasets.__doc__ + '\n')
 
@@ -273,6 +278,7 @@ def datasets(ctx):
 def configure(ctx, profile, make_default):
     """CloudOS configuration."""
     print(configure.__doc__ + '\n')
+    update_command_context_from_click(ctx)
     profile = profile or ctx.obj['profile']
     config_manager = ConfigurationProfile()
 
@@ -283,6 +289,7 @@ def configure(ctx, profile, make_default):
         config_manager.create_profile_from_input(profile_name=profile)
     if make_default:
         config_manager.make_default_profile(profile_name=profile)
+
 
 @job.command('run')
 @click.option('-k',
@@ -474,6 +481,7 @@ def run(ctx,
         ssl_cert,
         profile):
     """Submit a job to CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['run']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -766,6 +774,7 @@ def job_status(ctx,
                ssl_cert,
                profile):
     """Check job status in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['status']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -801,7 +810,6 @@ def job_status(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         j_status = cl.get_job_status(job_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
@@ -845,15 +853,16 @@ def job_status(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 def job_workdir(ctx,
-             apikey,
-             cloudos_url,
-             workspace_id,
-             job_id,
-             verbose,
-             disable_ssl_verification,
-             ssl_cert,
-             profile):
+                apikey,
+                cloudos_url,
+                workspace_id,
+                job_id,
+                verbose,
+                disable_ssl_verification,
+                ssl_cert,
+                profile):
     """Get the path to the working directory of a specified job."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['workdir']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -891,7 +900,6 @@ def job_workdir(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
@@ -940,6 +948,7 @@ def job_logs(ctx,
              ssl_cert,
              profile):
     """Get the path to the logs of a specified job."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['logs']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -977,7 +986,6 @@ def job_logs(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
         for name, path in logs.items():
@@ -1027,6 +1035,7 @@ def job_results(ctx,
                 ssl_cert,
                 profile):
     """Get the path to the results of a specified job."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['results']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1064,7 +1073,6 @@ def job_results(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         results = cl.get_job_results(job_id, workspace_id, verify_ssl)
         for name, path in results.items():
@@ -1127,6 +1135,7 @@ def job_details(ctx,
                 ssl_cert,
                 profile):
     """Retrieve job details in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['details']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1371,7 +1380,7 @@ def job_details(ctx,
 @click.option('--filter-queue',
               help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
 @click.option('--filter-owner',
-             help='Filter jobs by owner username.')
+              help='Filter jobs by owner username.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1407,6 +1416,7 @@ def list_jobs(ctx,
               ssl_cert,
               profile):
     """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1479,7 +1489,6 @@ def list_jobs(ctx,
             filter_owner,
             filter_queue
         ])
-        
         if filters_used:
             print('\t[Message] A total of 0 jobs collected.')
         elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
@@ -1540,6 +1549,7 @@ def abort_jobs(ctx,
                ssl_cert,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['job']['abort']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1599,6 +1609,7 @@ def abort_jobs(ctx,
             cl.abort_job(job, workspace_id, verify_ssl)
             print(f"\tJob '{job}' aborted successfully.")
 
+
 @click.command()
 @click.option('-k',
               '--apikey',
@@ -1640,7 +1651,7 @@ def abort_jobs(ctx,
               is_flag=True)
 @click.option('--job-queue',
               help=('Name of the job queue to use with a batch job. ' +
-                   'In Azure workspaces, this option is ignored.'))
+                    'In Azure workspaces, this option is ignored.'))
 @click.option('--instance-type',
               help=('The type of compute instance to use as master node. ' +
                     'Default=c5.xlarge(aws)|Standard_D4as_v4(azure).'))
@@ -1670,26 +1681,27 @@ def abort_jobs(ctx,
               default=None)
 @click.pass_context
 def clone_resume(ctx,
-              apikey,
-              cloudos_url,
-              workspace_id,
-              project_name,
-              parameter,
-              nextflow_profile,
-              nextflow_version,
-              git_branch,
-              job_name,
-              do_not_save_logs,
-              job_queue,
-              instance_type,
-              cost_limit,
-              job_id,
-              accelerate_file_staging,
-              resumable,
-              verbose,
-              disable_ssl_verification,
-              ssl_cert,
-              profile):
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 project_name,
+                 parameter,
+                 nextflow_profile,
+                 nextflow_version,
+                 git_branch,
+                 job_name,
+                 do_not_save_logs,
+                 job_queue,
+                 instance_type,
+                 cost_limit,
+                 job_id,
+                 accelerate_file_staging,
+                 resumable,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    update_command_context_from_click(ctx)
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
     elif ctx.info_name == "resume":
@@ -1735,7 +1747,7 @@ def clone_resume(ctx,
 
     # Create Job object (set dummy values for project_name and workflow_name, since they come from the cloned job)
     job_obj = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
-               mainfile=None, importsfile=None,verify=verify_ssl)
+                     mainfile=None, importsfile=None, verify=verify_ssl)
 
     if verbose:
         print('\tThe following Job object was created:')
@@ -1773,6 +1785,8 @@ def clone_resume(ctx,
     except Exception as e:
         click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
         sys.exit(1)
+
+
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
 job.add_command(clone_resume, "resume")
@@ -1828,6 +1842,7 @@ def list_workflows(ctx,
                    ssl_cert,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['workflow']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -1927,6 +1942,7 @@ def import_wf(ctx,
     """
     Import workflows from supported repository providers.
     """
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['workflow']['import']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2025,6 +2041,7 @@ def list_projects(ctx,
                   ssl_cert,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['project']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2131,6 +2148,7 @@ def create_project(ctx,
                    ssl_cert,
                    profile):
     """Create a new project in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['project']['create']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2220,6 +2238,7 @@ def cromwell_status(ctx,
                     ssl_cert,
                     profile):
     """Check Cromwell server status in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['cromwell']['status']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2306,6 +2325,7 @@ def cromwell_restart(ctx,
                      ssl_cert,
                      profile):
     """Restart Cromwell server in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['cromwell']['status']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2409,6 +2429,7 @@ def cromwell_stop(ctx,
                   ssl_cert,
                   profile):
     """Stop Cromwell server in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['cromwell']['status']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2500,6 +2521,7 @@ def list_queues(ctx,
                 ssl_cert,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['queue']['list']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2560,6 +2582,7 @@ def list_profiles():
               required=True)
 @click.pass_context
 def remove_profile(ctx, profile):
+    update_command_context_from_click(ctx)
     profile = profile or ctx.obj['profile']
     config_manager = ConfigurationProfile()
     config_manager.remove_profile(profile)
@@ -2691,6 +2714,7 @@ def run_bash_job(ctx,
                  ssl_cert,
                  profile):
     """Run a bash job in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['bash']['job']['profile']
     # Create a dictionary with required and non-required params
     required_dict = {
@@ -2979,6 +3003,7 @@ def run_bash_array_job(ctx,
                        custom_script_path,
                        custom_script_project):
     """Run a bash array job in CloudOS."""
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['bash']['array-job']['profile']
 
     # Create a dictionary with required and non-required params
@@ -3032,11 +3057,11 @@ def run_bash_array_job(ctx,
 
     # setup separators for API and array file (the're different)
     separators = {
-        ",": { "api": ",", "file": "," },
-        ";": { "api": "%3B", "file": ";" },
-        "space": { "api": "+", "file": " " },
-        "tab": { "api": "tab", "file": "tab" },
-        "|": { "api": "%7C", "file": "|" }
+        ",": {"api": ",", "file": ","},
+        ";": {"api": "%3B", "file": ";"},
+        "space": {"api": "+", "file": " "},
+        "tab": {"api": "tab", "file": "tab"},
+        "|": {"api": "%7C", "file": "|"}
     }
 
     # setup important options for the job
@@ -3210,7 +3235,7 @@ def list_files(ctx,
                path,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['datasets']['list'].get('profile')
     config_manager = ConfigurationProfile()
 
@@ -3349,9 +3374,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
      E.g.: 'Data/folderB'
     """
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
-    
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
@@ -3457,9 +3481,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         # Normalize kind: top-level datasets are kind=Dataset, all other folders are kind=Folder
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
-        elif folder_type=="S3Folder":
-            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
-                   err=True)
+        elif folder_type == "S3Folder":
+            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. " +
+                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
+                       err=True)
             sys.exit(1)
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
@@ -3501,9 +3526,16 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
-                    workspace_id, project_name,
-                    disable_ssl_verification, ssl_cert, profile):
+def renaming_item(ctx,
+                  source_path,
+                  new_name,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  project_name,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
     """
     Rename a file or folder in a CloudOS project.
 
@@ -3511,6 +3543,7 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
      E.g.: 'Data/folderA/old_name.txt'\n
     NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
+    update_command_context_from_click(ctx)
     if not source_path.strip("/").startswith("Data/"):
         click.echo("[ERROR] SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.", err=True)
         sys.exit(1)
@@ -3614,9 +3647,17 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
-                  workspace_id, project_name, destination_project_name,
-                  disable_ssl_verification, ssl_cert, profile):
+def copy_item_cli(ctx,
+                  source_path,
+                  destination_path,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  project_name,
+                  destination_project_name,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
     """
     Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.
 
@@ -3625,6 +3666,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
     DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
      E.g.: Data/plots
     """
+    update_command_context_from_click(ctx)
     click.echo("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
@@ -3719,9 +3761,9 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
-        elif destination_folder.get("folderType")=="S3Folder":
+        elif destination_folder.get("folderType") == "S3Folder":
             click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
-                   err=True)
+                       err=True)
             sys.exit(1)
         else:
             destination_kind = "Folder"
@@ -3750,14 +3792,21 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
-def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
-               workspace_id, project_name,
-               disable_ssl_verification, ssl_cert, profile):
+def mkdir_item(ctx,
+               new_folder_path,
+               apikey,
+               cloudos_url,
+               workspace_id,
+               project_name,
+               disable_ssl_verification,
+               ssl_cert,
+               profile):
     """
     Create a virtual folder in a CloudOS project.
 
     NEW_FOLDER_PATH [path]: Full path to the new folder including its name. Must start with 'Data'.
     """
+    update_command_context_from_click(ctx)
     new_folder_path = new_folder_path.strip("/")
     if not new_folder_path.startswith("Data"):
         click.echo("[ERROR] NEW_FOLDER_PATH must start with 'Data'.", err=True)
@@ -3872,15 +3921,23 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.option('--force', is_flag=True, help='Force delete files. Required when deleting user uploaded files. This may also delete the file from the cloud provider storage.')
 @click.pass_context
-def rm_item(ctx, target_path, apikey, cloudos_url,
-            workspace_id, project_name,
-            disable_ssl_verification, ssl_cert, profile, force):
+def rm_item(ctx,
+            target_path,
+            apikey,
+            cloudos_url,
+            workspace_id,
+            project_name,
+            disable_ssl_verification,
+            ssl_cert,
+            profile,
+            force):
     """
     Delete a file or folder in a CloudOS project.
 
     TARGET_PATH [path]: the full path to the file or folder to delete. Must start with 'Data'. \n
     E.g.: 'Data/folderA/file.txt' or 'Data/my_analysis/results/folderB'
     """
+    update_command_context_from_click(ctx)
     if not target_path.strip("/").startswith("Data/"):
         click.echo("[ERROR] TARGET_PATH must start with 'Data/', pointing to a file or folder.", err=True)
         sys.exit(1)
@@ -3947,19 +4004,17 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
         sys.exit(1)
 
-    item_id = found_item.get("_id",'')
+    item_id = found_item.get("_id", '')
     kind = "Folder" if "folderType" in found_item else "File"
-    if item_id=='':
+    if item_id == '':
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
                    err=True)
         sys.exit(1)
-    
     # Check if the item is managed by Lifebit
     is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
     if is_managed_by_lifebit and not force:
-        click.echo(f"[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
+        click.echo("[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
         sys.exit(1)
-    
     click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
@@ -3998,14 +4053,23 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
-def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id, disable_ssl_verification, ssl_cert, profile):
+def link(ctx,
+         path,
+         apikey,
+         cloudos_url,
+         project_name,
+         workspace_id,
+         session_id,
+         disable_ssl_verification,
+         ssl_cert,
+         profile):
     """
     Link a folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 folder to link or relative to File Explorer. 
+    PATH [path]: the full path to the S3 folder to link or relative to File Explorer.
     E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['datasets']['link']['profile']
 
     # Create a dictionary with required and non-required params
@@ -4058,7 +4122,6 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     # Minimal folder validation and improved error messages
     is_s3 = path.startswith("s3://")
     is_folder = True
-    
     if is_s3:
         # S3 path validation - use heuristics to determine if it's likely a folder
         try:
@@ -4119,7 +4182,9 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
             click.echo("[ERROR] Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
+        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.",
+                   err=True)
 
     try:
         link_p.link_folder(path, session_id)
@@ -4160,7 +4225,7 @@ def list_images(ctx,
                 page,
                 limit):
     """List images associated with organisations of a given procurement."""
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
     config_manager = ConfigurationProfile()
 
@@ -4226,8 +4291,14 @@ def list_images(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
-            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+              type=click.Choice([
+                  'RegularInteractiveSessions',
+                  'SparkInteractiveSessions',
+                  'RStudioInteractiveSessions',
+                  'JupyterInteractiveSessions',
+                  'JobDefault',
+                  'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--image-id', help='The new image id value.', required=True)
@@ -4254,7 +4325,7 @@ def set_organisation_image(ctx,
                            ssl_cert,
                            profile):
     """Set a new image id or name to image associated with an organisations of a given procurement."""
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
     config_manager = ConfigurationProfile()
 
@@ -4325,8 +4396,14 @@ def set_organisation_image(ctx,
               required=True)
 @click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True, 
-            type=click.Choice(['RegularInteractiveSessions', 'SparkInteractiveSessions', 'RStudioInteractiveSessions', 'JupyterInteractiveSessions', 'JobDefault', 'NextflowBatchComputeEnvironment']))
+@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+              type=click.Choice([
+                  'RegularInteractiveSessions',
+                  'SparkInteractiveSessions',
+                  'RStudioInteractiveSessions',
+                  'JupyterInteractiveSessions',
+                  'JobDefault',
+                  'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--disable-ssl-verification',
@@ -4349,7 +4426,7 @@ def reset_organisation_image(ctx,
                              ssl_cert,
                              profile):
     """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
-
+    update_command_context_from_click(ctx)
     profile = profile or ctx.default_map['procurement']['images']['set'].get('profile')
     config_manager = ConfigurationProfile()
 
@@ -4407,14 +4484,18 @@ def reset_organisation_image(ctx,
 
 
 if __name__ == "__main__":
+    # Setup logging
+    debug_mode = '--debug' in sys.argv
+    setup_logging(debug_mode)
+    logger = logging.getLogger("CloudOS")
+    # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
     try:
         run_cloudos_cli()
     except Exception as e:
-        # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
-        debug_mode = '--debug' in sys.argv
-        
         if debug_mode:
+            logger.error(e, exc_info=True)
             traceback.print_exc()
         else:
+            logger.error(e)
             click.echo(click.style(f"Error: {e}", fg='red'), err=True)
         sys.exit(1)
