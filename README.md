@@ -795,7 +795,22 @@ Executing details...
 │ Accelerated File Staging │ None                                                                    │
 │ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │
 └──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━┳━━━━━━━┓
+┃ Status    ┃ Count ┃
+┡━━━━━━━━━━━╇━━━━━━━┩
+│ Pending   │ 0     │
+│ Submitted │ 2     │
+│ Running   │ 1     │
+│ Retried   │ 0     │
+│ Cached    │ 3     │
+│ Completed │ 25    │
+│ Failed    │ 1     │
+│ Aborted   │ 0     │
+└───────────┴───────┘
+
 ```
+<!-- the process summary table is just a "what it should look like" table as the endpoint is currently not available. -->
 The Process Summary includes the following status categories:
 - **Pending**: Processes that are queued but not yet started
 - **Submitted**: Processes that have been submitted for execution
