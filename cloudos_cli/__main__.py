@@ -1759,10 +1759,10 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        click.echo(f"[ERROR] Failed to {mode} job.  Job '{job_id}' not found or not accessible: {str(e)}", err=True)
         sys.exit(1)
     except Exception as e:
-        click.echo(f"[ERROR] Failed to {action} job '{job_id}': {str(e)}", err=True)
+        click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
         sys.exit(1)
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
@@ -3925,7 +3925,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     item_id = found_item.get("_id",'')
     kind = "Folder" if "folderType" in found_item else "File"
     if item_id=='':
-        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is a s3 folder and their content cannot be modified.",
+        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
                    err=True)
         sys.exit(1)
     
