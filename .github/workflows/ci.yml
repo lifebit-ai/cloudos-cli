@@ -110,7 +110,7 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68af3290ea894436054de39b"
+        JOB_ID="68b9aaab76724fd335457ed3"
         cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   job_workdir:
     runs-on: ubuntu-latest
@@ -134,7 +134,7 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68b0488c628f9dd83daf7e93"
+        JOB_ID="68b87a391f9f8e420bfa10a2"
         cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
@@ -500,7 +500,7 @@ jobs:
               CLOUDOS_URL: "https://cloudos.lifebit.ai"
             run: |
               cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy
-              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv
+              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv --force
   dataset_mkdir_and_remove:
                 runs-on: ubuntu-latest
                 strategy:
