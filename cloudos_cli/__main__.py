@@ -810,7 +810,6 @@ def job_status(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         j_status = cl.get_job_status(job_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
@@ -901,7 +900,6 @@ def job_workdir(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
@@ -988,7 +986,6 @@ def job_logs(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
         for name, path in logs.items():
@@ -1076,7 +1073,6 @@ def job_results(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    
     try:
         results = cl.get_job_results(job_id, workspace_id, verify_ssl)
         for name, path in results.items():
@@ -1789,6 +1785,7 @@ def clone_resume(ctx,
     except Exception as e:
         click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
         sys.exit(1)
+
 
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
@@ -3764,9 +3761,9 @@ def copy_item_cli(ctx,
         click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
-        elif destination_folder.get("folderType")=="S3Folder":
+        elif destination_folder.get("folderType") == "S3Folder":
             click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
-                   err=True)
+                       err=True)
             sys.exit(1)
         else:
             destination_kind = "Folder"
@@ -4013,13 +4010,11 @@ def rm_item(ctx,
         click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
                    err=True)
         sys.exit(1)
-    
     # Check if the item is managed by Lifebit
     is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
     if is_managed_by_lifebit and not force:
-        click.echo(f"[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
+        click.echo("[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
         sys.exit(1)
-    
     click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
