@@ -481,6 +481,7 @@ def run(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -772,6 +773,7 @@ def job_status(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -859,6 +861,7 @@ def job_workdir(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -944,6 +947,7 @@ def job_logs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1030,6 +1034,7 @@ def job_results(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1129,6 +1134,7 @@ def job_details(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1408,6 +1414,7 @@ def list_jobs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1540,6 +1547,7 @@ def abort_jobs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1696,6 +1704,7 @@ def clone_resume(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -1826,6 +1835,7 @@ def list_workflows(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1924,6 +1934,7 @@ def import_wf(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2021,6 +2032,7 @@ def list_projects(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2126,6 +2138,7 @@ def create_project(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2214,6 +2227,7 @@ def cromwell_status(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2299,6 +2313,7 @@ def cromwell_restart(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2401,6 +2416,7 @@ def cromwell_stop(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2491,6 +2507,7 @@ def list_queues(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2681,6 +2698,7 @@ def run_bash_job(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -2969,6 +2987,7 @@ def run_bash_array_job(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3200,6 +3219,7 @@ def list_files(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3347,6 +3367,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3500,6 +3521,7 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3610,6 +3632,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
     user_options = config_manager.load_profile_and_validate_data(
@@ -3755,6 +3778,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3867,6 +3891,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3989,6 +4014,7 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': True,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -4013,10 +4039,6 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
     workspace_id = user_options['workspace_id']
     session_id = user_options['session_id']
     project_name = user_options['project_name']
-
-    # Check for session_id
-    if not session_id:
-        raise click.UsageError("Session ID is required, please provide one using --session-id or setting it in your profile.")
 
     if not path.startswith("s3://") and project_name is None:
         # for non-s3 paths we need the project, for S3 we don't
@@ -4147,6 +4169,7 @@ def list_images(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 
@@ -4240,6 +4263,7 @@ def set_organisation_image(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 
@@ -4334,6 +4358,7 @@ def reset_organisation_image(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 
