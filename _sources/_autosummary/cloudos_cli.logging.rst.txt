@@ -1,0 +1,13 @@
+cloudos\_cli.logging
+====================
+
+.. automodule:: cloudos_cli.logging
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   logger

@@ -1,0 +1,20 @@
+cloudos\_cli.logging.logger
+===========================
+
+.. automodule:: cloudos_cli.logging.logger
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      setup_logging
+      update_command_context_from_click
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CommandContextFilter
+      LogFormatter
+   

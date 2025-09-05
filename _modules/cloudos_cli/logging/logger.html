@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.07.19 -->
-        <title>cloudos_cli.utils.array_job - CloudOS CLI Documentation</title>
+        <title>cloudos_cli.logging.logger - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=25af2a20" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -338,281 +338,182 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for cloudos_cli.utils.array_job</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadRequestException</span>
+          <h1>Source code for cloudos_cli.logging.logger</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging.config</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli._version</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 
 
-<div class="viewcode-block" id="is_valid_regex">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_valid_regex">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Validates whether the given string is a valid regular expression.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    s : str</span>
-<span class="sd">        The string to be checked as a regular expression.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    bool</span>
-<span class="sd">        True if the string is a valid regular expression, False otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span></div>
+<span class="n">_cmd_filter_instance</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="is_glob_pattern">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_glob_pattern">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">is_glob_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Check if a given string contains glob pattern characters.</span>
+<div class="viewcode-block" id="LogFormatter">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.LogFormatter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LogFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fmt_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fmt_keys</span> <span class="o">=</span> <span class="n">fmt_keys</span> <span class="ow">or</span> <span class="p">{}</span>
 
-<span class="sd">    Glob patterns are commonly used for filename matching and include</span>
-<span class="sd">    special characters such as &#39;*&#39;, &#39;?&#39;, and &#39;[&#39;.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    s : str</span>
-<span class="sd">        The string to check for glob pattern characters.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    bool</span>
-<span class="sd">        True if the string contains any glob pattern characters, otherwise False.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="s2">&quot;*?[&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="LogFormatter.format">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.LogFormatter.format">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_log_dict</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_probably_regex">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_probably_regex">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">is_probably_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determines if a given string is likely a regular expression.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_log_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">):</span>
+        <span class="n">always</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">(),</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">created</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
+            <span class="n">always</span><span class="p">[</span><span class="s2">&quot;exc_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span>
 
-<span class="sd">    This function checks whether the input string matches common patterns</span>
-<span class="sd">    that are indicative of regular expressions. It first validates the</span>
-<span class="sd">    string using `is_valid_regex(s)` and then searches for specific regex</span>
-<span class="sd">    indicators such as quantifiers, character classes, anchors, and</span>
-<span class="sd">    alternation.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    s : str</span>
-<span class="sd">        The string to evaluate.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    bool</span>
-<span class="sd">        True if the string is likely a regular expression, False otherwise.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    The function assumes the existence of `is_valid_regex(s)` which</span>
-<span class="sd">        validates whether the input string is a valid regex.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="c1"># Patterns that usually indicate actual regex use (not just file names)</span>
-    <span class="n">regex_indicators</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="sa">r</span><span class="s2">&quot;\.\*&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\.\+&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">[dws]&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\[[^\]]+\]&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\([^\)]+\)&quot;</span><span class="p">,</span>
-        <span class="sa">r</span><span class="s2">&quot;\{\d+(,\d*)?\}&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\^&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\|&quot;</span>
-    <span class="p">]</span>
-    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">regex_indicators</span><span class="p">)</span></div>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmt_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">always</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">always</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">always</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="classify_pattern">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.classify_pattern">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">classify_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Classifies a given string pattern into one of three categories: &quot;regex&quot;, &quot;glob&quot;, or &quot;exact&quot;.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    s : str</span>
-<span class="sd">        The string pattern to classify.</span>
+<div class="viewcode-block" id="CommandContextFilter">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CommandContextFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Injects record.command and record.params everywhere.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    str: A string indicating the type of pattern:</span>
-<span class="sd">        - &quot;regex&quot; if the pattern is likely a regular expression.</span>
-<span class="sd">        - &quot;glob&quot; if the pattern matches glob-style syntax.</span>
-<span class="sd">        - &quot;exact&quot; if the pattern does not match regex or glob syntax.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">is_probably_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;regex&quot;</span>
-    <span class="k">elif</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;glob&quot;</span>
+<div class="viewcode-block" id="CommandContextFilter.set_seed_from_argv">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.set_seed_from_argv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_seed_from_argv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="CommandContextFilter.set_from_click_ctx">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.set_from_click_ctx">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_from_click_ctx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="c1"># Runs after Click has parsed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">command_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="k">if</span> <span class="n">ctx</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="CommandContextFilter.filter">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;command&quot;</span><span class="p">):</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">):</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cmd_filter_factory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory used by dictConfig so we can get the SAME instance later.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_cmd_filter_instance</span>
+    <span class="k">if</span> <span class="n">_cmd_filter_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_cmd_filter_instance</span> <span class="o">=</span> <span class="n">CommandContextFilter</span><span class="p">()</span>
+        <span class="n">_cmd_filter_instance</span><span class="o">.</span><span class="n">set_seed_from_argv</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_cmd_filter_instance</span>
+
+
+<span class="n">LOG_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;disable_existing_loggers&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;formatters&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="n">LogFormatter</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;simple&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;cmdctx&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="n">_cmd_filter_factory</span><span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;logging.FileHandler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;formatter&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cmdctx&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;stderr&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;logging.StreamHandler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;formatter&quot;</span><span class="p">:</span> <span class="s2">&quot;simple&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cmdctx&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;stream&quot;</span><span class="p">:</span> <span class="s2">&quot;ext://sys.stderr&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;root&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="setup_logging">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.setup_logging">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_logging</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
+    <span class="n">debug_fields</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;levelname&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;logger&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;command&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;exc_info&quot;</span><span class="p">:</span> <span class="s2">&quot;exc_info&quot;</span>
+    <span class="p">}</span>
+    <span class="n">non_debug_fields</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;levelname&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;logger&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;command&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">LOG_CONFIG</span><span class="p">)</span>
+
+    <span class="c1"># build a timestamped log filename</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S&quot;</span><span class="p">)</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">&quot;.cloudos/logs&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;handlers&quot;</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">][</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;cloudos-</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">.jsonl&quot;</span><span class="p">)</span>
+
+    <span class="c1"># adjust log level if requested</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;root&quot;</span><span class="p">][</span><span class="s2">&quot;level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;DEBUG&quot;</span> <span class="k">if</span> <span class="n">debug</span> <span class="k">else</span> <span class="s2">&quot;WARNING&quot;</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">debug_fields</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;exact&quot;</span></div>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">non_debug_fields</span>
+    <span class="k">for</span> <span class="n">handle</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+        <span class="n">log_formatter</span> <span class="o">=</span> <span class="n">LogFormatter</span><span class="p">(</span><span class="n">fmt_keys</span><span class="o">=</span><span class="n">formatter</span><span class="p">)</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">log_formatter</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="generate_datasets_for_project">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.generate_datasets_for_project">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_datasets_for_project</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate datasets for a specified project in a CloudOS workspace.</span>
 
-<span class="sd">    This function initializes a `Datasets` object for the given project and handles</span>
-<span class="sd">    potential errors such as missing project elements or unauthorized API calls.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    cloudos_url : str</span>
-<span class="sd">        The URL of the CloudOS instance.</span>
-<span class="sd">    apikey : str</span>
-<span class="sd">        The API key for authentication.</span>
-<span class="sd">    workspace_id : str</span>
-<span class="sd">        The ID of the workspace where the project resides.</span>
-<span class="sd">    project_name : str</span>
-<span class="sd">        The name of the project for which datasets are generated.</span>
-<span class="sd">    verify_ssl : bool</span>
-<span class="sd">        Whether to verify SSL certificates during API calls.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Datasets</span>
-<span class="sd">        An instance of the `Datasets` class initialized for the specified project.</span>
-
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">    ValueError</span>
-<span class="sd">        If the specified project is not found in the workspace.</span>
-<span class="sd">    BadRequestException</span>
-<span class="sd">        If the API call is unauthorized or encounters other issues.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># this avoids circular import error if import is added at the top</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Datasets</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">Datasets</span><span class="p">(</span>
-            <span class="n">cloudos_url</span><span class="o">=</span><span class="n">cloudos_url</span><span class="p">,</span>
-            <span class="n">apikey</span><span class="o">=</span><span class="n">apikey</span><span class="p">,</span>
-            <span class="n">workspace_id</span><span class="o">=</span><span class="n">workspace_id</span><span class="p">,</span>
-            <span class="n">project_name</span><span class="o">=</span><span class="n">project_name</span><span class="p">,</span>
-            <span class="n">verify</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">,</span>
-            <span class="n">cromwell_token</span><span class="o">=</span><span class="kc">None</span>
-        <span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] No </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2"> element in projects was found&quot;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">except</span> <span class="n">BadRequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;Forbidden&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Error] It seems your call is not authorised. Please check if &#39;</span> <span class="o">+</span>
-                  <span class="s1">&#39;your workspace is restricted by Airlock and if your API key is valid.&#39;</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">e</span>
-
-    <span class="k">return</span> <span class="n">ds</span></div>
-
-
-<div class="viewcode-block" id="get_file_or_folder_id">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.get_file_or_folder_id">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_file_or_folder_id</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">command_dir</span><span class="p">,</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the ID of a specific file or folder within a CloudOS workspace.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    cloudos_url : str</span>
-<span class="sd">        The base URL of the CloudOS API.</span>
-<span class="sd">    apikey : str</span>
-<span class="sd">        The API key for authenticating requests to the CloudOS API.</span>
-<span class="sd">    workspace_id : str</span>
-<span class="sd">        The ID of the workspace containing the project.</span>
-<span class="sd">    project_name : str</span>
-<span class="sd">        The name of the project within the workspace.</span>
-<span class="sd">    verify_ssl : bool</span>
-<span class="sd">        Whether to verify SSL certificates for the API requests.</span>
-<span class="sd">    name : str</span>
-<span class="sd">        The name of the file or folder whose ID is to be retrieved.</span>
-<span class="sd">    is_file : bool, optional</span>
-<span class="sd">        Whether to retrieve a file ID (True) or folder ID (False). Default is True.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    str: The ID of the specified file or folder.</span>
-
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">    ValueError</span>
-<span class="sd">        If the specified file or folder is not found.</span>
-<span class="sd">    Exception</span>
-<span class="sd">        If there is an error during the API interaction or data retrieval.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    - This function uses the `generate_datasets_for_project` function to create a Datasets object for the specified project.</span>
-<span class="sd">    - The `list_folder_content` method is used for files, and `list_project_content` is used for folders.</span>
-<span class="sd">    - The function assumes that the IDs are stored in the `&quot;_id&quot;` field of the metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># create a Datasets() class</span>
-    <span class="n">ds</span> <span class="o">=</span> <span class="n">generate_datasets_for_project</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">is_file</span><span class="p">:</span>
-        <span class="c1"># get all files from a folder</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File &#39;</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">&#39; not found in directory &#39;</span><span class="si">{</span><span class="n">command_dir</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># get all folders from the project</span>
-        <span class="c1"># check if the command_dir has a sub-folder</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># get the first folder which is just below the project</span>
-            <span class="n">folders</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="c1"># use the last folder as is listed in the first folder</span>
-            <span class="n">folder_to_search</span> <span class="o">=</span> <span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">folders</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_project_content</span><span class="p">()</span>
-            <span class="n">folder_to_search</span> <span class="o">=</span> <span class="n">command_dir</span>
-
-        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">[</span><span class="s1">&#39;folders&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">folder_to_search</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder &#39;</span><span class="si">{</span><span class="n">folder_to_search</span><span class="si">}</span><span class="s2">&#39; not found in project.&quot;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="extract_project">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.extract_project">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">extract_project</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extracts the project name and the remaining path from a given file path.</span>
-
-<span class="sd">    The function assumes that a &quot;project&quot; exists if the path contains at least three parts</span>
-<span class="sd">    when split by slashes. If the path has fewer than three parts, the project name is</span>
-<span class="sd">    considered empty, and the entire path is returned as the remaining path.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    path : str</span>
-<span class="sd">        The file path to process.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tuple: A tuple containing:</span>
-<span class="sd">        - str: The project name (empty string if no project exists).</span>
-<span class="sd">        - str: The remaining path after the project name.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Strip slashes and split the path</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-    <span class="c1"># A &quot;project&quot; exists only if there are at least 3 parts</span>
-    <span class="c1"># globs needs more than 3 parts i.e. PROJECT/Data/Downloads/*.csv</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="ow">or</span> \
-       <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
-        <span class="c1"># Return the first part as project name and the rest as remaining path</span>
-        <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># project is empty, use the project_name of the function</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+<div class="viewcode-block" id="update_command_context_from_click">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.update_command_context_from_click">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_command_context_from_click</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Call this AFTER Click parsed args.&quot;&quot;&quot;</span>
+    <span class="n">_cmd_filter_factory</span><span class="p">()</span><span class="o">.</span><span class="n">set_from_click_ctx</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
