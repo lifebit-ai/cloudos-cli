@@ -796,10 +796,38 @@ Executing details...
 │ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │
 └──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
 ```
+The Process Summary includes the following status categories:
+- **Pending**: Processes that are queued but not yet started
+- **Submitted**: Processes that have been submitted for execution
+- **Running**: Currently executing processes
+- **Retried**: Processes that have been retried after failure
+- **Cached**: Processes that used cached results from previous runs
+- **Completed**: Successfully finished processes
+- **Failed**: Processes that encountered errors
+- **Aborted**: Processes that were stopped
 
 To change this behaviour and save the details into a local JSON, the parameter `--output-format` needs to be set as `--output-format=json`.
 
-By default, all details are saved in a file with the basename as `job_details`, for example `job_details.json` or `job_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
+By default, all details are saved in a file with the basename as `job_id`, for example `68b9dc4588b1b95ca3de8969.json` . This can be changed with the parameter `--output-basename=new_filename`.
+
+When using JSON output format, the Process Summary is included in the JSON file under the `"Process Summary"` key:
+
+```json
+{
+  "Job Status": "completed",
+  "Parameters": "...",
+  "Process Summary": {
+    "Pending": 0,
+    "Submitted": 2,
+    "Running": 1,
+    "Retried": 0,
+    "Cached": 3,
+    "Completed": 25,
+    "Failed": 1,
+    "Aborted": 0
+  }
+}
+```
 
 The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nexflow configuration file, example:
 
