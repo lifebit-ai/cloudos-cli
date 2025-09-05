@@ -501,7 +501,8 @@ class ConfigurationProfile:
                                                       profile_data['execution_platform'])
             project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
                                                 required=required_dict['project_name'], missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data.get('session_id', None))
+            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data['session_id'],
+                                              required=required_dict['session_id'], missing_required_params=missing)
             procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', profile_data['procurement_id'],
                                                 required=required_dict['procurement_id'], missing_required_params=missing)
         else:
@@ -522,7 +523,9 @@ class ConfigurationProfile:
             project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
                                                 required=required_dict['project_name'],
                                                 missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id)
+            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id,
+                                              required=required_dict['session_id'],
+                                              missing_required_params=missing)
             procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', procurement_id)
         if not resolved_cloudos_url:
             click.secho(
@@ -538,7 +541,11 @@ class ConfigurationProfile:
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  --workspace-id,\n  --workflow-name,\n  --repository-platform,\n  --execution-platform,\n  --project-name,\n  --procurement-id\n For more information on the usage of the command, please run cloudos configure --help")
+            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters " +
+                                   "persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  " +
+                                   "--workspace-id,\n  --workflow-name,\n  --repository-platform,\n  " +
+                                   "--execution-platform,\n  --project-name,\n  --session-id,\n  --procurement-id\n" +
+                                   "For more information on the usage of the command, please run cloudos configure --help")
         return {
             'apikey': apikey,
             'cloudos_url': cloudos_url,
