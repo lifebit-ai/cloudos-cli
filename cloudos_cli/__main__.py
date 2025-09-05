@@ -481,6 +481,7 @@ def run(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -772,6 +773,7 @@ def job_status(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -799,12 +801,20 @@ def job_status(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    j_status = cl.get_job_status(job_id, verify_ssl)
-    j_status_h = json.loads(j_status.content)["status"]
-    print(f'\tYour current job status is: {j_status_h}\n')
-    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
-    print(f'\tTo further check your job status you can either go to {j_url} ' +
-          'or repeat the command you just used.')
+    
+    try:
+        j_status = cl.get_job_status(job_id, verify_ssl)
+        j_status_h = json.loads(j_status.content)["status"]
+        print(f'\tYour current job status is: {j_status_h}\n')
+        j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
+        print(f'\tTo further check your job status you can either go to {j_url} ' +
+              'or repeat the command you just used.')
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve status for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('workdir')
@@ -851,6 +861,7 @@ def job_workdir(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -880,8 +891,16 @@ def job_workdir(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-    print(f"Working directory for job {job_id}: {workdir}")
+    
+    try:
+        workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
+        print(f"Working directory for job {job_id}: {workdir}")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve working directory for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('logs')
@@ -928,6 +947,7 @@ def job_logs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -957,9 +977,17 @@ def job_logs(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
-    for name, path in logs.items():
-        print(f"{name}: {path}\n")
+    
+    try:
+        logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+        for name, path in logs.items():
+            print(f"{name}: {path}\n")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve logs for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('results')
@@ -1006,6 +1034,7 @@ def job_results(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1035,9 +1064,17 @@ def job_results(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    logs = cl.get_job_results(job_id, workspace_id, verify_ssl)
-    for name, path in logs.items():
-        print(f"{name}: {path}\n")
+    
+    try:
+        results = cl.get_job_results(job_id, workspace_id, verify_ssl)
+        for name, path in results.items():
+            print(f"{name}: {path}\n")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve results for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('details')
@@ -1097,6 +1134,7 @@ def job_details(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1137,6 +1175,12 @@ def job_details(ctx,
         if '403' in str(e) or 'Forbidden' in str(e):
             print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
             sys.exit(1)
+        else:
+            click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve details for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
     j_details_h = json.loads(j_details.content)
 
     # Determine the execution platform based on jobType
@@ -1454,6 +1498,7 @@ def list_jobs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1586,6 +1631,7 @@ def abort_jobs(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1742,6 +1788,7 @@ def clone_resume(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -1805,13 +1852,11 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        if verbose:
-            print(f'\tError details: {e}')
-        raise ValueError(f"Failed to {mode} job: {e}")
+        click.echo(f"[ERROR] Failed to {mode} job.  Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
     except Exception as e:
-        if verbose:
-            print(f'\tError details: {e}')
-        raise ValueError(f"An error occurred while {action} the job: {e}")
+        click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
 job.add_command(clone_resume, "resume")
@@ -1874,6 +1919,7 @@ def list_workflows(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -1972,6 +2018,7 @@ def import_wf(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2069,6 +2116,7 @@ def list_projects(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2174,6 +2222,7 @@ def create_project(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2262,6 +2311,7 @@ def cromwell_status(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2347,6 +2397,7 @@ def cromwell_restart(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2449,6 +2500,7 @@ def cromwell_stop(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2539,6 +2591,7 @@ def list_queues(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -2729,6 +2782,7 @@ def run_bash_job(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3017,6 +3071,7 @@ def run_bash_array_job(ctx,
         'workspace_id': True,
         'workflow_name': True,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3248,6 +3303,7 @@ def list_files(ctx,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3395,6 +3451,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3548,6 +3605,7 @@ def renaming_item(ctx, source_path, new_name, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3658,6 +3716,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
     user_options = config_manager.load_profile_and_validate_data(
@@ -3745,7 +3804,7 @@ def copy_item_cli(ctx, source_path, destination_path, apikey, cloudos_url,
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType")=="S3Folder":
-            click.echo(f"[ERROR] Item '{source_name}' could not be copied to '{destination_path}' as the destination folder is not modifiable.",
+            click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
                    err=True)
             sys.exit(1)
         else:
@@ -3803,6 +3862,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3894,10 +3954,11 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.option('--force', is_flag=True, help='Force delete files. Required when deleting user uploaded files. This may also delete the file from the cloud provider storage.')
 @click.pass_context
 def rm_item(ctx, target_path, apikey, cloudos_url,
             workspace_id, project_name,
-            disable_ssl_verification, ssl_cert, profile):
+            disable_ssl_verification, ssl_cert, profile, force):
     """
     Delete a file or folder in a CloudOS project.
 
@@ -3914,6 +3975,7 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': True,
+        'session_id': False,
         'procurement_id': False
     }
 
@@ -3972,18 +4034,31 @@ def rm_item(ctx, target_path, apikey, cloudos_url,
     item_id = found_item.get("_id",'')
     kind = "Folder" if "folderType" in found_item else "File"
     if item_id=='':
-        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is not modifiable.",
+        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
                    err=True)
         sys.exit(1)
+    
+    # Check if the item is managed by Lifebit
+    is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
+    if is_managed_by_lifebit and not force:
+        click.echo(f"[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
+        sys.exit(1)
+    
     click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
-            click.secho(
-                f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
-                fg="green", bold=True
-            )
-            click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
+            if is_managed_by_lifebit:
+                click.secho(
+                    f"[SUCCESS] {kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
+                    fg="green", bold=True
+                )
+            else:
+                click.secho(
+                    f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
+                    fg="green", bold=True
+                )
+                click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
             click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
             sys.exit(1)
@@ -4023,6 +4098,7 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
+        'session_id': True,
         'procurement_id': False
     }
     # determine if the user provided all required parameters
@@ -4124,7 +4200,7 @@ def link(ctx, path, apikey, cloudos_url, project_name, workspace_id, session_id,
         if is_s3:
             click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
         else:
-            click.echo("[ERROR] Linking is only supported for folders, not individual files. Please link the parent folder instead.", err=True)
+            click.echo("[ERROR] Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
         click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; however, if the operation fails, please confirm that you are linking a folder rather than a file.", err=True)
@@ -4177,6 +4253,7 @@ def list_images(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 
@@ -4270,6 +4347,7 @@ def set_organisation_image(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 
@@ -4364,6 +4442,7 @@ def reset_organisation_image(ctx,
         'workspace_id': False,
         'workflow_name': False,
         'project_name': False,
+        'session_id': False,
         'procurement_id': True
     }
 

@@ -1283,12 +1283,14 @@ cloudos datasets mkdir <new_folder_path> --profile my_profile
 Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from CloudOS but not from underlying cloud storage.
 
 > [!NOTE]
-> Files and folders can be removed from file explorer (in the `Data` datasets and its subfolders) and not from the corresponding cloud storage.
+> Files and folders can be removed in the `Data` datasets and its subfolders. 
 
 ```bash
 cloudos datasets rm <path> --profile my_profile
 ```
-
+> [!NOTE]
+> If a file was uploaded by the user, in order to be removed you must use  `--force` and that will permanently remove the file. If the file is "linked" (e.g a s3 folder or file), removing it using `cloudos datasets rm` will not remove it from the the s3 bucket.
+ 
 ---
 
 ### Procurement
