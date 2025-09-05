@@ -799,12 +799,20 @@ def job_status(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    j_status = cl.get_job_status(job_id, verify_ssl)
-    j_status_h = json.loads(j_status.content)["status"]
-    print(f'\tYour current job status is: {j_status_h}\n')
-    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
-    print(f'\tTo further check your job status you can either go to {j_url} ' +
-          'or repeat the command you just used.')
+    
+    try:
+        j_status = cl.get_job_status(job_id, verify_ssl)
+        j_status_h = json.loads(j_status.content)["status"]
+        print(f'\tYour current job status is: {j_status_h}\n')
+        j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
+        print(f'\tTo further check your job status you can either go to {j_url} ' +
+              'or repeat the command you just used.')
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve status for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('workdir')
@@ -965,9 +973,17 @@ def job_logs(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
-    for name, path in logs.items():
-        print(f"{name}: {path}\n")
+    
+    try:
+        logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+        for name, path in logs.items():
+            print(f"{name}: {path}\n")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve logs for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('results')
@@ -1043,9 +1059,17 @@ def job_results(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
-    logs = cl.get_job_results(job_id, workspace_id, verify_ssl)
-    for name, path in logs.items():
-        print(f"{name}: {path}\n")
+    
+    try:
+        results = cl.get_job_results(job_id, workspace_id, verify_ssl)
+        for name, path in results.items():
+            print(f"{name}: {path}\n")
+    except BadRequestException as e:
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve results for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 
 
 @job.command('details')
@@ -1141,6 +1165,12 @@ def job_details(ctx,
         if '403' in str(e) or 'Forbidden' in str(e):
             print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
             sys.exit(1)
+        else:
+            click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"[ERROR] Failed to retrieve details for job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
     j_details_h = json.loads(j_details.content)
 
     # Determine the execution platform based on jobType
@@ -1729,13 +1759,11 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        if verbose:
-            print(f'\tError details: {e}')
-        raise ValueError(f"Failed to {mode} job: {e}")
+        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
+        sys.exit(1)
     except Exception as e:
-        if verbose:
-            print(f'\tError details: {e}')
-        raise ValueError(f"An error occurred while {action} the job: {e}")
+        click.echo(f"[ERROR] Failed to {action} job '{job_id}': {str(e)}", err=True)
+        sys.exit(1)
 # Register the same function under two names
 job.add_command(clone_resume, "clone")
 job.add_command(clone_resume, "resume")
