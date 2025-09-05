@@ -1644,12 +1644,12 @@ def clone_resume(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
+    """Reuse an existing job by cloning or resuming it, with optional overrides."""
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
     elif ctx.info_name == "resume":
         mode, action = "resume", "resuming"
 
-    f"""{mode.capitalize()} an existing job with optional parameter overrides."""
     profile = profile or ctx.default_map['job'][mode]['profile']
 
     # Create a dictionary with required and non-required params
