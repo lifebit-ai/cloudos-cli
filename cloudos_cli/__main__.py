@@ -871,11 +871,6 @@ def job_workdir(ctx,
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
 
-    # Check if job_id is provided
-    if not job_id:
-        click.echo("[ERROR] Job ID is required, please provide one using --job-id.", err=True)
-        sys.exit(1)
-
     print('Finding working directory path...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -3823,7 +3818,7 @@ def mkdir_item(ctx, new_folder_path, apikey, cloudos_url,
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
-@click.option('--force', is_flag=True, help='Force removal of files.')
+@click.option('--force', is_flag=True, help='Force delete files. Required when deleting user uploaded files. This may also delete the file from the cloud provider storage.')
 @click.pass_context
 def rm_item(ctx, target_path, apikey, cloudos_url,
             workspace_id, project_name,
