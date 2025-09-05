@@ -947,6 +947,7 @@ class Job(Cloudos):
         r = retry_requests_get(url, headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
+
         return json.loads(r.content)
 
     def update_parameter_value(self, parameters, param_name, new_value):
@@ -1188,6 +1189,8 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        print("cloned_payload: ", cloned_payload)
+        exit()
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(cloned_payload), 
                                 headers=headers, 

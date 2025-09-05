@@ -105,7 +105,8 @@ def run_cloudos_cli(ctx, debug):
                 'results': shared_config,
                 'details': shared_config,
                 'clone': shared_config,
-                'resume': shared_config
+                'resume': shared_config,
+                'cost': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -169,7 +170,8 @@ def run_cloudos_cli(ctx, debug):
                 'results': shared_config,
                 'details': shared_config,
                 'clone': shared_config,
-                'resume': shared_config
+                'resume': shared_config,
+                'cost': shared_config
             },
             'workflow': {
                 'list': shared_config,
@@ -1571,6 +1573,10 @@ def abort_jobs(ctx,
 @click.option('--job-id',
               help='The job id in CloudOS to get costs for.',
               required=True)
+@click.option('--output-format',
+              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1587,6 +1593,7 @@ def job_cost(ctx,
              cloudos_url,
              workspace_id,
              job_id,
+             output_format,
              verbose,
              disable_ssl_verification,
              ssl_cert,
@@ -1629,7 +1636,7 @@ def job_cost(ctx,
         print(f'\tSearching for cost data for job id: {job_id}')
     
     # Display costs with pagination
-    cost_viewer.display_costs(job_id, workspace_id, verify_ssl)
+    cost_viewer.display_costs(job_id, workspace_id, output_format, verify_ssl)
 
 
 @click.command()
@@ -1723,12 +1730,12 @@ def clone_resume(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
+    """Clone/resume an existing job with optional parameter overrides."""
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
     elif ctx.info_name == "resume":
         mode, action = "resume", "resuming"
 
-    f"""{mode.capitalize()} an existing job with optional parameter overrides."""
     profile = profile or ctx.default_map['job'][mode]['profile']
 
     # Create a dictionary with required and non-required params

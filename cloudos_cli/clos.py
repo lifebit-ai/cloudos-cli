@@ -1532,43 +1532,76 @@ class Cloudos:
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
-    def get_job_costs(self, job_id, workspace_id, page=1, limit=100, verify=True):
-        """
-        Get cost information for a specific job.
+    # def get_job_costs(self, job_id, workspace_id, page=1, limit=100, verify=True):
+    #     """
+    #     Get cost information for a specific job.
 
-        Parameters
-        ----------
-        job_id : str
-            The job ID to get costs for
-        workspace_id : str
-            The workspace ID
-        page : int
-            Page number for pagination (default: 1)
-        limit : int
-            Number of results per page (default: 100)
-        verify : bool or str
-            SSL verification setting
+    #     Parameters
+    #     ----------
+    #     job_id : str
+    #         The job ID to get costs for
+    #     workspace_id : str
+    #         The workspace ID
+    #     page : int
+    #         Page number for pagination (default: 1)
+    #     limit : int
+    #         Number of results per page (default: 100)
+    #     verify : bool or str
+    #         SSL verification setting
 
-        Returns
-        -------
-        requests.Response
-            Response object containing cost data
-        """
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
+    #     Returns
+    #     -------
+    #     requests.Response
+    #         Response object containing cost data
+    #     """
+    #     headers = {
+    #         "Content-type": "application/json",
+    #         "apikey": self.apikey
+    #     }
 
-        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/costs/compute"
-        params = {
-            "page": page,
-            "limit": limit,
-            "teamId": workspace_id
-        }
+    #     url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/costs/compute"
+    #     params = {
+    #         "page": page,
+    #         "limit": limit,
+    #         "teamId": workspace_id
+    #     }
 
-        r = retry_requests_get(url, headers=headers, params=params, verify=verify)
+    #     # r = retry_requests_get(url, headers=headers, params=params, verify=verify)
 
-        if r.status_code >= 400:
-            raise BadRequestException(r)
+    #     # if r.status_code >= 400:
+    #     #     raise BadRequestException(r)
 
-        return r
+    #     # Mock response data that matches the expected API format
+    #     mock_response = {
+    #         "master": {
+    #             "id": "i-00e328d0c4fe4bc17",
+    #             "machineType": "c4.large",
+    #             "isCostSaving": False,
+    #             "startTime": "2025-09-01T15:23:59.246Z",
+    #             "endTime": "2025-09-01T15:26:15.291Z",
+    #             "instancePricePerHour": {"amount": 0.1, "currencyCode": "USD"},
+    #             "storage": {"usageQuantity": 600, "usageUnit": "Gb"},
+    #             "storagePricePerHour": {"amount": 0.0684931506849315, "currencyCode": "USD"},
+    #             "totalPrice": {"amount": 0.0043287037037037035, "currencyCode": "USD"},
+    #         },
+    #         "workers": [
+    #             {
+    #                 "id": "i-0d1d9e96cda992e74",
+    #                 "machineType": "m4.xlarge",
+    #                 "isCostSaving": True,
+    #                 "startTime": "2025-09-01T15:25:02.935Z",
+    #                 "endTime": "2025-09-01T15:26:13.116Z",
+    #                 "instancePricePerHour": {"amount": 0.0981, "currencyCode": "USD"},
+    #                 "storage": {"usageQuantity": 1009, "usageUnit": "Gb"},
+    #                 "storagePricePerHour": {"amount": 0, "currencyCode": "USD"},
+    #                 "totalPrice": {"amount": 0.0019075000000000003, "currencyCode": "USD"},
+    #             }
+    #         ],
+    #         "paginationMetadata": {
+    #             "Pagination-Count": 2,
+    #             "Pagination-Page": 1,
+    #             "Pagination-Limit": 100,
+    #         },
+    #     }
+    #     #return r
+    #     return mock_response

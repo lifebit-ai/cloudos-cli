@@ -8,6 +8,8 @@ from rich.table import Table
 from rich.prompt import Prompt
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get
+import csv
+import os
 
 
 class CostViewer:
@@ -52,78 +54,12 @@ class CostViewer:
             "teamId": workspace_id
         }
 
-        # r = retry_requests_get(url, headers=headers, params=params, verify=verify)
+        r = retry_requests_get(url, headers=headers, params=params, verify=verify)
 
-        # if r.status_code >= 400:
-        #     raise BadRequestException(r)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
 
-        # return r.json()
-        # Mock response data that matches the expected API format
-        mock_response = {
-            "master": {
-            "id": "i-00e328d0c4fe4bc17",
-            "machineType": "c4.large",
-            "isCostSaving": False,
-            "startTime": "2025-09-01T15:23:59.246Z",
-            "endTime": "2025-09-01T15:26:15.291Z",
-            "instancePricePerHour": {"amount": 0.1, "currencyCode": "USD"},
-            "storage": {"usageQuantity": 600, "usageUnit": "Gb"},
-            "storagePricePerHour": {"amount": 0.0684931506849315, "currencyCode": "USD"},
-            "totalPrice": {"amount": 0.0043287037037037035, "currencyCode": "USD"},
-            },
-            "workers": [
-            {
-                "id": "i-0d1d9e96cda992e74",
-                "machineType": "m4.xlarge",
-                "isCostSaving": True,
-                "startTime": "2025-09-01T15:25:02.935Z",
-                "endTime": "2025-09-01T15:26:13.116Z",
-                "instancePricePerHour": {"amount": 0.0981, "currencyCode": "USD"},
-                "storage": {"usageQuantity": 1009, "usageUnit": "Gb"},
-                "storagePricePerHour": {"amount": 0, "currencyCode": "USD"},
-                "totalPrice": {"amount": 0.0019075000000000003, "currencyCode": "USD"},
-            },
-            {
-                "id": "i-0a2b3c4d5e6f7g8h9",
-                "machineType": "m5.large",
-                "isCostSaving": False,
-                "startTime": "2025-09-01T15:25:10.000Z",
-                "endTime": "2025-09-01T15:26:10.000Z",
-                "instancePricePerHour": {"amount": 0.1200, "currencyCode": "USD"},
-                "storage": {"usageQuantity": 500, "usageUnit": "Gb"},
-                "storagePricePerHour": {"amount": 0.0500, "currencyCode": "USD"},
-                "totalPrice": {"amount": 0.002500, "currencyCode": "USD"},
-            },
-            {
-                "id": "i-1a2b3c4d5e6f7g8h0",
-                "machineType": "t3.medium",
-                "isCostSaving": True,
-                "startTime": "2025-09-01T15:25:20.000Z",
-                "endTime": "2025-09-01T15:26:00.000Z",
-                "instancePricePerHour": {"amount": 0.0500, "currencyCode": "USD"},
-                "storage": {"usageQuantity": 250, "usageUnit": "Gb"},
-                "storagePricePerHour": {"amount": 0.0250, "currencyCode": "USD"},
-                "totalPrice": {"amount": 0.001000, "currencyCode": "USD"},
-            },
-            {
-                "id": "i-2a3b4c5d6e7f8g9h1",
-                "machineType": "c5.xlarge",
-                "isCostSaving": False,
-                "startTime": "2025-09-01T15:25:30.000Z",
-                "endTime": "2025-09-01T15:26:20.000Z",
-                "instancePricePerHour": {"amount": 0.2000, "currencyCode": "USD"},
-                "storage": {"usageQuantity": 750, "usageUnit": "Gb"},
-                "storagePricePerHour": {"amount": 0.0750, "currencyCode": "USD"},
-                "totalPrice": {"amount": 0.003750, "currencyCode": "USD"},
-            }
-            ],
-            "paginationMetadata": {
-            "Pagination-Count": 4,
-            "Pagination-Page": 1,
-            "Pagination-Limit": 100,
-            },
-        }
-        return mock_response
+        return r.json()
 
     def _calculate_runtime(self, start_time_str, end_time_str):
         """Calculate runtime between two timestamp strings."""
@@ -155,20 +91,22 @@ class CostViewer:
         unit = storage_info.get('usageUnit', '')
         return f"{quantity} {unit}"
 
-    def _format_price(self, price_info):
+    def _format_price(self, price_info, total=False):
         """Format price information."""
         if not price_info or 'amount' not in price_info:
             return "N/A"
 
         amount = price_info.get('amount', 0)
-        currency = price_info.get('currencyCode', 'USD')
-        return f"{amount:.4f} {currency}"
+        if total:
+            return f"${amount:.4f}"
+        else:
+            return f"${amount:.4f}/hr"
 
     def _format_lifecycle_type(self, is_cost_saving):
         """Format lifecycle type based on isCostSaving flag."""
-        return "Cost-saving" if is_cost_saving else "On-demand"
+        return "spot" if is_cost_saving else "on demand"
 
-    def display_costs(self, job_id, workspace_id, verify=True):
+    def display_costs(self, job_id, workspace_id, output_format, verify=True):
         """
         Display cost information for a job with pagination.
 
@@ -176,22 +114,28 @@ class CostViewer:
         ----------
         job_id : str
             The job ID to display costs for
+        output_format : str
+            The desired output format (e.g., 'stdout', 'csv', 'json')
         workspace_id : str
             The workspace ID
         verify : bool or str
             SSL verification setting
         """
-        page = 1
         limit = 20 # Display 20 rows per page
+        current_page = 0
 
         while True:
             try:
                 # Get cost data
-                cost_data = self.get_job_costs(job_id, workspace_id, page, limit, verify)
+                cost_data = self.get_job_costs(job_id, workspace_id, 1, limit, verify)
+                total_pages = (len(cost_data.get('workers', [])) + limit - 1) // limit
 
+                start = current_page * limit
+                end = start + limit
                 # Prepare data for table
                 rows = []
 
+                final_cost = 0
                 # Add master instance
                 master = cost_data.get('master')
                 if master:
@@ -205,15 +149,16 @@ class CostViewer:
                         self._format_storage(master.get('storage')),
                         self._format_price(master.get('instancePricePerHour')),
                         self._format_price(master.get('storagePricePerHour')),
-                        self._format_price(master.get('totalPrice'))
+                        self._format_price(master.get('totalPrice'), total=True)
                     ])
+                    final_cost += master.get('totalPrice', {}).get('amount', 0)
 
                 # Add worker instances
                 workers = cost_data.get('workers', [])
-                for i, worker in enumerate(workers):
+                for worker in workers:
                     runtime = self._calculate_runtime(worker.get('startTime', ''), worker.get('endTime', ''))
                     rows.append([
-                        f"Worker {i+1}",
+                        f"Worker",
                         worker.get('id', 'N/A'),
                         worker.get('machineType', 'N/A'),
                         self._format_lifecycle_type(worker.get('isCostSaving', False)),
@@ -221,81 +166,81 @@ class CostViewer:
                         self._format_storage(worker.get('storage')),
                         self._format_price(worker.get('instancePricePerHour')),
                         self._format_price(worker.get('storagePricePerHour')),
-                        self._format_price(worker.get('totalPrice'))
+                        self._format_price(worker.get('totalPrice'), total=True)
                     ])
+                    final_cost += worker.get('totalPrice', {}).get('amount', 0)
 
                 # Create and display table
                 table = Table(title=f"Job Cost Details - Job ID: {job_id}")
 
-                table.add_column("Node Type", style="cyan", no_wrap=True)
-                table.add_column("Instance ID", style="blue")
-                table.add_column("Instance Type", style="green")
-                table.add_column("Life-cycle Type", style="yellow")
-                table.add_column("Run Time", style="white")
-                table.add_column("Compute Storage", style="magenta")
-                table.add_column("Instance Price", style="red")
-                table.add_column("Storage Price", style="red")
+                table.add_column("Type", style="cyan", no_wrap=True)
+                table.add_column("Instance id", style="blue", overflow="fold")
+                table.add_column("Instance", style="green", overflow="fold")
+                table.add_column("Life-cycle type", style="yellow", overflow="fold")
+                table.add_column("Run time", style="white", overflow="fold")
+                table.add_column("Compute storage", style="magenta", overflow="fold")
+                table.add_column("Instance price", style="red", overflow="fold")
+                table.add_column("Compute storage price", style="red", overflow="fold")
                 table.add_column("Total", style="bright_red", no_wrap=True)
 
-                for row in rows:
+                page_rows = rows[start:end]
+
+                for row in page_rows:
                     table.add_row(*row)
 
+                if current_page == total_pages - 1:
+                    table.add_row(*[""] * 9, end_section=True)
+                    table.add_row(*[""] * 8 + [f"${final_cost:.4f}"])
+                self.console.clear()
                 self.console.print(table)
 
-                # Get pagination metadata
-                pagination = cost_data.get('paginationMetadata', {})
-                current_page = pagination.get('Pagination-Page', 1)
-                total_count = pagination.get('Pagination-Count', 0)
-                page_limit = pagination.get('Pagination-Limit', limit)
-
-                total_pages = (total_count + page_limit - 1) // page_limit if total_count > 0 else 1
-
                 # Show pagination info
-                if total_pages > 1:
-                    self.console.print(f"\nPage {current_page} of {total_pages} (Total instances: {total_count})")
+                if total_pages > 1 and current_page < total_pages - 1:
+                    self.console.print(f"On page {current_page+1}/{total_pages}: [bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
 
-                    # Pagination controls
-                    if total_pages > 1:
-                        choices = []
-                        if current_page > 1:
-                            choices.append("previous")
-                        if current_page < total_pages:
-                            choices.append("next")
-                        choices.append("quit")
-
-                        if len(choices) > 1:
-                            choice = Prompt.ask(
-                                "Navigation options",
-                                choices=choices,
-                                default="quit"
-                            )
-
-                            if choice == "next" and current_page < total_pages:
-                                page += 1
-                                continue
-                            elif choice == "previous" and current_page > 1:
-                                page -= 1
-                                continue
-                            elif choice == "quit":
-                                break
-                        else:
-                            # Only quit option available
-                            break
-                    else:
+                    # Controls
+                    choice = input(">>> ").strip().lower()
+                    if choice in ("n", "next") and current_page < total_pages - 1:
+                        current_page += 1
+                    elif choice in ("p", "prev") and current_page > 0:
+                        current_page -= 1
+                    elif choice in ("p", "prev") and current_page == 0:
+                        self.console.print("[red]Invalid choice. Already on the first page.[/red]")
+                    elif choice in ("q", "quit"):
                         break
+                    else:
+                        self.console.print("[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]")
                 else:
+                    # Only one page, no need for input, just exit
                     break
-
+                if output_format == "csv":
+                    csv_filename = f"{job_id}_costs.csv"
+                    csv_headers = [
+                        "Type",
+                        "Instance id",
+                        "Instance",
+                        "Life-cycle type",
+                        "Run time",
+                        "Compute storage",
+                        "Instance price",
+                        "Compute storage price",
+                        "Total"
+                    ]
+                # Save all rows (not just current page)
+                with open(csv_filename, "w", newline="") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(csv_headers)
+                    for row in rows:
+                        writer.writerow(row)
+                    # Add final cost row
+                    writer.writerow([""] * 8 + [f"${final_cost:.4f}"])
+                self.console.print(f"[green]Saved all cost rows to CSV: {os.path.abspath(csv_filename)}[/green]")
             except BadRequestException as e:
-                if '403' in str(e) or 'Forbidden' in str(e):
-                    self.console.print("[red][Error] API can only show cost details of your own jobs, cannot see other user's job details.[/red]")
-                    break
-                elif '404' in str(e) or 'Not Found' in str(e):
-                    self.console.print("[red][Error] Job not found or cost data not available for this job.[/red]")
-                    break
+                if '401' in str(e) or 'Forbidden' in str(e):
+                    raise ValueError("API can only show cost details of your own jobs, cannot see other user's job details.")
+                elif '400' in str(e) or 'Not Found' in str(e):
+                    raise ValueError("Job not found or cost data not available for this job.")
                 else:
-                    self.console.print(f"[red][Error] {str(e)}[/red]")
-                    break
+                    raise ValueError(f"{str(e)}")
             except Exception as e:
-                self.console.print(f"[red][Error] An unexpected error occurred: {str(e)}[/red]")
-                break
+                raise ValueError(f"[Error] An unexpected error occurred: {str(e)}")
