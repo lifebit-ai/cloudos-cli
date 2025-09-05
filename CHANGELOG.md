@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.59.0 (2025-09-05)
+
+### Feat
+
+- Implements process summary table in job details
+- changes default name for job details json
+
 ## v2.58.1 (2025-09-04)
 
 ### Patch
