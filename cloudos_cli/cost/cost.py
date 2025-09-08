@@ -129,8 +129,6 @@ class CostViewer:
             cost_data = self.get_job_costs(job_id, workspace_id, 1, limit, verify)
             total_pages = (len(cost_data.get('workers', [])) + limit - 1) // limit
 
-            start = current_page * limit
-            end = start + limit
             # Prepare data for table
             rows = []
 
@@ -171,6 +169,8 @@ class CostViewer:
 
             if output_format == "stdout":
                 while True:
+                    start = current_page * limit
+                    end = start + limit
 
                     # Create and display table
                     table = Table(title=f"Job Cost Details - Job ID: {job_id}")
