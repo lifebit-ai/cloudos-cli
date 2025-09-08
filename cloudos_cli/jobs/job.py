@@ -1145,6 +1145,9 @@ class Job(Cloudos):
         elif resumable and mode == "resume":
             print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
 
+        if 'command' in cloned_payload:
+            cloned_payload['batch'] = {"enabled": False}
+
         # Handle job queue override
         if queue_name:
             if cloned_payload['executionPlatform'] != 'azure':
