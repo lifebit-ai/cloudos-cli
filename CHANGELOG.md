@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.60.0 (2025-09-50)
+
+### Feat
+
+- Adds sphinx docs
+
 ## v2.59.0 (2025-09-05)
 
 ### Feat
