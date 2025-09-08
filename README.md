@@ -925,7 +925,7 @@ cloudos job list --profile my_profile --filter-workflow rnatoy --filter-queue hi
 
 #### Get Job Costs
 
-You can retrieve detailed cost information for any job in your CloudOS workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help you optimize your workflows and manage expenses.
+You can retrieve detailed cost information for any job in your CloudOS workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.
 
 The cost information is retrieved from CloudOS and can be displayed in multiple formats:
 
@@ -942,7 +942,7 @@ cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355
 The expected output is a formatted table showing:
 
 ```console
-                              Job Cost Details - Job ID: 688ade923643c2454f5ac77d                              
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -970,7 +970,8 @@ The expected output is a formatted table showing:
 On page 1/2: n = next, p = prev, q = quit
 
 By pressing 'n', it will show the next page or the last if it is the case.
-                              Job Cost Details - Job ID: 688ade923643c2454f5ac77d                              
+
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -1007,30 +1008,67 @@ In the last page, the total job cost will be in the last row.
 Save cost data to CSV for further analysis:
 
 ```bash
-cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format csv --output-basename job_costs
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format csv
+
+cat 62c83a1191fe06013b7ef355_costs.csv
+Type,Instance id,Instance,Life-cycle type,Run time,Compute storage,Instance price,Compute storage price,Total
+Master,186b12c2-a518-40de-8bef-7c43f9adcfce,Standard_D4as_v4,on demand,39m 43s,1000 Gb,$0.2220/hr,$0.0561/hr,$0.1841
+Worker,pgti_large_pool/tvmps_e739a24d7e64e06f1006d3410ee74c7929388fb1146231d4be84ecdb2c39db0f_p,standard_d16a_v4,spot,1m 26s,500 Gb,$0.1780/hr,$0.0298/hr,$0.0050
+Worker,pgti_large_pool/tvmps_abe5f8f5afe98535d3a74a73a9e5e2e2d1c181a6b1056a176ecaacdb650737b7_p,standard_d16a_v4,spot,1m 20s,500 Gb,$0.1780/hr,$0.0298/hr,$0.0046
+Worker,pgti_large_pool/tvmps_dad8c86e744056f581e9298273ff7df99d2f9f2b5dc8f706037b1a8b61c4ce0b_p,standard_d16a_v4,spot,5m 10s,500 Gb,$0.1780/hr,$0.0298/hr,$0.0179
+...
 ```
 
 Save complete cost data to JSON:
 
 ```bash
-cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format json --output-basename job_costs
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format json
+
+cat 62c83a1191fe06013b7ef355_costs.json
+{
+  "job_id": "688ade923643c2454f5ac77d",
+  "cost_table": [
+    {
+      "Type": "Master",
+      "Instance id": "186b12c2-a518-40de-8bef-7c43f9adcfce",
+      "Instance": "Standard_D4as_v4",
+      "Life-cycle type": "on demand",
+      "Run time": "39m 43s",
+      "Compute storage": "1000 Gb",
+      "Instance price": "$0.2220/hr",
+      "Compute storage price": "$0.0561/hr",
+      "Total": "$0.1841"
+    },
+    {
+      "Type": "Worker",
+      "Instance id": "pgti_medium_pool/tvmps_ba00d365ca2b35cce93b2853480be9afc0202bf2f5633648f2dd576414dd8987_p
+",
+      "Instance": "standard_d8a_v4",
+      "Life-cycle type": "spot",
+      "Run time": "19m 55s",
+      "Compute storage": "500 Gb",
+      "Instance price": "$0.0888/hr",
+      "Compute storage price": "$0.0298/hr",
+      "Total": "$0.0394"
+    },
+    ...
+    {
+      "Type": "Worker",
+      "Instance id": "pgti_large_pool/tvmps_abe5f8f5afe98535d3a74a73a9e5e2e2d1c181a6b1056a176ecaacdb650737b7_p"
+,
+      "Instance": "standard_d16a_v4",
+      "Life-cycle type": "spot",
+      "Run time": "1m 20s",
+      "Compute storage": "500 Gb",
+      "Instance price": "$0.1780/hr",
+      "Compute storage price": "$0.0298/hr",
+      "Total": "$0.0046"
+    }
+  ],
+  "final_cost": "$0.5563"
+}
+
 ```
-
-**Pagination options:**
-
-For jobs with many tasks, use pagination to manage large datasets:
-
-```bash
-cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --page 2 --limit 50
-```
-
-> [!NOTE]
-> - Cost information is only available for completed jobs
-> - Costs are calculated based on actual resource usage and CloudOS pricing
-> - Storage costs include both temporary and persistent storage used during job execution
-> - The default page size is 100 items, with pagination automatically applied for larger result sets
-
-
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
