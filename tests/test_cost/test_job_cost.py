@@ -213,7 +213,7 @@ class TestCostViewer:
             self.cost_viewer.display_costs(JOB_ID, WORKSPACE_ID, "json")
             
             # Check if JSON file was created
-            json_filename = f"{JOB_ID}.json"
+            json_filename = f"{JOB_ID}_costs.json"
             assert os.path.exists(json_filename)
             
             # Read and verify JSON content
