@@ -238,7 +238,7 @@ class CostViewer:
 
             if output_format == "json":
                 # Save as JSON
-                json_filename = f"{job_id}.json"
+                json_filename = f"{job_id}_costs.json"
                 json_data = [ dict(zip(headers, row)) for row in rows ]
                 # Add final cost as a separate field
                 output_json = {
