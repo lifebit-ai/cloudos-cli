@@ -4,7 +4,7 @@
 
 ### Feat
 
-- Adds job cost details instdout, csv and json formats
+- Adds job cost details in stdout, csv and json formats
 
 ## v2.58.0 (2025-09-01)
 
