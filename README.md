@@ -8,60 +8,74 @@ Python package for interacting with CloudOS
 
 ## Table of Contents
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-  - [From PyPI](#from-pypi)
-  - [Docker Image](#docker-image)
-  - [From Github](#from-github)
-- [Usage](#usage)
-- [Configuration](#configuration)
-  - [Configure Default Profile](#configure-default-profile)
-  - [Configure Named Profile](#configure-named-profile)
-  - [Change the Default Profile](#change-the-default-profile)
-  - [List Profiles](#list-profiles)
-  - [Remove Profile](#remove-profile)
-- [Commands](#commands)
-  - [Configure](#configure)
-  - [Project](#project)
-    - [List Projects](#list-projects)
-    - [Create Projects](#create-projects)
-  - [Queue](#queue)
-    - [List Queues](#list-queues)
-  - [Workflow](#workflow)
-    - [List All Available Workflows](#list-all-available-workflows)
-    - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
-  - [Nextflow Jobs](#nextflow-jobs)
-    - [Submit a Job](#submit-a-job)
-    - [Get Job Logs](#get-job-logs)
-    - [Get Job Results](#get-job-results)
-    - [Clone or Resume Job](#clone-or-resume-job)
-    - [Abort Jobs](#abort-jobs)
-    - [Check Job Status](#check-job-status)
-    - [Get Job Details](#get-job-details)
-    - [Get Job Workdir](#get-job-workdir)
-    - [List Jobs](#list-jobs)
-  - [Bash Jobs](#bash-jobs)
-    - [Send Array Job](#send-array-job)
-    - [Submit a Bash Array Job](#submit-a-bash-array-job)
-    - [Use multiple projects for files in --parameter option](#use-multiple-projects-for-files-in---parameter-option)
-  - [Datasets](#datasets)
-    - [List Files](#list-files)
-    - [Move Files](#move-files)
-    - [Rename Files](#rename-files)
-    - [Copy Files](#copy-files)
-    - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
-    - [Create Folder](#create-folder)
-    - [Remove Files or Folders](#remove-files-or-folders)
-  - [Procurement](#procurement)
-    - [List Procurement Images](#list-procurement-images)
-    - [Set Procurement Organization Image](#set-procurement-organization-image)
-    - [Reset Procurement Organization Image](#reset-procurement-organization-image)
-  - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
-    - [Manage Cromwell Server](#manage-cromwell-server)
-    - [Run WDL Workflows](#run-wdl-workflows)
-- [Python API Usage](#python-api-usage)
-  - [Running WDL pipelines using your own scripts](#running-wdl-pipelines-using-your-own-scripts)
-- [Unit Testing](#unit-testing)
+- [cloudos-cli](#cloudos-cli)
+  - [Table of Contents](#table-of-contents)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+    - [From PyPI](#from-pypi)
+    - [Docker Image](#docker-image)
+    - [From Github](#from-github)
+  - [Usage](#usage)
+  - [Configuration](#configuration)
+    - [Configure Default Profile](#configure-default-profile)
+    - [Configure Named Profile](#configure-named-profile)
+    - [Change the Default Profile](#change-the-default-profile)
+    - [List Profiles](#list-profiles)
+    - [Remove Profile](#remove-profile)
+  - [Commands](#commands)
+    - [Configure](#configure)
+    - [Project](#project)
+      - [List Projects](#list-projects)
+      - [Create Projects](#create-projects)
+    - [Queue](#queue)
+      - [List Queues](#list-queues)
+    - [Workflow](#workflow)
+      - [List All Available Workflows](#list-all-available-workflows)
+      - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
+    - [Nextflow Jobs](#nextflow-jobs)
+      - [Submit a Job](#submit-a-job)
+      - [Get Job Logs](#get-job-logs)
+      - [Get Job Results](#get-job-results)
+      - [Clone or Resume job](#clone-or-resume-job)
+      - [Query working directory of job](#query-working-directory-of-job)
+      - [Abort single or multiple jobs from CloudOS](#abort-single-or-multiple-jobs-from-cloudos)
+      - [Abort Jobs](#abort-jobs)
+      - [Check Job Status](#check-job-status)
+      - [Get Job Details](#get-job-details)
+      - [Get Job Workdir](#get-job-workdir)
+      - [List Jobs](#list-jobs)
+      - [Get Job Costs](#get-job-costs)
+    - [Bash Jobs](#bash-jobs)
+      - [Send Array Job](#send-array-job)
+      - [Submit a Bash Array Job](#submit-a-bash-array-job)
+        - [Options](#options)
+          - [Array File](#array-file)
+          - [Separator](#separator)
+          - [List Columns](#list-columns)
+          - [Array File Project](#array-file-project)
+          - [Disable Column Check](#disable-column-check)
+          - [Array Parameter](#array-parameter)
+          - [Custom Script Path](#custom-script-path)
+          - [Custom Script Project](#custom-script-project)
+      - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
+    - [Datasets](#datasets)
+      - [List Files](#list-files)
+      - [Move Files](#move-files)
+      - [Rename Files](#rename-files)
+      - [Copy Files](#copy-files)
+      - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
+      - [Create Folder](#create-folder)
+      - [Remove Files or Folders](#remove-files-or-folders)
+    - [Procurement](#procurement)
+      - [List Procurement Images](#list-procurement-images)
+      - [Set Procurement Organization Image](#set-procurement-organization-image)
+      - [Reset Procurement Organization Image](#reset-procurement-organization-image)
+    - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
+      - [Manage Cromwell Server](#manage-cromwell-server)
+      - [Run WDL Workflows](#run-wdl-workflows)
+  - [Python API Usage](#python-api-usage)
+      - [Running WDL pipelines using your own scripts](#running-wdl-pipelines-using-your-own-scripts)
+  - [Unit Testing](#unit-testing)
 
 ---
 
@@ -908,6 +922,113 @@ cloudos job list --profile my_profile --filter-workflow rnatoy --filter-queue hi
 > - Project and workflow names must match exactly (case sensitive)
 > - Job name filtering is case insensitive and supports partial matches
 > - The `--last` flag can be used with `--filter-workflow` when multiple workflows have the same name
+
+#### Get Job Costs
+
+You can retrieve detailed cost information for any job in your CloudOS workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help you optimize your workflows and manage expenses.
+
+The cost information is retrieved from CloudOS and can be displayed in multiple formats:
+
+- **Console display**: Rich formatted tables with pagination for easy viewing
+- **CSV**: Structured data for analysis and reporting
+- **JSON**: Complete cost data for programmatic processing
+
+To get cost information for a specific job:
+
+```bash
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355
+```
+
+The expected output is a formatted table showing:
+
+```console
+                              Job Cost Details - Job ID: 688ade923643c2454f5ac77d                              
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
+┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
+┃ Type   ┃ id         ┃ Instance   ┃ type       ┃ Run time ┃ storage     ┃ price      ┃ price       ┃ Total   ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ Worker │ pgti_mediu │ standard_d │ spot       │ 2m 12s   │ 500 Gb      │ $0.0888/hr │ $0.0298/hr  │ $0.0043 │
+│        │ m_pool/tvm │ 8a_v4      │            │          │             │            │             │         │
+│        │ ps_e57148f │            │            │          │             │            │             │         │
+│        │ f29a2186e2 │            │            │          │             │            │             │         │
+│        │ ba07c0566c │            │            │          │             │            │             │         │
+│        │ a7d494148a │            │            │          │             │            │             │         │
+│        │ 7f8d9d547d │            │            │          │             │            │             │         │
+│        │ 8fdbb71ead │            │            │          │             │            │             │         │
+│        │ 4355497_p  │            │            │          │             │            │             │         │
+│ Worker │ pgti_mediu │ standard_d │ spot       │ 7m 48s   │ 500 Gb      │ $0.0888/hr │ $0.0298/hr  │ $0.0154 │
+│        │ m_pool/tvm │ 8a_v4      │            │          │             │            │             │         │
+│        │ ps_acc84ab │            │            │          │             │            │             │         │
+│        │ 980b9bd654 │            │            │          │             │            │             │         │
+│        │ b690de025a │            │            │          │             │            │             │         │
+│        │ 7abab8c5e2 │            │            │          │             │            │             │         │
+│        │ 7fe60e80c7 │            │            │          │             │            │             │         │
+│        │ 34d65f6519 │            │            │          │             │            │             │         │
+│        │ 5a56c26_p  │            │            │          │             │            │             │         │
+└────────┴────────────┴────────────┴────────────┴──────────┴─────────────┴────────────┴─────────────┴─────────┘
+On page 1/2: n = next, p = prev, q = quit
+
+By pressing 'n', it will show the next page or the last if it is the case.
+                              Job Cost Details - Job ID: 688ade923643c2454f5ac77d                              
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
+┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
+┃ Type   ┃ id         ┃ Instance   ┃ type       ┃ Run time ┃ storage     ┃ price      ┃ price       ┃ Total   ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ Worker │ pgti_large │ standard_d │ spot       │ 1m 24s   │ 500 Gb      │ $0.1780/hr │ $0.0298/hr  │ $0.0049 │
+│        │ _pool/tvmp │ 16a_v4     │            │          │             │            │             │         │
+│        │ s_fde00bd8 │            │            │          │             │            │             │         │
+│        │ b7b0c2fd49 │            │            │          │             │            │             │         │
+│        │ c24a9f2d29 │            │            │          │             │            │             │         │
+│        │ c2958994d8 │            │            │          │             │            │             │         │
+│        │ 125708b7d2 │            │            │          │             │            │             │         │
+│        │ ab2309c419 │            │            │          │             │            │             │         │
+│        │ 747a8a_p   │            │            │          │             │            │             │         │
+│ Worker │ pgti_large │ standard_d │ spot       │ 1m 20s   │ 500 Gb      │ $0.1780/hr │ $0.0298/hr  │ $0.0046 │
+│        │ _pool/tvmp │ 16a_v4     │            │          │             │            │             │         │
+│        │ s_abe5f8f5 │            │            │          │             │            │             │         │
+│        │ afe98535d3 │            │            │          │             │            │             │         │
+│        │ a74a73a9e5 │            │            │          │             │            │             │         │
+│        │ e2e2d1c181 │            │            │          │             │            │             │         │
+│        │ a6b1056a17 │            │            │          │             │            │             │         │
+│        │ 6ecaacdb65 │            │            │          │             │            │             │         │
+│        │ 0737b7_p   │            │            │          │             │            │             │         │
+│        │            │            │            │          │             │            │             │         │
+├────────┼────────────┼────────────┼────────────┼──────────┼─────────────┼────────────┼─────────────┼─────────┤
+│        │            │            │            │          │             │            │             │ $0.5563 │
+└────────┴────────────┴────────────┴────────────┴──────────┴─────────────┴────────────┴─────────────┴─────────┘
+
+In the last page, the total job cost will be in the last row.
+```
+
+**Export options:**
+
+Save cost data to CSV for further analysis:
+
+```bash
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format csv --output-basename job_costs
+```
+
+Save complete cost data to JSON:
+
+```bash
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --output-format json --output-basename job_costs
+```
+
+**Pagination options:**
+
+For jobs with many tasks, use pagination to manage large datasets:
+
+```bash
+cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355 --page 2 --limit 50
+```
+
+> [!NOTE]
+> - Cost information is only available for completed jobs
+> - Costs are calculated based on actual resource usage and CloudOS pricing
+> - Storage costs include both temporary and persistent storage used during job execution
+> - The default page size is 100 items, with pagination automatically applied for larger result sets
 
 
 
