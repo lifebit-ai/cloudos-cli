@@ -1147,6 +1147,8 @@ class Job(Cloudos):
 
         if 'command' in cloned_payload:
             cloned_payload['batch'] = {"enabled": False}
+            if resumable:
+                print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
 
         # Handle job queue override
         if queue_name:
