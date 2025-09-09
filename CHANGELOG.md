@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.60.2 (2025-09-09)
+
+### Patch
+
+- Updates job details output name and adds missing csv format
+
 ## v2.60.1 (2025-09-09)
 
 ### Patch
