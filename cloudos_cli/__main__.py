@@ -1661,6 +1661,7 @@ def job_cost(ctx,
         'apikey': True,
         'workspace_id': True,
         'workflow_name': False,
+        'session_id': False,
         'project_name': False,
         'procurement_id': False
     }
@@ -1675,7 +1676,8 @@ def job_cost(ctx,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
-            workspace_id=workspace_id
+            workspace_id=workspace_id,
+            session_id=None
         )
     )
     apikey = user_options['apikey']
