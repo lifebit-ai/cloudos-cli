@@ -265,11 +265,11 @@ class TestCostViewer:
                 pytest.fail(f"stdout display failed with exception: {e}")
 
     @mock.patch('cloudos_cli.cost.cost.retry_requests_get')
-    def test_error_handling_403(self, mock_get):
-        """Test error handling for 403 Forbidden"""
-        # Mock a 403 response that behaves like the real BadRequestException
+    def test_error_handling_401(self, mock_get):
+        """Test error handling for 401 Unauthorized"""
+        # Mock a 401 response that behaves like the real BadRequestException
         mock_response = MagicMock()
-        mock_response.status_code = 403
+        mock_response.status_code = 401
         mock_response.reason = "Forbidden"
         mock_response.json.return_value = {"error": "Forbidden"}
         
