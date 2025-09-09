@@ -246,7 +246,7 @@ class CostViewer:
                 }
                 with open(json_filename, "w") as jsonfile:
                     json.dump(output_json, jsonfile, indent=2)
-                    self.console.print(f"[green]Saved all cost rows to JSON: {os.path.abspath(json_filename)}[/green]")
+                self.console.print(f"[green]Saved all cost rows to JSON: {os.path.abspath(json_filename)}[/green]")
 
         except BadRequestException as e:
             if '401' in str(e) or 'Forbidden' in str(e):
