@@ -945,8 +945,10 @@ class Job(Cloudos):
         }
         url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/request-payload?teamId={self.workspace_id}"
         r = retry_requests_get(url, headers=headers, verify=verify)
+
         if r.status_code >= 400:
             raise BadRequestException(r)
+
         return json.loads(r.content)
 
     def update_parameter_value(self, parameters, param_name, new_value):
@@ -984,7 +986,7 @@ class Job(Cloudos):
                 return True
         return False
 
-    def get_resume_work_dir(self, job_id, verify=True):
+    def get_field_from_jobs_endpoint(self, job_id, field=None, verify=True):
         """Get the resume work directory id for a job.
 
         Parameters
@@ -1009,7 +1011,10 @@ class Job(Cloudos):
         r = retry_requests_get(url, headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        return json.loads(r.content)["resumeWorkDir"]
+        if field in json.loads(r.content).keys():
+            return json.loads(r.content)[field]
+        else:
+            raise ValueError(f"Field '{field}' not found in endpoint 'jobs'.")
 
     def clone_or_resume_job(self, 
                   source_job_id,
@@ -1069,6 +1074,7 @@ class Job(Cloudos):
         str
             The CloudOS job ID of the cloned/resumed job.
         """
+
         # Get the original job payload
         original_payload = self.get_job_request_payload(source_job_id, verify=verify)
 
@@ -1078,11 +1084,12 @@ class Job(Cloudos):
         # remove unwanted fields
         del cloned_payload['_id']
         del cloned_payload['resourceId']
+
         if mode == "resume":
             try:
-                cloned_payload['resumeWorkDir'] = self.get_resume_work_dir(source_job_id, verify=verify)
+                cloned_payload['resumeWorkDir'] = self.get_field_from_jobs_endpoint(source_job_id, field="resumeWorkDir", verify=verify)
             except Exception as e:
-                print(f"Failed to get resume work directory: {e}, the job was not set as resumable when originally run\n")
+                raise ValueError(f"The job was not set as resumable when originally run")
 
         # Override job name if provided
         if job_name:
@@ -1108,9 +1115,10 @@ class Job(Cloudos):
             print("[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
         # Override branch if provided
+        # sometimes revision is missing from the 'request-payload' API, make sure is present
+        if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
+            cloned_payload['revision'] = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
         if branch:
-            if 'revision' not in cloned_payload:
-                cloned_payload['revision'] = {}
             cloned_payload['revision']['revisionType'] = 'branch'
             cloned_payload['revision']['branch'] = branch
             # Clear other revision types
@@ -1136,6 +1144,11 @@ class Job(Cloudos):
             cloned_payload['resumable'] = resumable
         elif resumable and mode == "resume":
             print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
+
+        if 'command' in cloned_payload:
+            cloned_payload['batch'] = {"enabled": False}
+            if resumable:
+                print("[Message]: 'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
 
         # Handle job queue override
         if queue_name:
@@ -1188,6 +1201,7 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(cloned_payload), 
                                 headers=headers, 

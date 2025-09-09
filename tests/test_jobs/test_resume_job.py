@@ -7,11 +7,11 @@ It covers:
 - Job queue override
 - Project name override
 - Error handling for API failures
-- Direct testing of get_resume_work_dir method
+- Direct testing of get_field_from_jobs_endpoint method
 
 The tests use mocked API responses to simulate CloudOS server interactions without 
 requiring actual server connections. The main difference from clone tests is that
-resume calls the additional get_resume_work_dir() method which hits the 'api/v1/jobs' endpoint.
+resume calls the additional get_field_from_jobs_endpoint() method which hits the 'api/v1/jobs' endpoint.
 """
 import json
 import mock
@@ -571,7 +571,7 @@ def test_resume_job_create_error():
 @responses.activate
 def test_get_resume_work_dir():
     """
-    Test get_resume_work_dir method directly
+    Test get_field_from_jobs_endpoint method directly
     """
     # Load test data
     job_details = load_json_file(JOB_DETAILS_INPUT)
@@ -625,8 +625,8 @@ def test_get_resume_work_dir():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test get_resume_work_dir method
-    resume_work_dir = job.get_resume_work_dir(SOURCE_JOB_ID)
+    # Test get_field_from_jobs_endpoint method
+    resume_work_dir = job.get_field_from_jobs_endpoint(SOURCE_JOB_ID, field="resumeWorkDir")
 
     assert resume_work_dir == RESUME_WORK_DIR
     assert isinstance(resume_work_dir, str)
@@ -636,7 +636,7 @@ def test_get_resume_work_dir():
 @responses.activate
 def test_get_resume_work_dir_error():
     """
-    Test get_resume_work_dir when API call fails
+    Test get_field_from_jobs_endpoint when API call fails
     """
     # Load test data for initialization
     projects_data = load_json_file(PROJECTS_INPUT)
@@ -695,4 +695,4 @@ def test_get_resume_work_dir_error():
 
     # Test that BadRequestException is raised
     with pytest.raises(BadRequestException):
-        job.get_resume_work_dir(SOURCE_JOB_ID)
+        job.get_field_from_jobs_endpoint(SOURCE_JOB_ID, field="resumeWorkDir")

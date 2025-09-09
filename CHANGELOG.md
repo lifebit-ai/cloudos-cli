@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.60.1 (2025-09-09)
+
+### Patch
+
+- Fixes clone and resume bugs
+
 ## v2.60.0 (2025-09-50)
 
 ### Feat

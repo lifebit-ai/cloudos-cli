@@ -1707,7 +1707,6 @@ def clone_resume(ctx,
     elif ctx.info_name == "resume":
         mode, action = "resume", "resuming"
 
-    f"""{mode.capitalize()} an existing job with optional parameter overrides."""
     profile = profile or ctx.default_map['job'][mode]['profile']
 
     # Create a dictionary with required and non-required params
