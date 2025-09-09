@@ -1311,8 +1311,10 @@
         <span class="p">}</span>
         <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/jobs/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/request-payload?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
 
 
@@ -1354,9 +1356,9 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="Job.get_resume_work_dir">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_resume_work_dir">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_resume_work_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Job.get_field_from_jobs_endpoint">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_field_from_jobs_endpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the resume work directory id for a job.</span>
 
 <span class="sd">        Parameters</span>
@@ -1381,7 +1383,10 @@
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="n">field</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field &#39;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">&#39; not found in endpoint &#39;jobs&#39;.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Job.clone_or_resume_job">
@@ -1444,6 +1449,7 @@
 <span class="sd">        str</span>
 <span class="sd">            The CloudOS job ID of the cloned/resumed job.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Get the original job payload</span>
         <span class="n">original_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_request_payload</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
 
@@ -1453,11 +1459,12 @@
         <span class="c1"># remove unwanted fields</span>
         <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
         <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resourceId&#39;</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumeWorkDir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resume_work_dir</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumeWorkDir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get resume work directory: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, the job was not set as resumable when originally run</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The job was not set as resumable when originally run&quot;</span><span class="p">)</span>
 
         <span class="c1"># Override job name if provided</span>
         <span class="k">if</span> <span class="n">job_name</span><span class="p">:</span>
@@ -1483,9 +1490,10 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option &#39;--nextflow-version&#39; is ignored.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Override branch if provided</span>
+        <span class="c1"># sometimes revision is missing from the &#39;request-payload&#39; API, make sure is present</span>
+        <span class="k">if</span> <span class="s1">&#39;revision&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;revision&#39;</span><span class="p">):</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">branch</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;revision&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
-                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;branch&#39;</span>
             <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">branch</span>
             <span class="c1"># Clear other revision types</span>
@@ -1511,6 +1519,11 @@
             <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resumable</span>
         <span class="k">elif</span> <span class="n">resumable</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: &#39;resumable&#39; option is only applicable when resuming a job, ignoring &#39;--resumable&#39; flag.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;command&#39;</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;batch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">resumable</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: &#39;resumable&#39; option is not applicable when resuming a bash job, ignoring &#39;--resumable&#39; flag.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Handle job queue override</span>
         <span class="k">if</span> <span class="n">queue_name</span><span class="p">:</span>
@@ -1563,6 +1576,7 @@
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
+
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                 <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cloned_payload</span><span class="p">),</span> 
                                 <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> 
