@@ -23,6 +23,7 @@ from cloudos_cli.utils.details import get_path
 from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
+import csv
 
 
 # GLOBAL VARS
@@ -1101,12 +1102,11 @@ def job_results(ctx,
 @click.option('--output-format',
               help=('The desired display for the output, either directly in standard output or saved as file. ' +
                     'Default=stdout.'),
-              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
-                    'Default=job_details'),
-              default='job_details',
+                    'Default={job_id}_details'),
               required=False)
 @click.option('--parameters',
               help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
@@ -1162,6 +1162,9 @@ def job_details(ctx,
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     execution_platform = user_options['execution_platform']
+
+    if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
+        output_basename = f"{job_id}_details"
 
     print('Executing details...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1316,10 +1319,20 @@ def job_details(ctx,
             except KeyError:
                 job_details_json["Worker Node"] = "Not Specified"
 
-        # Write the JSON object to a file
-        with open(f"{output_basename}.json", "w") as json_file:
-            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
-        print(f"\tJob details have been saved to '{output_basename}.json'")
+        if output_format == 'json':
+            # Write the JSON object to a file
+            with open(f"{output_basename}.json", "w") as json_file:
+                json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
+            print(f"\tJob details have been saved to '{output_basename}.json'")
+        else:
+            # Write the same details to a CSV file
+            with open(f"{output_basename}.csv", "w", newline='') as csv_file:
+                writer = csv.writer(csv_file)
+                # Write headers (fields) in the first row
+                writer.writerow(job_details_json.keys())
+                # Write values in the second row
+                writer.writerow(job_details_json.values())
+            print(f"\tJob details have been saved to '{output_basename}.csv'")
 
 
 @job.command('list')
