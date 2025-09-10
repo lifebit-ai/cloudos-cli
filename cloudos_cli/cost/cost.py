@@ -155,7 +155,7 @@ class CostViewer:
             for worker in workers:
                 runtime = self._calculate_runtime(worker.get('startTime', ''), worker.get('endTime', ''))
                 rows.append([
-                    f"Worker",
+                    "Worker",
                     worker.get('id', 'N/A'),
                     worker.get('machineType', 'N/A'),
                     self._format_lifecycle_type(worker.get('isCostSaving', False)),
