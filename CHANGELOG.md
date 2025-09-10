@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.61.0 (2025-09-09)
+
+### Feat
+
+- Adds job cost details in stdout, csv and json formats
+
 ## v2.60.2 (2025-09-09)
 
 ### Patch
