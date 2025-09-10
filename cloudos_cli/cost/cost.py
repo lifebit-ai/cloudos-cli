@@ -7,7 +7,8 @@ from rich.console import Console
 from rich.table import Table
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get
-import csv, json
+import csv
+import json
 import os
 
 
