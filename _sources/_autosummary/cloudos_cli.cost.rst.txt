@@ -1,0 +1,13 @@
+cloudos\_cli.cost
+=================
+
+.. automodule:: cloudos_cli.cost
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cost

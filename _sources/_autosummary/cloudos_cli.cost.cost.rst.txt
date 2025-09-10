@@ -1,0 +1,12 @@
+cloudos\_cli.cost.cost
+======================
+
+.. automodule:: cloudos_cli.cost.cost
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CostViewer
+   
