@@ -6,6 +6,12 @@
 
 - Adds job cost details in stdout, csv and json formats
 
+## v2.60.2 (2025-09-09)
+
+### Patch
+
+- Fixes workdir fetching from resumable jobs
+
 ## v2.60.1 (2025-09-09)
 
 ### Patch

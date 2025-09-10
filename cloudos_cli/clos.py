@@ -214,9 +214,11 @@ class Cloudos:
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-        
+
+        if "resumeWorkDir" not in r_json:
+            print("[Message]: Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
         # Check if logs field exists, if not fall back to original folder-based approach
-        if "logs" in r_json:
+        elif "logs" in r_json:
             # Get workdir information from logs object using the same pattern as get_job_logs
             logs_obj = r_json["logs"]
             cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
