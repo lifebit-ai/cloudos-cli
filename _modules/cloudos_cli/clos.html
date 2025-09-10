@@ -569,9 +569,11 @@
         <span class="n">job_workspace</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;team&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">job_workspace</span> <span class="o">!=</span> <span class="n">workspace_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Workspace provided or configured is different from workspace where the job was executed&quot;</span><span class="p">)</span>
-        
+
+        <span class="k">if</span> <span class="s2">&quot;resumeWorkDir&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Message]: Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.&quot;</span><span class="p">)</span>
         <span class="c1"># Check if logs field exists, if not fall back to original folder-based approach</span>
-        <span class="k">if</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
             <span class="c1"># Get workdir information from logs object using the same pattern as get_job_logs</span>
             <span class="n">logs_obj</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;logs&quot;</span><span class="p">]</span>
             <span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">cloud_storage</span> <span class="o">=</span> <span class="n">find_cloud</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">logs_obj</span><span class="p">)</span>
