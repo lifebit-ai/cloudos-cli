@@ -121,7 +121,7 @@ class CostViewer:
         verify : bool or str
             SSL verification setting
         """
-        limit = 20 # Display 20 rows per page
+        limit = 20  # Display 20 rows per page
         current_page = 0
 
         try:
