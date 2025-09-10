@@ -1688,7 +1688,6 @@ def job_cost(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
-    
     cost_viewer = CostViewer(cloudos_url, apikey)
     if verbose:
         print(f'\tSearching for cost data for job id: {job_id}')
