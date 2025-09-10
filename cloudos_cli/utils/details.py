@@ -199,8 +199,8 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     job_details_json["Nextflow Version"] = nextflow_version
     job_details_json["Execution Platform"] = execution_platform
     job_details_json["Accelerated File Staging"] = accelerated_file_staging
-    #job_details_json["Parameters"] = ','.join(concat_string.split())
-    job_details_json["Parameters"] = concat_string
+    job_details_json["Parameters"] = ';'.join(concat_string.split("\n"))
+    #job_details_json["Parameters"] = concat_string
 
     # Conditionally add the "Command" key if the jobType is "dockerAWS"
     if j_details_h["jobType"] == "dockerAWS":
@@ -217,7 +217,10 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         table.add_column("Value", style="magenta", overflow="fold")
 
         for key, value in job_details_json.items():
-            table.add_row(key, str(value))
+            if key == "Parameters":
+                table.add_row(key, "\n".join(value.split(";")))
+            else:
+                table.add_row(key, str(value))
 
         console.print(table)
     elif output_format == 'json':
