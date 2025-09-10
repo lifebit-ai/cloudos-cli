@@ -12,7 +12,6 @@
 
    clos
    configure
-   cost
    datasets
    import_wf
    jobs
