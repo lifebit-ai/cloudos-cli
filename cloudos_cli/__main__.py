@@ -1191,7 +1191,7 @@ def job_details(ctx,
         click.echo(f"[ERROR] Failed to retrieve details for job '{job_id}': {str(e)}", err=True)
         sys.exit(1)
     j_details_h = json.loads(j_details.content)
-
+    print("j_details_h:", j_details_h)
     # Determine the execution platform based on jobType
     executors = {
         'nextflowAWS': 'Batch AWS',
@@ -1243,6 +1243,41 @@ def job_details(ctx,
         revision = j_details_h["revision"]["commit"]
 
     # Output the job details
+    status = str(j_details_h.get("status", "None"))
+    name = str(j_details_h.get("name", "None"))
+    project = str(j_details_h.get("project", {}).get("name", "None"))
+    owner = str(j_details_h.get("user", {}).get("name", "None") + " " + j_details_h.get("user", {}).get("surname", "None"))
+    pipeline = str(j_details_h.get("workflow", {}).get("name", "None"))
+    id = str(job_id)
+    commit = str(revision)
+    start_dt = datetime.fromisoformat(str(j_details_h["startTime"]).replace('Z', '+00:00'))
+    end_dt = datetime.fromisoformat(str(j_details_h["endTime"]).replace('Z', '+00:00'))
+    duration = end_dt - start_dt
+    # Format duration as hours:minutes:seconds
+    total_seconds = int(duration.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    if hours > 0:
+        run_time = f"{hours}h {minutes}m {seconds}s"
+    elif minutes > 0:
+        run_time = f"{minutes}m {seconds}s"
+    else:
+        run_time = f"{seconds}s"
+    cost = j_details_h.get("computeCostSpent", None)
+    if cost is not None:
+        cost_display = "$" + str(round(float(cost) / 100, 4))
+    else:
+        cost_display = "None"
+    # when the job is just running this value might not be present
+    master_instance = j_details_h.get("masterInstance", {})
+    used_instance = master_instance.get("usedInstance", {})
+    instance_type = used_instance.get("type", "N/A")
+    storage = str(j_details_h.get("storageSizeInGb", 0)) + " GB"
+    pipeline_url = str(j_details_h.get("workflow", {}).get("repository", {}).get("url", "Not Specified"))
+    accelerated_file_staging = str(j_details_h.get("usesFusionFileSystem", "None"))
+    nextflow_version = str(j_details_h.get("nextflowVersion", "None"))
+    profile = str(j_details_h.get("profile", "None"))
     if output_format == 'stdout':
         console = Console()
         table = Table(title="Job Details")
@@ -1250,42 +1285,24 @@ def job_details(ctx,
         table.add_column("Field", style="cyan", no_wrap=True)
         table.add_column("Value", style="magenta", overflow="fold")
 
-        table.add_row("Status", str(j_details_h.get("status", "None")))
-        table.add_row("Name", str(j_details_h.get("name", "None")))
-        table.add_row("Project", str(j_details_h.get("project", {}).get("name", "None")))
-        table.add_row("Owner", str(j_details_h.get("user", {}).get("name", "None") + " " + j_details_h.get("user", {}).get("surname", "None")))
-        table.add_row("Pipeline", str(j_details_h.get("workflow", {}).get("name", "None")))
-        table.add_row("ID", str(job_id))
-        start_dt = datetime.fromisoformat(str(j_details_h["startTime"]).replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(str(j_details_h["endTime"]).replace('Z', '+00:00'))
-        duration = end_dt - start_dt
-        # Format duration as hours:minutes:seconds
-        total_seconds = int(duration.total_seconds())
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60
-        if hours > 0:
-            run_time = f"{hours}h {minutes}m {seconds}s"
-        elif minutes > 0:
-            run_time = f"{minutes}m {seconds}s"
-        else:
-            run_time = f"{seconds}s"
-        table.add_row("Submit time", str(start_dt.strftime('%Y-%m-%d %H:%M:%S UTC')))
-        table.add_row("End time", str(end_dt.strftime('%Y-%m-%d %H:%M:%S UTC')))
+        table.add_row("Status", status)
+        table.add_row("Name", name)
+        table.add_row("Project", project)
+        table.add_row("Owner", owner)
+        table.add_row("Pipeline", pipeline)
+        table.add_row("ID", id)
+        table.add_row("Submit time", str(start_dt.strftime('%Y-%m-%d %H:%M:%S')))
+        table.add_row("End time", str(end_dt.strftime('%Y-%m-%d %H:%M:%S')))
         table.add_row("Run time", str(run_time))
         table.add_row("Commit", str(revision))
-        table.add_row("Cost", str(j_details_h.get("realInstancesExecutionCost", "None")))
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
+        table.add_row("Cost", cost_display)
         table.add_row("Master Instance", str(instance_type))
         if j_details_h["jobType"] == "nextflowAzure":
             try:
                 table.add_row("Worker Node", str(j_details_h.get("azureBatch", {}).get("vmType", "Not Specified")))
             except KeyError:
                 table.add_row("Worker Node", "Not Specified")
-        table.add_row("Storage", str(j_details_h.get("storageSizeInGb", 0)) + " GB")
+        table.add_row("Storage", storage)
         if j_details_h["jobType"] != "nextflowAzure":
             try:
                 table.add_row("Job Queue ID", str(j_details_h.get("batch", {}).get("jobQueue", {}).get("name", "Not Specified")))
@@ -1294,36 +1311,41 @@ def job_details(ctx,
                 table.add_row("Job Queue", "Master Node")
         table.add_row("Task Resources", f"{str(j_details_h.get('resourceRequirements', {}).get('cpu', 0))} CPUs, " +
                                         f"{str(j_details_h.get('resourceRequirements', {}).get('ram', 0))} GB RAM")
-        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
+        table.add_row("Pipeline url", pipeline_url)
+        table.add_row("Accelerated File Staging", accelerated_file_staging)
         table.add_row("Parameters", concat_string)
         if j_details_h["jobType"] == "dockerAWS":
             table.add_row("Command", str(j_details_h.get("command", "Not Specified")))
-        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
+        table.add_row("Nextflow Version", nextflow_version)
         table.add_row("Execution Platform", execution_platform)
-        table.add_row("Profile", str(j_details_h.get("profile", "None")))
+        table.add_row("Profile", profile)
 
         console.print(table)
     else:
         # Create a JSON object with the key-value pairs
         job_details_json = {
-            "Job Status": str(j_details_h["status"]),
-            "Parameters": ','.join(concat_string.split()),
-            "Revision": str(revision),
-            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
-            "Execution Platform": execution_platform,
-            "Profile": str(j_details_h.get("profile", "None")),
-            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
-            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
+            "Status": status,
+            "Name": name,
+            "Project": project,
+            "Owner": owner,
+            "Pipeline": pipeline,
+            "ID": id,
+            "Submit time": str(start_dt.strftime('%Y-%m-%d %H:%M:%S')),
+            "End time": str(end_dt.strftime('%Y-%m-%d %H:%M:%S')),
+            "Run time": str(run_time),
+            "Commit": str(revision),
+            "Cost": cost_display,
+            "Master Instance": str(instance_type),
+            "Storage": storage,
             "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
-
+                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM",
+            "Pipeline url": pipeline_url,
+            "Accelerated File Staging": accelerated_file_staging,
+            "Parameters": ','.join(concat_string.split()),
+            "Nextflow Version": nextflow_version,
+            "Execution Platform": execution_platform,
+            "Profile": profile,
         }
-
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
-        job_details_json["Master Instance"] = str(instance_type)
 
         # Conditionally add the "Command" key if the jobType is "dockerAWS"
         if j_details_h["jobType"] == "dockerAWS":
