@@ -1312,12 +1312,12 @@ def job_details(ctx,
         table.add_row("Task Resources", f"{str(j_details_h.get('resourceRequirements', {}).get('cpu', 0))} CPUs, " +
                                         f"{str(j_details_h.get('resourceRequirements', {}).get('ram', 0))} GB RAM")
         table.add_row("Pipeline url", pipeline_url)
+        table.add_row("Nextflow Version", nextflow_version)
+        table.add_row("Execution Platform", execution_platform)
         table.add_row("Accelerated File Staging", accelerated_file_staging)
         table.add_row("Parameters", concat_string)
         if j_details_h["jobType"] == "dockerAWS":
             table.add_row("Command", str(j_details_h.get("command", "Not Specified")))
-        table.add_row("Nextflow Version", nextflow_version)
-        table.add_row("Execution Platform", execution_platform)
         table.add_row("Profile", profile)
 
         console.print(table)
@@ -1336,20 +1336,14 @@ def job_details(ctx,
             "Commit": str(revision),
             "Cost": cost_display,
             "Master Instance": str(instance_type),
-            "Storage": storage,
-            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM",
-            "Pipeline url": pipeline_url,
-            "Accelerated File Staging": accelerated_file_staging,
-            "Parameters": ','.join(concat_string.split()),
-            "Nextflow Version": nextflow_version,
-            "Execution Platform": execution_platform,
-            "Profile": profile,
         }
+        if j_details_h["jobType"] == "nextflowAzure":
+            try:
+                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
+            except KeyError:
+                job_details_json["Worker Node"] = "Not Specified"
 
-        # Conditionally add the "Command" key if the jobType is "dockerAWS"
-        if j_details_h["jobType"] == "dockerAWS":
-            job_details_json["Command"] = str(j_details_h["command"])
+        job_details_json["Storage"] = storage
 
         # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
         if j_details_h["jobType"] != "nextflowAzure":
@@ -1359,11 +1353,20 @@ def job_details(ctx,
             except KeyError:
                 job_details_json["Job Queue"] = "Master Node"
 
-        if j_details_h["jobType"] == "nextflowAzure":
-            try:
-                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
-            except KeyError:
-                job_details_json["Worker Node"] = "Not Specified"
+
+        job_details_json["Task Resources"] = f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
+                                             f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM",
+        job_details_json["Pipeline url"] = pipeline_url
+        job_details_json["Nextflow Version"] = nextflow_version
+        job_details_json["Execution Platform"] = execution_platform
+        job_details_json["Accelerated File Staging"] = accelerated_file_staging
+        job_details_json["Parameters"] = ','.join(concat_string.split())
+
+        # Conditionally add the "Command" key if the jobType is "dockerAWS"
+        if j_details_h["jobType"] == "dockerAWS":
+            job_details_json["Command"] = str(j_details_h["command"])
+
+        job_details_json["Profile"] = profile
 
         if output_format == 'json':
             # Write the JSON object to a file
