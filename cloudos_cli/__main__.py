@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
@@ -1249,7 +1250,20 @@ def job_details(ctx,
         table.add_column("Field", style="cyan", no_wrap=True)
         table.add_column("Value", style="magenta", overflow="fold")
 
-        table.add_row("Job Status", str(j_details_h["status"]))
+        table.add_row("Status", str(j_details_h["status"]))
+        table.add_row("Name", str(j_details_h["name"]))
+        table.add_row("Project", str(j_details_h["project"]["name"]))
+        table.add_row("Owner", str(j_details_h["user"]["name"] + " " + j_details_h["user"]["surname"]))
+        table.add_row("Pipeline", str(j_details_h["workflow"]["name"]))
+        table.add_row("ID", str(job_id))
+        start_dt = datetime.fromisoformat(str(j_details_h["startTime"]).replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(str(j_details_h["endTime"]).replace('Z', '+00:00'))
+        duration = end_dt - start_dt
+        table.add_row("Submit time", str(start_dt))
+        table.add_row("End time", str(end_dt))
+        table.add_row("Run time", str(duration))
+        table.add_row("Commit", str(duration))
+        table.add_row("Cost", str(j_details_h["realInstancesExecutionCost"]))
         table.add_row("Parameters", concat_string)
         if j_details_h["jobType"] == "dockerAWS":
             table.add_row("Command", str(j_details_h["command"]))
