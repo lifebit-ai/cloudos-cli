@@ -1250,27 +1250,31 @@ def job_details(ctx,
         table.add_column("Field", style="cyan", no_wrap=True)
         table.add_column("Value", style="magenta", overflow="fold")
 
-        table.add_row("Status", str(j_details_h["status"]))
-        table.add_row("Name", str(j_details_h["name"]))
-        table.add_row("Project", str(j_details_h["project"]["name"]))
-        table.add_row("Owner", str(j_details_h["user"]["name"] + " " + j_details_h["user"]["surname"]))
-        table.add_row("Pipeline", str(j_details_h["workflow"]["name"]))
+        table.add_row("Status", str(j_details_h.get("status", "None")))
+        table.add_row("Name", str(j_details_h.get("name", "None")))
+        table.add_row("Project", str(j_details_h.get("project", {}).get("name", "None")))
+        table.add_row("Owner", str(j_details_h.get("user", {}).get("name", "None") + " " + j_details_h.get("user", {}).get("surname", "None")))
+        table.add_row("Pipeline", str(j_details_h.get("workflow", {}).get("name", "None")))
         table.add_row("ID", str(job_id))
         start_dt = datetime.fromisoformat(str(j_details_h["startTime"]).replace('Z', '+00:00'))
         end_dt = datetime.fromisoformat(str(j_details_h["endTime"]).replace('Z', '+00:00'))
         duration = end_dt - start_dt
-        table.add_row("Submit time", str(start_dt))
-        table.add_row("End time", str(end_dt))
-        table.add_row("Run time", str(duration))
-        table.add_row("Commit", str(duration))
-        table.add_row("Cost", str(j_details_h["realInstancesExecutionCost"]))
-        table.add_row("Parameters", concat_string)
-        if j_details_h["jobType"] == "dockerAWS":
-            table.add_row("Command", str(j_details_h["command"]))
-        table.add_row("Revision", str(revision))
-        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
-        table.add_row("Execution Platform", execution_platform)
-        table.add_row("Profile", str(j_details_h.get("profile", "None")))
+        # Format duration as hours:minutes:seconds
+        total_seconds = int(duration.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        if hours > 0:
+            run_time = f"{hours}h {minutes}m {seconds}s"
+        elif minutes > 0:
+            run_time = f"{minutes}m {seconds}s"
+        else:
+            run_time = f"{seconds}s"
+        table.add_row("Submit time", str(start_dt.strftime('%Y-%m-%d %H:%M:%S UTC')))
+        table.add_row("End time", str(end_dt.strftime('%Y-%m-%d %H:%M:%S UTC')))
+        table.add_row("Run time", str(run_time))
+        table.add_row("Commit", str(revision))
+        table.add_row("Cost", str(j_details_h.get("realInstancesExecutionCost", "None")))
         # when the job is just running this value might not be present
         master_instance = j_details_h.get("masterInstance", {})
         used_instance = master_instance.get("usedInstance", {})
@@ -1278,19 +1282,25 @@ def job_details(ctx,
         table.add_row("Master Instance", str(instance_type))
         if j_details_h["jobType"] == "nextflowAzure":
             try:
-                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
+                table.add_row("Worker Node", str(j_details_h.get("azureBatch", {}).get("vmType", "Not Specified")))
             except KeyError:
                 table.add_row("Worker Node", "Not Specified")
-        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
+        table.add_row("Storage", str(j_details_h.get("storageSizeInGb", 0)) + " GB")
         if j_details_h["jobType"] != "nextflowAzure":
             try:
-                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
-                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
+                table.add_row("Job Queue ID", str(j_details_h.get("batch", {}).get("jobQueue", {}).get("name", "Not Specified")))
+                table.add_row("Job Queue Name", str(j_details_h.get("batch", {}).get("jobQueue", {}).get("label", "Not Specified")))
             except KeyError:
                 table.add_row("Job Queue", "Master Node")
+        table.add_row("Task Resources", f"{str(j_details_h.get('resourceRequirements', {}).get('cpu', 0))} CPUs, " +
+                                        f"{str(j_details_h.get('resourceRequirements', {}).get('ram', 0))} GB RAM")
         table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
-        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
+        table.add_row("Parameters", concat_string)
+        if j_details_h["jobType"] == "dockerAWS":
+            table.add_row("Command", str(j_details_h.get("command", "Not Specified")))
+        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
+        table.add_row("Execution Platform", execution_platform)
+        table.add_row("Profile", str(j_details_h.get("profile", "None")))
 
         console.print(table)
     else:
