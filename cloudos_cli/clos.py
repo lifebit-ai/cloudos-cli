@@ -685,7 +685,7 @@ class Cloudos:
             if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
                 break
             if len(page_jobs) < params["limit"]:
-                break # Last page (fewer jobs than requested page size)
+                break  # Last page (fewer jobs than requested page size)
                 
             current_page += 1
 
