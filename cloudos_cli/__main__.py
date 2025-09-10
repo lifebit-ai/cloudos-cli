@@ -1691,7 +1691,6 @@ def job_cost(ctx,
     cost_viewer = CostViewer(cloudos_url, apikey)
     if verbose:
         print(f'\tSearching for cost data for job id: {job_id}')
-    
     # Display costs with pagination
     cost_viewer.display_costs(job_id, workspace_id, output_format, verify_ssl)
 
