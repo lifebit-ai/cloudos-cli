@@ -5,7 +5,6 @@ Cost module for retrieving and displaying job cost information.
 from datetime import datetime
 from rich.console import Console
 from rich.table import Table
-from rich.prompt import Prompt
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get
 import csv, json
