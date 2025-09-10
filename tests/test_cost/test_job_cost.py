@@ -302,6 +302,10 @@ class TestCostViewer:
 class TestCloudosJobCosts:
     """Test class for Cloudos get_job_costs method"""
 
+    def setup_method(self):
+        """Set up test fixtures"""
+        self.cost_viewer = CostViewer(CLOUDOS_URL, APIKEY)
+
     @mock.patch('cloudos_cli.clos', mock.MagicMock())
     @responses.activate
     def test_cloudos_get_job_costs_correct_response(self):
@@ -323,18 +327,14 @@ class TestCloudosJobCosts:
             status=200
         )
         
-        # start cloudOS service
-        clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        
         # get mock response
-        response = clos.get_job_costs(JOB_ID, WORKSPACE_ID)
+        response = self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID)
         
         # check the response
-        assert response.status_code == 200
-        assert isinstance(response, requests.models.Response)
+        assert isinstance(response, dict)
         
         # Parse response content
-        result_string = response.content.decode("utf-8")
+        result_string = json.dumps(response)
         result_json = json.loads(result_string)
         
         # Verify response structure
@@ -363,15 +363,11 @@ class TestCloudosJobCosts:
             status=200
         )
         
-        # start cloudOS service
-        clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        
         # get mock response with custom pagination
-        response = clos.get_job_costs(JOB_ID, WORKSPACE_ID, page=2, limit=50)
+        response = self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID, page=2, limit=50)
         
         # check the response
-        assert response.status_code == 200
-        assert isinstance(response, requests.models.Response)
+        assert isinstance(response, dict)
 
     @mock.patch('cloudos_cli.clos', mock.MagicMock())
     @responses.activate
@@ -392,10 +388,7 @@ class TestCloudosJobCosts:
             headers=header,
             status=404
         )
-        
-        # start cloudOS service
-        clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        
+
         # expect BadRequestException
         with pytest.raises(BadRequestException):
-            clos.get_job_costs(JOB_ID, WORKSPACE_ID)
+            self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID)
