@@ -817,7 +817,7 @@ class Cloudos:
                         try:
                             return datetime.fromisoformat(x.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S UTC')
                         except (ValueError, TypeError):
-                            return x # Return original value if parsing fails
+                            return x  # Return original value if parsing fails
                     return None
                 jobs_df[col] = jobs_df[col].apply(format_time)
 
