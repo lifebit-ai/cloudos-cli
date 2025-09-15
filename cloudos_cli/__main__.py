@@ -1335,6 +1335,10 @@ def list_jobs(ctx,
     ctx = click.get_current_context()
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
+    if not isinstance(page_size, int) or page_size < 1:
+        raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
+    elif page_size > 100:
+        raise ValueError('Please, use a --page-size value <= 100')
     if last_n_jobs != 'all':
         try:
             last_n_jobs = int(last_n_jobs)

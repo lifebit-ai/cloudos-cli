@@ -532,7 +532,7 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, page_size=10, archived=False,
+    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, page_size=100, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
                      filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
@@ -605,7 +605,6 @@ class Cloudos:
         params = {
             "teamId": workspace_id,
             "archived.status": str(archived).lower(),
-            "limit": 100,  # Use a reasonable page size
             "page": 1     # Always start from page 1
         }
         
