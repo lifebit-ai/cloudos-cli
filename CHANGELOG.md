@@ -7,6 +7,12 @@
 - Updates job details output name and adds missing csv format
 - Updates page and page-size for job-list
 
+## v2.60.2 (2025-09-09)
+
+### Patch
+
+- Fixes workdir fetching from resumable jobs
+
 ## v2.60.1 (2025-09-09)
 
 ### Patch
