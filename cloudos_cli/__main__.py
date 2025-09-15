@@ -1227,7 +1227,8 @@ def job_details(ctx,
               type=int,
               default=1)
 @click.option('--page-size',
-              help="Page size to retrieve from API, corresponds to the number of jobs per page. Default=10.",
+              help=('Page size to retrieve from API, corresponds to the number of jobs per page. ' +
+                    'Maximum allowed integer is 100. Default=10.'),
               type=int,
               default=10)
 @click.option('--archived',
