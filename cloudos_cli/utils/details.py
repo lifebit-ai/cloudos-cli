@@ -74,6 +74,75 @@ def get_path(param, param_kind_map, execution_platform, storage_provider, mode="
 
 
 def create_job_details(j_details_h, job_id, output_format, output_basename, parameters):
+    """
+    Creates formatted job details output from job data in multiple formats.
+
+    This function processes job details from the CloudOS API response and outputs
+    the information in a user-specified format (stdout table, JSON, or CSV).
+    It also optionally creates configuration files with job parameters.
+
+    Parameters
+    ----------
+    j_details_h : dict
+        A dictionary containing job details from the CloudOS API. Expected keys include:
+            - 'jobType': The type of job executor (e.g., 'nextflowAWS', 'dockerAWS').
+            - 'parameters': List of parameter dictionaries for the job.
+            - 'status': Current status of the job.
+            - 'name': Name of the job.
+            - 'project': Dictionary containing project information with 'name' key.
+            - 'user': Dictionary containing user information with 'name' and 'surname' keys.
+            - 'workflow': Dictionary containing workflow information.
+            - 'startTime': ISO format timestamp of job start.
+            - 'endTime': ISO format timestamp of job completion.
+            - 'computeCostSpent': Cost in cents (optional).
+            - 'masterInstance': Dictionary containing instance information.
+            - 'storageSizeInGb': Storage size allocated to the job.
+            - 'resourceRequirements': Dictionary with 'cpu' and 'ram' specifications.
+            - Additional platform-specific keys based on jobType.
+    job_id : str
+        Unique identifier for the job.
+    output_format : str
+        Format for output display. Expected values:
+            - 'stdout': Display as a formatted table in the console.
+            - 'json': Save as a JSON file.
+            - 'csv': Save as a CSV file.
+    output_basename : str
+        Base name for output files (without extension). Used when output_format
+        is 'json' or 'csv'.
+    parameters : bool
+        Whether to create a separate configuration file containing job parameters.
+        If True and parameters exist, creates a '.config' file with Nextflow-style
+        parameter formatting.
+
+    Returns
+    -------
+    None
+        This function has side effects only:
+        - Prints formatted output to console (for 'stdout' format).
+        - Creates output files (for 'json' and 'csv' formats).
+        - Optionally creates parameter configuration files.
+        - Prints status messages about file creation.
+
+    Notes
+    -----
+    The function handles different job types and execution platforms:
+    - AWS Batch (nextflowAWS, dockerAWS, cromwellAWS)
+    - Azure Batch (nextflowAzure)
+    - Google Cloud Platform (nextflowGcp)
+    - HPC clusters (nextflowHpc)
+    - Kubernetes (nextflowKubernetes)
+
+    Parameter processing depends on the parameter kind:
+    - 'textValue': Simple text parameters
+    - 'arrayFileColumn': Column-based array parameters
+    - 'globPattern': File pattern matching parameters
+    - 'lustreFileSystem': Lustre filesystem parameters
+    - 'dataItem': Data file/object parameters
+
+    Time calculations assume UTC timezone and convert ISO format timestamps
+    to human-readable duration strings.
+    """
+
     # Determine the execution platform based on jobType
     executors = {
         'nextflowAWS': 'Batch AWS',
