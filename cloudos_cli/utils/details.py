@@ -200,7 +200,6 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     job_details_json["Execution Platform"] = execution_platform
     job_details_json["Accelerated File Staging"] = accelerated_file_staging
     job_details_json["Parameters"] = ';'.join(concat_string.split("\n"))
-    #job_details_json["Parameters"] = concat_string
 
     # Conditionally add the "Command" key if the jobType is "dockerAWS"
     if j_details_h["jobType"] == "dockerAWS":
