@@ -588,10 +588,14 @@ class Cloudos:
         """
         if not workspace_id or not isinstance(workspace_id, str):
             raise ValueError("Invalid workspace_id: must be a non-empty string")
-    
+
         if last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
             raise ValueError("last_n_jobs must be a positive integer or 'all'")
-        
+
+        # Validate page_size
+        if page_size > 100:
+            raise ValueError('Please, use a --page-size value <= 100')
+
         # Validate filter_status values
         if filter_status:
             valid_statuses = ['completed', 'running', 'failed', 'aborted', 'queued', 'pending', 'initializing']
@@ -669,7 +673,7 @@ class Cloudos:
         all_jobs = []
         current_page = 1
         params["limit"] = page_size
-        
+
         while True:
             params["page"] = current_page
 
