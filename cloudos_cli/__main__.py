@@ -19,7 +19,7 @@ from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
-from cloudos_cli.utils.details import get_path, create_job_details
+from cloudos_cli.utils.details import create_job_details
 from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
