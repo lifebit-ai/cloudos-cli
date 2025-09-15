@@ -1222,8 +1222,8 @@ def job_details(ctx,
                     "retrieve all workspace jobs. Default=30."),
               default='30')
 @click.option('--page',
-              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
-                    'value corresponds to the first page to retrieve. Default=1.'),
+              help=('Page number to fetch from the API. Used with --page-size to control jobs ' +
+                    'per page (e.g. --page=4 --page-size=20). Default=1.'),
               type=int,
               default=1)
 @click.option('--page-size',
