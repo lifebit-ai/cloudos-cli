@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
