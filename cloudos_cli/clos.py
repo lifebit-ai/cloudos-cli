@@ -532,7 +532,7 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, archived=False,
+    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, page_size=10, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
                      filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
@@ -550,6 +550,8 @@ class Cloudos:
             very large int or 'all' to get all user's jobs.
         page : int
             Response page to get (ignored when using filters - starts from page 1).
+        page_size : int
+            Number of jobs to retrieve per page (ignored when using filters - always 10).
         archived : bool
             When True, only the archived jobs are retrieved.
         verify: [bool|string]
@@ -665,10 +667,11 @@ class Cloudos:
         # --- Fetch jobs page by page ---
         all_jobs = []
         current_page = 1
+        params["limit"] = page_size
         
         while True:
             params["page"] = current_page
-            
+
             r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params, headers=headers, verify=verify)
             if r.status_code >= 400:
                 raise BadRequestException(r)

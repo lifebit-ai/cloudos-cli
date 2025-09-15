@@ -1162,7 +1162,6 @@ def job_details(ctx,
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
-    execution_platform = user_options['execution_platform']
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
         output_basename = f"{job_id}_details"
@@ -1420,6 +1419,10 @@ def job_details(ctx,
                     'value corresponds to the first page to retrieve. Default=1.'),
               type=int,
               default=1)
+@click.option('--page-size',
+              help="Page size to retrieve from API, corresponds to the number of jobs per page. Default=10.",
+              type=int,
+              default=10)
 @click.option('--archived',
               help=('When this flag is used, only archived jobs list is collected.'),
               is_flag=True)
@@ -1463,6 +1466,7 @@ def list_jobs(ctx,
               all_fields,
               last_n_jobs,
               page,
+              page_size,
               archived,
               filter_status,
               filter_job_name,
@@ -1529,7 +1533,7 @@ def list_jobs(ctx,
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl,
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,
                                 filter_job_name=filter_job_name,
                                 filter_project=filter_project,
