@@ -903,7 +903,7 @@ Executing list...
 	Job list saved to joblist.json
 ```
 
-The command can retrieve specific pages using `--page` and `--page-size`. When adding `--page` it specifies the page number from the API to retrieve, using `--page-size` as the number of jobs to retrieve per page. For example, `--page=4 --page-size=20` and `--list-n-jobs=40`, the CLI will retrieve starting from page 4, the next 40 jobs. The same jobs can be checked in the web UI, by selecting the dropdown "Rows per page" to be "20", and cliking the page "4", the response of the API will be equivalent to the jobs from pages 4 and 5 in the UI (40 jobs, divided by 20 jobs per page).
+The command can retrieve specific pages using `--page` and `--page-size`. When adding `--page` it specifies the page number from the API to retrieve, using `--page-size` as the number of jobs to retrieve per page. For example, `--page=4 --page-size=20` and `--last-n-jobs=40`, the CLI will retrieve starting from page 4, the next 40 jobs. The same jobs can be checked in the web UI, by selecting the dropdown "Rows per page" to be "20", and cliking the page "4", the response of the API will be equivalent to the jobs from pages 4 and 5 in the UI (40 jobs, divided by 20 jobs per page).
 
 You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
 
