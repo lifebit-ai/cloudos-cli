@@ -194,7 +194,7 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
             job_details_json["Job Queue"] = "Master Node"
 
     job_details_json["Task Resources"] = f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " + \
-                                         f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM",
+                                         f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
     job_details_json["Pipeline url"] = pipeline_url
     job_details_json["Nextflow Version"] = nextflow_version
     job_details_json["Execution Platform"] = execution_platform
