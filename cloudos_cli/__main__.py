@@ -23,7 +23,6 @@ from cloudos_cli.utils.details import create_job_details
 from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
-import csv
 
 
 # GLOBAL VARS
