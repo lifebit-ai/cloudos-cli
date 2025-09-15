@@ -8,60 +8,73 @@ Python package for interacting with CloudOS
 
 ## Table of Contents
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-  - [From PyPI](#from-pypi)
-  - [Docker Image](#docker-image)
-  - [From Github](#from-github)
-- [Usage](#usage)
-- [Configuration](#configuration)
-  - [Configure Default Profile](#configure-default-profile)
-  - [Configure Named Profile](#configure-named-profile)
-  - [Change the Default Profile](#change-the-default-profile)
-  - [List Profiles](#list-profiles)
-  - [Remove Profile](#remove-profile)
-- [Commands](#commands)
-  - [Configure](#configure)
-  - [Project](#project)
-    - [List Projects](#list-projects)
-    - [Create Projects](#create-projects)
-  - [Queue](#queue)
-    - [List Queues](#list-queues)
-  - [Workflow](#workflow)
-    - [List All Available Workflows](#list-all-available-workflows)
-    - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
-  - [Nextflow Jobs](#nextflow-jobs)
-    - [Submit a Job](#submit-a-job)
-    - [Get Job Logs](#get-job-logs)
-    - [Get Job Results](#get-job-results)
-    - [Clone or Resume Job](#clone-or-resume-job)
-    - [Abort Jobs](#abort-jobs)
-    - [Check Job Status](#check-job-status)
-    - [Get Job Details](#get-job-details)
-    - [Get Job Workdir](#get-job-workdir)
-    - [List Jobs](#list-jobs)
-  - [Bash Jobs](#bash-jobs)
-    - [Send Array Job](#send-array-job)
-    - [Submit a Bash Array Job](#submit-a-bash-array-job)
-    - [Use multiple projects for files in --parameter option](#use-multiple-projects-for-files-in---parameter-option)
-  - [Datasets](#datasets)
-    - [List Files](#list-files)
-    - [Move Files](#move-files)
-    - [Rename Files](#rename-files)
-    - [Copy Files](#copy-files)
-    - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
-    - [Create Folder](#create-folder)
-    - [Remove Files or Folders](#remove-files-or-folders)
-  - [Procurement](#procurement)
-    - [List Procurement Images](#list-procurement-images)
-    - [Set Procurement Organization Image](#set-procurement-organization-image)
-    - [Reset Procurement Organization Image](#reset-procurement-organization-image)
-  - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
-    - [Manage Cromwell Server](#manage-cromwell-server)
-    - [Run WDL Workflows](#run-wdl-workflows)
-- [Python API Usage](#python-api-usage)
-  - [Running WDL pipelines using your own scripts](#running-wdl-pipelines-using-your-own-scripts)
-- [Unit Testing](#unit-testing)
+- [cloudos-cli](#cloudos-cli)
+  - [Table of Contents](#table-of-contents)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+    - [From PyPI](#from-pypi)
+    - [Docker Image](#docker-image)
+    - [From Github](#from-github)
+  - [Usage](#usage)
+  - [Configuration](#configuration)
+    - [Configure Default Profile](#configure-default-profile)
+    - [Configure Named Profile](#configure-named-profile)
+    - [Change the Default Profile](#change-the-default-profile)
+    - [List Profiles](#list-profiles)
+    - [Remove Profile](#remove-profile)
+  - [Commands](#commands)
+    - [Configure](#configure)
+    - [Project](#project)
+      - [List Projects](#list-projects)
+      - [Create Projects](#create-projects)
+    - [Queue](#queue)
+      - [List Queues](#list-queues)
+    - [Workflow](#workflow)
+      - [List All Available Workflows](#list-all-available-workflows)
+      - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
+    - [Nextflow Jobs](#nextflow-jobs)
+      - [Submit a Job](#submit-a-job)
+      - [Get Job Logs](#get-job-logs)
+      - [Get Job Results](#get-job-results)
+      - [Clone or Resume job](#clone-or-resume-job)
+      - [Query working directory of job](#query-working-directory-of-job)
+      - [Abort single or multiple jobs from CloudOS](#abort-single-or-multiple-jobs-from-cloudos)
+      - [Abort Jobs](#abort-jobs)
+      - [Check Job Status](#check-job-status)
+      - [Get Job Details](#get-job-details)
+      - [Get Job Workdir](#get-job-workdir)
+      - [List Jobs](#list-jobs)
+    - [Bash Jobs](#bash-jobs)
+      - [Send Array Job](#send-array-job)
+      - [Submit a Bash Array Job](#submit-a-bash-array-job)
+        - [Options](#options)
+          - [Array File](#array-file)
+          - [Separator](#separator)
+          - [List Columns](#list-columns)
+          - [Array File Project](#array-file-project)
+          - [Disable Column Check](#disable-column-check)
+          - [Array Parameter](#array-parameter)
+          - [Custom Script Path](#custom-script-path)
+          - [Custom Script Project](#custom-script-project)
+      - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
+    - [Datasets](#datasets)
+      - [List Files](#list-files)
+      - [Move Files](#move-files)
+      - [Rename Files](#rename-files)
+      - [Copy Files](#copy-files)
+      - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
+      - [Create Folder](#create-folder)
+      - [Remove Files or Folders](#remove-files-or-folders)
+    - [Procurement](#procurement)
+      - [List Procurement Images](#list-procurement-images)
+      - [Set Procurement Organization Image](#set-procurement-organization-image)
+      - [Reset Procurement Organization Image](#reset-procurement-organization-image)
+    - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
+      - [Manage Cromwell Server](#manage-cromwell-server)
+      - [Run WDL Workflows](#run-wdl-workflows)
+  - [Python API Usage](#python-api-usage)
+      - [Running WDL pipelines using your own scripts](#running-wdl-pipelines-using-your-own-scripts)
+  - [Unit Testing](#unit-testing)
 
 ---
 
@@ -770,36 +783,57 @@ cloudos job details --profile my_profile --job-id 62c83a1191fe06013b7ef355
 ```bash
 cloudos job details \
     --profile job-details \
-    --job-id 62c83a1191fe06013b7ef355
+    --job-id 68bf2178b4ae9f283ea8a0bf
 ```
 
 The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:
 
 ```console
 Executing details...
-                                             Job Details                                              
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Field                    ┃ Value                                                                   ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ Parameters               │ -test=value                                                             │
-│                          │ --gaq=test                                                              │
-│                          │ cryo=yes                                                                │
-│ Command                  │ echo 'test' > new_file.txt                                              │
-│ Revision                 │ sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233 │
-│ Nextflow Version         │ None                                                                    │
-│ Execution Platform       │ Batch AWS                                                               │
-│ Profile                  │ None                                                                    │
-│ Master Instance          │ c5.xlarge                                                               │
-│ Storage                  │ 500                                                                     │
-│ Job Queue                │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee                        │
-│ Accelerated File Staging │ None                                                                    │
-│ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │
-└──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+                                                    Job Details
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Field                    ┃ Value                                                                                 ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Status                   │ completed                                                                             │
+│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │
+│ Project                  │ DB-PR-testing                                                                         │
+│ Owner                    │ Name Surname                                                                          │
+│ Pipeline                 │ MutSign                                                                               │
+│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │
+│ Submit time              │ 2025-09-08 18:34:26                                                                   │
+│ End time                 │ 2025-09-08 18:38:26                                                                   │
+│ Run time                 │ 4m 0s                                                                                 │
+│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │
+│ Cost                     │ $0.2515                                                                               │
+│ Master Instance          │ c5.xlarge                                                                             │
+│ Storage                  │ 500 GB                                                                                │
+│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │
+│ Job Queue Name           │ v41                                                                                   │
+│ Task Resources           │ 1 CPUs, 4 GB RAM'                                                                 │
+│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │
+│ Nextflow Version         │ 22.10.8                                                                               │
+│ Execution Platform       │ Batch AWS                                                                             │
+│ Accelerated File Staging │ False                                                                                 │
+│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │
+│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │
+│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │
+│                          │ 000665B01_filtered.vcf.gz                                                             │
+│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │
+│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │
+│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │
+│                          │ ation.vcf.gz                                                                          │
+│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │
+│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │
+│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │
+│                          │ veman.csv                                                                             │
+│                          │ --sample_name=W0000664B01                                                             │
+│ Profile                  │ None                                                                                  │
+└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-To change this behaviour and save the details into a local JSON, the parameter `--output-format` needs to be set as `--output-format=json`.
+To change this behaviour and save the details into a local CSV or JSON, the parameter `--output-format` needs to be set as `--output-format=json` or `--output-format=csv`.
 
-By default, all details are saved in a file with the basename as `job_details`, for example `job_details.json` or `job_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
+By default, all details are saved in a file with the basename as `{job_id}_details`, for example `68bf2178b4ae9f283ea8a0bf_details.json` or `68bf2178b4ae9f283ea8a0bf_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
 
 The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nexflow configuration file, example:
 
@@ -845,7 +879,7 @@ You can get a summary of the workspace's last 30 submitted jobs (or a selected n
 To get a list with the workspace's last 30 submitted jobs, in CSV format, use:
 
 ```bash
-cloudos job list --profile my_profile--output-format csv --all-fields
+cloudos job list --profile my_profile --output-format csv --all-fields
 ```
 
 The expected output is something similar to:
@@ -861,18 +895,15 @@ In addition, a file named `joblist.csv` is created.
 To get the same information, but for all the workspace's jobs and in JSON format, use the following command:
 
 ```bash
-cloudos job list \
-    --cloudos-url $CLOUDOS \
-    --apikey $MY_API_KEY \
-    --workspace-id $WORKSPACE_ID \
-    --last-n-jobs all \
-    --output-format json
+cloudos job list --profile my_profile --last-n-jobs all --output-format json
 ```
 ```console
 Executing list...
 	Job list collected with a total of 276 jobs.
 	Job list saved to joblist.json
 ```
+
+The command can retrieve specific pages using `--page` and `--page-size`. When adding `--page` it specifies the page number from the API to retrieve, using `--page-size` as the number of jobs to retrieve per page. For example, `--page=4 --page-size=20` and `--list-n-jobs=40`, the CLI will retrieve starting from page 4, the next 40 jobs. The same jobs can be checked in the web UI, by selecting the dropdown "Rows per page" to be "20", and cliking the page "4", the response of the API will be equivalent to the jobs from pages 4 and 5 in the UI (40 jobs, divided by 20 jobs per page).
 
 You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
 
@@ -908,8 +939,6 @@ cloudos job list --profile my_profile --filter-workflow rnatoy --filter-queue hi
 > - Project and workflow names must match exactly (case sensitive)
 > - Job name filtering is case insensitive and supports partial matches
 > - The `--last` flag can be used with `--filter-workflow` when multiple workflows have the same name
-
-
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
