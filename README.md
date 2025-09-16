@@ -871,12 +871,24 @@ Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.
 
 #### List Jobs
 
-You can get a summary of the workspace's last 30 submitted jobs (or a selected number of last jobs using `--last-n-jobs n` parameter) in two different formats:
+You can get a summary of workspace jobs in two different formats:
 
 - CSV: this is a table with a minimum predefined set of columns by default, or all the available columns using the `--all-fields` argument.
 - JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enabled for this format).
 
-To get a list with the workspace's last 30 submitted jobs, in CSV format, use:
+**Job Listing Control Options**
+
+CloudOS CLI provides two ways to control the number of jobs retrieved:
+
+1. **Pagination Control (Default)**: Use `--page` and `--page-size` for precise pagination
+2. **Last N Jobs**: Use `--last-n-jobs` for retrieving the most recent jobs
+
+> [!IMPORTANT]
+> **These options are mutually exclusive**. When `--last-n-jobs` is specified, it takes precedence and `--page`/`--page-size` parameters are ignored. A warning message will be displayed if both are provided.
+
+**Default Behavior**
+
+By default, the command retrieves the first page with 20 jobs (equivalent to `--page 1 --page-size 20`):
 
 ```bash
 cloudos job list --profile my_profile --output-format csv --all-fields
@@ -886,15 +898,31 @@ The expected output is something similar to:
 
 ```console
 Executing list...
-	Job list collected with a total of 30 jobs.
+	Job list collected with a total of 20 jobs.
 	Job list saved to joblist.csv
 ```
 
-In addition, a file named `joblist.csv` is created.
+**Pagination Examples**
 
-To get the same information, but for all the workspace's jobs and in JSON format, use the following command:
+Retrieve specific pages using `--page` and `--page-size`:
 
 ```bash
+# Get page 2 with 15 jobs per page
+cloudos job list --profile my_profile --page 2 --page-size 15
+
+# Get page 5 with maximum 100 jobs per page
+cloudos job list --profile my_profile --page 5 --page-size 100
+```
+
+**Last N Jobs Examples**
+
+Use `--last-n-jobs` to get the most recent jobs:
+
+```bash
+# Get the last 50 jobs
+cloudos job list --profile my_profile --last-n-jobs 50
+
+# Get all workspace jobs
 cloudos job list --profile my_profile --last-n-jobs all --output-format json
 ```
 ```console
@@ -903,7 +931,10 @@ Executing list...
 	Job list saved to joblist.json
 ```
 
-The command can retrieve specific pages using `--page` and `--page-size`. When adding `--page` it specifies the page number from the API to retrieve, using `--page-size` as the number of jobs to retrieve per page. For example, `--page=4 --page-size=20` and `--last-n-jobs=40`, the CLI will retrieve starting from page 4, the next 40 jobs. The same jobs can be checked in the web UI, by selecting the dropdown "Rows per page" to be "20", and cliking the page "4", the response of the API will be equivalent to the jobs from pages 4 and 5 in the UI (40 jobs, divided by 20 jobs per page).
+> [!NOTE]
+> - `--page-size` has a maximum limit of 100 jobs per page
+> - When filters or `--archived` flag are applied, pagination is applied to the filtered results
+> - If both `--last-n-jobs` and pagination parameters are provided, only `--last-n-jobs` will be used 
 
 You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
 
@@ -918,21 +949,41 @@ You find specific jobs within your workspace using the listing filtering options
 - **`--filter-owner`**: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be "Name Surname")
 - **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
 
-Here following are some examples:
+**Filtering Examples**
 
-Get all completed jobs from the last 50 jobs:
+You can find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
+
+Using pagination approach (default):
 ```bash
+# Get completed jobs from page 1 (default 20 jobs)
+cloudos job list --profile my_profile --filter-status completed
+
+# Get completed jobs from page 2 with 15 jobs per page
+cloudos job list --profile my_profile --page 2 --page-size 15 --filter-status completed
+```
+
+Using last-n-jobs approach:
+```bash
+# Get all completed jobs from the last 50 jobs
 cloudos job list --profile my_profile --last-n-jobs 50 --filter-status completed
 ```
 
 Find jobs with "analysis" in the name from a specific project:
 ```bash
+# Using pagination (gets first 20 matching jobs)
 cloudos job list --profile my_profile --filter-job-name analysis --filter-project "My Research Project"
+
+# Using last-n-jobs
+cloudos job list --profile my_profile --last-n-jobs 100 --filter-job-name analysis --filter-project "My Research Project"
 ```
 
 Get all jobs using a specific workflow and queue:
 ```bash
-cloudos job list --profile my_profile --filter-workflow rnatoy --filter-queue high-priority-queue
+# Using pagination with larger page size
+cloudos job list --profile my_profile --page-size 50 --filter-workflow rnatoy --filter-queue high-priority-queue
+
+# Using last-n-jobs to search all jobs
+cloudos job list --profile my_profile --last-n-jobs all --filter-workflow rnatoy --filter-queue high-priority-queue
 ```
 
 > [!NOTE]
