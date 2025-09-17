@@ -611,7 +611,7 @@ class Cloudos:
         params = {
             "teamId": workspace_id,
             "archived.status": str(archived).lower(),
-            "page": 1     # Always start from page 1
+            "page": page
         }
         
         # --- Resolve IDs once (before pagination loop) ---
@@ -671,7 +671,7 @@ class Cloudos:
 
         # --- Fetch jobs page by page ---
         all_jobs = []
-        current_page = 1
+        current_page = page
         params["limit"] = page_size
 
         while True:
