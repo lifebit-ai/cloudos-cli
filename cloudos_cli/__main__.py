@@ -421,6 +421,9 @@ def configure(ctx, profile, make_default):
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
+@click.option('--accelerate-saving-results',
+              help='Enables saving results directly to cloud storage bypassing the master node.',
+              is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
                     'account has to be already linked to CloudOS.'),
@@ -477,6 +480,7 @@ def run(ctx,
         azure_worker_instance_spot,
         cost_limit,
         accelerate_file_staging,
+        accelerate_saving_results,
         use_private_docker_repository,
         verbose,
         request_interval,
@@ -712,6 +716,7 @@ def run(ctx,
                       azure_worker_instance_spot=azure_worker_instance_spot,
                       cost_limit=cost_limit,
                       use_mountpoints=use_mountpoints,
+                      accelerate_saving_results=accelerate_saving_results,
                       docker_login=docker_login,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')

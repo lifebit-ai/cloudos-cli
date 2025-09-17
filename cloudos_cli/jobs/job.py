@@ -204,6 +204,7 @@ class Job(Cloudos):
                                  azure_worker_instance_spot,
                                  cost_limit,
                                  use_mountpoints,
+                                 accelerate_saving_results,
                                  docker_login,
                                  command,
                                  cpus,
@@ -286,6 +287,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        accelerate_saving_results : bool
+            Whether to save results directly to cloud storage bypassing the master node.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
         command : string
@@ -426,7 +429,8 @@ class Job(Cloudos):
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints
+            "usesFusionFileSystem": use_mountpoints,
+            "accelerateSavingResults": accelerate_saving_results
         }
         if workflow_type != 'docker':
             params["nextflowVersion"] = nextflow_version
@@ -473,6 +477,7 @@ class Job(Cloudos):
             }
         if nextflow_profile is not None:
             params['profile'] = nextflow_profile
+        print("params: ", params)
         return params
 
     def send_job(self,
@@ -505,6 +510,7 @@ class Job(Cloudos):
                  azure_worker_instance_spot=False,
                  cost_limit=30.0,
                  use_mountpoints=False,
+                 accelerate_saving_results=False,
                  docker_login=False,
                  verify=True,
                  command=None,
@@ -581,6 +587,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        accelerate_saving_results : bool
+            Whether to save results directly to cloud storage bypassing the master node.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
         verify : [bool|string]
@@ -640,6 +648,7 @@ class Job(Cloudos):
                                                azure_worker_instance_spot,
                                                cost_limit,
                                                use_mountpoints,
+                                               accelerate_saving_results,
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
