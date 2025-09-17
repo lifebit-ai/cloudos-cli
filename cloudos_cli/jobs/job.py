@@ -477,7 +477,6 @@ class Job(Cloudos):
             }
         if nextflow_profile is not None:
             params['profile'] = nextflow_profile
-        print("params: ", params)
         return params
 
     def send_job(self,
@@ -1036,6 +1035,7 @@ class Job(Cloudos):
                   profile=None,
                   do_not_save_logs=None,
                   use_fusion=None,
+                  accelerate_saving_results=None,
                   resumable=None,
                   project_name=None,
                   parameters=None,
@@ -1065,6 +1065,8 @@ class Job(Cloudos):
             Whether to save logs override.
         use_fusion : bool, optional
             Whether to use fusion filesystem override.
+        accelerate_saving_results : bool, optional
+            Whether to accelerate saving results override.
         resumable : bool, optional
             Whether to make the job resumable or not.
         project_name : str, optional
@@ -1147,6 +1149,10 @@ class Job(Cloudos):
             cloned_payload['usesFusionFileSystem'] = use_fusion
         elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
             print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+
+        # Override accelerate saving results if provided
+        if accelerate_saving_results:
+            cloned_payload['accelerateSavingResults'] = accelerate_saving_results
 
         # Override resumable if provided
         if resumable and mode == "clone":
