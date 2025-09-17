@@ -1221,7 +1221,7 @@ def job_details(ctx,
               help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
                     "retrieve all workspace jobs. When adding this option, options " +
                     "'--page' and '--page-size' are ignored. Default=30."),
-              default=30)
+              default='30')
 @click.option('--page',
               help=('Page number to fetch from the API. Used with --page-size to control jobs ' +
                     'per page (e.g. --page=4 --page-size=20). Default=1.'),
@@ -1231,7 +1231,7 @@ def job_details(ctx,
               help=('Page size to retrieve from API, corresponds to the number of jobs per page. ' +
                     'Maximum allowed integer is 100. Default=20.'),
               type=int,
-              default=20)
+              default=30)
 @click.option('--archived',
               help=('When this flag is used, only archived jobs list is collected.'),
               is_flag=True)
@@ -1345,7 +1345,7 @@ def list_jobs(ctx,
        ctx.get_parameter_source("last_n_jobs") == click.core.ParameterSource.COMMANDLINE:
         print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
               'To use --page and --page-size, please remove --last-n-jobs option.\n')
-        page_size = last_n_jobs
+        page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
     # If the user did not provide --last-n-jobs, set it to page_size value
     if not ctx.get_parameter_source("last_n_jobs") == click.core.ParameterSource.COMMANDLINE:
         last_n_jobs = page_size
