@@ -25,6 +25,7 @@
     "nextflowVersion": "22.10.8",
     "resumable": true,
     "usesFusionFileSystem": false,
+    "accelerateSavingResults": false,
     "saveProcessLogs": true,
     "executionPlatform": "aws",
     "hpc": null,
@@ -36,7 +37,6 @@
     "lusterFsxStorageSizeInGb": 1200,
     "storageMode": "regular",
     "instanceType": "c5.xlarge",
-    "usesFusionFileSystem": false,
     "masterInstance": {
         "requestedInstance": {
             "type": "c5.xlarge"
