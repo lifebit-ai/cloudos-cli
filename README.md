@@ -888,7 +888,7 @@ CloudOS CLI provides two ways to control the number of jobs retrieved:
 
 **Default Behavior**
 
-By default, the command retrieves the first page with 20 jobs (equivalent to `--page 1 --page-size 20`):
+By default, the command retrieves the first page with 10 jobs (equivalent to `--page 1 --page-size 10`):
 
 ```bash
 cloudos job list --profile my_profile --output-format csv --all-fields
@@ -898,7 +898,7 @@ The expected output is something similar to:
 
 ```console
 Executing list...
-	Job list collected with a total of 20 jobs.
+	Job list collected with a total of 10 jobs.
 	Job list saved to joblist.csv
 ```
 
@@ -983,7 +983,7 @@ Get all jobs using a specific workflow and queue:
 cloudos job list --profile my_profile --page-size 50 --filter-workflow rnatoy --filter-queue high-priority-queue
 
 # Using last-n-jobs to search all jobs
-cloudos job list --profile my_profile --last-n-jobs all --filter-workflow rnatoy --filter-queue high-priority-queue
+cloudos job list --profile my_profile --last-n-jobs 'all' --filter-workflow rnatoy --filter-queue high-priority-queue
 ```
 
 > [!NOTE]
