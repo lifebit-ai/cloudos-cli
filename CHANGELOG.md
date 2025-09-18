@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.60.3 (2025-09-18)
+
+### Patch
+
+- Fixes job resume, only works for completed, aborted or failed job status
+
 ## v2.60.2 (2025-09-09)
 
 ### Patch
