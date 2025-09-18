@@ -551,9 +551,10 @@ class Cloudos:
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs.
         page : int
-            Response page to get (ignored when using filters - starts from page 1).
+            Response page to get. When using filters, these are applied first, then page is assigned
         page_size : int
-            Number of jobs to retrieve per page (ignored when using filters - always 10).
+            Number of jobs to retrieve per page. When using filters, these are applied first,
+            then page_size is assigned. Maximum allowed value is 100.
         archived : bool
             When True, only the archived jobs are retrieved.
         verify: [bool|string]
