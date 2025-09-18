@@ -597,7 +597,7 @@ class Cloudos:
             raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page_size
-        if page_size > 100 and last_n_jobs not in [None, 'all']:
+        if page_size is not None and page_size > 100 and last_n_jobs is None:
             raise ValueError('Please, use a --page-size value <= 100')
 
         # Validate page, page_size and last_n_jobs interaction
