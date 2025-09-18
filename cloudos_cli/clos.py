@@ -683,7 +683,6 @@ class Cloudos:
         all_jobs = []
         current_page = page
         params["limit"] = page_size
-        print("page", page, "page_size", page_size, "last_n_jobs", last_n_jobs)
         while True:
             params["page"] = current_page
 
