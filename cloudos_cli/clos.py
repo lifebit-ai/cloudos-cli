@@ -597,7 +597,7 @@ class Cloudos:
             raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page_size
-        if page_size > 100:
+        if page_size > 100 and last_n_jobs not in [None, 'all']:
             raise ValueError('Please, use a --page-size value <= 100')
 
         # Validate page, page_size and last_n_jobs interaction
@@ -683,7 +683,7 @@ class Cloudos:
         all_jobs = []
         current_page = page
         params["limit"] = page_size
-
+        print("page", page, "page_size", page_size, "last_n_jobs", last_n_jobs)
         while True:
             params["page"] = current_page
 

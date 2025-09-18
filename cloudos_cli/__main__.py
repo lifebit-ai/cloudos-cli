@@ -1336,14 +1336,16 @@ def list_jobs(ctx,
         raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
-    if last_n_jobs is not None and last_n_jobs != 'all':
-        try:
-            last_n_jobs = int(last_n_jobs)
-        except ValueError:
-            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
-            raise
+    if last_n_jobs is not None:
         # set default page and page_size values regardless of what the user provided
         page, page_size = 1, 10
+        if last_n_jobs != 'all':
+            try:
+                last_n_jobs = int(last_n_jobs)
+            except ValueError:
+                print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
+                raise
+
 
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,
