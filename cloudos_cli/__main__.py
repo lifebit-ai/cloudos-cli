@@ -1220,8 +1220,7 @@ def job_details(ctx,
 @click.option('--last-n-jobs',
               help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
                     "retrieve all workspace jobs. When adding this option, options " +
-                    "'--page' and '--page-size' are ignored. Default=30."),
-              default='30')
+                    "'--page' and '--page-size' are ignored."))
 @click.option('--page',
               help=('Page number to fetch from the API. Used with --page-size to control jobs ' +
                     'per page (e.g. --page=4 --page-size=20). Default=1.'),
@@ -1337,24 +1336,14 @@ def list_jobs(ctx,
         raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
-    if page_size > 100 and (not ctx.get_parameter_source("last_n_jobs") == click.core.ParameterSource.COMMANDLINE):
-        raise ValueError('Please, use a --page-size value <= 100')
-    # Check that the user is not using both --last-n-jobs and --page/--page-size options together
-    if ctx.get_parameter_source("page") == click.core.ParameterSource.COMMANDLINE and \
-       ctx.get_parameter_source("page_size") == click.core.ParameterSource.COMMANDLINE and \
-       ctx.get_parameter_source("last_n_jobs") == click.core.ParameterSource.COMMANDLINE:
-        print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
-              'To use --page and --page-size, please remove --last-n-jobs option.\n')
-        page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
-    # If the user did not provide --last-n-jobs, set it to page_size value
-    if not ctx.get_parameter_source("last_n_jobs") == click.core.ParameterSource.COMMANDLINE:
-        last_n_jobs = page_size
-    if last_n_jobs != 'all':
+    if last_n_jobs is not None and last_n_jobs != 'all':
         try:
             last_n_jobs = int(last_n_jobs)
         except ValueError:
             print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
             raise
+        # set default page and page_size values regardless of what the user provided
+        page, page_size = 1, 10
 
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,

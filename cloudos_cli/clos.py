@@ -534,7 +534,7 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, last_n_jobs=30, page=1, page_size=10, archived=False,
+    def get_job_list(self, workspace_id, last_n_jobs=None, page=None, page_size=None, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
                      filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
@@ -589,12 +589,21 @@ class Cloudos:
         if not workspace_id or not isinstance(workspace_id, str):
             raise ValueError("Invalid workspace_id: must be a non-empty string")
 
-        if last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
+        # Validate last_n_jobs
+        if last_n_jobs is None:
+            last_n_jobs = page_size
+        if last_n_jobs is not None and last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
             raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page_size
         if page_size > 100:
             raise ValueError('Please, use a --page-size value <= 100')
+
+        # Validate page, page_size and last_n_jobs interaction
+        if (page is not None and page_size is not None) and last_n_jobs not in [None, 'all']:
+            print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
+                  'To use --page and --page-size, please remove --last-n-jobs option.\n')
+            page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
 
         # Validate filter_status values
         if filter_status:
@@ -606,16 +615,16 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         # Build query parameters for server-side filtering
         params = {
             "teamId": workspace_id,
             "archived.status": str(archived).lower(),
             "page": page
         }
-        
+
         # --- Resolve IDs once (before pagination loop) ---
-        
+
         # Add simple server-side filters
         if filter_status:
             params["status"] = filter_status.lower()
@@ -623,7 +632,7 @@ class Cloudos:
             params["name"] = filter_job_name
         if filter_job_id:
             params["id"] = filter_job_id
-            
+
         # Resolve project name to ID
         if filter_project:
             try:
@@ -634,7 +643,7 @@ class Cloudos:
                     raise ValueError(f"Project '{filter_project}' not found.")
             except Exception as e:
                 raise ValueError(f"Error resolving project '{filter_project}': {str(e)}")
-        
+
         # Resolve workflow name to ID
         if filter_workflow:
             try:
@@ -651,7 +660,7 @@ class Cloudos:
                     raise ValueError(f"Workflow '{filter_workflow}' not found.")
             except Exception as e:
                 raise ValueError(f"Error resolving workflow '{filter_workflow}': {str(e)}")
-        
+
         # Get current user ID for filter_only_mine
         if filter_only_mine:
             try:
@@ -663,7 +672,7 @@ class Cloudos:
                     raise ValueError("Could not retrieve current user information.")
             except Exception as e:
                 raise ValueError(f"Error getting current user info: {str(e)}")
-        
+
         # Resolve owner username to user ID
         if filter_owner:
             user_id = self.resolve_user_id(filter_owner, workspace_id, verify)
@@ -680,22 +689,22 @@ class Cloudos:
             r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params, headers=headers, verify=verify)
             if r.status_code >= 400:
                 raise BadRequestException(r)
-            
+
             content = r.json()
             page_jobs = content.get('jobs', [])
-            
+
             # No jobs returned, we've reached the end
             if not page_jobs:
                 break
-                
+
             all_jobs.extend(page_jobs)
-            
+
             # Check if we have enough jobs or reached the last page
             if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
                 break
             if len(page_jobs) < params["limit"]:
                 break  # Last page (fewer jobs than requested page size)
-                
+
             current_page += 1
 
         # --- Local queue filtering (not supported by API) ---
@@ -706,16 +715,16 @@ class Cloudos:
                     from cloudos_cli.queue.queue import Queue
                     queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
                     queues = queue_api.get_job_queues()
-                    
+
                     queue_id = None
                     for queue in queues:
                         if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
                             queue_id = queue.get("id") or queue.get("_id")
                             break
-                    
+
                     if not queue_id:
                         raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
-                    
+
                     all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
                 else:
                     raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
