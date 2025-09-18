@@ -601,7 +601,7 @@ class Cloudos:
             raise ValueError('Please, use a --page-size value <= 100')
 
         # Validate page, page_size and last_n_jobs interaction
-        if (page is not None and page_size is not None) and last_n_jobs not in [None, 'all']:
+        if (page is not None and page_size is not None) and last_n_jobs is not None:
             print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
                   'To use --page and --page-size, please remove --last-n-jobs option.\n')
             page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
