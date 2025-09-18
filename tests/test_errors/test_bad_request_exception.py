@@ -40,6 +40,6 @@ def test_bad_request_exception():
     # start cloudOS service
     with pytest.raises(BadRequestException) as error:
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        clos.get_job_list(workspace_id=WORKSPACE_ID)
+        clos.get_job_list(workspace_id=WORKSPACE_ID, page=1, page_size=10)
 
     assert "Server returned status 400." in (str(error))

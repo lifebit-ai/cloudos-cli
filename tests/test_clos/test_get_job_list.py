@@ -21,13 +21,13 @@ def test_get_job_list_correct_response():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 10, "page": 1}
+    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 1, "page": 1}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=10&page=1"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=1&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -39,7 +39,7 @@ def test_get_job_list_correct_response():
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_list(WORKSPACE_ID, last_n_jobs=1)
+    response = clos.get_job_list(WORKSPACE_ID, last_n_jobs=1, page=1, page_size=10)
     # check the response
     assert isinstance(response, list)
 
@@ -73,5 +73,5 @@ def test_get_job_list_incorrect_response():
     with pytest.raises(BadRequestException) as error:
         # check if it failed
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        clos.get_job_list(WORKSPACE_ID)
+        clos.get_job_list(WORKSPACE_ID, page=1, page_size=10)
     assert "Bad Request" in (str(error))

@@ -69,7 +69,7 @@ def test_filter_by_status():
         status=200
     )
     clos = setup_clos()
-    result = clos.get_job_list(WORKSPACE_ID, filter_status="completed")
+    result = clos.get_job_list(WORKSPACE_ID, filter_status="completed", page=1, page_size=10)
     assert isinstance(result, list)
     assert len(result) == 2
 
@@ -90,7 +90,7 @@ def test_filter_by_job_name():
         status=200
     )
     clos = setup_clos()
-    result = clos.get_job_list(WORKSPACE_ID, filter_job_name="test-job-1")
+    result = clos.get_job_list(WORKSPACE_ID, filter_job_name="test-job-1", page=1, page_size=10)
     assert isinstance(result, list)
 
 @responses.activate
@@ -110,7 +110,7 @@ def test_filter_by_job_id():
         status=200
     )
     clos = setup_clos()
-    result = clos.get_job_list(WORKSPACE_ID, filter_job_id="job1")
+    result = clos.get_job_list(WORKSPACE_ID, filter_job_id="job1", page=1, page_size=10)
     assert isinstance(result, list)
 
 @responses.activate
@@ -136,7 +136,7 @@ def test_filter_only_mine():
         status=200
     )
     clos = setup_clos()
-    result = clos.get_job_list(WORKSPACE_ID, filter_only_mine=True)
+    result = clos.get_job_list(WORKSPACE_ID, filter_only_mine=True, page=1, page_size=10)
     assert isinstance(result, list)
 
 @responses.activate
@@ -150,7 +150,7 @@ def test_filter_by_queue(mock_get_queues):
         status=200
     )
     clos = setup_clos()
-    result = clos.get_job_list(WORKSPACE_ID, filter_queue="v41")
+    result = clos.get_job_list(WORKSPACE_ID, filter_queue="v41", page=1, page_size=10)
     assert isinstance(result, list)
     assert len(result) == 1
     assert result[0]["_id"] == "job1"
