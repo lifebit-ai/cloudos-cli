@@ -3,7 +3,6 @@ This is the main class to create jobs.
 """
 
 from dataclasses import dataclass
-from turtle import mode
 from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
