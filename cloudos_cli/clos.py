@@ -587,26 +587,42 @@ class Cloudos:
         r : list
             A list of dicts, each corresponding to a jobs from the user and the workspace.
         """
+        # Validate workspace_id
         if not workspace_id or not isinstance(workspace_id, str):
             raise ValueError("Invalid workspace_id: must be a non-empty string")
 
         # Validate last_n_jobs
-        if last_n_jobs is None:
-            last_n_jobs = page_size
-        if last_n_jobs is not None and last_n_jobs != 'all' and (not isinstance(last_n_jobs, int) or last_n_jobs <= 0):
-            raise ValueError("last_n_jobs must be a positive integer or 'all'")
-
-        # Validate page_size
-        if page_size is not None and page_size > 100 and last_n_jobs is None:
-            raise ValueError('Please, use a --page-size value <= 100')
-        elif page is None and page_size is None and last_n_jobs is None:
-            raise ValueError('Options --page and --page-size must be provided when --last-n-jobs is not used.')
+        if last_n_jobs is not None and isinstance(last_n_jobs, str):
+            if last_n_jobs != 'all':
+                try:
+                    last_n_jobs = int(last_n_jobs)
+                except ValueError:
+                    raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page, page_size and last_n_jobs interaction
         if (page is not None and page_size is not None) and last_n_jobs is not None:
             print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
                   'To use --page and --page-size, please remove --last-n-jobs option.\n')
             page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
+
+        # Validate page, page_size
+        if page is not None and page <= 0:
+            raise ValueError("--page must be a positive integer")
+        if page_size is not None and page_size <= 0:
+            raise ValueError("--page-size must be a positive integer")
+
+        # Validate page_size limit
+        if page_size is not None and page_size > 100 and last_n_jobs is None:
+            raise ValueError('Please, use a --page-size value <= 100')
+        elif page is None and page_size is None and last_n_jobs is None:
+            raise ValueError('Options --page and --page-size must be provided when --last-n-jobs is not used.')
+
+        # Assign last_n_jobs
+        if last_n_jobs is None:
+            last_n_jobs = page_size
+        else:
+            page = 1  # set as implicit default (we have this default in main function)
+            page_size = 10  # set as implicit default (we have this default in main function)
 
         # Validate filter_status values
         if filter_status:
@@ -684,7 +700,9 @@ class Cloudos:
         # --- Fetch jobs page by page ---
         all_jobs = []
         current_page = page
+        page_size = page_size
         params["limit"] = page_size
+
         while True:
             params["page"] = current_page
 

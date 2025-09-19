@@ -1337,8 +1337,12 @@ def list_jobs(ctx,
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
     if last_n_jobs is not None:
-        # set default page and page_size values regardless of what the user provided
-        page, page_size = 1, 10
+        # disable --page and --page-size if --last-n-jobs is provided
+        page, page_size = None, None
+        if ctx.get_parameter_source('page') == click.core.ParameterSource.COMMANDLINE and \
+           ctx.get_parameter_source('page_size') == click.core.ParameterSource.COMMANDLINE:
+            print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
+                  'To use --page and --page-size, please remove --last-n-jobs option.\n')
         if last_n_jobs != 'all':
             try:
                 last_n_jobs = int(last_n_jobs)
