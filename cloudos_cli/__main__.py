@@ -39,8 +39,37 @@ import rich_click
 rich_click.rich_click.USE_RICH_MARKUP = True
 
 
-# Check for debug flag early for logging setup
-_global_debug = '--debug' in sys.argv
+# Check for debug flag early for logging setup - be more precise
+_global_debug = False
+for i, arg in enumerate(sys.argv):
+    if arg == '--debug':
+        _global_debug = True
+        break
+
+
+def custom_exception_handler(exc_type, exc_value, exc_traceback):
+    """Custom exception handler that respects debug mode"""
+    console = Console(stderr=True)
+    if get_debug_mode():
+        console.print("[yellow]Debug mode: showing full traceback[/yellow]")
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    else:
+        # Extract a clean error message
+        if hasattr(exc_value, 'message'):
+            error_msg = exc_value.message
+        elif str(exc_value):
+            error_msg = str(exc_value)
+        else:
+            error_msg = f"{exc_type.__name__}"
+            
+        console.print(f"[bold red]Error: {error_msg}[/bold red]")
+        
+        # For network errors, give helpful context
+        if 'HTTPSConnectionPool' in str(exc_value) or 'Max retries exceeded' in str(exc_value):
+            console.print("[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]")
+
+# Install the custom exception handler
+sys.excepthook = custom_exception_handler
 
 
 def pass_debug_to_subcommands(group_cls=click.RichGroup):
@@ -96,25 +125,26 @@ def get_debug_mode():
     return _global_debug
 
 
-def handle_error_with_debug(error_msg, exception=None, exit_code=1):
-    """Handle errors with rich formatting and debug-aware traceback"""
-    from rich.console import Console
-    console = Console(stderr=True)
+# def handle_error_with_debug(error_msg, exception=None, exit_code=1):
+#     """Handle errors with rich formatting and debug-aware traceback"""
+#     from rich.console import Console
+#     console = Console(stderr=True)
     
-    if get_debug_mode() and exception:
-        # Show full traceback in debug mode
-        setup_logging(True)
-        logger = logging.getLogger("CloudOS")
-        logger.error(f"{error_msg}: {str(exception)}", exc_info=exception)
-        console.print(f"[bold red]Error:[/bold red] {error_msg}")
-        console.print(f"[red]Details:[/red] {str(exception)}")
-        import traceback
-        traceback.print_exc()
-    else:
-        # Show simple error message with rich formatting
-        console.print(f"[bold red]Error:[/bold red] {error_msg}")
-    
-    sys.exit(exit_code)
+#     if get_debug_mode():
+#         # Show detailed error information in debug mode
+#         setup_logging(True)
+#         logger = logging.getLogger("CloudOS")
+#         # Handle keyboard interrupt gracefully
+#         if issubclass(exception, KeyboardInterrupt):
+#             sys.exit(1)
+#         # Show detailed error with stack trace even without exception
+#         logger.error(error_msg)
+#     else:
+#         # Show simple error message with rich formatting
+#         logger.error(error_msg)
+#         console.print(f"[bold red]Error: {error_msg}[/bold red]")
+
+#     sys.exit(exit_code)
 
 
 # Helper function for debug setup
@@ -881,9 +911,9 @@ def job_status(ctx,
         print(f'\tTo further check your job status you can either go to {j_url} ' +
               'or repeat the command you just used.')
     except BadRequestException as e:
-        handle_error_with_debug(f"Job '{job_id}' not found or not accessible", e)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        handle_error_with_debug(f"Failed to retrieve status for job '{job_id}'", e)
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
 
 
 @job.command('workdir')
@@ -965,11 +995,9 @@ def job_workdir(ctx,
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve working directory for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
 
 
 @job.command('logs')
@@ -1840,11 +1868,9 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        click.echo(f"[ERROR] Failed to {mode} job.  Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to {mode} job. Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}")
 
 
 # Register the same function under two names
@@ -3406,7 +3432,7 @@ def list_files(ctx,
                     console.print(name)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"Failed to list files for project '{project_name}': {str(e)}")
 
 
 @datasets.command(name="mv")
