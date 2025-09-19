@@ -599,6 +599,8 @@ class Cloudos:
         # Validate page_size
         if page_size is not None and page_size > 100 and last_n_jobs is None:
             raise ValueError('Please, use a --page-size value <= 100')
+        elif page is None and page_size is None and last_n_jobs is None:
+            raise ValueError('Options --page and --page-size must be provided when --last-n-jobs is not used.')
 
         # Validate page, page_size and last_n_jobs interaction
         if (page is not None and page_size is not None) and last_n_jobs is not None:
