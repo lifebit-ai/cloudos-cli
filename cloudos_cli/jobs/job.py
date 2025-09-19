@@ -1087,9 +1087,25 @@ class Job(Cloudos):
 
         if mode == "resume":
             try:
-                cloned_payload['resumeWorkDir'] = self.get_field_from_jobs_endpoint(source_job_id, field="resumeWorkDir", verify=verify)
+                cloned_payload["resumeWorkDir"] = self.get_field_from_jobs_endpoint(
+                    source_job_id, field="resumeWorkDir", verify=verify
+                )
+            except Exception:
+                raise ValueError("The job was not set as resumable when originally run")
+
+            try:
+                status = self.get_field_from_jobs_endpoint(
+                    source_job_id, field="status", verify=verify
+                )
             except Exception as e:
-                raise ValueError(f"The job was not set as resumable when originally run")
+                raise ValueError(f"The job status cannot be retrieved: {e}")
+
+            allowed_statuses = {"completed", "aborted", "failed"}
+            if status not in allowed_statuses:
+                raise ValueError(
+                    f"Only jobs with status {', '.join(allowed_statuses)} can be resumed. "
+                    f"Current job status is '{status}'"
+                )
 
         # Override job name if provided
         if job_name:

@@ -1,11 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.60.3 (2025-09-16)
+## v2.60.4 (2025-09-19)
 
 ### Patch
 
 - Updates job details output name and adds missing csv format
 - Updates page, page-size and last-n-jobs for job-list
+
+## v2.60.3 (2025-09-18)
+
+### Patch
+
+- Fixes job resume, only works for completed, aborted or failed job status
 
 ## v2.60.2 (2025-09-09)
 
