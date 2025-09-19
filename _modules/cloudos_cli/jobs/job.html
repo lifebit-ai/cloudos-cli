@@ -1462,9 +1462,25 @@
 
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resumeWorkDir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+                <span class="n">cloned_payload</span><span class="p">[</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span>
+                    <span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The job was not set as resumable when originally run&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span>
+                    <span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span>
+                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The job was not set as resumable when originally run&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The job status cannot be retrieved: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">allowed_statuses</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;completed&quot;</span><span class="p">,</span> <span class="s2">&quot;aborted&quot;</span><span class="p">,</span> <span class="s2">&quot;failed&quot;</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_statuses</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Only jobs with status </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">allowed_statuses</span><span class="p">)</span><span class="si">}</span><span class="s2"> can be resumed. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Current job status is &#39;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1"># Override job name if provided</span>
         <span class="k">if</span> <span class="n">job_name</span><span class="p">:</span>
