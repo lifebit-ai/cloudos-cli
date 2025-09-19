@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Set rich_click configuration before importing
+import os
+os.environ.setdefault('FORCE_COLOR', '1')
+
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
@@ -24,6 +28,54 @@ from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
 
+# Configure rich_click for beautiful CLI output
+click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.USE_MARKDOWN = True
+click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
+
+# Enable rich console by default
+import rich_click
+rich_click.rich_click.USE_RICH_MARKUP = True
+
+
+# Check for debug flag early for logging setup
+_global_debug = '--debug' in sys.argv
+
+
+def pass_debug_to_subcommands(group_cls=click.RichGroup):
+    """Custom Group class that passes --debug option to all subcommands"""
+    
+    class DebugGroup(group_cls):
+        def add_command(self, cmd, name=None):
+            # Add debug option to the command if it doesn't already have it
+            if isinstance(cmd, (click.Command, click.Group)):
+                has_debug = any(param.name == 'debug' for param in cmd.params)
+                if not has_debug:
+                    debug_option = click.Option(
+                        ['--debug'], 
+                        is_flag=True, 
+                        help='Show detailed error information and tracebacks',
+                        is_eager=True,
+                        expose_value=False,
+                        callback=self._debug_callback
+                    )
+                    cmd.params.insert(-1, debug_option)  # Insert at the end for precedence
+            
+            super().add_command(cmd, name)
+        
+        def _debug_callback(self, ctx, param, value):
+            """Callback to handle debug flag"""
+            global _global_debug
+            if value:
+                _global_debug = True
+                ctx.meta['debug'] = True
+            else:
+                ctx.meta['debug'] = False
+            return value
+    
+    return DebugGroup
+
 
 # GLOBAL VARS
 JOB_COMPLETED = 'completed'
@@ -39,42 +91,54 @@ CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
 
 
-def handle_exception(show_traceback=False):
-    """Custom exception handler for CloudOS CLI"""
-    def exception_handler(exc_type, exc_value, exc_traceback):
-        # Initialise logger
-        debug_mode = '--debug' in sys.argv
-        setup_logging(debug_mode)
+def get_debug_mode():
+    """Get current debug mode state"""
+    return _global_debug
+
+
+def handle_error_with_debug(error_msg, exception=None, exit_code=1):
+    """Handle errors with rich formatting and debug-aware traceback"""
+    from rich.console import Console
+    console = Console(stderr=True)
+    
+    if get_debug_mode() and exception:
+        # Show full traceback in debug mode
+        setup_logging(True)
         logger = logging.getLogger("CloudOS")
-        # Handle keyboard interrupt gracefully
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.exit(1)
-        if show_traceback:
-            # Show full traceback for debugging
-            logger.error(exc_value, exc_info=exc_value)
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-        else:
-            # Show only the error message
-            logger.error(exc_value)
-            click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
-        sys.exit(1)
-    return exception_handler
+        logger.error(f"{error_msg}: {str(exception)}", exc_info=exception)
+        console.print(f"[bold red]Error:[/bold red] {error_msg}")
+        console.print(f"[red]Details:[/red] {str(exception)}")
+        import traceback
+        traceback.print_exc()
+    else:
+        # Show simple error message with rich formatting
+        console.print(f"[bold red]Error:[/bold red] {error_msg}")
+    
+    sys.exit(exit_code)
 
 
-@click.group()
-@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks')
+# Helper function for debug setup
+def _setup_debug(ctx, param, value):
+    """Setup debug mode globally and in context"""
+    global _global_debug
+    _global_debug = value
+    if value:
+        ctx.meta['debug'] = True
+    else:
+        ctx.meta['debug'] = False
+    return value
+
+
+@click.group(cls=pass_debug_to_subcommands())
+@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks', 
+              is_eager=True, expose_value=False, callback=_setup_debug)
 @click.version_option(__version__)
 @click.pass_context
-def run_cloudos_cli(ctx, debug):
+def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
-    ctx.obj['debug'] = debug
-    # Set up custom exception handling based on debug flag
-    if not debug:
-        sys.excepthook = handle_exception(show_traceback=False)
-    else:
-        sys.excepthook = handle_exception(show_traceback=True)
+    
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -213,54 +277,54 @@ def run_cloudos_cli(ctx, debug):
         })
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def job():
     """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def workflow():
     """CloudOS workflow functionality: list and import workflows."""
     print(workflow.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def project():
     """CloudOS project functionality: list and create projects in CloudOS."""
     print(project.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def cromwell():
     """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def procurement():
     """CloudOS procurement functionality."""
     print(procurement.__doc__ + '\n')
 
 
-@procurement.group()
+@procurement.group(cls=pass_debug_to_subcommands())
 def images():
     """CloudOS procurement images functionality."""
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 @click.pass_context
 def datasets(ctx):
     """CloudOS datasets functionality."""
@@ -269,7 +333,7 @@ def datasets(ctx):
         print(datasets.__doc__ + '\n')
 
 
-@run_cloudos_cli.group(invoke_without_command=True)
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands(), invoke_without_command=True)
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.option('--make-default',
               is_flag=True,
@@ -291,7 +355,7 @@ def configure(ctx, profile, make_default):
         config_manager.make_default_profile(profile_name=profile)
 
 
-@job.command('run')
+@job.command('run', cls=click.RichCommand)
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -817,11 +881,9 @@ def job_status(ctx,
         print(f'\tTo further check your job status you can either go to {j_url} ' +
               'or repeat the command you just used.')
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        handle_error_with_debug(f"Job '{job_id}' not found or not accessible", e)
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve status for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        handle_error_with_debug(f"Failed to retrieve status for job '{job_id}'", e)
 
 
 @job.command('workdir')
