@@ -309,7 +309,8 @@ class Job(Cloudos):
             nextflow_profile is None and
             job_config is None and
             len(parameter) == 0 and
-            len(example_parameters) == 0
+            len(example_parameters) == 0 and 
+            workflow_type != 'docker'
         ):
             raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
                              '--example_parameters were specified,' +
@@ -317,9 +318,6 @@ class Job(Cloudos):
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
-        if workflow_type == 'docker' and len(parameter) == 0:
-            raise ValueError('No --parameter were provided. At least one of ' +
-                             'these are required for bash workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -370,6 +368,8 @@ class Job(Cloudos):
         if array_parameter is not None and len(array_parameter) > 0:
             ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
             workflow_params.append(ap_param)
+        elif array_file_header is not None and array_parameter is None and len(array_parameter) == 0:
+            raise ValueError('At least one array file column must be added to the parameters')
 
         # general parameters (from --parameter)
         if len(parameter) > 0:

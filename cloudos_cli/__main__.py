@@ -736,8 +736,7 @@ def run(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -2825,8 +2824,7 @@ def run_bash_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -2954,10 +2952,11 @@ def run_bash_job(ctx,
               is_flag=True)
 @click.option('-a', '--array-parameter',
               multiple=True,
-              help=('A single parameter to pass to the job call only for specifying array parameter. It should be in the ' +
-                    'following form: parameter_name=parameter_value. E.g.: ' +
-                    '-a --test=value or -a -test=value or -a test=value. You can use this option as many ' +
-                    'times as parameters you want to include.'))
+              help=('A single parameter to pass to the job call only for specifying array columns. ' +
+                    'It should be in the following form: parameter_name=array_file_column_name. E.g.: ' +
+                    '-a --test=value or -a -test=value or -a test=value or -a =value (for no prefix). ' +
+                    'You can use this option as many times as parameters you want to include.'),
+              required=True)
 @click.option('--custom-script-path',
               help=('Path of a custom script to run in the bash array job instead of a command.'),
               default=None)
@@ -3122,8 +3121,8 @@ def run_bash_array_job(ctx,
                     print(f"Found column '{ap_value}' in the array file.")
                     break
             else:
-                raise ValueError(f"Column '{ap_value}' not found in the array file. " +
-                                 "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
+                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
+                                 f"Columns in array-file: {separator.join([col['name'] for col in columns])}")
 
     if job_queue is not None:
         batch = True
@@ -3189,8 +3188,7 @@ def run_bash_array_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
