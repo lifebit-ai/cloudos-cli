@@ -1100,8 +1100,6 @@ class Job(Cloudos):
             except Exception as e:
                 raise ValueError(f"The job status cannot be retrieved: {e}")
 
-            cloned_payload["status"] = status
-
             allowed_statuses = {"completed", "aborted", "failed"}
             if status not in allowed_statuses:
                 raise ValueError(
