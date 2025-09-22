@@ -610,7 +610,6 @@ class Cloudos:
         # If last_n_jobs is provided, use pagination mode with last_n_jobs
         # If page/page_size are provided without last_n_jobs, use direct pagination mode
         if last_n_jobs is not None:
-            print("page, page_size", page, page_size)
             # When last_n_jobs is specified, warn if page/page_size are also specified
             if (page != 1 or page_size != 10):  # Check if non-default values were passed
                 print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
