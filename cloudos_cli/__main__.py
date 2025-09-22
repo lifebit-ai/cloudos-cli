@@ -133,7 +133,7 @@ def run_cloudos_cli(ctx):
     if profile_to_use is None:
         console = Console()
         console.print(
-            "[bold yellow][Warning] No profile found. Please create one with \"cloudos configure\"."
+            "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
         )
         shared_config = dict({
             'apikey': '',
@@ -585,10 +585,10 @@ def run(ctx,
     else:
         batch = True
     if execution_platform == 'hpc':
-        print('\n[Message] HPC execution platform selected')
+        print('\nHPC execution platform selected')
         if hpc_id is None:
             raise ValueError('Please, specify your HPC ID using --hpc parameter')
-        print('[Message] Please, take into account that HPC execution do not support ' +
+        print('Please, take into account that HPC execution do not support ' +
               'the following parameters and all of them will be ignored:\n' +
               '\t--job-queue\n' +
               '\t--resumable | --do-not-save-logs\n' +
@@ -601,13 +601,13 @@ def run(ctx,
         save_logs = False
     if accelerate_file_staging:
         if execution_platform != 'aws':
-            print('[Message] You have selected accelerate file staging, but this function is ' +
+            print('You have selected accelerate file staging, but this function is ' +
                   'only available when execution platform is AWS. The accelerate file staging ' +
                   'will not be applied')
             use_mountpoints = False
         else:
             use_mountpoints = True
-            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
+            print('Enabling AWS S3 mountpoint for accelerated file staging. ' +
                   'Please, take into consideration the following:\n' +
                   '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
                   '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
@@ -623,7 +623,7 @@ def run(ctx,
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
     if workflow_type == 'wdl':
-        print('[Message] WDL workflow detected')
+        print('WDL workflow detected')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
         c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
@@ -644,14 +644,14 @@ def run(ctx,
         if c_status_h != 'Running':
             raise Exception('Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
-        print('\t' + ('*' * 80) + '\n' +
-              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
+        click.secho('\t' + ('*' * 80) + '\n' +
+              '\tCromwell server is now running. Please, remember to stop it when ' +
               'your\n' + '\tjob finishes. You can use the following command:\n' +
               '\tcloudos cromwell stop \\\n' +
               '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--workspace-id {workspace_id}\n' +
-              '\t' + ('*' * 80) + '\n')
+              '\t' + ('*' * 80) + '\n', fg='yellow', bold=True)
     else:
         cromwell_id = None
     if verbose:
@@ -665,17 +665,17 @@ def run(ctx,
         print('\t...Sending job to CloudOS\n')
     if is_module:
         if job_queue is not None:
-            print(f'[Message] Ignoring job queue "{job_queue}" for ' +
+            print(f'Ignoring job queue "{job_queue}" for ' +
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
         if nextflow_version != '22.10.8':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+            print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. CloudOS modules only work with ' +
                   'Nextflow version 22.10.8. Switching to use 22.10.8')
         nextflow_version = '22.10.8'
         if execution_platform == 'azure':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+            print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
                   'are managed internally. For this reason, the options ' +
                   'azure-worker-instance-type, azure-worker-instance-disk and ' +
@@ -687,7 +687,7 @@ def run(ctx,
                                                 job_queue=job_queue)
     if use_private_docker_repository:
         if is_module:
-            print(f'[Message] Workflow "{workflow_name}" is a CloudOS module. ' +
+            print(f'Workflow "{workflow_name}" is a CloudOS module. ' +
                   'Option --use-private-docker-repository will be ignored.')
             docker_login = False
         else:
@@ -697,7 +697,7 @@ def run(ctx,
                                 'credentials have not been configured yet. Please, link your ' +
                                 'Docker account to CloudOS before using ' +
                                 '--use-private-docker-repository option.')
-            print('[Message] Use private Docker repository has been selected. A custom job ' +
+            print('Use private Docker repository has been selected. A custom job ' +
                   'queue to support private Docker containers and/or Lustre FSx will be created for ' +
                   'your job. The selected job queue will serve as a template.')
             docker_login = True
@@ -710,26 +710,26 @@ def run(ctx,
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             nextflow_version = HPC_NEXTFLOW_LATEST
-        print('[Message] You have specified Nextflow version \'latest\' for execution platform ' +
+        print('You have specified Nextflow version \'latest\' for execution platform ' +
               f'\'{execution_platform}\'. The workflow will use the ' +
               f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'aws\', the workflow will use the default ' +
+            print('For execution platform \'aws\', the workflow will use the default ' +
                   '\'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
+            print('For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
                   'version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            print('For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
-        print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-              'to be written in DSL2 and does not support DSL1.')
+        click.secho(f'You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
+              'to be written in DSL2 and does not support DSL1.', fg='yellow', bold=True)
     print('\nExecuting run...')
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
@@ -1527,12 +1527,12 @@ def list_jobs(ctx,
             filter_queue
         ])
         if filters_used:
-            print('\t[Message] A total of 0 jobs collected.')
+            print('A total of 0 jobs collected.')
         elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
+            print('A total of 0 jobs collected. This is likely because your workspace ' +
                   'has no jobs created yet.')
         else:
-            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested ' +
+            print('A total of 0 jobs collected. This is likely because the --page you requested ' +
                   'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                   'using --page parameter.')
     elif output_format == 'csv':
@@ -1635,16 +1635,16 @@ def abort_jobs(ctx,
         try:
             j_status = cl.get_job_status(job, verify_ssl)
         except Exception as e:
-            print(f"[WARNING] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
+            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
         j_status_content = json.loads(j_status.content)
         # check if job id is valid & is in working state (initial, running)
         if j_status_content['status'] not in ABORT_JOB_STATES:
-            print("[WARNING] Job {job} is not in a state that can be aborted and is ignored. " +
-                  f"Current status: {j_status_content['status']}")
+            click.secho(f"Job {job} is not in a state that can be aborted and is ignored. " +
+                  f"Current status: {j_status_content['status']}", fg='yellow', bold=True)
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
-            print(f"\tJob '{job}' aborted successfully.")
+            click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
 
 
 @click.command()
@@ -2126,10 +2126,10 @@ def list_projects(ctx,
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 projects collected. This is likely because your workspace ' +
+            print('A total of 0 projects collected. This is likely because your workspace ' +
                   'has no projects created yet.')
         else:
-            print('\t[Message] A total of 0 projects collected. This is likely because the --page you ' +
+            print('A total of 0 projects collected. This is likely because the --page you ' +
                   'requested does not exist. Please, try a smaller number for --page or collect all the ' +
                   'projects by not using --page parameter.')
     elif output_format == 'csv':
@@ -3468,7 +3468,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         verify=verify_ssl,
         cromwell_token=None
     )
-    click.echo('Checking source path')
+    print('Checking source path')
     # === Resolve Source Item ===
     source_parts = source_path.strip("/").split("/")
     source_parent_path = "/".join(source_parts[:-1]) if len(source_parts) > 1 else None
@@ -3492,7 +3492,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 
     source_id = found_source["_id"]
     source_kind = "Folder" if "folderType" in found_source else "File"
-    click.echo("Checking destination path")
+    print("Checking destination path")
     # === Resolve Destination Folder ===
     dest_parts = destination_path.strip("/").split("/")
     dest_folder_name = dest_parts[-1]
@@ -3519,7 +3519,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 
     except Exception as e:
         raise ValueError(f"Could not resolve destination path '{destination_path}': {str(e)}")
-    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
+    print(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
                f"in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
@@ -3530,7 +3530,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             target_kind=target_kind
         )
         if response.ok:
-            click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' " +
+            click.secho(f"{source_kind} '{source_item_name}' moved to '{destination_path}' " +
                         f"in project '{destination_project_name}'.", fg="green", bold=True)
         else:
             raise ValueError(f"Move failed: {response.status_code} - {response.text}")
@@ -3638,12 +3638,12 @@ def renaming_item(ctx,
     item_id = found_item["_id"]
     kind = "Folder" if "folderType" in found_item else "File"
 
-    click.echo(f"Renaming {kind} '{target_name}' to '{new_name}'...")
+    print(f"Renaming {kind} '{target_name}' to '{new_name}'...")
     try:
         response = client.rename_item(item_id=item_id, new_name=new_name, kind=kind)
         if response.ok:
             click.secho(
-                f"[SUCCESS] {kind} '{target_name}' renamed to '{new_name}' in folder '{parent_path}'.",
+                f"{kind} '{target_name}' renamed to '{new_name}' in folder '{parent_path}'.",
                 fg="green",
                 bold=True
             )
@@ -3685,7 +3685,7 @@ def copy_item_cli(ctx,
      E.g.: Data/plots
     """
     update_command_context_from_click(ctx)
-    click.echo("Loading configuration profile...")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3784,7 +3784,7 @@ def copy_item_cli(ctx,
             destination_kind=destination_kind
         )
         if response.ok:
-            click.secho("[SUCCESS] Item copied successfully.", fg="green", bold=True)
+            click.secho("Item copied successfully.", fg="green", bold=True)
         else:
             raise ValueError(f"Copy failed: {response.status_code} - {response.text}")
     except Exception as e:
@@ -3901,11 +3901,11 @@ def mkdir_item(ctx,
         raise ValueError(f"Unrecognized folderType for '{parent_path}'.")
 
     # Create the folder
-    click.echo(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
+    print(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
     try:
         response = client.create_virtual_folder(name=folder_name, parent_id=parent_id, parent_kind=parent_kind)
         if response.ok:
-            click.secho(f"[SUCCESS] Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
+            click.secho(f"Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
         else:
             raise ValueError(f"Folder creation failed: {response.status_code} - {response.text}")
     except Exception as e:
@@ -4017,12 +4017,12 @@ def rm_item(ctx,
         if response.ok:
             if is_managed_by_lifebit:
                 click.secho(
-                    f"[SUCCESS] {kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
+                    f"{kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
                     fg="green", bold=True
                 )
             else:
                 click.secho(
-                    f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
+                    f"{kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
                     fg="green", bold=True
                 )
                 click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
@@ -4176,14 +4176,14 @@ def link(ctx,
             raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        raise ValueError("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
-                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.")
+        click.secho("Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.", fg='yellow', bold=True)
 
     try:
         link_p.link_folder(path, session_id)
     except Exception as e:
         if is_s3:
-            click.echo("If you are linking an S3 path, please ensure it is a folder.")
+            print("If you are linking an S3 path, please ensure it is a folder.")
         raise ValueError(f"Could not link folder: {e}")
 
 

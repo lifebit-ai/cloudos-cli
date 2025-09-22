@@ -12,6 +12,7 @@ from pathlib import Path
 import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
+import click
 
 
 @dataclass
@@ -401,8 +402,8 @@ class Job(Cloudos):
             for example_param in example_parameters:
                 workflow_params.append(example_param)
         if storage_mode == "lustre":
-            print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
-                  'storage is available in your CloudOS workspace.\n')
+            click.secho('\nLustre storage has been selected. Please, be sure that this kind of ' +
+                  'storage is available in your CloudOS workspace.\n', fg='yellow', bold=True)
             if lustre_size % 1200:
                 raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
                                  f'{lustre_size} is not a valid number.')
@@ -1128,7 +1129,7 @@ class Job(Cloudos):
             cloned_payload['nextflowVersion'] = nextflow_version
         elif nextflow_version and cloned_payload['executionPlatform'] == 'azure' and\
             nextflow_version not in ['22.11.1-edge', 'latest']:
-            print("[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
+            print("Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
         # Override branch if provided
         # sometimes revision is missing from the 'request-payload' API, make sure is present
@@ -1153,18 +1154,18 @@ class Job(Cloudos):
         if use_fusion and cloned_payload['executionPlatform'] != 'azure':
             cloned_payload['usesFusionFileSystem'] = use_fusion
         elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
-            print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+            print("Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
 
         # Override resumable if provided
         if resumable and mode == "clone":
             cloned_payload['resumable'] = resumable
         elif resumable and mode == "resume":
-            print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
+            print("'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
 
         if 'command' in cloned_payload:
             cloned_payload['batch'] = {"enabled": False}
             if resumable:
-                print("[Message]: 'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
+                print("'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
 
         # Handle job queue override
         if queue_name:
@@ -1185,7 +1186,7 @@ class Job(Cloudos):
                 except Exception as e:
                     raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
             else:
-                print("[Message]: Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
+                print("Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
         # Handle parameter overrides
         if parameters:

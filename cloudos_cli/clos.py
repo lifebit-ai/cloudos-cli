@@ -217,7 +217,7 @@ class Cloudos:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
 
         if "resumeWorkDir" not in r_json:
-            print("[Message]: Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
+            print("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
         # Check if logs field exists, if not fall back to original folder-based approach
         elif "logs" in r_json:
             # Get workdir information from logs object using the same pattern as get_job_logs
