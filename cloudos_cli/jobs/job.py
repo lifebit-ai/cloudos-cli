@@ -369,7 +369,7 @@ class Job(Cloudos):
         if array_parameter is not None and len(array_parameter) > 0:
             ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
             workflow_params.append(ap_param)
-        elif array_file_header is not None and array_parameter is None and len(array_parameter) == 0:
+        elif array_file_header is not None and (array_parameter is None or len(array_parameter) == 0):
             raise ValueError('At least one array file column must be added to the parameters')
 
         # general parameters (from --parameter)

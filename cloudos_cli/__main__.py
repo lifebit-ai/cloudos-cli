@@ -2796,6 +2796,11 @@ def run_bash_job(ctx,
         else:
             instance_type = None
 
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
+
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
                repository_platform=repository_platform, verify=verify_ssl, last=last)
@@ -2817,7 +2822,7 @@ def run_bash_job(ctx,
                       git_branch=None,
                       job_name=job_name,
                       resumable=False,
-                      save_logs=do_not_save_logs,
+                      save_logs=save_logs,
                       batch=batch,
                       job_queue_id=job_queue_id,
                       workflow_type='docker',
@@ -2991,8 +2996,7 @@ def run_bash_job(ctx,
               help=('A single parameter to pass to the job call only for specifying array columns. ' +
                     'It should be in the following form: parameter_name=array_file_column_name. E.g.: ' +
                     '-a --test=value or -a -test=value or -a test=value or -a =value (for no prefix). ' +
-                    'You can use this option as many times as parameters you want to include.'),
-              required=True)
+                    'You can use this option as many times as parameters you want to include.'))
 @click.option('--custom-script-path',
               help=('Path of a custom script to run in the bash array job instead of a command.'),
               default=None)
