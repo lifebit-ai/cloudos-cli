@@ -1338,8 +1338,8 @@ def list_jobs(ctx,
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
 
     # Check if page/page_size were explicitly provided by the user
-    page_provided_by_user = ctx.get_parameter_source('page') != click.core.ParameterSource.DEFAULT
-    page_size_provided_by_user = ctx.get_parameter_source('page_size') != click.core.ParameterSource.DEFAULT
+    page_provided_by_user = ctx.get_parameter_source('page') == click.core.ParameterSource.COMMANDLINE
+    page_size_provided_by_user = ctx.get_parameter_source('page_size') == click.core.ParameterSource.COMMANDLINE
 
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,
