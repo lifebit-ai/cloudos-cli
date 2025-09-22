@@ -547,7 +547,7 @@ class Cloudos:
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
-        last_n_jobs : [int | 'all'], default=10
+        last_n_jobs : [int | 'all'], default=None
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs. When specified, page
             and page_size parameters are ignored.
