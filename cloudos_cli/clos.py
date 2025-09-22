@@ -551,9 +551,9 @@ class Cloudos:
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs. When specified, page
             and page_size parameters are ignored.
-        page : int, default=1
+        page : int, default=None
             Response page to get when not using last_n_jobs.
-        page_size : int, default=10
+        page_size : int, default=None
             Number of jobs to retrieve per page when not using last_n_jobs.
             Maximum allowed value is 100.
         archived : bool, default=False
