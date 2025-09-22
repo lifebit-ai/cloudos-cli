@@ -534,7 +534,7 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def get_job_list(self, workspace_id, last_n_jobs=None, page=None, page_size=None, archived=False,
+    def get_job_list(self, workspace_id, last_n_jobs=None, page=1, page_size=10, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
                      filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
@@ -547,17 +547,18 @@ class Cloudos:
         ----------
         workspace_id : string
             The CloudOS workspace id from to collect the jobs.
-        last_n_jobs : [int | 'all']
+        last_n_jobs : [int | 'all'], default=10
             How many of the last jobs from the user to retrieve. You can specify a
-            very large int or 'all' to get all user's jobs.
-        page : int
-            Response page to get. When using filters, these are applied first, then page is assigned
-        page_size : int
-            Number of jobs to retrieve per page. When using filters, these are applied first,
-            then page_size is assigned. Maximum allowed value is 100.
-        archived : bool
+            very large int or 'all' to get all user's jobs. When specified, page
+            and page_size parameters are ignored.
+        page : int, default=1
+            Response page to get when not using last_n_jobs.
+        page_size : int, default=10
+            Number of jobs to retrieve per page when not using last_n_jobs.
+            Maximum allowed value is 100.
+        archived : bool, default=False
             When True, only the archived jobs are retrieved.
-        verify: [bool|string]
+        verify: [bool|string], default=True
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
@@ -599,30 +600,36 @@ class Cloudos:
                 except ValueError:
                     raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
-        # Validate page, page_size and last_n_jobs interaction
-        if (page is not None and page_size is not None) and last_n_jobs is not None:
-            print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
-                  'To use --page and --page-size, please remove --last-n-jobs option.\n')
-            page_size = int(last_n_jobs) if last_n_jobs != 'all' else 100
-
-        # Validate page, page_size
+        # Validate page and page_size
         if page is not None and page <= 0:
-            raise ValueError("--page must be a positive integer")
+            raise ValueError("page must be a positive integer")
         if page_size is not None and page_size <= 0:
-            raise ValueError("--page-size must be a positive integer")
+            raise ValueError("page_size must be a positive integer")
 
-        # Validate page_size limit
-        if page_size is not None and page_size > 100 and last_n_jobs is None:
-            raise ValueError('Please, use a --page-size value <= 100')
-        elif page is None and page_size is None and last_n_jobs is None:
-            raise ValueError('Options --page and --page-size must be provided when --last-n-jobs is not used.')
-
-        # Assign last_n_jobs
-        if last_n_jobs is None:
-            last_n_jobs = page_size
+        # Handle parameter interaction and set defaults
+        # If last_n_jobs is provided, use pagination mode with last_n_jobs
+        # If page/page_size are provided without last_n_jobs, use direct pagination mode
+        if last_n_jobs is not None:
+            print("page, page_size", page, page_size)
+            # When last_n_jobs is specified, warn if page/page_size are also specified
+            if (page != 1 or page_size != 10):  # Check if non-default values were passed
+                print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
+                      'To use --page and --page-size, please remove --last-n-jobs option.\n')
+            # Use pagination to fetch last_n_jobs, starting from page 1
+            use_pagination_mode = True
+            target_job_count = last_n_jobs
+            current_page = 1
+            current_page_size = min(100, int(last_n_jobs)) if last_n_jobs != 'all' else 100
         else:
-            page = 1  # set as implicit default (we have this default in main function)
-            page_size = 10  # set as implicit default (we have this default in main function)
+            # Direct pagination mode - use page and page_size as specified
+            use_pagination_mode = False
+            target_job_count = page_size  # Only get jobs for this page
+            current_page = page
+            current_page_size = page_size
+
+            # Validate page_size limit for direct pagination
+            if current_page_size > 100:
+                raise ValueError('Please, use a page_size value <= 100')
 
         # Validate filter_status values
         if filter_status:
@@ -639,7 +646,8 @@ class Cloudos:
         params = {
             "teamId": workspace_id,
             "archived.status": str(archived).lower(),
-            "page": page
+            "page": current_page,
+            "limit": current_page_size
         }
 
         # --- Resolve IDs once (before pagination loop) ---
@@ -699,9 +707,7 @@ class Cloudos:
 
         # --- Fetch jobs page by page ---
         all_jobs = []
-        current_page = page
-        page_size = page_size
-        params["limit"] = page_size
+        params["limit"] = current_page_size
 
         while True:
             params["page"] = current_page
@@ -719,11 +725,18 @@ class Cloudos:
 
             all_jobs.extend(page_jobs)
 
-            # Check if we have enough jobs or reached the last page
-            if last_n_jobs != 'all' and len(all_jobs) >= last_n_jobs:
+            # Check stopping conditions based on mode
+            if use_pagination_mode:
+                # In pagination mode (last_n_jobs), continue until we have enough jobs
+                if target_job_count != 'all' and len(all_jobs) >= target_job_count:
+                    break
+            else:
+                # In direct mode (page/page_size), only get one page
                 break
+
+            # Check if we reached the last page (fewer jobs than requested page size)
             if len(page_jobs) < params["limit"]:
-                break  # Last page (fewer jobs than requested page size)
+                break  # Last page
 
             current_page += 1
 
@@ -752,8 +765,8 @@ class Cloudos:
                 raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
 
         # --- Apply limit after all filtering ---
-        if last_n_jobs != 'all' and isinstance(last_n_jobs, int) and last_n_jobs > 0:
-            all_jobs = all_jobs[:last_n_jobs]
+        if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
+            all_jobs = all_jobs[:target_job_count]
 
         return all_jobs
 
