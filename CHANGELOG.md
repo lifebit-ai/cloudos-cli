@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.60.5 (2025-09-22)
+
+### Patch
+
+- Fix how bash job and bash array-job run without a mandatory --parameter
+- Fix --debug to appear in all commands and subcommands
+- Fix different error formats, by using a single format
+
 ## v2.60.3 (2025-09-18)
 
 ### Patch
