@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-# Set rich_click configuration before importing
-import os
-os.environ.setdefault('FORCE_COLOR', '1')
-
 import rich_click as click
 import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
@@ -28,24 +24,6 @@ from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
 
-# Configure rich_click for beautiful CLI output
-click.rich_click.USE_RICH_MARKUP = True
-click.rich_click.USE_MARKDOWN = True
-click.rich_click.SHOW_ARGUMENTS = True
-click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
-
-# Enable rich console by default
-import rich_click
-rich_click.rich_click.USE_RICH_MARKUP = True
-
-
-# Check for debug flag early for logging setup - be more precise
-_global_debug = False
-for i, arg in enumerate(sys.argv):
-    if arg == '--debug':
-        _global_debug = True
-        break
-
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
     """Custom exception handler that respects debug mode"""
@@ -61,9 +39,9 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
             error_msg = str(exc_value)
         else:
             error_msg = f"{exc_type.__name__}"
-            
+
         console.print(f"[bold red]Error: {error_msg}[/bold red]")
-        
+
         # For network errors, give helpful context
         if 'HTTPSConnectionPool' in str(exc_value) or 'Max retries exceeded' in str(exc_value):
             console.print("[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]")
@@ -74,7 +52,7 @@ sys.excepthook = custom_exception_handler
 
 def pass_debug_to_subcommands(group_cls=click.RichGroup):
     """Custom Group class that passes --debug option to all subcommands"""
-    
+
     class DebugGroup(group_cls):
         def add_command(self, cmd, name=None):
             # Add debug option to the command if it doesn't already have it
@@ -90,9 +68,9 @@ def pass_debug_to_subcommands(group_cls=click.RichGroup):
                         callback=self._debug_callback
                     )
                     cmd.params.insert(-1, debug_option)  # Insert at the end for precedence
-            
+
             super().add_command(cmd, name)
-        
+
         def _debug_callback(self, ctx, param, value):
             """Callback to handle debug flag"""
             global _global_debug
@@ -102,7 +80,7 @@ def pass_debug_to_subcommands(group_cls=click.RichGroup):
             else:
                 ctx.meta['debug'] = False
             return value
-    
+
     return DebugGroup
 
 
@@ -123,28 +101,6 @@ INIT_PROFILE = 'initialisingProfile'
 def get_debug_mode():
     """Get current debug mode state"""
     return _global_debug
-
-
-# def handle_error_with_debug(error_msg, exception=None, exit_code=1):
-#     """Handle errors with rich formatting and debug-aware traceback"""
-#     from rich.console import Console
-#     console = Console(stderr=True)
-    
-#     if get_debug_mode():
-#         # Show detailed error information in debug mode
-#         setup_logging(True)
-#         logger = logging.getLogger("CloudOS")
-#         # Handle keyboard interrupt gracefully
-#         if issubclass(exception, KeyboardInterrupt):
-#             sys.exit(1)
-#         # Show detailed error with stack trace even without exception
-#         logger.error(error_msg)
-#     else:
-#         # Show simple error message with rich formatting
-#         logger.error(error_msg)
-#         console.print(f"[bold red]Error: {error_msg}[/bold red]")
-
-#     sys.exit(exit_code)
 
 
 # Helper function for debug setup
@@ -168,7 +124,7 @@ def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
-    
+
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -1080,11 +1036,9 @@ def job_logs(ctx,
         for name, path in logs.items():
             print(f"{name}: {path}\n")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve logs for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve logs for job '{job_id}': {str(e)}")
 
 
 @job.command('results')
@@ -1167,11 +1121,9 @@ def job_results(ctx,
         for name, path in results.items():
             print(f"{name}: {path}\n")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve results for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve results for job '{job_id}': {str(e)}")
 
 
 @job.command('details')
@@ -1267,14 +1219,11 @@ def job_details(ctx,
         j_details = cl.get_job_status(job_id, verify_ssl)
     except BadRequestException as e:
         if '403' in str(e) or 'Forbidden' in str(e):
-            print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
-            sys.exit(1)
+            raise ValueError("API can only show job details of your own jobs, cannot see other user's job details.")
         else:
-            click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve details for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve details for job '{job_id}': {str(e)}")
     j_details_h = json.loads(j_details.content)
 
     # Determine the execution platform based on jobType
@@ -1553,8 +1502,7 @@ def list_jobs(ctx,
         try:
             last_n_jobs = int(last_n_jobs)
         except ValueError:
-            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
-            raise
+            raise ValueError("--last-n-jobs value was not valid. Please use a positive int or 'all'")
 
     my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl,
                                 filter_status=filter_status,
@@ -3463,12 +3411,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
-        click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
-        sys.exit(1)
+        raise ValueError("Destination path must begin with 'Data/' or be 'Data'.")
     if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
-        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
-        sys.exit(1)
-    click.echo('Loading configuration profile')
+        raise ValueError("SOURCE_PATH must start with  'Data/' or be 'Data'.")
+    print('Loading configuration profile')
     # Load configuration profile
     config_manager = ConfigurationProfile()
     required_dict = {
@@ -3531,8 +3477,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     try:
         source_contents = source_client.list_folder_content(source_parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not resolve source path '{source_path}': {str(e)}")
 
     found_source = None
     for collection in ["files", "folders"]:
@@ -3543,9 +3488,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if found_source:
             break
     if not found_source:
-        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'",
-                   err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'")
 
     source_id = found_source["_id"]
     source_kind = "Folder" if "folderType" in found_source else "File"
@@ -3567,18 +3510,15 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type == "S3Folder":
-            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. " +
-                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
-                       err=True)
-            sys.exit(1)
+            raise ValueError(f"Unable to move item '{source_item_name}' to '{destination_path}'. " +
+                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.")
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
         else:
             raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
 
     except Exception as e:
-        click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not resolve destination path '{destination_path}': {str(e)}")
     click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
                f"in project '{destination_project_name} ...")
     # === Perform Move ===
@@ -3593,11 +3533,9 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' " +
                         f"in project '{destination_project_name}'.", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Move failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Move operation failed: {str(e)}")
 
 
 @datasets.command(name="rename")
@@ -3630,9 +3568,8 @@ def renaming_item(ctx,
     """
     update_command_context_from_click(ctx)
     if not source_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.", err=True)
-        sys.exit(1)
-    click.echo("Loading configuration profile...")
+        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3683,8 +3620,7 @@ def renaming_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
 
     # Search for file/folder
     found_item = None
@@ -3697,8 +3633,7 @@ def renaming_item(ctx,
             break
 
     if not found_item:
-        click.echo(f"[ERROR] Item '{target_name}' not found in '{parent_path or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{target_name}' not found in '{parent_path or '[project root]'}'")
 
     item_id = found_item["_id"]
     kind = "Folder" if "folderType" in found_item else "File"
@@ -3713,11 +3648,9 @@ def renaming_item(ctx,
                 bold=True
             )
         else:
-            click.echo(f"[ERROR] Rename failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Rename failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Rename operation failed: {str(e)}")
 
 
 @datasets.command(name="cp")
@@ -3800,8 +3733,7 @@ def copy_item_cli(ctx,
     # Validate paths
     dest_parts = destination_path.strip("/").split("/")
     if not dest_parts or dest_parts[0] != "Data":
-        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
-        sys.exit(1)
+        raise ValueError("DESTINATION_PATH must start with 'Data/'.")
     # Parse source and destination
     source_parts = source_path.strip("/").split("/")
     source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
@@ -3812,8 +3744,7 @@ def copy_item_cli(ctx,
         source_content = source_client.list_folder_content(source_parent)
         dest_content = dest_client.list_folder_content(dest_parent)
     except Exception as e:
-        click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not access paths: {str(e)}")
     # Find the source item
     source_item = None
     for item in source_content.get('files', []) + source_content.get('folders', []):
@@ -3821,8 +3752,7 @@ def copy_item_cli(ctx,
             source_item = item
             break
     if not source_item:
-        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{source_name}' not found in '{source_parent or '[project root]'}'")
     # Find the destination folder
     destination_folder = None
     for folder in dest_content.get("folders", []):
@@ -3830,8 +3760,7 @@ def copy_item_cli(ctx,
             destination_folder = folder
             break
     if not destination_folder:
-        click.echo(f"[ERROR] Destination folder '{destination_path}' not found.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Destination folder '{destination_path}' not found.")
     try:
         # Determine item type
         if "fileType" in source_item:
@@ -3841,15 +3770,12 @@ def copy_item_cli(ctx,
         elif "s3BucketName" in source_item and source_item.get("folderType") == "S3Folder":
             item_type = "s3_folder"
         else:
-            click.echo("[ERROR] Could not determine item type.", err=True)
-            sys.exit(1)
-        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
+            raise ValueError("Could not determine item type.")
+        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType") == "S3Folder":
-            click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
-                       err=True)
-            sys.exit(1)
+            raise ValueError(f"Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.")
         else:
             destination_kind = "Folder"
         response = source_client.copy_item(
@@ -3860,11 +3786,9 @@ def copy_item_cli(ctx,
         if response.ok:
             click.secho("[SUCCESS] Item copied successfully.", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Copy failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Copy failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Copy operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Copy operation failed: {str(e)}")
 
 
 @datasets.command(name="mkdir")
@@ -3894,18 +3818,16 @@ def mkdir_item(ctx,
     update_command_context_from_click(ctx)
     new_folder_path = new_folder_path.strip("/")
     if not new_folder_path.startswith("Data"):
-        click.echo("[ERROR] NEW_FOLDER_PATH must start with 'Data'.", err=True)
-        sys.exit(1)
+        raise ValueError("NEW_FOLDER_PATH must start with 'Data'.")
 
     path_parts = new_folder_path.split("/")
     if len(path_parts) < 2:
-        click.echo("[ERROR] NEW_FOLDER_PATH must include at least a parent folder and the new folder name.", err=True)
-        sys.exit(1)
+        raise ValueError("NEW_FOLDER_PATH must include at least a parent folder and the new folder name.")
 
     parent_path = "/".join(path_parts[:-1])
     folder_name = path_parts[-1]
 
-    click.echo("Loading configuration profile...")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3957,8 +3879,7 @@ def mkdir_item(ctx,
     try:
         contents = client.list_folder_content(parent_of_parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_of_parent_path}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_of_parent_path}': {str(e)}")
 
     # Find the parent folder in the contents
     folder_info = next(
@@ -3967,8 +3888,7 @@ def mkdir_item(ctx,
     )
 
     if not folder_info:
-        click.echo(f"[ERROR] Could not find folder '{parent_name}' in '{parent_of_parent_path}'.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not find folder '{parent_name}' in '{parent_of_parent_path}'.")
 
     parent_id = folder_info.get("_id")
     folder_type = folder_info.get("folderType")
@@ -3978,8 +3898,7 @@ def mkdir_item(ctx,
     elif isinstance(folder_type, str):
         parent_kind = "Folder"
     else:
-        click.echo(f"[ERROR] Unrecognized folderType for '{parent_path}'.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Unrecognized folderType for '{parent_path}'.")
 
     # Create the folder
     click.echo(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
@@ -3988,11 +3907,9 @@ def mkdir_item(ctx,
         if response.ok:
             click.secho(f"[SUCCESS] Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Folder creation failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Folder creation failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Folder creation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Folder creation failed: {str(e)}")
 
 
 @datasets.command(name="rm")
@@ -4024,9 +3941,8 @@ def rm_item(ctx,
     """
     update_command_context_from_click(ctx)
     if not target_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] TARGET_PATH must start with 'Data/', pointing to a file or folder.", err=True)
-        sys.exit(1)
-    click.echo("Loading configuration profile...")
+        raise ValueError("TARGET_PATH must start with 'Data/', pointing to a file or folder.")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -4076,8 +3992,7 @@ def rm_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
 
     found_item = None
     for item in contents.get('files', []) + contents.get('folders', []):
@@ -4086,21 +4001,17 @@ def rm_item(ctx,
             break
 
     if not found_item:
-        click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{item_name}' not found in '{parent_path or '[project root]'}'")
 
     item_id = found_item.get("_id", '')
     kind = "Folder" if "folderType" in found_item else "File"
     if item_id == '':
-        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
-                   err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.")
     # Check if the item is managed by Lifebit
     is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
     if is_managed_by_lifebit and not force:
-        click.echo("[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
-        sys.exit(1)
-    click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
+        raise ValueError("By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.")
+    print(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
@@ -4116,11 +4027,9 @@ def rm_item(ctx,
                 )
                 click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
-            click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Removal failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Remove operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Remove operation failed: {str(e)}")
 
 
 @datasets.command(name="link")
@@ -4262,21 +4171,20 @@ def link(ctx,
 
     if is_folder is False:
         if is_s3:
-            click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
+            raise ValueError("The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
         else:
-            click.echo("[ERROR] Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
+            raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
-                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.",
-                   err=True)
+        raise ValueError("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.")
 
     try:
         link_p.link_folder(path, session_id)
     except Exception as e:
-        click.echo(f"[ERROR] Could not link folder: {e}", err=True)
         if is_s3:
-            click.echo("If you are linking an S3 path, please ensure it is a folder.", err=True)
+            click.echo("If you are linking an S3 path, please ensure it is a folder.")
+        raise ValueError(f"Could not link folder: {e}")
 
 
 @images.command(name="ls")
@@ -4361,7 +4269,7 @@ def list_images(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"{str(e)}")
 
 
 @images.command(name="set")
@@ -4466,7 +4374,7 @@ def set_organisation_image(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"{str(e)}")
 
 
 @images.command(name="reset")
@@ -4565,8 +4473,7 @@ def reset_organisation_image(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
-
+        raise ValueError(f"{str(e)}")
 
 if __name__ == "__main__":
     # Setup logging
