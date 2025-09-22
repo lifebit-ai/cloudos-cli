@@ -167,10 +167,10 @@ class Job(Cloudos):
         elif resource == 'projects':
             return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
         if mainfile is not None:
-            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+            raise ValueError(f'A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
         else:
-            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
+            raise ValueError(f'No {name} element in {resource} was found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
@@ -890,7 +890,7 @@ class Job(Cloudos):
         prefix = "--" if name.startswith('--') else ("-" if name.startswith('-') else "")
         if classify_pattern(rest) in ["regex", "glob"]:
             if not (file_path.startswith('/Data') or file_path.startswith('Data')):
-                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+                raise ValueError("The file path inside the project must start with '/Data' or 'Data'. ")
 
             folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
             return {
@@ -902,7 +902,7 @@ class Job(Cloudos):
             }
         elif ext:
             if not (file_path.startswith('/Data') or file_path.startswith('Data')):
-                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+                raise ValueError("The file path inside the project must start with '/Data' or 'Data'. ")
 
             file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
             return {
