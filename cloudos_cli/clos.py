@@ -1376,7 +1376,7 @@ class Cloudos:
 
         project_id = next((p.get("_id") for p in content.get("projects", []) if p.get("name") == project_name), None)
         if project_id is None:
-            raise ValueError(f"[Error] Project '{project_name}' was not found in workspace '{workspace_id}'")
+            raise ValueError(f"Project '{project_name}' was not found in workspace '{workspace_id}'")
 
         return project_id
 
