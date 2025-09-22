@@ -593,12 +593,17 @@ class Cloudos:
             raise ValueError("Invalid workspace_id: must be a non-empty string")
 
         # Validate last_n_jobs
-        if last_n_jobs is not None and isinstance(last_n_jobs, str):
-            if last_n_jobs != 'all':
-                try:
-                    last_n_jobs = int(last_n_jobs)
-                except ValueError:
-                    raise ValueError("last_n_jobs must be a positive integer or 'all'")
+        if last_n_jobs is not None:
+            if isinstance(last_n_jobs, str):
+                if last_n_jobs != 'all':
+                    try:
+                        last_n_jobs = int(last_n_jobs)
+                    except ValueError:
+                        raise ValueError("last_n_jobs must be a positive integer or 'all'")
+
+            # Validate that integer last_n_jobs is positive
+            if isinstance(last_n_jobs, int) and last_n_jobs <= 0:
+                raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page and page_size
         if page is not None and page <= 0:
