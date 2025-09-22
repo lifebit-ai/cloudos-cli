@@ -606,10 +606,10 @@ class Cloudos:
                 raise ValueError("last_n_jobs must be a positive integer or 'all'")
 
         # Validate page and page_size
-        if page is not None and page <= 0:
-            raise ValueError("page must be a positive integer")
-        if page_size is not None and page_size <= 0:
-            raise ValueError("page_size must be a positive integer")
+        if page is not None and page <= 0 or not isinstance(page, int):
+            raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
+        if page_size is not None and page_size <= 0 or not isinstance(page_size, int):
+            raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
 
         # Handle parameter interaction and set defaults
         # If last_n_jobs is provided, use pagination mode with last_n_jobs
