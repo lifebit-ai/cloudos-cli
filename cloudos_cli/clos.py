@@ -537,9 +537,10 @@ class Cloudos:
     def get_job_list(self, workspace_id, last_n_jobs=None, page=1, page_size=10, archived=False,
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
-                     filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
+                     filter_only_mine=False, filter_owner=None, filter_queue=None, last=False,
+                     page_provided_by_user=False, page_size_provided_by_user=False):
         """Get jobs from a CloudOS workspace with optional filtering.
-        
+
         Fetches jobs page by page, applies all filters after fetching.
         Stops when enough jobs are collected or no more jobs are available.
 
@@ -582,6 +583,10 @@ class Cloudos:
             Non-batch jobs are preserved in results as they don't use queues.
         last : bool, optional
             When workflows are duplicated, use the latest imported workflow (by date).
+        page_provided_by_user : bool, optional
+            Whether the page parameter was explicitly provided by the user (not default).
+        page_size_provided_by_user : bool, optional
+            Whether the page_size parameter was explicitly provided by the user (not default).
 
         Returns
         -------
@@ -616,7 +621,12 @@ class Cloudos:
         # If page/page_size are provided without last_n_jobs, use direct pagination mode
         if last_n_jobs is not None:
             # When last_n_jobs is specified, warn if page/page_size are also specified
-            if (page != 1 or page_size != 10):  # Check if non-default values were passed
+            # Handle both CLI calls (check explicit user input) and direct calls (check non-default values)
+            should_warn = (page_provided_by_user or page_size_provided_by_user or 
+                          (not page_provided_by_user and not page_size_provided_by_user and 
+                           (page != 1 or page_size != 10)))
+
+            if should_warn:
                 print('[Warning] When using --last-n-jobs option, --page and --page-size are ignored. ' +
                       'To use --page and --page-size, please remove --last-n-jobs option.\n')
             # Use pagination to fetch last_n_jobs, starting from page 1
