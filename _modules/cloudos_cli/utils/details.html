@@ -339,9 +339,16 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.utils.details</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+
 <div class="viewcode-block" id="get_path">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.get_path">[docs]</a>
-<span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_path</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">param_kind_map</span><span class="p">,</span> <span class="n">execution_platform</span><span class="p">,</span> <span class="n">storage_provider</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;parameters&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_path</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">param_kind_map</span><span class="p">,</span> <span class="n">execution_platform</span><span class="p">,</span> <span class="n">storage_provider</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;parameters&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a storage path based on the parameter kind and execution platform.</span>
 
@@ -407,6 +414,243 @@
                 <span class="n">value</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;folder&#39;</span><span class="p">][</span><span class="s1">&#39;blobStorageAccountName&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">container_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">blob_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;globPattern&#39;</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="create_job_details">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.create_job_details">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_job_details</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">output_basename</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates formatted job details output from job data in multiple formats.</span>
+
+<span class="sd">    This function processes job details from the CloudOS API response and outputs</span>
+<span class="sd">    the information in a user-specified format (stdout table, JSON, or CSV).</span>
+<span class="sd">    It also optionally creates configuration files with job parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    j_details_h : dict</span>
+<span class="sd">        A dictionary containing job details from the CloudOS API. Expected keys include:</span>
+<span class="sd">            - &#39;jobType&#39;: The type of job executor (e.g., &#39;nextflowAWS&#39;, &#39;dockerAWS&#39;).</span>
+<span class="sd">            - &#39;parameters&#39;: List of parameter dictionaries for the job.</span>
+<span class="sd">            - &#39;status&#39;: Current status of the job.</span>
+<span class="sd">            - &#39;name&#39;: Name of the job.</span>
+<span class="sd">            - &#39;project&#39;: Dictionary containing project information with &#39;name&#39; key.</span>
+<span class="sd">            - &#39;user&#39;: Dictionary containing user information with &#39;name&#39; and &#39;surname&#39; keys.</span>
+<span class="sd">            - &#39;workflow&#39;: Dictionary containing workflow information.</span>
+<span class="sd">            - &#39;startTime&#39;: ISO format timestamp of job start.</span>
+<span class="sd">            - &#39;endTime&#39;: ISO format timestamp of job completion.</span>
+<span class="sd">            - &#39;computeCostSpent&#39;: Cost in cents (optional).</span>
+<span class="sd">            - &#39;masterInstance&#39;: Dictionary containing instance information.</span>
+<span class="sd">            - &#39;storageSizeInGb&#39;: Storage size allocated to the job.</span>
+<span class="sd">            - &#39;resourceRequirements&#39;: Dictionary with &#39;cpu&#39; and &#39;ram&#39; specifications.</span>
+<span class="sd">            - Additional platform-specific keys based on jobType.</span>
+<span class="sd">    job_id : str</span>
+<span class="sd">        Unique identifier for the job.</span>
+<span class="sd">    output_format : str</span>
+<span class="sd">        Format for output display. Expected values:</span>
+<span class="sd">            - &#39;stdout&#39;: Display as a formatted table in the console.</span>
+<span class="sd">            - &#39;json&#39;: Save as a JSON file.</span>
+<span class="sd">            - &#39;csv&#39;: Save as a CSV file.</span>
+<span class="sd">    output_basename : str</span>
+<span class="sd">        Base name for output files (without extension). Used when output_format</span>
+<span class="sd">        is &#39;json&#39; or &#39;csv&#39;.</span>
+<span class="sd">    parameters : bool</span>
+<span class="sd">        Whether to create a separate configuration file containing job parameters.</span>
+<span class="sd">        If True and parameters exist, creates a &#39;.config&#39; file with Nextflow-style</span>
+<span class="sd">        parameter formatting.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        This function has side effects only:</span>
+<span class="sd">        - Prints formatted output to console (for &#39;stdout&#39; format).</span>
+<span class="sd">        - Creates output files (for &#39;json&#39; and &#39;csv&#39; formats).</span>
+<span class="sd">        - Optionally creates parameter configuration files.</span>
+<span class="sd">        - Prints status messages about file creation.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The function handles different job types and execution platforms:</span>
+<span class="sd">    - AWS Batch (nextflowAWS, dockerAWS, cromwellAWS)</span>
+<span class="sd">    - Azure Batch (nextflowAzure)</span>
+<span class="sd">    - Google Cloud Platform (nextflowGcp)</span>
+<span class="sd">    - HPC clusters (nextflowHpc)</span>
+<span class="sd">    - Kubernetes (nextflowKubernetes)</span>
+
+<span class="sd">    Parameter processing depends on the parameter kind:</span>
+<span class="sd">    - &#39;textValue&#39;: Simple text parameters</span>
+<span class="sd">    - &#39;arrayFileColumn&#39;: Column-based array parameters</span>
+<span class="sd">    - &#39;globPattern&#39;: File pattern matching parameters</span>
+<span class="sd">    - &#39;lustreFileSystem&#39;: Lustre filesystem parameters</span>
+<span class="sd">    - &#39;dataItem&#39;: Data file/object parameters</span>
+
+<span class="sd">    Time calculations assume UTC timezone and convert ISO format timestamps</span>
+<span class="sd">    to human-readable duration strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Determine the execution platform based on jobType</span>
+    <span class="n">executors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;nextflowAWS&#39;</span><span class="p">:</span> <span class="s1">&#39;Batch AWS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nextflowAzure&#39;</span><span class="p">:</span> <span class="s1">&#39;Batch Azure&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nextflowGcp&#39;</span><span class="p">:</span> <span class="s1">&#39;GCP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nextflowHpc&#39;</span><span class="p">:</span> <span class="s1">&#39;HPC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nextflowKubernetes&#39;</span><span class="p">:</span> <span class="s1">&#39;Kubernetes&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dockerAWS&#39;</span><span class="p">:</span> <span class="s1">&#39;Batch AWS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cromwellAWS&#39;</span><span class="p">:</span> <span class="s1">&#39;Batch AWS&#39;</span>
+    <span class="p">}</span>
+    <span class="n">execution_platform</span> <span class="o">=</span> <span class="n">executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;jobType&quot;</span><span class="p">],</span> <span class="s2">&quot;None&quot;</span><span class="p">)</span>
+    <span class="n">storage_provider</span> <span class="o">=</span> <span class="s2">&quot;s3://&quot;</span> <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s2">&quot;Batch AWS&quot;</span> <span class="k">else</span> <span class="s2">&quot;az://&quot;</span>
+
+    <span class="c1"># Check if the job details contain parameters</span>
+    <span class="k">if</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">param_kind_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;textValue&#39;</span><span class="p">:</span> <span class="s1">&#39;textValue&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;arrayFileColumn&#39;</span><span class="p">:</span> <span class="s1">&#39;columnName&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;globPattern&#39;</span><span class="p">:</span> <span class="s1">&#39;globPattern&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lustreFileSystem&#39;</span><span class="p">:</span> <span class="s1">&#39;fileSystem&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;dataItem&#39;</span><span class="p">:</span> <span class="s1">&#39;dataItem&#39;</span>
+        <span class="p">}</span>
+        <span class="c1"># there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem</span>
+        <span class="c1"># get first the type of parameter, then the value based on the parameter kind</span>
+        <span class="n">concats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]:</span>
+            <span class="n">concats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span><span class="si">}{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">get_path</span><span class="p">(</span><span class="n">param</span><span class="p">,</span><span class="w"> </span><span class="n">param_kind_map</span><span class="p">,</span><span class="w"> </span><span class="n">execution_platform</span><span class="p">,</span><span class="w"> </span><span class="n">storage_provider</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;asis&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">concat_string</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">concats</span><span class="p">)</span>
+
+        <span class="c1"># If the user requested to save the parameters in a config file</span>
+        <span class="k">if</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="c1"># Create a config file with the parameters</span>
+            <span class="n">config_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_basename</span><span class="si">}</span><span class="s2">.config&quot;</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_file</span><span class="p">:</span>
+                <span class="n">config_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;params {</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]:</span>
+                    <span class="n">config_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">get_path</span><span class="p">(</span><span class="n">param</span><span class="p">,</span><span class="w"> </span><span class="n">param_kind_map</span><span class="p">,</span><span class="w"> </span><span class="n">execution_platform</span><span class="p">,</span><span class="w"> </span><span class="n">storage_provider</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">config_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Job parameters have been saved to &#39;</span><span class="si">{</span><span class="n">config_filename</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">concat_string</span> <span class="o">=</span> <span class="s1">&#39;No parameters provided&#39;</span>
+        <span class="k">if</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">No parameters found in the job details, no config file will be created.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># revision</span>
+    <span class="k">if</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;jobType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;dockerAWS&quot;</span><span class="p">:</span>
+        <span class="n">revision</span> <span class="o">=</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;revision&quot;</span><span class="p">][</span><span class="s2">&quot;digest&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">revision</span> <span class="o">=</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;revision&quot;</span><span class="p">][</span><span class="s2">&quot;commit&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Output the job details</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;surname&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="c1"># calculate the run time</span>
+    <span class="n">start_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;startTime&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+    <span class="n">end_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;endTime&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">end_dt</span> <span class="o">-</span> <span class="n">start_dt</span>
+    <span class="c1"># Format duration as hours:minutes:seconds</span>
+    <span class="n">total_seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">duration</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+    <span class="n">hours</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">//</span> <span class="mi">3600</span>
+    <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
+    <span class="n">seconds</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">60</span>
+    <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+    <span class="k">elif</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+    <span class="c1"># determine cost</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;computeCostSpent&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cost</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cost_display</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cost_display</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+    <span class="c1"># when the job is just running this value might not be present</span>
+    <span class="n">master_instance</span> <span class="o">=</span> <span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;masterInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">used_instance</span> <span class="o">=</span> <span class="n">master_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;usedInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">instance_type</span> <span class="o">=</span> <span class="n">used_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;storageSizeInGb&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; GB&quot;</span>
+    <span class="n">pipeline_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;repository&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;Not Specified&quot;</span><span class="p">))</span>
+    <span class="n">accelerated_file_staging</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;usesFusionFileSystem&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">nextflow_version</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nextflowVersion&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;profile&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Create a JSON object with the key-value pairs</span>
+    <span class="c1"># make these separation to preserve order</span>
+    <span class="n">job_details_json</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;Project&quot;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+        <span class="s2">&quot;Owner&quot;</span><span class="p">:</span> <span class="n">owner</span><span class="p">,</span>
+        <span class="s2">&quot;Pipeline&quot;</span><span class="p">:</span> <span class="n">pipeline</span><span class="p">,</span>
+        <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">job_id</span><span class="p">),</span>
+        <span class="s2">&quot;Submit time&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)),</span>
+        <span class="s2">&quot;End time&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">end_dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)),</span>
+        <span class="s2">&quot;Run time&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_time</span><span class="p">),</span>
+        <span class="s2">&quot;Commit&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">revision</span><span class="p">),</span>
+        <span class="s2">&quot;Cost&quot;</span><span class="p">:</span> <span class="n">cost_display</span><span class="p">,</span>
+        <span class="s2">&quot;Master Instance&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">instance_type</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;jobType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;nextflowAzure&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Worker Node&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;azureBatch&quot;</span><span class="p">][</span><span class="s2">&quot;vmType&quot;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Worker Node&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Not Specified&quot;</span>
+
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Storage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage</span>
+
+    <span class="c1"># Conditionally add the &quot;Job Queue&quot; key if the jobType is not &quot;nextflowAzure&quot;</span>
+    <span class="k">if</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;jobType&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;nextflowAzure&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Job Queue ID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;batch&quot;</span><span class="p">][</span><span class="s2">&quot;jobQueue&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Job Queue Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;batch&quot;</span><span class="p">][</span><span class="s2">&quot;jobQueue&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Job Queue&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Master Node&quot;</span>
+
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Task Resources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s1">&#39;resourceRequirements&#39;</span><span class="p">][</span><span class="s1">&#39;cpu&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> CPUs, &quot;</span> <span class="o">+</span> \
+                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s1">&#39;resourceRequirements&#39;</span><span class="p">][</span><span class="s1">&#39;ram&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> GB RAM&quot;</span>
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Pipeline url&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_url</span>
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Nextflow Version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Execution Platform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">execution_platform</span>
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Accelerated File Staging&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">accelerated_file_staging</span>
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">concat_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Conditionally add the &quot;Command&quot; key if the jobType is &quot;dockerAWS&quot;</span>
+    <span class="k">if</span> <span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;jobType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;dockerAWS&quot;</span><span class="p">:</span>
+        <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Command&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s2">&quot;command&quot;</span><span class="p">])</span>
+
+    <span class="n">job_details_json</span><span class="p">[</span><span class="s2">&quot;Profile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span>
+
+    <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;stdout&#39;</span><span class="p">:</span>
+        <span class="c1"># Generate a table for stdout output</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Job Details&quot;</span><span class="p">)</span>
+
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Field&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">job_details_json</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;Parameters&quot;</span><span class="p">:</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="c1"># Write the JSON object to a file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_basename</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">job_details_json</span><span class="p">,</span> <span class="n">json_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Job details have been saved to &#39;</span><span class="si">{</span><span class="n">output_basename</span><span class="si">}</span><span class="s2">.json&#39;&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Write the same details to a CSV file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_basename</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+            <span class="c1"># Write headers (fields) in the first row</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">job_details_json</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="c1"># Write values in the second row</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">job_details_json</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Job details have been saved to &#39;</span><span class="si">{</span><span class="n">output_basename</span><span class="si">}</span><span class="s2">.csv&#39;&quot;</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

@@ -351,12 +351,90 @@
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_job_details" title="cloudos_cli.utils.details.create_job_details"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_job_details</span></code></a>(j_details_h, job_id, ...)</p></td>
+<td><p>Creates formatted job details output from job data in multiple formats.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
 <td><p>Constructs a storage path based on the parameter kind and execution platform.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.utils.details.create_job_details">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_details_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_basename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_details"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_details" title="Link to this definition">¶</a></dt>
+<dd><p>Creates formatted job details output from job data in multiple formats.</p>
+<p>This function processes job details from the CloudOS API response and outputs
+the information in a user-specified format (stdout table, JSON, or CSV).
+It also optionally creates configuration files with job parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>j_details_h</strong> (<em>dict</em>) – <dl class="simple">
+<dt>A dictionary containing job details from the CloudOS API. Expected keys include:</dt><dd><ul>
+<li><p>’jobType’: The type of job executor (e.g., ‘nextflowAWS’, ‘dockerAWS’).</p></li>
+<li><p>’parameters’: List of parameter dictionaries for the job.</p></li>
+<li><p>’status’: Current status of the job.</p></li>
+<li><p>’name’: Name of the job.</p></li>
+<li><p>’project’: Dictionary containing project information with ‘name’ key.</p></li>
+<li><p>’user’: Dictionary containing user information with ‘name’ and ‘surname’ keys.</p></li>
+<li><p>’workflow’: Dictionary containing workflow information.</p></li>
+<li><p>’startTime’: ISO format timestamp of job start.</p></li>
+<li><p>’endTime’: ISO format timestamp of job completion.</p></li>
+<li><p>’computeCostSpent’: Cost in cents (optional).</p></li>
+<li><p>’masterInstance’: Dictionary containing instance information.</p></li>
+<li><p>’storageSizeInGb’: Storage size allocated to the job.</p></li>
+<li><p>’resourceRequirements’: Dictionary with ‘cpu’ and ‘ram’ specifications.</p></li>
+<li><p>Additional platform-specific keys based on jobType.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – Unique identifier for the job.</p></li>
+<li><p><strong>output_format</strong> (<em>str</em>) – <dl class="simple">
+<dt>Format for output display. Expected values:</dt><dd><ul>
+<li><p>’stdout’: Display as a formatted table in the console.</p></li>
+<li><p>’json’: Save as a JSON file.</p></li>
+<li><p>’csv’: Save as a CSV file.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>output_basename</strong> (<em>str</em>) – Base name for output files (without extension). Used when output_format
+is ‘json’ or ‘csv’.</p></li>
+<li><p><strong>parameters</strong> (<em>bool</em>) – Whether to create a separate configuration file containing job parameters.
+If True and parameters exist, creates a ‘.config’ file with Nextflow-style
+parameter formatting.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>This function has side effects only:
+- Prints formatted output to console (for ‘stdout’ format).
+- Creates output files (for ‘json’ and ‘csv’ formats).
+- Optionally creates parameter configuration files.
+- Prints status messages about file creation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function handles different job types and execution platforms:
+- AWS Batch (nextflowAWS, dockerAWS, cromwellAWS)
+- Azure Batch (nextflowAzure)
+- Google Cloud Platform (nextflowGcp)
+- HPC clusters (nextflowHpc)
+- Kubernetes (nextflowKubernetes)</p>
+<p>Parameter processing depends on the parameter kind:
+- ‘textValue’: Simple text parameters
+- ‘arrayFileColumn’: Column-based array parameters
+- ‘globPattern’: File pattern matching parameters
+- ‘lustreFileSystem’: Lustre filesystem parameters
+- ‘dataItem’: Data file/object parameters</p>
+<p>Time calculations assume UTC timezone and convert ISO format timestamps
+to human-readable duration strings.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.utils.details.get_path">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_kind_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'parameters'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.get_path" title="Link to this definition">¶</a></dt>
@@ -469,6 +547,7 @@ leaves the constructed path as generated from the API</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">cloudos_cli.utils.details</a><ul>
+<li><a class="reference internal" href="#cloudos_cli.utils.details.create_job_details"><code class="docutils literal notranslate"><span class="pre">create_job_details()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.get_path"><code class="docutils literal notranslate"><span class="pre">get_path()</span></code></a></li>
 </ul>
 </li>

@@ -906,12 +906,12 @@
 
 <div class="viewcode-block" id="Cloudos.get_job_list">
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_job_list">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">last_n_jobs</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">archived</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">last_n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">archived</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                      <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">filter_status</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_job_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">filter_project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_workflow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_job_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">filter_only_mine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_owner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get jobs from a CloudOS workspace with optional filtering.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Fetches jobs page by page, applies all filters after fetching.</span>
 <span class="sd">        Stops when enough jobs are collected or no more jobs are available.</span>
 
@@ -919,14 +919,18 @@
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The CloudOS workspace id from to collect the jobs.</span>
-<span class="sd">        last_n_jobs : [int | &#39;all&#39;]</span>
+<span class="sd">        last_n_jobs : [int | &#39;all&#39;], default=None</span>
 <span class="sd">            How many of the last jobs from the user to retrieve. You can specify a</span>
-<span class="sd">            very large int or &#39;all&#39; to get all user&#39;s jobs.</span>
-<span class="sd">        page : int</span>
-<span class="sd">            Response page to get (ignored when using filters - starts from page 1).</span>
-<span class="sd">        archived : bool</span>
+<span class="sd">            very large int or &#39;all&#39; to get all user&#39;s jobs. When specified, page</span>
+<span class="sd">            and page_size parameters are ignored.</span>
+<span class="sd">        page : int, default=None</span>
+<span class="sd">            Response page to get when not using last_n_jobs.</span>
+<span class="sd">        page_size : int, default=None</span>
+<span class="sd">            Number of jobs to retrieve per page when not using last_n_jobs.</span>
+<span class="sd">            Maximum allowed value is 100.</span>
+<span class="sd">        archived : bool, default=False</span>
 <span class="sd">            When True, only the archived jobs are retrieved.</span>
-<span class="sd">        verify: [bool|string]</span>
+<span class="sd">        verify: [bool|string], default=True</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
 <span class="sd">            the SSL certificate file.</span>
@@ -956,12 +960,52 @@
 <span class="sd">        r : list</span>
 <span class="sd">            A list of dicts, each corresponding to a jobs from the user and the workspace.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate workspace_id</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">workspace_id</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid workspace_id: must be a non-empty string&quot;</span><span class="p">)</span>
-    
-        <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">last_n_jobs</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;last_n_jobs must be a positive integer or &#39;all&#39;&quot;</span><span class="p">)</span>
-        
+
+        <span class="c1"># Validate last_n_jobs</span>
+        <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">last_n_jobs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;last_n_jobs must be a positive integer or &#39;all&#39;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Validate that integer last_n_jobs is positive</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">last_n_jobs</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;last_n_jobs must be a positive integer or &#39;all&#39;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Validate page and page_size</span>
+        <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">page</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, use a positive integer (&gt;= 1) for the --page parameter&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">page_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">page_size</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">page_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, use a positive integer (&gt;= 1) for the --page-size parameter&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Handle parameter interaction and set defaults</span>
+        <span class="c1"># If last_n_jobs is provided, use pagination mode with last_n_jobs</span>
+        <span class="c1"># If page/page_size are provided without last_n_jobs, use direct pagination mode</span>
+        <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># When last_n_jobs is specified, warn if page/page_size are also specified</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Warning] When using --last-n-jobs option, --page and --page-size are ignored. &#39;</span> <span class="o">+</span>
+                    <span class="s1">&#39;To use --page and --page-size, please remove --last-n-jobs option.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># Use pagination to fetch last_n_jobs, starting from page 1</span>
+            <span class="n">use_pagination_mode</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">target_job_count</span> <span class="o">=</span> <span class="n">last_n_jobs</span>
+            <span class="n">current_page</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">current_page_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">))</span> <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="k">else</span> <span class="mi">100</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Direct pagination mode - use page and page_size as specified</span>
+            <span class="n">use_pagination_mode</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">target_job_count</span> <span class="o">=</span> <span class="n">page_size</span>  <span class="c1"># Only get jobs for this page</span>
+            <span class="n">current_page</span> <span class="o">=</span> <span class="n">page</span> <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">current_page_size</span> <span class="o">=</span> <span class="n">page_size</span> <span class="k">if</span> <span class="n">page_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">10</span>
+
+            <span class="c1"># Validate page_size limit for direct pagination</span>
+            <span class="k">if</span> <span class="n">current_page_size</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, use a page_size value &lt;= 100&#39;</span><span class="p">)</span>
+
         <span class="c1"># Validate filter_status values</span>
         <span class="k">if</span> <span class="n">filter_status</span><span class="p">:</span>
             <span class="n">valid_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;completed&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;failed&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">,</span> <span class="s1">&#39;queued&#39;</span><span class="p">,</span> <span class="s1">&#39;pending&#39;</span><span class="p">,</span> <span class="s1">&#39;initializing&#39;</span><span class="p">]</span>
@@ -972,17 +1016,17 @@
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
-        
+
         <span class="c1"># Build query parameters for server-side filtering</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;teamId&quot;</span><span class="p">:</span> <span class="n">workspace_id</span><span class="p">,</span>
             <span class="s2">&quot;archived.status&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">archived</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
-            <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># Use a reasonable page size</span>
-            <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="mi">1</span>     <span class="c1"># Always start from page 1</span>
+            <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="n">current_page</span><span class="p">,</span>
+            <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="n">current_page_size</span>
         <span class="p">}</span>
-        
+
         <span class="c1"># --- Resolve IDs once (before pagination loop) ---</span>
-        
+
         <span class="c1"># Add simple server-side filters</span>
         <span class="k">if</span> <span class="n">filter_status</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_status</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -990,7 +1034,7 @@
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_job_name</span>
         <span class="k">if</span> <span class="n">filter_job_id</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_job_id</span>
-            
+
         <span class="c1"># Resolve project name to ID</span>
         <span class="k">if</span> <span class="n">filter_project</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1001,7 +1045,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project &#39;</span><span class="si">{</span><span class="n">filter_project</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error resolving project &#39;</span><span class="si">{</span><span class="n">filter_project</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Resolve workflow name to ID</span>
         <span class="k">if</span> <span class="n">filter_workflow</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1018,7 +1062,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workflow &#39;</span><span class="si">{</span><span class="n">filter_workflow</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error resolving workflow &#39;</span><span class="si">{</span><span class="n">filter_workflow</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Get current user ID for filter_only_mine</span>
         <span class="k">if</span> <span class="n">filter_only_mine</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1030,7 +1074,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not retrieve current user information.&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting current user info: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Resolve owner username to user ID</span>
         <span class="k">if</span> <span class="n">filter_owner</span><span class="p">:</span>
             <span class="n">user_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolve_user_id</span><span class="p">(</span><span class="n">filter_owner</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
@@ -1038,30 +1082,37 @@
 
         <span class="c1"># --- Fetch jobs page by page ---</span>
         <span class="n">all_jobs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">current_page</span> <span class="o">=</span> <span class="mi">1</span>
-        
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_page_size</span>
+
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;page&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_page</span>
-            
+
             <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/jobs&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-            
+
             <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="n">page_jobs</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[])</span>
-            
+
             <span class="c1"># No jobs returned, we&#39;ve reached the end</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">page_jobs</span><span class="p">:</span>
                 <span class="k">break</span>
-                
+
             <span class="n">all_jobs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">page_jobs</span><span class="p">)</span>
-            
-            <span class="c1"># Check if we have enough jobs or reached the last page</span>
-            <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">last_n_jobs</span><span class="p">:</span>
+
+            <span class="c1"># Check stopping conditions based on mode</span>
+            <span class="k">if</span> <span class="n">use_pagination_mode</span><span class="p">:</span>
+                <span class="c1"># In pagination mode (last_n_jobs), continue until we have enough jobs</span>
+                <span class="k">if</span> <span class="n">target_job_count</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">target_job_count</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># In direct mode (page/page_size), only get one page</span>
                 <span class="k">break</span>
+
+            <span class="c1"># Check if we reached the last page (fewer jobs than requested page size)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">page_jobs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;limit&quot;</span><span class="p">]:</span>
-                <span class="k">break</span>  <span class="c1"># Last page (fewer jobs than requested page size)</span>
-                
+                <span class="k">break</span>  <span class="c1"># Last page</span>
+
             <span class="n">current_page</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="c1"># --- Local queue filtering (not supported by API) ---</span>
@@ -1072,16 +1123,16 @@
                     <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.queue.queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
                     <span class="n">queue_api</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cromwell_token</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
                     <span class="n">queues</span> <span class="o">=</span> <span class="n">queue_api</span><span class="o">.</span><span class="n">get_job_queues</span><span class="p">()</span>
-                    
+
                     <span class="n">queue_id</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">for</span> <span class="n">queue</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">filter_queue</span> <span class="ow">or</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">filter_queue</span><span class="p">:</span>
                             <span class="n">queue_id</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">)</span>
                             <span class="k">break</span>
-                    
+
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">queue_id</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue with name &#39;</span><span class="si">{</span><span class="n">filter_queue</span><span class="si">}</span><span class="s2">&#39; not found in workspace &#39;</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-                    
+
                     <span class="n">all_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span> <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">all_jobs</span> <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobQueue&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">queue_id</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.&quot;</span><span class="p">)</span>
@@ -1089,8 +1140,8 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error filtering by queue &#39;</span><span class="si">{</span><span class="n">filter_queue</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># --- Apply limit after all filtering ---</span>
-        <span class="k">if</span> <span class="n">last_n_jobs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last_n_jobs</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">last_n_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">all_jobs</span> <span class="o">=</span> <span class="n">all_jobs</span><span class="p">[:</span><span class="n">last_n_jobs</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">use_pagination_mode</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_job_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">all_jobs</span> <span class="o">=</span> <span class="n">all_jobs</span><span class="p">[:</span><span class="n">target_job_count</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">all_jobs</span></div>
 

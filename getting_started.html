@@ -356,6 +356,9 @@
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p><a class="reference internal" href="#cloudos-cli"><span class="std std-ref">cloudos-cli</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#table-of-contents"><span class="xref myst">Table of Contents</span></a></p></li>
 <li><p><a class="reference internal" href="#requirements"><span class="std std-ref">Requirements</span></a></p></li>
 <li><p><a class="reference internal" href="#installation"><span class="std std-ref">Installation</span></a></p>
 <ul>
@@ -399,7 +402,9 @@
 <li><p><a class="reference internal" href="#submit-a-job"><span class="xref myst">Submit a Job</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-logs"><span class="xref myst">Get Job Logs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-results"><span class="xref myst">Get Job Results</span></a></p></li>
-<li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume Job</span></a></p></li>
+<li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume job</span></a></p></li>
+<li><p><a class="reference internal" href="#query-working-directory-of-job"><span class="xref myst">Query working directory of job</span></a></p></li>
+<li><p><a class="reference internal" href="#abort-single-or-multiple-jobs-from-cloudos"><span class="xref myst">Abort single or multiple jobs from CloudOS</span></a></p></li>
 <li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p></li>
 <li><p><a class="reference internal" href="#check-job-status"><span class="xref myst">Check Job Status</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-details"><span class="xref myst">Get Job Details</span></a></p></li>
@@ -410,8 +415,23 @@
 <li><p><a class="reference internal" href="#bash-jobs"><span class="xref myst">Bash Jobs</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#send-array-job"><span class="xref myst">Send Array Job</span></a></p></li>
-<li><p><a class="reference internal" href="#submit-a-bash-array-job"><span class="xref myst">Submit a Bash Array Job</span></a></p></li>
-<li><p><a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">Use multiple projects for files in –parameter option</span></a></p></li>
+<li><p><a class="reference internal" href="#submit-a-bash-array-job"><span class="xref myst">Submit a Bash Array Job</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#options"><span class="std std-ref">Options</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#array-file"><span class="xref myst">Array File</span></a></p></li>
+<li><p><a class="reference internal" href="#separator"><span class="std std-ref">Separator</span></a></p></li>
+<li><p><a class="reference internal" href="#list-columns"><span class="xref myst">List Columns</span></a></p></li>
+<li><p><a class="reference internal" href="#array-file-project"><span class="xref myst">Array File Project</span></a></p></li>
+<li><p><a class="reference internal" href="#disable-column-check"><span class="xref myst">Disable Column Check</span></a></p></li>
+<li><p><a class="reference internal" href="#array-parameter"><span class="xref myst">Array Parameter</span></a></p></li>
+<li><p><a class="reference internal" href="#custom-script-path"><span class="xref myst">Custom Script Path</span></a></p></li>
+<li><p><a class="reference internal" href="#custom-script-project"><span class="xref myst">Custom Script Project</span></a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">Use multiple projects for files in <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option</span></a></p></li>
 </ul>
 </li>
 <li><p><a class="reference internal" href="#datasets"><span class="std std-ref">Datasets</span></a></p>
@@ -446,6 +466,8 @@
 </ul>
 </li>
 <li><p><a class="reference internal" href="#unit-testing"><span class="xref myst">Unit Testing</span></a></p></li>
+</ul>
+</li>
 </ul>
 </section>
 <hr class="docutils" />
@@ -1055,33 +1077,54 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>job-details<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+<span class="w">    </span>--job-id<span class="w"> </span>68bf2178b4ae9f283ea8a0bf
 </pre></div>
 </div>
 <p>The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing details...</span>
-<span class="go">                                             Job Details                                              </span>
-<span class="go">┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
-<span class="go">┃ Field                    ┃ Value                                                                   ┃</span>
-<span class="go">┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
-<span class="go">│ Parameters               │ -test=value                                                             │</span>
-<span class="go">│                          │ --gaq=test                                                              │</span>
-<span class="go">│                          │ cryo=yes                                                                │</span>
-<span class="go">│ Command                  │ echo &#39;test&#39; &gt; new_file.txt                                              │</span>
-<span class="go">│ Revision                 │ sha256:6015f66923d7afbc53558d7ccffd325d43b4e249f41a6e93eef074c9505d2233 │</span>
-<span class="go">│ Nextflow Version         │ None                                                                    │</span>
-<span class="go">│ Execution Platform       │ Batch AWS                                                               │</span>
-<span class="go">│ Profile                  │ None                                                                    │</span>
-<span class="go">│ Master Instance          │ c5.xlarge                                                               │</span>
-<span class="go">│ Storage                  │ 500                                                                     │</span>
-<span class="go">│ Job Queue                │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-feee                        │</span>
-<span class="go">│ Accelerated File Staging │ None                                                                    │</span>
-<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM                                                        │</span>
-<span class="go">└──────────────────────────┴─────────────────────────────────────────────────────────────────────────┘</span>
+<span class="go">                                                    Job Details</span>
+<span class="go">┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
+<span class="go">┃ Field                    ┃ Value                                                                                 ┃</span>
+<span class="go">┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
+<span class="go">│ Status                   │ completed                                                                             │</span>
+<span class="go">│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │</span>
+<span class="go">│ Project                  │ DB-PR-testing                                                                         │</span>
+<span class="go">│ Owner                    │ Name Surname                                                                          │</span>
+<span class="go">│ Pipeline                 │ MutSign                                                                               │</span>
+<span class="go">│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │</span>
+<span class="go">│ Submit time              │ 2025-09-08 18:34:26                                                                   │</span>
+<span class="go">│ End time                 │ 2025-09-08 18:38:26                                                                   │</span>
+<span class="go">│ Run time                 │ 4m 0s                                                                                 │</span>
+<span class="go">│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │</span>
+<span class="go">│ Cost                     │ $0.2515                                                                               │</span>
+<span class="go">│ Master Instance          │ c5.xlarge                                                                             │</span>
+<span class="go">│ Storage                  │ 500 GB                                                                                │</span>
+<span class="go">│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │</span>
+<span class="go">│ Job Queue Name           │ v41                                                                                   │</span>
+<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM&#39;                                                                 │</span>
+<span class="go">│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │</span>
+<span class="go">│ Nextflow Version         │ 22.10.8                                                                               │</span>
+<span class="go">│ Execution Platform       │ Batch AWS                                                                             │</span>
+<span class="go">│ Accelerated File Staging │ False                                                                                 │</span>
+<span class="go">│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │</span>
+<span class="go">│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │</span>
+<span class="go">│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │</span>
+<span class="go">│                          │ 000665B01_filtered.vcf.gz                                                             │</span>
+<span class="go">│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │</span>
+<span class="go">│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │</span>
+<span class="go">│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │</span>
+<span class="go">│                          │ ation.vcf.gz                                                                          │</span>
+<span class="go">│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │</span>
+<span class="go">│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │</span>
+<span class="go">│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │</span>
+<span class="go">│                          │ veman.csv                                                                             │</span>
+<span class="go">│                          │ --sample_name=W0000664B01                                                             │</span>
+<span class="go">│ Profile                  │ None                                                                                  │</span>
+<span class="go">└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘</span>
 </pre></div>
 </div>
-<p>To change this behaviour and save the details into a local JSON, the parameter <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> needs to be set as <code class="docutils literal notranslate"><span class="pre">--output-format=json</span></code>.</p>
-<p>By default, all details are saved in a file with the basename as <code class="docutils literal notranslate"><span class="pre">job_details</span></code>, for example <code class="docutils literal notranslate"><span class="pre">job_details.json</span></code> or <code class="docutils literal notranslate"><span class="pre">job_details.config.</span></code>. This can be changed with the parameter <code class="docutils literal notranslate"><span class="pre">--output-basename=new_filename</span></code>.</p>
+<p>To change this behaviour and save the details into a local CSV or JSON, the parameter <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> needs to be set as <code class="docutils literal notranslate"><span class="pre">--output-format=json</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format=csv</span></code>.</p>
+<p>By default, all details are saved in a file with the basename as <code class="docutils literal notranslate"><span class="pre">{job_id}_details</span></code>, for example <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.json</span></code> or <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.config.</span></code>. This can be changed with the parameter <code class="docutils literal notranslate"><span class="pre">--output-basename=new_filename</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">details</span></code> subcommand, can also take <code class="docutils literal notranslate"><span class="pre">--parameters</span></code> as an argument flag, which will create a new file <code class="docutils literal notranslate"><span class="pre">*.config</span></code> that holds all parameters as a Nexflow configuration file, example:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">params {</span>
 <span class="go">    parameter_one = value_one</span>
@@ -1114,29 +1157,48 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 </section>
 <section id="list-jobs">
 <h4>List Jobs<a class="headerlink" href="#list-jobs" title="Link to this heading">¶</a></h4>
-<p>You can get a summary of the workspace’s last 30 submitted jobs (or a selected number of last jobs using <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span> <span class="pre">n</span></code> parameter) in two different formats:</p>
+<p>You can get a summary of workspace jobs in two different formats:</p>
 <ul class="simple">
 <li><p>CSV: this is a table with a minimum predefined set of columns by default, or all the available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> argument.</p></li>
 <li><p>JSON: all the available information from the workspace jobs, in JSON format (<code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> is always enabled for this format).</p></li>
 </ul>
-<p>To get a list with the workspace’s last 30 submitted jobs, in CSV format, use:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
+<p><strong>Job Listing Control Options</strong></p>
+<p>CloudOS CLI provides two ways to control the number of jobs retrieved:</p>
+<ol class="arabic simple">
+<li><p><strong>Pagination Control (Default)</strong>: Use <code class="docutils literal notranslate"><span class="pre">--page</span></code> and <code class="docutils literal notranslate"><span class="pre">--page-size</span></code> for precise pagination</p></li>
+<li><p><strong>Last N Jobs</strong>: Use <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> for retrieving the most recent jobs</p></li>
+</ol>
+<blockquote>
+<div><p>[!IMPORTANT]
+<strong>These options are mutually exclusive</strong>. When <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> is specified, it takes precedence and <code class="docutils literal notranslate"><span class="pre">--page</span></code>/<code class="docutils literal notranslate"><span class="pre">--page-size</span></code> parameters are ignored. A warning message will be displayed if both are provided.</p>
+</div></blockquote>
+<p><strong>Default Behavior</strong></p>
+<p>By default, the command retrieves the first page with 10 jobs (equivalent to <code class="docutils literal notranslate"><span class="pre">--page</span> <span class="pre">1</span> <span class="pre">--page-size</span> <span class="pre">10</span></code>):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
 </pre></div>
 </div>
 <p>The expected output is something similar to:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
-<span class="go">	Job list collected with a total of 30 jobs.</span>
+<span class="go">	Job list collected with a total of 10 jobs.</span>
 <span class="go">	Job list saved to joblist.csv</span>
 </pre></div>
 </div>
-<p>In addition, a file named <code class="docutils literal notranslate"><span class="pre">joblist.csv</span></code> is created.</p>
-<p>To get the same information, but for all the workspace’s jobs and in JSON format, use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--cloudos-url<span class="w"> </span><span class="nv">$CLOUDOS</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--apikey<span class="w"> </span><span class="nv">$MY_API_KEY</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--workspace-id<span class="w"> </span><span class="nv">$WORKSPACE_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--last-n-jobs<span class="w"> </span>all<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--output-format<span class="w"> </span>json
+<p><strong>Pagination Examples</strong></p>
+<p>Retrieve specific pages using <code class="docutils literal notranslate"><span class="pre">--page</span></code> and <code class="docutils literal notranslate"><span class="pre">--page-size</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get page 2 with 15 jobs per page</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">15</span>
+
+<span class="c1"># Get page 5 with maximum 100 jobs per page</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">5</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">100</span>
+</pre></div>
+</div>
+<p><strong>Last N Jobs Examples</strong></p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> to get the most recent jobs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the last 50 jobs</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">50</span>
+
+<span class="c1"># Get all workspace jobs</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span>all<span class="w"> </span>--output-format<span class="w"> </span>json
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
@@ -1144,6 +1206,14 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 <span class="go">	Job list saved to joblist.json</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p>[!NOTE]</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--page-size</span></code> has a maximum limit of 100 jobs per page</p></li>
+<li><p>When filters or <code class="docutils literal notranslate"><span class="pre">--archived</span></code> flag are applied, pagination is applied to the filtered results</p></li>
+<li><p>If both <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> and pagination parameters are provided, only <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> will be used</p></li>
+</ul>
+</div></blockquote>
 <p>You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.</p>
 <p><strong>Available filters:</strong></p>
 <ul class="simple">
@@ -1156,17 +1226,35 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-owner</span></code></strong>: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be “Name Surname”)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-queue</span></code></strong>: Filter jobs by queue name (only applies to batch jobs)</p></li>
 </ul>
-<p>Here following are some examples:</p>
-<p>Get all completed jobs from the last 50 jobs:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">50</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
+<p><strong>Filtering Examples</strong></p>
+<p>You can find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.</p>
+<p>Using pagination approach (default):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get completed jobs from page 1 (default 20 jobs)</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-status<span class="w"> </span>completed
+
+<span class="c1"># Get completed jobs from page 2 with 15 jobs per page</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">15</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
+</pre></div>
+</div>
+<p>Using last-n-jobs approach:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get all completed jobs from the last 50 jobs</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">50</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
 </pre></div>
 </div>
 <p>Find jobs with “analysis” in the name from a specific project:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using pagination (gets first 20 matching jobs)</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
+
+<span class="c1"># Using last-n-jobs</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">100</span><span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
 </pre></div>
 </div>
 <p>Get all jobs using a specific workflow and queue:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using pagination with larger page size</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page-size<span class="w"> </span><span class="m">50</span><span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
+
+<span class="c1"># Using last-n-jobs to search all jobs</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="s1">&#39;all&#39;</span><span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
 </pre></div>
 </div>
 <blockquote>
