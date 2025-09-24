@@ -42,7 +42,12 @@ INIT_PROFILE = 'initialisingProfile'
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
     """Custom exception handler that respects debug mode"""
     console = Console(stderr=True)
+    # Initialise logger
+    debug_mode = '--debug' in sys.argv
+    setup_logging(debug_mode)
+    logger = logging.getLogger("CloudOS")
     if get_debug_mode():
+        logger.error(exc_value, exc_info=exc_value)
         console.print("[yellow]Debug mode: showing full traceback[/yellow]")
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
     else:
@@ -53,7 +58,7 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
             error_msg = str(exc_value)
         else:
             error_msg = f"{exc_type.__name__}"
-
+        logger.error(exc_value)
         console.print(f"[bold red]Error: {error_msg}[/bold red]")
 
         # For network errors, give helpful context
