@@ -19,7 +19,7 @@ from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
-from cloudos_cli.utils.details import get_path
+from cloudos_cli.utils.details import create_job_details
 from cloudos_cli.link import Link
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
@@ -1142,12 +1142,11 @@ def job_results(ctx,
 @click.option('--output-format',
               help=('The desired display for the output, either directly in standard output or saved as file. ' +
                     'Default=stdout.'),
-              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
-                    'Default=job_details'),
-              default='job_details',
+                    'Default={job_id}_details'),
               required=False)
 @click.option('--parameters',
               help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
@@ -1202,7 +1201,9 @@ def job_details(ctx,
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
-    execution_platform = user_options['execution_platform']
+
+    if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
+        output_basename = f"{job_id}_details"
 
     print('Executing details...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1224,140 +1225,7 @@ def job_details(ctx,
             raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to retrieve details for job '{job_id}': {str(e)}")
-    j_details_h = json.loads(j_details.content)
-
-    # Determine the execution platform based on jobType
-    executors = {
-        'nextflowAWS': 'Batch AWS',
-        'nextflowAzure': 'Batch Azure',
-        'nextflowGcp': 'GCP',
-        'nextflowHpc': 'HPC',
-        'nextflowKubernetes': 'Kubernetes',
-        'dockerAWS': 'Batch AWS',
-        'cromwellAWS': 'Batch AWS'
-    }
-    execution_platform = executors.get(j_details_h["jobType"], "None")
-    storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
-
-    # Check if the job details contain parameters
-    if j_details_h["parameters"] != []:
-        param_kind_map = {
-            'textValue': 'textValue',
-            'arrayFileColumn': 'columnName',
-            'globPattern': 'globPattern',
-            'lustreFileSystem': 'fileSystem',
-            'dataItem': 'dataItem'
-        }
-        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
-        # get first the type of parameter, then the value based on the parameter kind
-        concats = []
-        for param in j_details_h["parameters"]:
-            concats.append(f"{param['prefix']}{param['name']}={get_path(param, param_kind_map, execution_platform, storage_provider, 'asis')}")
-        concat_string = '\n'.join(concats)
-
-        # If the user requested to save the parameters in a config file
-        if parameters:
-            # Create a config file with the parameters
-            config_filename = f"{output_basename}.config"
-            with open(config_filename, 'w') as config_file:
-                config_file.write("params {\n")
-                for param in j_details_h["parameters"]:
-                    config_file.write(f"\t{param['name']} = {get_path(param, param_kind_map, execution_platform, storage_provider)}\n")
-                config_file.write("}\n")
-            print(f"\tJob parameters have been saved to '{config_filename}'")
-    else:
-        concat_string = 'No parameters provided'
-        if parameters:
-            print("\tNo parameters found in the job details, no config file will be created.")
-
-    # revision
-    if j_details_h["jobType"] == "dockerAWS":
-        revision = j_details_h["revision"]["digest"]
-    else:
-        revision = j_details_h["revision"]["commit"]
-
-    # Output the job details
-    if output_format == 'stdout':
-        console = Console()
-        table = Table(title="Job Details")
-
-        table.add_column("Field", style="cyan", no_wrap=True)
-        table.add_column("Value", style="magenta", overflow="fold")
-
-        table.add_row("Job Status", str(j_details_h["status"]))
-        table.add_row("Parameters", concat_string)
-        if j_details_h["jobType"] == "dockerAWS":
-            table.add_row("Command", str(j_details_h["command"]))
-        table.add_row("Revision", str(revision))
-        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
-        table.add_row("Execution Platform", execution_platform)
-        table.add_row("Profile", str(j_details_h.get("profile", "None")))
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
-        table.add_row("Master Instance", str(instance_type))
-        if j_details_h["jobType"] == "nextflowAzure":
-            try:
-                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
-            except KeyError:
-                table.add_row("Worker Node", "Not Specified")
-        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
-        if j_details_h["jobType"] != "nextflowAzure":
-            try:
-                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
-                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
-            except KeyError:
-                table.add_row("Job Queue", "Master Node")
-        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
-        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
-
-        console.print(table)
-    else:
-        # Create a JSON object with the key-value pairs
-        job_details_json = {
-            "Job Status": str(j_details_h["status"]),
-            "Parameters": ','.join(concat_string.split()),
-            "Revision": str(revision),
-            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
-            "Execution Platform": execution_platform,
-            "Profile": str(j_details_h.get("profile", "None")),
-            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
-            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
-            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
-
-        }
-
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
-        job_details_json["Master Instance"] = str(instance_type)
-
-        # Conditionally add the "Command" key if the jobType is "dockerAWS"
-        if j_details_h["jobType"] == "dockerAWS":
-            job_details_json["Command"] = str(j_details_h["command"])
-
-        # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
-        if j_details_h["jobType"] != "nextflowAzure":
-            try:
-                job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
-                job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
-            except KeyError:
-                job_details_json["Job Queue"] = "Master Node"
-
-        if j_details_h["jobType"] == "nextflowAzure":
-            try:
-                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
-            except KeyError:
-                job_details_json["Worker Node"] = "Not Specified"
-
-        # Write the JSON object to a file
-        with open(f"{output_basename}.json", "w") as json_file:
-            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
-        print(f"\tJob details have been saved to '{output_basename}.json'")
+    create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters)
 
 
 @job.command('list')
@@ -1389,13 +1257,18 @@ def job_details(ctx,
               is_flag=True)
 @click.option('--last-n-jobs',
               help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
-                    "retrieve all workspace jobs. Default=30."),
-              default='30')
+                    "retrieve all workspace jobs. When adding this option, options " +
+                    "'--page' and '--page-size' are ignored."))
 @click.option('--page',
-              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
-                    'value corresponds to the first page to retrieve. Default=1.'),
+              help=('Page number to fetch from the API. Used with --page-size to control jobs ' +
+                    'per page (e.g. --page=4 --page-size=20). Default=1.'),
               type=int,
               default=1)
+@click.option('--page-size',
+              help=('Page size to retrieve from API, corresponds to the number of jobs per page. ' +
+                    'Maximum allowed integer is 100. Default=10.'),
+              type=int,
+              default=10)
 @click.option('--archived',
               help=('When this flag is used, only archived jobs list is collected.'),
               is_flag=True)
@@ -1439,6 +1312,7 @@ def list_jobs(ctx,
               all_fields,
               last_n_jobs,
               page,
+              page_size,
               archived,
               filter_status,
               filter_job_name,
@@ -1498,13 +1372,14 @@ def list_jobs(ctx,
     ctx = click.get_current_context()
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
+
     if last_n_jobs != 'all':
         try:
             last_n_jobs = int(last_n_jobs)
         except ValueError:
             raise ValueError("--last-n-jobs value was not valid. Please use a positive int or 'all'")
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl,
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,
                                 filter_job_name=filter_job_name,
                                 filter_project=filter_project,
