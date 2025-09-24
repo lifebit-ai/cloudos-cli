@@ -529,7 +529,7 @@ class ConfigurationProfile:
             procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', procurement_id)
         if not resolved_cloudos_url:
             click.secho(
-                f"[Warning] No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
+                f"No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
                 fg="yellow",
                 bold=True
             )

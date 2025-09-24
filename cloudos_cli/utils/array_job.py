@@ -145,12 +145,12 @@ def generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_nam
             cromwell_token=None
         )
     except ValueError:
-        print(f"[ERROR] No {project_name} element in projects was found")
+        print(f"No {project_name} element in projects was found")
         sys.exit(1)
 
     except BadRequestException as e:
         if 'Forbidden' in str(e):
-            print('[Error] It seems your call is not authorised. Please check if ' +
+            print('It seems your call is not authorised. Please check if ' +
                   'your workspace is restricted by Airlock and if your API key is valid.')
             sys.exit(1)
         else:

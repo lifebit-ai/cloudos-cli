@@ -225,10 +225,13 @@ cloudos job list --help
 │                                                that this option is not generally recommended for         │
 │                                                security reasons.                                         │
 │    --ssl-cert                      TEXT        Path to your SSL certificate file.                        │
-│    --profile                       TEXT        Profile to use from the config file                       │
-│    --help                                      Show this message and exit.                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+│    --debug                                     Show detailed error information and tracebacks               │
+│    --profile                       TEXT        Profile to use from the config file                          │
+│    --help                                      Show this message and exit.                                  │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+In the same way, each implemented command has its own subcommands with its own `--debug` flag, that will print the full traceback for detailed error debugging. When this flag is not activated, the errors are presented in short descriptive format.
 
 ---
 
@@ -447,7 +450,7 @@ CloudOS workflow functionality: list and import workflows.
 
 Executing workflow import...
 
-	[Message] Only Nextflow workflows are currently supported.
+	Only Nextflow workflows are currently supported.
 
 	Workflow test_import_github_3 was imported successfully with the following ID: 6616a8cb454b09bbb3d9dc20
 ```
@@ -1534,7 +1537,7 @@ Executing run...
     Current Cromwell server status is: Running
 
     *******************************************************************************
-    [WARNING] Cromwell server is now running. Plase, remember to stop it when your
+    Cromwell server is now running. Plase, remember to stop it when your
     job finishes. You can use the following command:
     cloudos cromwell stop \
         --cromwell-token $CROMWELL_TOKEN \
