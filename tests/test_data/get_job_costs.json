@@ -1,0 +1,78 @@
+{
+  "master": {
+    "id": "i-00e328d0c4fe4bc17",
+    "machineType": "c4.large",
+    "isCostSaving": false,
+    "startTime": "2025-09-01T15:23:59.246Z",
+    "endTime": "2025-09-01T15:26:15.291Z",
+    "instancePricePerHour": {
+      "amount": 0.1,
+      "currencyCode": "USD"
+    },
+    "storage": {
+      "usageQuantity": 600,
+      "usageUnit": "Gb"
+    },
+    "storagePricePerHour": {
+      "amount": 0.0684931506849315,
+      "currencyCode": "USD"
+    },
+    "totalPrice": {
+      "amount": 0.0043287037037037035,
+      "currencyCode": "USD"
+    }
+  },
+  "workers": [
+    {
+      "id": "i-0d1d9e96cda992e74",
+      "machineType": "m4.xlarge",
+      "isCostSaving": true,
+      "startTime": "2025-09-01T15:25:02.935Z",
+      "endTime": "2025-09-01T15:26:13.116Z",
+      "instancePricePerHour": {
+        "amount": 0.0981,
+        "currencyCode": "USD"
+      },
+      "storage": {
+        "usageQuantity": 1009,
+        "usageUnit": "Gb"
+      },
+      "storagePricePerHour": {
+        "amount": 0,
+        "currencyCode": "USD"
+      },
+      "totalPrice": {
+        "amount": 0.0019075000000000003,
+        "currencyCode": "USD"
+      }
+    },
+    {
+      "id": "i-0f2e8c3a1b5d9e7f",
+      "machineType": "m5.large",
+      "isCostSaving": false,
+      "startTime": "2025-09-01T15:24:30.500Z",
+      "endTime": "2025-09-01T15:27:45.800Z",
+      "instancePricePerHour": {
+        "amount": 0.096,
+        "currencyCode": "USD"
+      },
+      "storage": {
+        "usageQuantity": 800,
+        "usageUnit": "Gb"
+      },
+      "storagePricePerHour": {
+        "amount": 0.05,
+        "currencyCode": "USD"
+      },
+      "totalPrice": {
+        "amount": 0.0021666666666666666,
+        "currencyCode": "USD"
+      }
+    }
+  ],
+  "paginationMetadata": {
+    "Pagination-Count": 3,
+    "Pagination-Page": 1,
+    "Pagination-Limit": 100
+  }
+}

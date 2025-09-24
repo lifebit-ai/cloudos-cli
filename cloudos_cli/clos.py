@@ -2,7 +2,6 @@
 This is the main class of the package.
 """
 
-from numpy import r_
 import requests
 import time
 import json
