@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.61.2 (2025-09-25)
+
+### Patch
+
+- Adds accelerate saving results option for bash job and array-job
+
 ## v2.61.0 (2025-09-24)
 
 ### Feat
