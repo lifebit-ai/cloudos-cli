@@ -225,10 +225,13 @@ cloudos job list --help
 │                                                that this option is not generally recommended for         │
 │                                                security reasons.                                         │
 │    --ssl-cert                      TEXT        Path to your SSL certificate file.                        │
-│    --profile                       TEXT        Profile to use from the config file                       │
-│    --help                                      Show this message and exit.                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+│    --debug                                     Show detailed error information and tracebacks               │
+│    --profile                       TEXT        Profile to use from the config file                          │
+│    --help                                      Show this message and exit.                                  │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+In the same way, each implemented command has its own subcommands with its own `--debug` flag, that will print the full traceback for detailed error debugging. When this flag is not activated, the errors are presented in short descriptive format.
 
 ---
 
