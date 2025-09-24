@@ -1773,6 +1773,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-accelerate-saving-results">
+<span class="sig-name descname"><span class="pre">--accelerate-saving-results</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-accelerate-saving-results" title="Link to this definition">¶</a></dt>
+<dd><p>Enables saving results directly to cloud storage bypassing the master node.</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-resumable">
 <span class="sig-name descname"><span class="pre">--resumable</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-resumable" title="Link to this definition">¶</a></dt>
 <dd><p>Whether to make the job able to be resumed or not.</p>
@@ -1912,37 +1918,43 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-18">
-<span class="sig-name descname"><span class="pre">--resumable</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-18" title="Link to this definition">¶</a></dt>
-<dd><p>Whether to make the job able to be resumed or not.</p>
+<span class="sig-name descname"><span class="pre">--accelerate-saving-results</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-18" title="Link to this definition">¶</a></dt>
+<dd><p>Enables saving results directly to cloud storage bypassing the master node.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-19">
-<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-19" title="Link to this definition">¶</a></dt>
-<dd><p>Whether to print information messages or not.</p>
+<span class="sig-name descname"><span class="pre">--resumable</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-19" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to make the job able to be resumed or not.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-20">
-<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-20" title="Link to this definition">¶</a></dt>
-<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-20" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-21">
-<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-21" title="Link to this definition">¶</a></dt>
-<dd><p>Path to your SSL certificate file.</p>
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-21" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-22">
-<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
-<dd><p>Show detailed error information and tracebacks</p>
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-23">
-<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-23" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-23" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-24">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-24" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
 </dd></dl>
 
@@ -2531,6 +2543,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-accelerate-file-staging">
 <span class="sig-name descname"><span class="pre">--accelerate-file-staging</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-run-accelerate-file-staging" title="Link to this definition">¶</a></dt>
 <dd><p>Enables AWS S3 mountpoint for quicker file staging.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-run-accelerate-saving-results">
+<span class="sig-name descname"><span class="pre">--accelerate-saving-results</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-run-accelerate-saving-results" title="Link to this definition">¶</a></dt>
+<dd><p>Enables saving results directly to cloud storage bypassing the master node.</p>
 </dd></dl>
 
 <dl class="std option">
