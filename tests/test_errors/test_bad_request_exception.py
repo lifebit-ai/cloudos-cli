@@ -22,13 +22,13 @@ def test_bad_request_exception():
     API request is mocked and replicated with json files
     """
     create_json = load_json_file(INPUT)
-    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 100, "page": 1}
+    params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 10, "page": 1}
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=100&page=1"
+    search_str = f"teamId={WORKSPACE_ID}&archived.status=false&limit=10&page=1"
     # mock GET method with the .json
     responses.add(
             responses.GET,
@@ -40,6 +40,6 @@ def test_bad_request_exception():
     # start cloudOS service
     with pytest.raises(BadRequestException) as error:
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-        clos.get_job_list(workspace_id=WORKSPACE_ID)
+        clos.get_job_list(workspace_id=WORKSPACE_ID, page=1, page_size=10)
 
     assert "Server returned status 400." in (str(error))

@@ -121,4 +121,4 @@ def test_fetch_job_queue_id_batch_true_workflow_type_wrong():
     # Raise ValueError
     with pytest.raises(ValueError) as error:
         j_queue.fetch_job_queue_id('wrong_workflow_type', batch=True)
-    assert '[ERROR] Only nextflow or cromwell workflows are allowed' in str(error)
+    assert 'Only nextflow or cromwell workflows are allowed' in str(error)

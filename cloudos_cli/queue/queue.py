@@ -110,13 +110,13 @@ class Queue(Cloudos):
         if workflow_type == 'wdl':
             workflow_type = 'cromwell'
         if workflow_type not in ['cromwell', 'nextflow']:
-            raise ValueError('[ERROR] Only nextflow or cromwell workflows are allowed when ' +
+            raise ValueError('Only nextflow or cromwell workflows are allowed when ' +
                              'running using AWS batch.')
         job_queues = self.get_job_queues()
         available_queues = [q for q in job_queues if q['status'] == 'Ready' and
                             q['executor'] == workflow_type]
         if len(available_queues) == 0:
-            raise Exception(f'[ERROR] There are no available job queues for {workflow_type} ' +
+            raise Exception(f'There are no available job queues for {workflow_type} ' +
                             'workflows. Consider creating one using CloudOS UI.')
         default_queue = [q for q in available_queues if q['isDefault']]
         if len(default_queue) > 0:
@@ -128,12 +128,12 @@ class Queue(Cloudos):
             default_queue_name = available_queues[-1]['label']
             queue_as_default = 'most recent suitable'
         if job_queue is None:
-            print(f'[Message] No job queue was specified, using the {queue_as_default} queue: ' +
+            print(f'No job queue was specified, using the {queue_as_default} queue: ' +
                   f'{default_queue_name}.')
             return default_queue_id
         selected_queue = [q for q in available_queues if q['label'] == job_queue]
         if len(selected_queue) == 0:
-            print(f'[Message] Queue \'{job_queue}\' you specified was not found, using the {queue_as_default} ' +
+            print(f'Queue \'{job_queue}\' you specified was not found, using the {queue_as_default} ' +
                   f'queue instead: {default_queue_name}.')
             return default_queue_id
         return selected_queue[0]['id']

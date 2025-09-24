@@ -15,7 +15,7 @@ def test_ssl_selector_disable_ssl_verification_without_ssl_cert():
     result = ssl_selector(disable_ssl_verification=True, ssl_cert=None)
     result_string = output.getvalue().rstrip()
     assert result is False
-    assert result_string == '[WARNING] Disabling SSL verification'
+    assert result_string == 'Disabling SSL verification'
     assert warnings.filters[0][0] == 'ignore'
 
 

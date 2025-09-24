@@ -12,6 +12,7 @@ from pathlib import Path
 import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
+import click
 
 
 @dataclass
@@ -167,10 +168,10 @@ class Job(Cloudos):
         elif resource == 'projects':
             return self.get_project_id_from_name(workspace_id, self.project_name, verify=verify)
         if mainfile is not None:
-            raise ValueError(f'[ERROR] A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
+            raise ValueError(f'A workflow named \'{name}\' with a mainFile \'{mainfile}\'' +
                              f' and an importsFile \'{importsfile}\' was not found')
         else:
-            raise ValueError(f'[ERROR] No {name} element in {resource} was found')
+            raise ValueError(f'No {name} element in {resource} was found')
 
     def convert_nextflow_to_json(self,
                                  job_config,
@@ -309,7 +310,8 @@ class Job(Cloudos):
             nextflow_profile is None and
             job_config is None and
             len(parameter) == 0 and
-            len(example_parameters) == 0
+            len(example_parameters) == 0 and 
+            workflow_type != 'docker'
         ):
             raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
                              '--example_parameters were specified,' +
@@ -317,9 +319,6 @@ class Job(Cloudos):
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
-        if workflow_type == 'docker' and len(parameter) == 0:
-            raise ValueError('No --parameter were provided. At least one of ' +
-                             'these are required for bash workflows.')
         if job_config is not None:
             with open(job_config, 'r') as p:
                 reading = False
@@ -370,6 +369,8 @@ class Job(Cloudos):
         if array_parameter is not None and len(array_parameter) > 0:
             ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
             workflow_params.append(ap_param)
+        elif array_file_header is not None and (array_parameter is None or len(array_parameter) == 0):
+            raise ValueError('At least one array file column must be added to the parameters')
 
         # general parameters (from --parameter)
         if len(parameter) > 0:
@@ -401,8 +402,8 @@ class Job(Cloudos):
             for example_param in example_parameters:
                 workflow_params.append(example_param)
         if storage_mode == "lustre":
-            print('\n[WARNING] Lustre storage has been selected. Please, be sure that this kind of ' +
-                  'storage is available in your CloudOS workspace.\n')
+            click.secho('\nLustre storage has been selected. Please, be sure that this kind of ' +
+                  'storage is available in your CloudOS workspace.\n', fg='yellow', bold=True)
             if lustre_size % 1200:
                 raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
                                  f'{lustre_size} is not a valid number.')
@@ -890,7 +891,7 @@ class Job(Cloudos):
         prefix = "--" if name.startswith('--') else ("-" if name.startswith('-') else "")
         if classify_pattern(rest) in ["regex", "glob"]:
             if not (file_path.startswith('/Data') or file_path.startswith('Data')):
-                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+                raise ValueError("The file path inside the project must start with '/Data' or 'Data'. ")
 
             folder = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=False)
             return {
@@ -902,7 +903,7 @@ class Job(Cloudos):
             }
         elif ext:
             if not (file_path.startswith('/Data') or file_path.startswith('Data')):
-                raise ValueError("[ERROR] The file path inside the project must start with '/Data' or 'Data'. ")
+                raise ValueError("The file path inside the project must start with '/Data' or 'Data'. ")
 
             file = get_file_or_folder_id(self.cloudos_url, self.apikey, self.workspace_id, current_project, self.verify, command_dir, command_name, is_file=True)
             return {
@@ -1087,9 +1088,25 @@ class Job(Cloudos):
 
         if mode == "resume":
             try:
-                cloned_payload['resumeWorkDir'] = self.get_field_from_jobs_endpoint(source_job_id, field="resumeWorkDir", verify=verify)
+                cloned_payload["resumeWorkDir"] = self.get_field_from_jobs_endpoint(
+                    source_job_id, field="resumeWorkDir", verify=verify
+                )
+            except Exception:
+                raise ValueError("The job was not set as resumable when originally run")
+
+            try:
+                status = self.get_field_from_jobs_endpoint(
+                    source_job_id, field="status", verify=verify
+                )
             except Exception as e:
-                raise ValueError(f"The job was not set as resumable when originally run")
+                raise ValueError(f"The job status cannot be retrieved: {e}")
+
+            allowed_statuses = {"completed", "aborted", "failed"}
+            if status not in allowed_statuses:
+                raise ValueError(
+                    f"Only jobs with status {', '.join(allowed_statuses)} can be resumed. "
+                    f"Current job status is '{status}'"
+                )
 
         # Override job name if provided
         if job_name:
@@ -1112,7 +1129,7 @@ class Job(Cloudos):
             cloned_payload['nextflowVersion'] = nextflow_version
         elif nextflow_version and cloned_payload['executionPlatform'] == 'azure' and\
             nextflow_version not in ['22.11.1-edge', 'latest']:
-            print("[Message]: Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
+            print("Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
         # Override branch if provided
         # sometimes revision is missing from the 'request-payload' API, make sure is present
@@ -1137,18 +1154,18 @@ class Job(Cloudos):
         if use_fusion and cloned_payload['executionPlatform'] != 'azure':
             cloned_payload['usesFusionFileSystem'] = use_fusion
         elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
-            print("[Message]: Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+            print("Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
 
         # Override resumable if provided
         if resumable and mode == "clone":
             cloned_payload['resumable'] = resumable
         elif resumable and mode == "resume":
-            print("[Message]: 'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
+            print("'resumable' option is only applicable when resuming a job, ignoring '--resumable' flag.\n")
 
         if 'command' in cloned_payload:
             cloned_payload['batch'] = {"enabled": False}
             if resumable:
-                print("[Message]: 'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
+                print("'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
 
         # Handle job queue override
         if queue_name:
@@ -1169,7 +1186,7 @@ class Job(Cloudos):
                 except Exception as e:
                     raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
             else:
-                print("[Message]: Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
+                print("Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
         # Handle parameter overrides
         if parameters:

@@ -1,4 +1,5 @@
 import os
+import click
 import urllib3
 
 def format_bytes(size):
@@ -35,7 +36,7 @@ def ssl_selector(disable_ssl_verification, ssl_cert):
     """
     if disable_ssl_verification:
         verify_ssl = False
-        print('[WARNING] Disabling SSL verification')
+        click.secho('Disabling SSL verification', fg='yellow', bold=True)
         urllib3.disable_warnings()
     elif ssl_cert is None:
         verify_ssl = True

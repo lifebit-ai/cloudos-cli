@@ -1,10 +1,31 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.61.0 (2025-09-09)
+## v2.61.0 (2025-09-24)
 
 ### Feat
 
 - Adds job cost details in stdout, csv and json formats
+
+## v2.60.5 (2025-09-22)
+
+### Patch
+
+- Fix how bash job and bash array-job run without a mandatory --parameter
+- Fix --debug to appear in all commands and subcommands
+- Fix different error formats, by using a single format
+
+## v2.60.4 (2025-09-19)
+
+### Patch
+
+- Updates job details output name and adds missing csv format
+- Updates page, page-size and last-n-jobs for job-list
+
+## v2.60.3 (2025-09-18)
+
+### Patch
+
+- Fixes job resume, only works for completed, aborted or failed job status
 
 ## v2.60.2 (2025-09-09)
 

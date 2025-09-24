@@ -19,7 +19,7 @@ from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
-from cloudos_cli.utils.details import get_path
+from cloudos_cli.utils.details import create_job_details
 from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
@@ -40,42 +40,92 @@ CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 INIT_PROFILE = 'initialisingProfile'
 
 
-def handle_exception(show_traceback=False):
-    """Custom exception handler for CloudOS CLI"""
-    def exception_handler(exc_type, exc_value, exc_traceback):
-        # Initialise logger
-        debug_mode = '--debug' in sys.argv
-        setup_logging(debug_mode)
-        logger = logging.getLogger("CloudOS")
-        # Handle keyboard interrupt gracefully
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.exit(1)
-        if show_traceback:
-            # Show full traceback for debugging
-            logger.error(exc_value, exc_info=exc_value)
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
+def custom_exception_handler(exc_type, exc_value, exc_traceback):
+    """Custom exception handler that respects debug mode"""
+    console = Console(stderr=True)
+    if get_debug_mode():
+        console.print("[yellow]Debug mode: showing full traceback[/yellow]")
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    else:
+        # Extract a clean error message
+        if hasattr(exc_value, 'message'):
+            error_msg = exc_value.message
+        elif str(exc_value):
+            error_msg = str(exc_value)
         else:
-            # Show only the error message
-            logger.error(exc_value)
-            click.echo(click.style(f"Error: {exc_value}", fg='red'), err=True)
-        sys.exit(1)
-    return exception_handler
+            error_msg = f"{exc_type.__name__}"
+
+        console.print(f"[bold red]Error: {error_msg}[/bold red]")
+
+        # For network errors, give helpful context
+        if 'HTTPSConnectionPool' in str(exc_value) or 'Max retries exceeded' in str(exc_value):
+            console.print("[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]")
+
+# Install the custom exception handler
+sys.excepthook = custom_exception_handler
 
 
-@click.group()
-@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks')
+def pass_debug_to_subcommands(group_cls=click.RichGroup):
+    """Custom Group class that passes --debug option to all subcommands"""
+
+    class DebugGroup(group_cls):
+        def add_command(self, cmd, name=None):
+            # Add debug option to the command if it doesn't already have it
+            if isinstance(cmd, (click.Command, click.Group)):
+                has_debug = any(param.name == 'debug' for param in cmd.params)
+                if not has_debug:
+                    debug_option = click.Option(
+                        ['--debug'], 
+                        is_flag=True, 
+                        help='Show detailed error information and tracebacks',
+                        is_eager=True,
+                        expose_value=False,
+                        callback=self._debug_callback
+                    )
+                    cmd.params.insert(-1, debug_option)  # Insert at the end for precedence
+
+            super().add_command(cmd, name)
+
+        def _debug_callback(self, ctx, param, value):
+            """Callback to handle debug flag"""
+            global _global_debug
+            if value:
+                _global_debug = True
+                ctx.meta['debug'] = True
+            else:
+                ctx.meta['debug'] = False
+            return value
+
+    return DebugGroup
+
+
+def get_debug_mode():
+    """Get current debug mode state"""
+    return _global_debug
+
+
+# Helper function for debug setup
+def _setup_debug(ctx, param, value):
+    """Setup debug mode globally and in context"""
+    global _global_debug
+    _global_debug = value
+    if value:
+        ctx.meta['debug'] = True
+    else:
+        ctx.meta['debug'] = False
+    return value
+
+
+@click.group(cls=pass_debug_to_subcommands())
+@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks', 
+              is_eager=True, expose_value=False, callback=_setup_debug)
 @click.version_option(__version__)
 @click.pass_context
-def run_cloudos_cli(ctx, debug):
+def run_cloudos_cli(ctx):
     """CloudOS python package: a package for interacting with CloudOS."""
     update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
-    ctx.obj['debug'] = debug
-    # Set up custom exception handling based on debug flag
-    if not debug:
-        sys.excepthook = handle_exception(show_traceback=False)
-    else:
-        sys.excepthook = handle_exception(show_traceback=True)
+
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
@@ -84,7 +134,7 @@ def run_cloudos_cli(ctx, debug):
     if profile_to_use is None:
         console = Console()
         console.print(
-            "[bold yellow][Warning] No profile found. Please create one with \"cloudos configure\"."
+            "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
         )
         shared_config = dict({
             'apikey': '',
@@ -216,54 +266,54 @@ def run_cloudos_cli(ctx, debug):
         })
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def job():
     """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def workflow():
     """CloudOS workflow functionality: list and import workflows."""
     print(workflow.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def project():
     """CloudOS project functionality: list and create projects in CloudOS."""
     print(project.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def cromwell():
     """Cromwell server functionality: check status, start and stop."""
     print(cromwell.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def bash():
     """CloudOS bash functionality."""
     print(bash.__doc__ + '\n')
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 def procurement():
     """CloudOS procurement functionality."""
     print(procurement.__doc__ + '\n')
 
 
-@procurement.group()
+@procurement.group(cls=pass_debug_to_subcommands())
 def images():
     """CloudOS procurement images functionality."""
 
 
-@run_cloudos_cli.group()
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands())
 @click.pass_context
 def datasets(ctx):
     """CloudOS datasets functionality."""
@@ -272,7 +322,7 @@ def datasets(ctx):
         print(datasets.__doc__ + '\n')
 
 
-@run_cloudos_cli.group(invoke_without_command=True)
+@run_cloudos_cli.group(cls=pass_debug_to_subcommands(), invoke_without_command=True)
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.option('--make-default',
               is_flag=True,
@@ -294,7 +344,7 @@ def configure(ctx, profile, make_default):
         config_manager.make_default_profile(profile_name=profile)
 
 
-@job.command('run')
+@job.command('run', cls=click.RichCommand)
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -538,10 +588,10 @@ def run(ctx,
     else:
         batch = True
     if execution_platform == 'hpc':
-        print('\n[Message] HPC execution platform selected')
+        print('\nHPC execution platform selected')
         if hpc_id is None:
             raise ValueError('Please, specify your HPC ID using --hpc parameter')
-        print('[Message] Please, take into account that HPC execution do not support ' +
+        print('Please, take into account that HPC execution do not support ' +
               'the following parameters and all of them will be ignored:\n' +
               '\t--job-queue\n' +
               '\t--resumable | --do-not-save-logs\n' +
@@ -554,13 +604,13 @@ def run(ctx,
         save_logs = False
     if accelerate_file_staging:
         if execution_platform != 'aws':
-            print('[Message] You have selected accelerate file staging, but this function is ' +
+            print('You have selected accelerate file staging, but this function is ' +
                   'only available when execution platform is AWS. The accelerate file staging ' +
                   'will not be applied')
             use_mountpoints = False
         else:
             use_mountpoints = True
-            print('[Message] Enabling AWS S3 mountpoint for accelerated file staging. ' +
+            print('Enabling AWS S3 mountpoint for accelerated file staging. ' +
                   'Please, take into consideration the following:\n' +
                   '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
                   '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
@@ -576,7 +626,7 @@ def run(ctx,
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
     if workflow_type == 'wdl':
-        print('[Message] WDL workflow detected')
+        print('WDL workflow detected')
         if wdl_mainfile is None:
             raise ValueError('Please, specify WDL mainFile using --wdl-mainfile <mainFile>.')
         c_status = cl.get_cromwell_status(workspace_id, verify_ssl)
@@ -597,14 +647,14 @@ def run(ctx,
         if c_status_h != 'Running':
             raise Exception('Cromwell server did not restarted properly.')
         cromwell_id = json.loads(c_status.content)["_id"]
-        print('\t' + ('*' * 80) + '\n' +
-              '\t[WARNING] Cromwell server is now running. Please, remember to stop it when ' +
+        click.secho('\t' + ('*' * 80) + '\n' +
+              '\tCromwell server is now running. Please, remember to stop it when ' +
               'your\n' + '\tjob finishes. You can use the following command:\n' +
               '\tcloudos cromwell stop \\\n' +
               '\t\t--cromwell-token $CROMWELL_TOKEN \\\n' +
               f'\t\t--cloudos-url {cloudos_url} \\\n' +
               f'\t\t--workspace-id {workspace_id}\n' +
-              '\t' + ('*' * 80) + '\n')
+              '\t' + ('*' * 80) + '\n', fg='yellow', bold=True)
     else:
         cromwell_id = None
     if verbose:
@@ -618,17 +668,17 @@ def run(ctx,
         print('\t...Sending job to CloudOS\n')
     if is_module:
         if job_queue is not None:
-            print(f'[Message] Ignoring job queue "{job_queue}" for ' +
+            print(f'Ignoring job queue "{job_queue}" for ' +
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
         if nextflow_version != '22.10.8':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+            print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. CloudOS modules only work with ' +
                   'Nextflow version 22.10.8. Switching to use 22.10.8')
         nextflow_version = '22.10.8'
         if execution_platform == 'azure':
-            print(f'[Message] The selected worflow \'{workflow_name}\' ' +
+            print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
                   'are managed internally. For this reason, the options ' +
                   'azure-worker-instance-type, azure-worker-instance-disk and ' +
@@ -640,7 +690,7 @@ def run(ctx,
                                                 job_queue=job_queue)
     if use_private_docker_repository:
         if is_module:
-            print(f'[Message] Workflow "{workflow_name}" is a CloudOS module. ' +
+            print(f'Workflow "{workflow_name}" is a CloudOS module. ' +
                   'Option --use-private-docker-repository will be ignored.')
             docker_login = False
         else:
@@ -650,7 +700,7 @@ def run(ctx,
                                 'credentials have not been configured yet. Please, link your ' +
                                 'Docker account to CloudOS before using ' +
                                 '--use-private-docker-repository option.')
-            print('[Message] Use private Docker repository has been selected. A custom job ' +
+            print('Use private Docker repository has been selected. A custom job ' +
                   'queue to support private Docker containers and/or Lustre FSx will be created for ' +
                   'your job. The selected job queue will serve as a template.')
             docker_login = True
@@ -663,26 +713,26 @@ def run(ctx,
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             nextflow_version = HPC_NEXTFLOW_LATEST
-        print('[Message] You have specified Nextflow version \'latest\' for execution platform ' +
+        print('You have specified Nextflow version \'latest\' for execution platform ' +
               f'\'{execution_platform}\'. The workflow will use the ' +
               f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'aws\', the workflow will use the default ' +
+            print('For execution platform \'aws\', the workflow will use the default ' +
                   '\'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
+            print('For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
                   'version on CloudOS.')
             nextflow_version = '22.11.1-edge'
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print('[Message] For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
+            print('For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
             nextflow_version = '22.10.8'
     if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
-        print(f'[Warning] You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-              'to be written in DSL2 and does not support DSL1.')
+        click.secho(f'You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
+              'to be written in DSL2 and does not support DSL1.', fg='yellow', bold=True)
     print('\nExecuting run...')
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
@@ -739,8 +789,7 @@ def run(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -821,11 +870,9 @@ def job_status(ctx,
         print(f'\tTo further check your job status you can either go to {j_url} ' +
               'or repeat the command you just used.')
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve status for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
 
 
 @job.command('workdir')
@@ -907,11 +954,9 @@ def job_workdir(ctx,
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve working directory for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
 
 
 @job.command('logs')
@@ -994,11 +1039,9 @@ def job_logs(ctx,
         for name, path in logs.items():
             print(f"{name}: {path}\n")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve logs for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve logs for job '{job_id}': {str(e)}")
 
 
 @job.command('results')
@@ -1081,11 +1124,9 @@ def job_results(ctx,
         for name, path in results.items():
             print(f"{name}: {path}\n")
     except BadRequestException as e:
-        click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve results for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to retrieve results for job '{job_id}': {str(e)}")
 
 
 @job.command('details')
@@ -1104,12 +1145,11 @@ def job_results(ctx,
 @click.option('--output-format',
               help=('The desired display for the output, either directly in standard output or saved as file. ' +
                     'Default=stdout.'),
-              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
-                    'Default=job_details'),
-              default='job_details',
+                    'Default={job_id}_details'),
               required=False)
 @click.option('--parameters',
               help=('Whether to generate a ".config" file that can be used as input for --job-config parameter. ' +
@@ -1164,7 +1204,9 @@ def job_details(ctx,
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
-    execution_platform = user_options['execution_platform']
+
+    if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
+        output_basename = f"{job_id}_details"
 
     print('Executing details...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1181,148 +1223,12 @@ def job_details(ctx,
         j_details = cl.get_job_status(job_id, verify_ssl)
     except BadRequestException as e:
         if '403' in str(e) or 'Forbidden' in str(e):
-            print("[Error] API can only show job details of your own jobs, cannot see other user's job details.")
-            sys.exit(1)
+            raise ValueError("API can only show job details of your own jobs, cannot see other user's job details.")
         else:
-            click.echo(f"[ERROR] Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to retrieve details for job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
-    j_details_h = json.loads(j_details.content)
-
-    # Determine the execution platform based on jobType
-    executors = {
-        'nextflowAWS': 'Batch AWS',
-        'nextflowAzure': 'Batch Azure',
-        'nextflowGcp': 'GCP',
-        'nextflowHpc': 'HPC',
-        'nextflowKubernetes': 'Kubernetes',
-        'dockerAWS': 'Batch AWS',
-        'cromwellAWS': 'Batch AWS'
-    }
-    execution_platform = executors.get(j_details_h["jobType"], "None")
-    storage_provider = "s3://" if execution_platform == "Batch AWS" else "az://"
-
-    # Check if the job details contain parameters
-    if j_details_h["parameters"] != []:
-        param_kind_map = {
-            'textValue': 'textValue',
-            'arrayFileColumn': 'columnName',
-            'globPattern': 'globPattern',
-            'lustreFileSystem': 'fileSystem',
-            'dataItem': 'dataItem'
-        }
-        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
-        # get first the type of parameter, then the value based on the parameter kind
-        concats = []
-        for param in j_details_h["parameters"]:
-            concats.append(f"{param['prefix']}{param['name']}={get_path(param, param_kind_map, execution_platform, storage_provider, 'asis')}")
-        concat_string = '\n'.join(concats)
-
-        # If the user requested to save the parameters in a config file
-        if parameters:
-            # Create a config file with the parameters
-            config_filename = f"{output_basename}.config"
-            with open(config_filename, 'w') as config_file:
-                config_file.write("params {\n")
-                for param in j_details_h["parameters"]:
-                    config_file.write(f"\t{param['name']} = {get_path(param, param_kind_map, execution_platform, storage_provider)}\n")
-                config_file.write("}\n")
-            print(f"\tJob parameters have been saved to '{config_filename}'")
-    else:
-        concat_string = 'No parameters provided'
-        if parameters:
-            print("\tNo parameters found in the job details, no config file will be created.")
-
-    # revision
-    if j_details_h["jobType"] == "dockerAWS":
-        revision = j_details_h["revision"]["digest"]
-    else:
-        revision = j_details_h["revision"]["commit"]
-
-    # Output the job details
-    if output_format == 'stdout':
-        console = Console()
-        table = Table(title="Job Details")
-
-        table.add_column("Field", style="cyan", no_wrap=True)
-        table.add_column("Value", style="magenta", overflow="fold")
-
-        table.add_row("Job Status", str(j_details_h["status"]))
-        table.add_row("Parameters", concat_string)
-        if j_details_h["jobType"] == "dockerAWS":
-            table.add_row("Command", str(j_details_h["command"]))
-        table.add_row("Revision", str(revision))
-        table.add_row("Nextflow Version", str(j_details_h.get("nextflowVersion", "None")))
-        table.add_row("Execution Platform", execution_platform)
-        table.add_row("Profile", str(j_details_h.get("profile", "None")))
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
-        table.add_row("Master Instance", str(instance_type))
-        if j_details_h["jobType"] == "nextflowAzure":
-            try:
-                table.add_row("Worker Node", str(j_details_h["azureBatch"]["vmType"]))
-            except KeyError:
-                table.add_row("Worker Node", "Not Specified")
-        table.add_row("Storage", str(j_details_h["storageSizeInGb"]) + " GB")
-        if j_details_h["jobType"] != "nextflowAzure":
-            try:
-                table.add_row("Job Queue ID", str(j_details_h["batch"]["jobQueue"]["name"]))
-                table.add_row("Job Queue Name", str(j_details_h["batch"]["jobQueue"]["label"]))
-            except KeyError:
-                table.add_row("Job Queue", "Master Node")
-        table.add_row("Accelerated File Staging", str(j_details_h.get("usesFusionFileSystem", "None")))
-        table.add_row("Task Resources", f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                                        f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM")
-
-        console.print(table)
-    else:
-        # Create a JSON object with the key-value pairs
-        job_details_json = {
-            "Job Status": str(j_details_h["status"]),
-            "Parameters": ','.join(concat_string.split()),
-            "Revision": str(revision),
-            "Nextflow Version": str(j_details_h.get("nextflowVersion", "None")),
-            "Execution Platform": execution_platform,
-            "Profile": str(j_details_h.get("profile", "None")),
-            "Storage": str(j_details_h["storageSizeInGb"]) + " GB",
-            "Accelerated File Staging": str(j_details_h.get("usesFusionFileSystem", "None")),
-            "Task Resources": f"{str(j_details_h['resourceRequirements']['cpu'])} CPUs, " +
-                              f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
-
-        }
-
-        # when the job is just running this value might not be present
-        master_instance = j_details_h.get("masterInstance", {})
-        used_instance = master_instance.get("usedInstance", {})
-        instance_type = used_instance.get("type", "N/A")
-        job_details_json["Master Instance"] = str(instance_type)
-
-        # Conditionally add the "Command" key if the jobType is "dockerAWS"
-        if j_details_h["jobType"] == "dockerAWS":
-            job_details_json["Command"] = str(j_details_h["command"])
-
-        # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
-        if j_details_h["jobType"] != "nextflowAzure":
-            try:
-                job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
-                job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
-            except KeyError:
-                job_details_json["Job Queue"] = "Master Node"
-
-        if j_details_h["jobType"] == "nextflowAzure":
-            try:
-                job_details_json["Worker Node"] = str(j_details_h["azureBatch"]["vmType"])
-            except KeyError:
-                job_details_json["Worker Node"] = "Not Specified"
-
-        # Write the JSON object to a file
-        with open(f"{output_basename}.json", "w") as json_file:
-            json.dump(job_details_json, json_file, indent=4, ensure_ascii=False)
-        print(f"\tJob details have been saved to '{output_basename}.json'")
+        raise ValueError(f"Failed to retrieve details for job '{job_id}': {str(e)}")
+    create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters)
 
 
 @job.command('list')
@@ -1354,13 +1260,18 @@ def job_details(ctx,
               is_flag=True)
 @click.option('--last-n-jobs',
               help=("The number of last workspace jobs to retrieve. You can use 'all' to " +
-                    "retrieve all workspace jobs. Default=30."),
-              default='30')
+                    "retrieve all workspace jobs. When adding this option, options " +
+                    "'--page' and '--page-size' are ignored."))
 @click.option('--page',
-              help=('Response page to retrieve. If --last-n-jobs is set, then --page ' +
-                    'value corresponds to the first page to retrieve. Default=1.'),
+              help=('Page number to fetch from the API. Used with --page-size to control jobs ' +
+                    'per page (e.g. --page=4 --page-size=20). Default=1.'),
               type=int,
               default=1)
+@click.option('--page-size',
+              help=('Page size to retrieve from API, corresponds to the number of jobs per page. ' +
+                    'Maximum allowed integer is 100. Default=10.'),
+              type=int,
+              default=10)
 @click.option('--archived',
               help=('When this flag is used, only archived jobs list is collected.'),
               is_flag=True)
@@ -1404,6 +1315,7 @@ def list_jobs(ctx,
               all_fields,
               last_n_jobs,
               page,
+              page_size,
               archived,
               filter_status,
               filter_job_name,
@@ -1463,14 +1375,11 @@ def list_jobs(ctx,
     ctx = click.get_current_context()
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
-    if last_n_jobs != 'all':
-        try:
-            last_n_jobs = int(last_n_jobs)
-        except ValueError:
-            print("[ERROR] last-n-jobs value was not valid. Please use a positive int or 'all'")
-            raise
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, archived, verify_ssl,
+    if not isinstance(page_size, int) or page_size < 1:
+        raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
+
+    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                                 filter_status=filter_status,
                                 filter_job_name=filter_job_name,
                                 filter_project=filter_project,
@@ -1493,12 +1402,12 @@ def list_jobs(ctx,
             filter_queue
         ])
         if filters_used:
-            print('\t[Message] A total of 0 jobs collected.')
+            print('A total of 0 jobs collected.')
         elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 jobs collected. This is likely because your workspace ' +
+            print('A total of 0 jobs collected. This is likely because your workspace ' +
                   'has no jobs created yet.')
         else:
-            print('\t[Message] A total of 0 jobs collected. This is likely because the --page you requested ' +
+            print('A total of 0 jobs collected. This is likely because the --page you requested ' +
                   'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                   'using --page parameter.')
     elif output_format == 'csv':
@@ -1601,16 +1510,16 @@ def abort_jobs(ctx,
         try:
             j_status = cl.get_job_status(job, verify_ssl)
         except Exception as e:
-            print(f"[WARNING] Failed to get status for job {job}, please make sure it exists in the workspace: {e}")
+            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
         j_status_content = json.loads(j_status.content)
         # check if job id is valid & is in working state (initial, running)
         if j_status_content['status'] not in ABORT_JOB_STATES:
-            print("[WARNING] Job {job} is not in a state that can be aborted and is ignored. " +
-                  f"Current status: {j_status_content['status']}")
+            click.secho(f"Job {job} is not in a state that can be aborted and is ignored. " +
+                  f"Current status: {j_status_content['status']}", fg='yellow', bold=True)
         else:
             cl.abort_job(job, workspace_id, verify_ssl)
-            print(f"\tJob '{job}' aborted successfully.")
+            click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
 
 
 @job.command('cost')
@@ -1864,11 +1773,9 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        click.echo(f"[ERROR] Failed to {mode} job.  Job '{job_id}' not found or not accessible: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to {mode} job. Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
-        click.echo(f"[ERROR] Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}")
 
 
 # Register the same function under two names
@@ -2176,10 +2083,10 @@ def list_projects(ctx,
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('\t[Message] A total of 0 projects collected. This is likely because your workspace ' +
+            print('A total of 0 projects collected. This is likely because your workspace ' +
                   'has no projects created yet.')
         else:
-            print('\t[Message] A total of 0 projects collected. This is likely because the --page you ' +
+            print('A total of 0 projects collected. This is likely because the --page you ' +
                   'requested does not exist. Please, try a smaller number for --page or collect all the ' +
                   'projects by not using --page parameter.')
     elif output_format == 'csv':
@@ -2846,6 +2753,11 @@ def run_bash_job(ctx,
         else:
             instance_type = None
 
+    if do_not_save_logs:
+        save_logs = False
+    else:
+        save_logs = True
+
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
                repository_platform=repository_platform, verify=verify_ssl, last=last)
@@ -2867,7 +2779,7 @@ def run_bash_job(ctx,
                       git_branch=None,
                       job_name=job_name,
                       resumable=False,
-                      save_logs=do_not_save_logs,
+                      save_logs=save_logs,
                       batch=batch,
                       job_queue_id=job_queue_id,
                       workflow_type='docker',
@@ -2910,8 +2822,7 @@ def run_bash_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -3039,10 +2950,10 @@ def run_bash_job(ctx,
               is_flag=True)
 @click.option('-a', '--array-parameter',
               multiple=True,
-              help=('A single parameter to pass to the job call only for specifying array parameter. It should be in the ' +
-                    'following form: parameter_name=parameter_value. E.g.: ' +
-                    '-a --test=value or -a -test=value or -a test=value. You can use this option as many ' +
-                    'times as parameters you want to include.'))
+              help=('A single parameter to pass to the job call only for specifying array columns. ' +
+                    'It should be in the following form: parameter_name=array_file_column_name. E.g.: ' +
+                    '-a --test=value or -a -test=value or -a test=value or -a =value (for no prefix). ' +
+                    'You can use this option as many times as parameters you want to include.'))
 @click.option('--custom-script-path',
               help=('Path of a custom script to run in the bash array job instead of a command.'),
               default=None)
@@ -3207,8 +3118,8 @@ def run_bash_array_job(ctx,
                     print(f"Found column '{ap_value}' in the array file.")
                     break
             else:
-                raise ValueError(f"Column '{ap_value}' not found in the array file. " +
-                                 "Columns in array-file: ", f"{separator}".join([col['name'] for col in columns]))
+                raise ValueError(f"Column '{ap_value}' not found in the array file. " + \
+                                 f"Columns in array-file: {separator.join([col['name'] for col in columns])}")
 
     if job_queue is not None:
         batch = True
@@ -3274,8 +3185,7 @@ def run_bash_array_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              '\t\t--apikey $MY_API_KEY \\\n' +
-              f'\t\t--cloudos-url {cloudos_url} \\\n' +
+              f'\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -3431,7 +3341,7 @@ def list_files(ctx,
                     console.print(name)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"Failed to list files for project '{project_name}': {str(e)}")
 
 
 @datasets.command(name="mv")
@@ -3462,12 +3372,10 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     profile = profile or ctx.default_map['datasets']['move'].get('profile')
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
-        click.echo("[ERROR] Destination path must begin with 'Data/' or be 'Data'.", err=True)
-        sys.exit(1)
+        raise ValueError("Destination path must begin with 'Data/' or be 'Data'.")
     if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
-        click.echo("[ERROR] SOURCE_PATH must start with  'Data/' or be 'Data'.", err=True)
-        sys.exit(1)
-    click.echo('Loading configuration profile')
+        raise ValueError("SOURCE_PATH must start with  'Data/' or be 'Data'.")
+    print('Loading configuration profile')
     # Load configuration profile
     config_manager = ConfigurationProfile()
     required_dict = {
@@ -3521,7 +3429,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         verify=verify_ssl,
         cromwell_token=None
     )
-    click.echo('Checking source path')
+    print('Checking source path')
     # === Resolve Source Item ===
     source_parts = source_path.strip("/").split("/")
     source_parent_path = "/".join(source_parts[:-1]) if len(source_parts) > 1 else None
@@ -3530,8 +3438,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     try:
         source_contents = source_client.list_folder_content(source_parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not resolve source path '{source_path}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not resolve source path '{source_path}': {str(e)}")
 
     found_source = None
     for collection in ["files", "folders"]:
@@ -3542,13 +3449,11 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if found_source:
             break
     if not found_source:
-        click.echo(f"[ERROR] Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'",
-                   err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{source_item_name}' not found in '{source_parent_path or '[project root]'}'")
 
     source_id = found_source["_id"]
     source_kind = "Folder" if "folderType" in found_source else "File"
-    click.echo("Checking destination path")
+    print("Checking destination path")
     # === Resolve Destination Folder ===
     dest_parts = destination_path.strip("/").split("/")
     dest_folder_name = dest_parts[-1]
@@ -3566,19 +3471,16 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type == "S3Folder":
-            click.echo(f"[ERROR] Unable to move item '{source_item_name}' to '{destination_path}'. " +
-                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.",
-                       err=True)
-            sys.exit(1)
+            raise ValueError(f"Unable to move item '{source_item_name}' to '{destination_path}'. " +
+                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.")
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
         else:
             raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
 
     except Exception as e:
-        click.echo(f"[ERROR] Could not resolve destination path '{destination_path}': {str(e)}", err=True)
-        sys.exit(1)
-    click.echo(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
+        raise ValueError(f"Could not resolve destination path '{destination_path}': {str(e)}")
+    print(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
                f"in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
@@ -3589,14 +3491,12 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             target_kind=target_kind
         )
         if response.ok:
-            click.secho(f"[SUCCESS] {source_kind} '{source_item_name}' moved to '{destination_path}' " +
+            click.secho(f"{source_kind} '{source_item_name}' moved to '{destination_path}' " +
                         f"in project '{destination_project_name}'.", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Move failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Move failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Move operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Move operation failed: {str(e)}")
 
 
 @datasets.command(name="rename")
@@ -3629,9 +3529,8 @@ def renaming_item(ctx,
     """
     update_command_context_from_click(ctx)
     if not source_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.", err=True)
-        sys.exit(1)
-    click.echo("Loading configuration profile...")
+        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3682,8 +3581,7 @@ def renaming_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
 
     # Search for file/folder
     found_item = None
@@ -3696,27 +3594,24 @@ def renaming_item(ctx,
             break
 
     if not found_item:
-        click.echo(f"[ERROR] Item '{target_name}' not found in '{parent_path or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{target_name}' not found in '{parent_path or '[project root]'}'")
 
     item_id = found_item["_id"]
     kind = "Folder" if "folderType" in found_item else "File"
 
-    click.echo(f"Renaming {kind} '{target_name}' to '{new_name}'...")
+    print(f"Renaming {kind} '{target_name}' to '{new_name}'...")
     try:
         response = client.rename_item(item_id=item_id, new_name=new_name, kind=kind)
         if response.ok:
             click.secho(
-                f"[SUCCESS] {kind} '{target_name}' renamed to '{new_name}' in folder '{parent_path}'.",
+                f"{kind} '{target_name}' renamed to '{new_name}' in folder '{parent_path}'.",
                 fg="green",
                 bold=True
             )
         else:
-            click.echo(f"[ERROR] Rename failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Rename failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Rename operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Rename operation failed: {str(e)}")
 
 
 @datasets.command(name="cp")
@@ -3751,7 +3646,7 @@ def copy_item_cli(ctx,
      E.g.: Data/plots
     """
     update_command_context_from_click(ctx)
-    click.echo("Loading configuration profile...")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3799,8 +3694,7 @@ def copy_item_cli(ctx,
     # Validate paths
     dest_parts = destination_path.strip("/").split("/")
     if not dest_parts or dest_parts[0] != "Data":
-        click.echo("[ERROR] DESTINATION_PATH must start with 'Data/'.", err=True)
-        sys.exit(1)
+        raise ValueError("DESTINATION_PATH must start with 'Data/'.")
     # Parse source and destination
     source_parts = source_path.strip("/").split("/")
     source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
@@ -3811,8 +3705,7 @@ def copy_item_cli(ctx,
         source_content = source_client.list_folder_content(source_parent)
         dest_content = dest_client.list_folder_content(dest_parent)
     except Exception as e:
-        click.echo(f"[ERROR] Could not access paths: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not access paths: {str(e)}")
     # Find the source item
     source_item = None
     for item in source_content.get('files', []) + source_content.get('folders', []):
@@ -3820,8 +3713,7 @@ def copy_item_cli(ctx,
             source_item = item
             break
     if not source_item:
-        click.echo(f"[ERROR] Item '{source_name}' not found in '{source_parent or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{source_name}' not found in '{source_parent or '[project root]'}'")
     # Find the destination folder
     destination_folder = None
     for folder in dest_content.get("folders", []):
@@ -3829,8 +3721,7 @@ def copy_item_cli(ctx,
             destination_folder = folder
             break
     if not destination_folder:
-        click.echo(f"[ERROR] Destination folder '{destination_path}' not found.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Destination folder '{destination_path}' not found.")
     try:
         # Determine item type
         if "fileType" in source_item:
@@ -3840,15 +3731,12 @@ def copy_item_cli(ctx,
         elif "s3BucketName" in source_item and source_item.get("folderType") == "S3Folder":
             item_type = "s3_folder"
         else:
-            click.echo("[ERROR] Could not determine item type.", err=True)
-            sys.exit(1)
-        click.echo(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
+            raise ValueError("Could not determine item type.")
+        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType") == "S3Folder":
-            click.echo(f"[ERROR] Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.",
-                       err=True)
-            sys.exit(1)
+            raise ValueError(f"Unable to copy item '{source_name}' to '{destination_path}'. The destination is an S3 folder, and only virtual folders can be selected as valid copy destinations.")
         else:
             destination_kind = "Folder"
         response = source_client.copy_item(
@@ -3857,13 +3745,11 @@ def copy_item_cli(ctx,
             destination_kind=destination_kind
         )
         if response.ok:
-            click.secho("[SUCCESS] Item copied successfully.", fg="green", bold=True)
+            click.secho("Item copied successfully.", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Copy failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Copy failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Copy operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Copy operation failed: {str(e)}")
 
 
 @datasets.command(name="mkdir")
@@ -3893,18 +3779,16 @@ def mkdir_item(ctx,
     update_command_context_from_click(ctx)
     new_folder_path = new_folder_path.strip("/")
     if not new_folder_path.startswith("Data"):
-        click.echo("[ERROR] NEW_FOLDER_PATH must start with 'Data'.", err=True)
-        sys.exit(1)
+        raise ValueError("NEW_FOLDER_PATH must start with 'Data'.")
 
     path_parts = new_folder_path.split("/")
     if len(path_parts) < 2:
-        click.echo("[ERROR] NEW_FOLDER_PATH must include at least a parent folder and the new folder name.", err=True)
-        sys.exit(1)
+        raise ValueError("NEW_FOLDER_PATH must include at least a parent folder and the new folder name.")
 
     parent_path = "/".join(path_parts[:-1])
     folder_name = path_parts[-1]
 
-    click.echo("Loading configuration profile...")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -3956,8 +3840,7 @@ def mkdir_item(ctx,
     try:
         contents = client.list_folder_content(parent_of_parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_of_parent_path}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_of_parent_path}': {str(e)}")
 
     # Find the parent folder in the contents
     folder_info = next(
@@ -3966,8 +3849,7 @@ def mkdir_item(ctx,
     )
 
     if not folder_info:
-        click.echo(f"[ERROR] Could not find folder '{parent_name}' in '{parent_of_parent_path}'.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not find folder '{parent_name}' in '{parent_of_parent_path}'.")
 
     parent_id = folder_info.get("_id")
     folder_type = folder_info.get("folderType")
@@ -3977,21 +3859,18 @@ def mkdir_item(ctx,
     elif isinstance(folder_type, str):
         parent_kind = "Folder"
     else:
-        click.echo(f"[ERROR] Unrecognized folderType for '{parent_path}'.", err=True)
-        sys.exit(1)
+        raise ValueError(f"Unrecognized folderType for '{parent_path}'.")
 
     # Create the folder
-    click.echo(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
+    print(f"Creating folder '{folder_name}' under '{parent_path}' ({parent_kind})...")
     try:
         response = client.create_virtual_folder(name=folder_name, parent_id=parent_id, parent_kind=parent_kind)
         if response.ok:
-            click.secho(f"[SUCCESS] Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
+            click.secho(f"Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
         else:
-            click.echo(f"[ERROR] Folder creation failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Folder creation failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Folder creation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Folder creation failed: {str(e)}")
 
 
 @datasets.command(name="rm")
@@ -4023,9 +3902,8 @@ def rm_item(ctx,
     """
     update_command_context_from_click(ctx)
     if not target_path.strip("/").startswith("Data/"):
-        click.echo("[ERROR] TARGET_PATH must start with 'Data/', pointing to a file or folder.", err=True)
-        sys.exit(1)
-    click.echo("Loading configuration profile...")
+        raise ValueError("TARGET_PATH must start with 'Data/', pointing to a file or folder.")
+    print("Loading configuration profile...")
     config_manager = ConfigurationProfile()
     required_dict = {
         'apikey': True,
@@ -4075,8 +3953,7 @@ def rm_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        click.echo(f"[ERROR] Could not list contents at '{parent_path or '[project root]'}': {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
 
     found_item = None
     for item in contents.get('files', []) + contents.get('folders', []):
@@ -4085,41 +3962,35 @@ def rm_item(ctx,
             break
 
     if not found_item:
-        click.echo(f"[ERROR] Item '{item_name}' not found in '{parent_path or '[project root]'}'", err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{item_name}' not found in '{parent_path or '[project root]'}'")
 
     item_id = found_item.get("_id", '')
     kind = "Folder" if "folderType" in found_item else "File"
     if item_id == '':
-        click.echo(f"[ERROR] Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.",
-                   err=True)
-        sys.exit(1)
+        raise ValueError(f"Item '{item_name}' could not be removed as the parent folder is an s3 folder and their content cannot be modified.")
     # Check if the item is managed by Lifebit
     is_managed_by_lifebit = found_item.get("isManagedByLifebit", False)
     if is_managed_by_lifebit and not force:
-        click.echo("[ERROR] By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.", err=True)
-        sys.exit(1)
-    click.echo(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
+        raise ValueError("By removing this file, it will be permanently deleted. If you want to go forward, please use the --force flag.")
+    print(f"Removing {kind} '{item_name}' from '{parent_path or '[root]'}'...")
     try:
         response = client.delete_item(item_id=item_id, kind=kind)
         if response.ok:
             if is_managed_by_lifebit:
                 click.secho(
-                    f"[SUCCESS] {kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
+                    f"{kind} '{item_name}' was permanently deleted from '{parent_path or '[root]'}'.",
                     fg="green", bold=True
                 )
             else:
                 click.secho(
-                    f"[SUCCESS] {kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
+                    f"{kind} '{item_name}' was removed from '{parent_path or '[root]'}'.",
                     fg="green", bold=True
                 )
                 click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
-            click.echo(f"[ERROR] Removal failed: {response.status_code} - {response.text}", err=True)
-            sys.exit(1)
+            raise ValueError(f"Removal failed: {response.status_code} - {response.text}")
     except Exception as e:
-        click.echo(f"[ERROR] Remove operation failed: {str(e)}", err=True)
-        sys.exit(1)
+        raise ValueError(f"Remove operation failed: {str(e)}")
 
 
 @datasets.command(name="link")
@@ -4261,21 +4132,20 @@ def link(ctx,
 
     if is_folder is False:
         if is_s3:
-            click.echo("[ERROR] The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.", err=True)
+            raise ValueError("The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
         else:
-            click.echo("[ERROR] Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
+            raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
         return
     elif is_folder is None and is_s3:
-        click.echo("[WARNING] Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
-                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.",
-                   err=True)
+        click.secho("Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.", fg='yellow', bold=True)
 
     try:
         link_p.link_folder(path, session_id)
     except Exception as e:
-        click.echo(f"[ERROR] Could not link folder: {e}", err=True)
         if is_s3:
-            click.echo("If you are linking an S3 path, please ensure it is a folder.", err=True)
+            print("If you are linking an S3 path, please ensure it is a folder.")
+        raise ValueError(f"Could not link folder: {e}")
 
 
 @images.command(name="ls")
@@ -4360,7 +4230,7 @@ def list_images(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"{str(e)}")
 
 
 @images.command(name="set")
@@ -4465,7 +4335,7 @@ def set_organisation_image(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
+        raise ValueError(f"{str(e)}")
 
 
 @images.command(name="reset")
@@ -4564,8 +4434,7 @@ def reset_organisation_image(ctx,
         console.print(result)
 
     except Exception as e:
-        click.echo(f"[ERROR] {str(e)}", err=True)
-
+        raise ValueError(f"{str(e)}")
 
 if __name__ == "__main__":
     # Setup logging
