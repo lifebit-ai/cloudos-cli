@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.61.0 (2025-09-24)
+
+### Feat
+
+- Adds accelerate saving results option
+
 ## v2.60.5 (2025-09-22)
 
 ### Patch
