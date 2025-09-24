@@ -25,6 +25,20 @@ from cloudos_cli.logging.logger import setup_logging, update_command_context_fro
 import logging
 
 
+# GLOBAL VARS
+JOB_COMPLETED = 'completed'
+REQUEST_INTERVAL_CROMWELL = 30
+AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
+AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
+HPC_NEXTFLOW_VERSIONS = ['22.10.8']
+AWS_NEXTFLOW_LATEST = '24.04.4'
+AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
+HPC_NEXTFLOW_LATEST = '22.10.8'
+ABORT_JOB_STATES = ['running', 'initializing']
+CLOUDOS_URL = 'https://cloudos.lifebit.ai'
+INIT_PROFILE = 'initialisingProfile'
+
+
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
     """Custom exception handler that respects debug mode"""
     console = Console(stderr=True)
@@ -82,20 +96,6 @@ def pass_debug_to_subcommands(group_cls=click.RichGroup):
             return value
 
     return DebugGroup
-
-
-# GLOBAL VARS
-JOB_COMPLETED = 'completed'
-REQUEST_INTERVAL_CROMWELL = 30
-AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
-AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
-HPC_NEXTFLOW_VERSIONS = ['22.10.8']
-AWS_NEXTFLOW_LATEST = '24.04.4'
-AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
-HPC_NEXTFLOW_LATEST = '22.10.8'
-ABORT_JOB_STATES = ['running', 'initializing']
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
 
 
 def get_debug_mode():
