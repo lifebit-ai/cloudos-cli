@@ -373,6 +373,13 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-bash-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-bash-array-job">
 <h4>array-job<a class="headerlink" href="#cloudos-bash-array-job" title="Link to this heading">¶</a></h4>
 <p>Run a bash array job in CloudOS.</p>
@@ -584,13 +591,19 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-a">
 <span id="cmdoption-cloudos-bash-array-job-array-parameter"></span><span class="sig-name descname"><span class="pre">-a</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--array-parameter</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;array_parameter&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-a" title="Link to this definition">¶</a></dt>
-<dd><p>A single parameter to pass to the job call only for specifying array parameter. It should be in the following form: parameter_name=parameter_value. E.g.: -a –test=value or -a -test=value or -a test=value. You can use this option as many times as parameters you want to include.</p>
+<dd><p>A single parameter to pass to the job call only for specifying array columns. It should be in the following form: parameter_name=array_file_column_name. E.g.: -a –test=value or -a -test=value or -a test=value or -a =value (for no prefix). You can use this option as many times as parameters you want to include.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-custom-script-path">
 <span class="sig-name descname"><span class="pre">--custom-script-path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;custom_script_path&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-custom-script-path" title="Link to this definition">¶</a></dt>
 <dd><p>Path of a custom script to run in the bash array job instead of a command.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -763,6 +776,12 @@
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -784,6 +803,12 @@
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-configure-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-configure-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-configure-make-default">
 <span class="sig-name descname"><span class="pre">--make-default</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-configure-make-default" title="Link to this definition">¶</a></dt>
 <dd><p>Make the profile the default one.</p>
@@ -794,6 +819,13 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span>list-profiles<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-configure-list-profiles-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-configure-list-profiles-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 </section>
 <section id="cloudos-configure-remove-profile">
 <h4>remove-profile<a class="headerlink" href="#cloudos-configure-remove-profile" title="Link to this heading">¶</a></h4>
@@ -801,6 +833,12 @@
 </pre></div>
 </div>
 <p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-configure-remove-profile-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-configure-remove-profile-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-configure-remove-profile-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-configure-remove-profile-profile" title="Link to this definition">¶</a></dt>
@@ -815,6 +853,13 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>cromwell<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-cromwell-start">
 <h4>start<a class="headerlink" href="#cloudos-cromwell-start" title="Link to this heading">¶</a></h4>
 <p>Restart Cromwell server in CloudOS.</p>
@@ -874,6 +919,12 @@
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-start-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-start-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-start-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-start-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -939,6 +990,12 @@
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-status-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-status-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-status-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-status-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -1001,6 +1058,12 @@
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-stop-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-stop-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-stop-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-stop-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -1014,6 +1077,13 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-datasets-cp">
 <h4>cp<a class="headerlink" href="#cloudos-datasets-cp" title="Link to this heading">¶</a></h4>
 <p>Copy a file or folder (S3 or virtual) from SOURCE_PATH to DESTINATION_PATH.</p>
@@ -1067,6 +1137,12 @@
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-cp-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-cp-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-cp-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-cp-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1141,6 +1217,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -1204,6 +1286,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-details">
 <span class="sig-name descname"><span class="pre">--details</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-details" title="Link to this definition">¶</a></dt>
 <dd><p>When selected, it prints the details of the listed files. Details contains “Type”, “Owner”, “Size”, “Last Updated”, “Virtual Name”, “Storage Path”.</p>
@@ -1259,6 +1347,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mkdir-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mkdir-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mkdir-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mkdir-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1331,6 +1425,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mv-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mv-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mv-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mv-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file.</p>
@@ -1396,6 +1496,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rename-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rename-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rename-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rename-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1470,6 +1576,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rm-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rm-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rm-force">
 <span class="sig-name descname"><span class="pre">--force</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rm-force" title="Link to this definition">¶</a></dt>
 <dd><p>Force delete files. Required when deleting user uploaded files. This may also delete the file from the cloud provider storage.</p>
@@ -1490,6 +1602,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-job-abort">
 <h4>abort<a class="headerlink" href="#cloudos-job-abort" title="Link to this heading">¶</a></h4>
 <p>Abort all specified jobs from a CloudOS workspace.</p>
@@ -1537,6 +1656,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-abort-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-abort-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-abort-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-abort-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1669,6 +1794,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1805,7 +1936,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-22">
-<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-23">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-23" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
 </dd></dl>
 
@@ -1874,6 +2011,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-details-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-details-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-details-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-details-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2028,6 +2171,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-list-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-list-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-list-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2084,6 +2233,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2137,6 +2292,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-results-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-results-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2403,6 +2564,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-run-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-run-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2450,6 +2617,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-status-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-status-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-status-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-status-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2509,6 +2682,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2522,12 +2701,26 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-procurement-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-procurement-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-procurement-images">
 <h4>images<a class="headerlink" href="#cloudos-procurement-images" title="Link to this heading">¶</a></h4>
 <p>CloudOS procurement images functionality.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-procurement-images-ls">
 <h5>ls<a class="headerlink" href="#cloudos-procurement-images-ls" title="Link to this heading">¶</a></h5>
 <p>List images associated with organisations of a given procurement.</p>
@@ -2575,6 +2768,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-ls-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-ls-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-ls-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-ls-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2653,6 +2852,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2746,6 +2951,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2760,6 +2971,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-project-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-project-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-project-create">
 <h4>create<a class="headerlink" href="#cloudos-project-create" title="Link to this heading">¶</a></h4>
 <p>Create a new project in CloudOS.</p>
@@ -2807,6 +3025,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-create-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-create-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-project-create-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-project-create-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2889,6 +3113,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-project-list-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-project-list-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-list-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-list-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2902,6 +3132,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-queue-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-queue-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-queue-list">
 <h4>list<a class="headerlink" href="#cloudos-queue-list" title="Link to this heading">¶</a></h4>
 <p>Collect all available job queues from a CloudOS workspace.</p>
@@ -2963,6 +3200,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -2976,6 +3219,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-workflow-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-workflow-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
 <section id="cloudos-workflow-import">
 <h4>import<a class="headerlink" href="#cloudos-workflow-import" title="Link to this heading">¶</a></h4>
 <p>Import workflows from supported repository providers.</p>
@@ -3055,6 +3305,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
@@ -3125,6 +3381,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-ssl-cert">
 <span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-ssl-cert" title="Link to this definition">¶</a></dt>
 <dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">

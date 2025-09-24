@@ -601,11 +601,13 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <span class="go">│                                                that this option is not generally recommended for         │</span>
 <span class="go">│                                                security reasons.                                         │</span>
 <span class="go">│    --ssl-cert                      TEXT        Path to your SSL certificate file.                        │</span>
-<span class="go">│    --profile                       TEXT        Profile to use from the config file                       │</span>
-<span class="go">│    --help                                      Show this message and exit.                               │</span>
-<span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+<span class="go">│    --debug                                     Show detailed error information and tracebacks               │</span>
+<span class="go">│    --profile                       TEXT        Profile to use from the config file                          │</span>
+<span class="go">│    --help                                      Show this message and exit.                                  │</span>
+<span class="go">╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
 </pre></div>
 </div>
+<p>In the same way, each implemented command has its own subcommands with its own <code class="docutils literal notranslate"><span class="pre">--debug</span></code> flag, that will print the full traceback for detailed error debugging. When this flag is not activated, the errors are presented in short descriptive format.</p>
 </section>
 <hr class="docutils" />
 <section id="configuration">
@@ -787,7 +789,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 
 <span class="go">Executing workflow import...</span>
 
-<span class="go">	[Message] Only Nextflow workflows are currently supported.</span>
+<span class="go">	Only Nextflow workflows are currently supported.</span>
 
 <span class="go">	Workflow test_import_github_3 was imported successfully with the following ID: 6616a8cb454b09bbb3d9dc20</span>
 </pre></div>
@@ -1786,7 +1788,7 @@ cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="
 <span class="go">    Current Cromwell server status is: Running</span>
 
 <span class="go">    *******************************************************************************</span>
-<span class="go">    [WARNING] Cromwell server is now running. Plase, remember to stop it when your</span>
+<span class="go">    Cromwell server is now running. Plase, remember to stop it when your</span>
 <span class="go">    job finishes. You can use the following command:</span>
 <span class="go">    cloudos cromwell stop \</span>
 <span class="go">        --cromwell-token $CROMWELL_TOKEN \</span>

@@ -340,6 +340,7 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.utils.resources</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib3</span>
 
 <div class="viewcode-block" id="format_bytes">
@@ -381,7 +382,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">disable_ssl_verification</span><span class="p">:</span>
         <span class="n">verify_ssl</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] Disabling SSL verification&#39;</span><span class="p">)</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;Disabling SSL verification&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">ssl_cert</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">verify_ssl</span> <span class="o">=</span> <span class="kc">True</span>

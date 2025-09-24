@@ -500,12 +500,12 @@
             <span class="n">cromwell_token</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] No </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2"> element in projects was found&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2"> element in projects was found&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">except</span> <span class="n">BadRequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">if</span> <span class="s1">&#39;Forbidden&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Error] It seems your call is not authorised. Please check if &#39;</span> <span class="o">+</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;It seems your call is not authorised. Please check if &#39;</span> <span class="o">+</span>
                   <span class="s1">&#39;your workspace is restricted by Airlock and if your API key is valid.&#39;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
