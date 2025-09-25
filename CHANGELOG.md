@@ -6,6 +6,12 @@
 
 - Adds accelerate saving results option for bash job and array-job
 
+## v2.61.1 (2025-09-25)
+
+### Patch
+
+- Fixes logging
+
 ## v2.61.0 (2025-09-24)
 
 ### Feat
