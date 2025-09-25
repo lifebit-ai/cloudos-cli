@@ -1205,6 +1205,14 @@ class Job(Cloudos):
                 print("Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
         # Handle parameter overrides
+        # The columnIndex is retrieved from request-payload as string, but needs to be int
+        for param in cloned_payload.get('parameters', []):
+            if param.get('parameterKind') == 'arrayFileColumn' and isinstance(param.get('columnIndex'), str):
+                try:
+                    param['columnIndex'] = int(param['columnIndex'])
+                except ValueError:
+                    raise ValueError(f"Invalid columnIndex value '{param['columnIndex']}' for parameter '{param.get('name')}'")
+
         if parameters:
             cloned_parameters = cloned_payload.get('parameters', [])
             for param_override in parameters:
