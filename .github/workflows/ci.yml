@@ -431,6 +431,39 @@ jobs:
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
           --wait-completion
+  bash_job_clone:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      id: run-bash-job
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job_cloned"
+        JOB_ID: "68d51f6b5eb22f6f2f445539"
+      run: |
+        cloudos job clone \
+          --job-id "$JOB_ID" \
+          --job-name "$JOB_NAME_BASE" \
+          --workspace-id "$CLOUDOS_WORKSPACE_ID" \
+          --project-name "$PROJECT_NAME" \
+          --apikey "$CLOUDOS_TOKEN" \
+          --cloudos-url "$CLOUDOS_URL"
   bash_array_job_run_and_multiple_projects:
     runs-on: ubuntu-latest
     strategy:
@@ -476,6 +509,39 @@ jobs:
           --cloudos-url "$CLOUDOS_URL" \
           --parameter --file=ci-testing/Data/bash_array/input.csv \
           --wait-completion
+  bash_array_clone:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      id: run-bash-job
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job_cloned"
+        JOB_ID: "68d51f7b41b37cb06dea2a11"
+      run: |
+        cloudos job clone \
+          --job-id "$JOB_ID" \
+          --job-name "$JOB_NAME_BASE" \
+          --workspace-id "$CLOUDOS_WORKSPACE_ID" \
+          --project-name "$PROJECT_NAME" \
+          --apikey "$CLOUDOS_TOKEN" \
+          --cloudos-url "$CLOUDOS_URL"
   dataset_copy_and_remove:
           runs-on: ubuntu-latest
           strategy:

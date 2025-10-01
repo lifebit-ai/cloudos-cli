@@ -205,6 +205,7 @@ class Job(Cloudos):
                                  azure_worker_instance_spot,
                                  cost_limit,
                                  use_mountpoints,
+                                 accelerate_saving_results,
                                  docker_login,
                                  command,
                                  cpus,
@@ -287,6 +288,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        accelerate_saving_results : bool
+            Whether to save results directly to cloud storage bypassing the master node.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
         command : string
@@ -427,7 +430,8 @@ class Job(Cloudos):
             "lusterFsxStorageSizeInGb": lustre_size,
             "storageMode": storage_mode,
             "instanceType": instance_type,
-            "usesFusionFileSystem": use_mountpoints
+            "usesFusionFileSystem": use_mountpoints,
+            "accelerateSavingResults": accelerate_saving_results
         }
         if workflow_type != 'docker':
             params["nextflowVersion"] = nextflow_version
@@ -506,6 +510,7 @@ class Job(Cloudos):
                  azure_worker_instance_spot=False,
                  cost_limit=30.0,
                  use_mountpoints=False,
+                 accelerate_saving_results=False,
                  docker_login=False,
                  verify=True,
                  command=None,
@@ -582,6 +587,8 @@ class Job(Cloudos):
             Job cost limit. -1 means no cost limit.
         use_mountpoints : bool
             Whether to use or not AWS S3 mountpoint for quicker file staging.
+        accelerate_saving_results : bool
+            Whether to save results directly to cloud storage bypassing the master node.
         docker_login : bool
             Whether to use private docker images, provided the users have linked their docker.io accounts.
         verify : [bool|string]
@@ -641,6 +648,7 @@ class Job(Cloudos):
                                                azure_worker_instance_spot,
                                                cost_limit,
                                                use_mountpoints,
+                                               accelerate_saving_results,
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
@@ -1028,6 +1036,7 @@ class Job(Cloudos):
                   profile=None,
                   do_not_save_logs=None,
                   use_fusion=None,
+                  accelerate_saving_results=None,
                   resumable=None,
                   project_name=None,
                   parameters=None,
@@ -1057,6 +1066,8 @@ class Job(Cloudos):
             Whether to save logs override.
         use_fusion : bool, optional
             Whether to use fusion filesystem override.
+        accelerate_saving_results : bool, optional
+            Whether to accelerate saving results override.
         resumable : bool, optional
             Whether to make the job resumable or not.
         project_name : str, optional
@@ -1135,6 +1146,7 @@ class Job(Cloudos):
         # sometimes revision is missing from the 'request-payload' API, make sure is present
         if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
             cloned_payload['revision'] = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
+            cloned_payload['revision']['revisionType'] = 'digest'
         if branch:
             cloned_payload['revision']['revisionType'] = 'branch'
             cloned_payload['revision']['branch'] = branch
@@ -1155,6 +1167,10 @@ class Job(Cloudos):
             cloned_payload['usesFusionFileSystem'] = use_fusion
         elif use_fusion and cloned_payload['executionPlatform'] == 'azure':
             print("Azure workspace does not use fusion filesystem, option '--accelerate-file-staging' is ignored.\n")
+
+        # Override accelerate saving results if provided
+        if accelerate_saving_results:
+            cloned_payload['accelerateSavingResults'] = accelerate_saving_results
 
         # Override resumable if provided
         if resumable and mode == "clone":
@@ -1189,6 +1205,14 @@ class Job(Cloudos):
                 print("Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
         # Handle parameter overrides
+        # The columnIndex is retrieved from request-payload as string, but needs to be int
+        for param in cloned_payload.get('parameters', []):
+            if param.get('parameterKind') == 'arrayFileColumn' and isinstance(param.get('columnIndex'), str):
+                try:
+                    param['columnIndex'] = int(param['columnIndex'])
+                except ValueError:
+                    raise ValueError(f"Invalid columnIndex value '{param['columnIndex']}' for parameter '{param.get('name')}'")
+
         if parameters:
             cloned_parameters = cloned_payload.get('parameters', [])
             for param_override in parameters:

@@ -43,7 +43,12 @@ INIT_PROFILE = 'initialisingProfile'
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
     """Custom exception handler that respects debug mode"""
     console = Console(stderr=True)
+    # Initialise logger
+    debug_mode = '--debug' in sys.argv
+    setup_logging(debug_mode)
+    logger = logging.getLogger("CloudOS")
     if get_debug_mode():
+        logger.error(exc_value, exc_info=exc_value)
         console.print("[yellow]Debug mode: showing full traceback[/yellow]")
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
     else:
@@ -54,7 +59,7 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
             error_msg = str(exc_value)
         else:
             error_msg = f"{exc_type.__name__}"
-
+        logger.error(exc_value)
         console.print(f"[bold red]Error: {error_msg}[/bold red]")
 
         # For network errors, give helpful context
@@ -471,6 +476,9 @@ def configure(ctx, profile, make_default):
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
+@click.option('--accelerate-saving-results',
+              help='Enables saving results directly to cloud storage bypassing the master node.',
+              is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
                     'account has to be already linked to CloudOS.'),
@@ -527,6 +535,7 @@ def run(ctx,
         azure_worker_instance_spot,
         cost_limit,
         accelerate_file_staging,
+        accelerate_saving_results,
         use_private_docker_repository,
         verbose,
         request_interval,
@@ -762,6 +771,7 @@ def run(ctx,
                       azure_worker_instance_spot=azure_worker_instance_spot,
                       cost_limit=cost_limit,
                       use_mountpoints=use_mountpoints,
+                      accelerate_saving_results=accelerate_saving_results,
                       docker_login=docker_login,
                       verify=verify_ssl)
     print(f'\tYour assigned job id is: {j_id}\n')
@@ -1658,6 +1668,9 @@ def job_cost(ctx,
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
               is_flag=True)
+@click.option('--accelerate-saving-results',
+              help='Enables saving results directly to cloud storage bypassing the master node.',
+              is_flag=True)
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
@@ -1690,6 +1703,7 @@ def clone_resume(ctx,
                  cost_limit,
                  job_id,
                  accelerate_file_staging,
+                 accelerate_saving_results,
                  resumable,
                  verbose,
                  disable_ssl_verification,
@@ -1760,6 +1774,7 @@ def clone_resume(ctx,
             profile=nextflow_profile,
             do_not_save_logs=do_not_save_logs,
             use_fusion=accelerate_file_staging,
+            accelerate_saving_results=accelerate_saving_results,
             resumable=resumable,
             # only when explicitly setting --project-name will be overridden, else using the original project
             project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
@@ -2663,6 +2678,9 @@ def remove_profile(ctx, profile):
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
+@click.option('--accelerate-saving-results',
+              help='Enables saving results directly to cloud storage bypassing the master node.',
+              is_flag=True)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
                     'For large jobs is important to use a high number to ' +
@@ -2700,6 +2718,7 @@ def run_bash_job(ctx,
                  repository_platform,
                  execution_platform,
                  cost_limit,
+                 accelerate_saving_results,
                  request_interval,
                  disable_ssl_verification,
                  ssl_cert,
@@ -2792,6 +2811,7 @@ def run_bash_job(ctx,
                       execution_platform=execution_platform,
                       hpc_id=None,
                       cost_limit=cost_limit,
+                      accelerate_saving_results=accelerate_saving_results,
                       verify=verify_ssl,
                       command={"command": command},
                       cpus=cpus,
@@ -2915,6 +2935,9 @@ def run_bash_job(ctx,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float,
               default=30.0)
+@click.option('--accelerate-saving-results',
+              help='Enables saving results directly to cloud storage bypassing the master node.',
+              is_flag=True)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
                     'For large jobs is important to use a high number to ' +
@@ -2985,6 +3008,7 @@ def run_bash_array_job(ctx,
                        repository_platform,
                        execution_platform,
                        cost_limit,
+                       accelerate_saving_results,
                        request_interval,
                        disable_ssl_verification,
                        ssl_cert,
@@ -3155,6 +3179,7 @@ def run_bash_array_job(ctx,
                       execution_platform=execution_platform,
                       hpc_id=None,
                       cost_limit=cost_limit,
+                      accelerate_saving_results=accelerate_saving_results,
                       verify=verify_ssl,
                       command=cmd,
                       cpus=cpus,
