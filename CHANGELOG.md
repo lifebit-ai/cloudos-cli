@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.63.0 (2025-10-03)
+
+### Feat
+
+- Adds more info in the Type column of the `ls --details` table
+
 ## v2.62.0 (2025-10-02)
 
 ### Feat
