@@ -3317,6 +3317,25 @@ def list_files(ctx,
                 is_folder = "folderType" in item or item.get("isDir", False)
                 type_ = "folder" if is_folder else "file"
 
+                # Enhanced type information
+                if is_folder:
+                    folder_type = item.get("folderType")
+                    if folder_type == "VirtualFolder":
+                        type_ = "virtual folder"
+                    elif folder_type == "S3Folder":
+                        type_ = "s3 folder"
+                    elif folder_type == "AzureBlobFolder":
+                        type_ = "azure folder"
+                    else:
+                        type_ = "folder"
+                else:
+                    # Check if file is managed by Lifebit (user uploaded)
+                    is_managed_by_lifebit = item.get("isManagedByLifebit", False)
+                    if is_managed_by_lifebit:
+                        type_ = "file (user uploaded)"
+                    else:
+                        type_ = "file (virtual copy)"
+                        
                 user = item.get("user", {})
                 if isinstance(user, dict):
                     name = user.get("name", "").strip()
