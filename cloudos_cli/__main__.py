@@ -983,7 +983,7 @@ def job_workdir(ctx,
         print(f'\tSearching for job id: {job_id}')
     try:
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-        print(f"Working directory for job {job_id}: {workdir.strip()}")
+        print(f"Working directory for job {job_id}: {workdir}")
         
         # Link to interactive session if requested
         if link:
