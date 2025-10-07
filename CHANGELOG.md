@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.62.1 (2025-10-07)
+
+### Patch
+
+- Fixes a wrongly passed parameters to the file and folder creation during datasets copy requests that might potentially cause data loss
+
 ## v2.62.0 (2025-10-02)
 
 ### Feat

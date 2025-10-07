@@ -9,6 +9,7 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_post, retry_requests_delete
 import json
 
+
 @dataclass
 class Datasets(Cloudos):
     """Class for file explorer.
@@ -105,7 +106,7 @@ class Datasets(Cloudos):
         #  Normalize response
         for item in datasets:
             item["folderType"] = True
-        response ={
+        response = {
                 "folders": datasets,
                 "files": []
             }
@@ -144,7 +145,7 @@ class Datasets(Cloudos):
         r = retry_requests_get("{}/api/v1/datasets/{}/items?teamId={}".format(self.cloudos_url,
                                                                               folder_id,
                                                                               self.workspace_id),
-                                headers=headers, verify=self.verify)
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r.json()
@@ -175,7 +176,7 @@ class Datasets(Cloudos):
                                                                                                              s3_bucket_name,
                                                                                                              s3_relative_path,
                                                                                                              self.workspace_id),
-                                headers=headers, verify=self.verify)
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         raw = r.json()
@@ -218,11 +219,11 @@ class Datasets(Cloudos):
         r = retry_requests_get("{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
                                                                                      folder_id,
                                                                                      self.workspace_id),
-                                headers=headers, verify=self.verify)
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r.json()
-    
+
     def list_azure_container_content(self, container_name: str, storage_account_name: str, path: str):
         """
         List contents of an Azure Blob container path.
@@ -259,7 +260,7 @@ class Datasets(Cloudos):
                     "blobPrefix": path_str,
                     "blobContainerName": container_name,
                     "blobStorageAccountName": storage_account_name,
-                    "kind": "Folder" 
+                    "kind": "Folder"
                 })
             else:
                 normalized["files"].append({
@@ -271,7 +272,7 @@ class Datasets(Cloudos):
                     "blobStorageAccountName": storage_account_name,
                     "sizeInBytes": item.get("size", 0),
                     "updatedAt": item.get("lastModified"),
-                    "kind": "File" 
+                    "kind": "File"
                 })
 
         return normalized
@@ -337,7 +338,7 @@ class Datasets(Cloudos):
                         container_name = job_folder['blobContainerName']
                         storage_account_name = job_folder['blobStorageAccountName']
                         blob_prefix = job_folder['blobPrefix']
-                        # trailing slash is mandatory for azure, otherwise it will not list the content of thefolde, just the folder 
+                        # trailing slash is mandatory for azure, otherwise it will not list the content of thefolde, just the folder
                         if not blob_prefix.endswith('/'):
                             blob_prefix += '/'
 
@@ -355,7 +356,7 @@ class Datasets(Cloudos):
                 raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
 
         return folder_content
-    
+
     def move_files_and_folders(self, source_id: str, source_kind: str, target_id: str, target_kind: str):
         """
         Move a file to another dataset in CloudOS.
@@ -432,7 +433,7 @@ class Datasets(Cloudos):
         if response.status_code >= 400:
             raise BadRequestException(response)
         return response
-    
+
     def copy_item(self, item, destination_id, destination_kind):
         """Copy a file or folder (S3, Azure or Virtual) to a destination in CloudOS."""
         headers = {
@@ -454,7 +455,7 @@ class Datasets(Cloudos):
         elif item.get("folderType") == "S3Folder":
             payload = {
                 "s3BucketName": item["s3BucketName"],
-                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
+                "s3Prefix": item.get("s3Prefix"),
                 "name": item["name"],
                 "parent": parent,
                 "isManagedByLifebit": item.get("isManagedByLifebit", False)
@@ -464,7 +465,7 @@ class Datasets(Cloudos):
         elif item.get("fileType") == "S3File":
             payload = {
                 "s3BucketName": item["s3BucketName"],
-                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
+                "s3ObjectKey": item.get("s3ObjectKey"),
                 "name": item["name"],
                 "parent": parent,
                 "isManagedByLifebit": item.get("isManagedByLifebit", False),
@@ -500,7 +501,7 @@ class Datasets(Cloudos):
         if response.status_code >= 400:
             raise BadRequestException(response)
         return response
-    
+
     def create_virtual_folder(self, name: str, parent_id: str, parent_kind: str):
         """
         Create a new virtual folder in CloudOS under a given parent.
@@ -542,7 +543,7 @@ class Datasets(Cloudos):
         if response.status_code >= 400:
             raise BadRequestException(response)
         return response
-    
+
     def delete_item(self, item_id: str, kind: str):
         """
         Delete a file or folder in CloudOS.
