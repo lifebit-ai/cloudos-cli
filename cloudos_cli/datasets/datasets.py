@@ -465,7 +465,7 @@ class Datasets(Cloudos):
         elif item.get("fileType") == "S3File":
             payload = {
                 "s3BucketName": item["s3BucketName"],
-                "s3ObjectKey": item.get("s3ObjectKey"),
+                "s3ObjectKey": item.get("s3ObjectKey") or item.get("s3Prefix"),
                 "name": item["name"],
                 "parent": parent,
                 "isManagedByLifebit": item.get("isManagedByLifebit", False),
