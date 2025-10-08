@@ -860,6 +860,7 @@ def job_status(ctx,
             INIT_PROFILE,
             CLOUDOS_URL,
             profile=profile,
+            workspace_id=workspace_id,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url
