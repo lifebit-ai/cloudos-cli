@@ -206,7 +206,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        r = self.get_job_status(j_id, workspace_id, verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code == 403:
@@ -326,7 +326,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}", headers=headers, verify=verify)
+        r = self.get_job_status(j_id, workspace_id, verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code >= 400:
@@ -373,8 +373,7 @@ class Cloudos:
         if status != JOB_COMPLETED:
             raise JoBNotCompletedException(j_id, status)
 
-        r = retry_requests_get(f"{cloudos_url}/api/v1/jobs/{j_id}",
-                               headers=headers, verify=verify)
+        r = self.get_job_status(j_id, workspace_id, verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         if r.status_code >= 400:
