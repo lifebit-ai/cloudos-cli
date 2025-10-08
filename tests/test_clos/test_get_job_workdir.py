@@ -207,8 +207,8 @@ def test_get_job_workdir_unauthorized():
         status=401
     )
     
-    # Test that it raises BadRequestException (since get_job_status raises this for status >= 400)
-    with pytest.raises(BadRequestException):
+    # Test that it raises NotAuthorisedException
+    with pytest.raises(NotAuthorisedException):
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
         clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
 

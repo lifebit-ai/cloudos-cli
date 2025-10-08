@@ -65,7 +65,12 @@ class Cloudos:
         r = retry_requests_get("{}/api/v1/jobs/{}?teamId={}".format(cloudos_url,
                                                           j_id, workspace_id),
                                headers=headers, verify=verify)
-        if r.status_code >= 400:
+        if r.status_code == 401:
+            raise NotAuthorisedException
+        elif r.status_code == 403:
+            # Handle 403 with more informative error message
+            self._handle_job_access_denied(j_id, workspace_id, verify)
+        elif r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
@@ -207,13 +212,6 @@ class Cloudos:
             "apikey": apikey
         }
         r = self.get_job_status(j_id, workspace_id, verify)
-        if r.status_code == 401:
-            raise NotAuthorisedException
-        elif r.status_code == 403:
-            # Handle 403 with more informative error message
-            self._handle_job_access_denied(j_id, workspace_id, verify)
-        elif r.status_code >= 400:
-            raise BadRequestException(r)
         r_json = r.json()
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
