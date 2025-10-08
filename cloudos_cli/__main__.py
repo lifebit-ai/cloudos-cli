@@ -780,6 +780,7 @@ def run(ctx,
         print('\tPlease, wait until job completion (max wait time of ' +
               f'{wait_time} seconds).\n')
         j_status = j.wait_job_completion(job_id=j_id,
+                                         workspace_id=workspace_id,
                                          wait_time=wait_time,
                                          request_interval=request_interval,
                                          verbose=verbose,
@@ -793,7 +794,7 @@ def run(ctx,
             print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
-        j_status = j.get_job_status(j_id, verify_ssl)
+        j_status = j.get_job_status(j_id, workspace_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +
@@ -812,6 +813,9 @@ def run(ctx,
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
               required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
@@ -841,7 +845,7 @@ def job_status(ctx,
     # Create a dictionary with required and non-required params
     required_dict = {
         'apikey': True,
-        'workspace_id': False,
+        'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
         'session_id': False,
@@ -862,6 +866,7 @@ def job_status(ctx,
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -873,7 +878,7 @@ def job_status(ctx,
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:
-        j_status = cl.get_job_status(job_id, verify_ssl)
+        j_status = cl.get_job_status(job_id, workspace_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         print(f'\tYour current job status is: {j_status_h}\n')
         j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
@@ -1149,6 +1154,9 @@ def job_results(ctx,
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
@@ -1193,7 +1201,7 @@ def job_details(ctx,
     # Create a dictionary with required and non-required params
     required_dict = {
         'apikey': True,
-        'workspace_id': False,
+        'workspace_id': True,
         'workflow_name': False,
         'project_name': False,
         'session_id': False,
@@ -1214,6 +1222,7 @@ def job_details(ctx,
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
+    workspace_id = user_options['workspace_id']
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
         output_basename = f"{job_id}_details"
@@ -1230,7 +1239,7 @@ def job_details(ctx,
 
     # check if the API gives a 403 error/forbidden error
     try:
-        j_details = cl.get_job_status(job_id, verify_ssl)
+        j_details = cl.get_job_status(job_id, workspace_id, verify_ssl)
     except BadRequestException as e:
         if '403' in str(e) or 'Forbidden' in str(e):
             raise ValueError("API can only show job details of your own jobs, cannot see other user's job details.")
@@ -1518,7 +1527,7 @@ def abort_jobs(ctx,
 
     for job in jobs:
         try:
-            j_status = cl.get_job_status(job, verify_ssl)
+            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
         except Exception as e:
             click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
@@ -2823,6 +2832,7 @@ def run_bash_job(ctx,
         print('\tPlease, wait until job completion (max wait time of ' +
               f'{wait_time} seconds).\n')
         j_status = j.wait_job_completion(job_id=j_id,
+                                         workspace_id=workspace_id,
                                          wait_time=wait_time,
                                          request_interval=request_interval,
                                          verbose=False,
@@ -2836,7 +2846,7 @@ def run_bash_job(ctx,
             print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
-        j_status = j.get_job_status(j_id, verify_ssl)
+        j_status = j.get_job_status(j_id, workspace_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +
@@ -3191,6 +3201,7 @@ def run_bash_array_job(ctx,
         print('\tPlease, wait until job completion (max wait time of ' +
               f'{wait_time} seconds).\n')
         j_status = j.wait_job_completion(job_id=j_id,
+                                         workspace_id=workspace_id,
                                          wait_time=wait_time,
                                          request_interval=request_interval,
                                          verbose=False,
@@ -3204,7 +3215,7 @@ def run_bash_array_job(ctx,
             print(f'\nJob status for job "{j_name}" (ID: {j_id}): {j_final_s}')
             sys.exit(1)
     else:
-        j_status = j.get_job_status(j_id, verify_ssl)
+        j_status = j.get_job_status(j_id, workspace_id, verify_ssl)
         j_status_h = json.loads(j_status.content)["status"]
         print(f'\tYour current job status is: {j_status_h}')
         print('\tTo further check your job status you can either go to ' +

@@ -37,13 +37,15 @@ class Cloudos:
     apikey: str
     cromwell_token: str
 
-    def get_job_status(self, j_id, verify=True):
+    def get_job_status(self, j_id, workspace_id, verify=True):
         """Get job status from CloudOS.
 
         Parameters
         ----------
         j_id : string
             The CloudOS job id of the job just launched.
+        workspace_id : string
+            The CloudOS workspace id from to check the job status.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -60,21 +62,23 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs/{}".format(cloudos_url,
-                                                          j_id),
+        r = retry_requests_get("{}/api/v1/jobs/{}?teamID={}".format(cloudos_url,
+                                                          j_id, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
 
-    def wait_job_completion(self, job_id, wait_time=3600, request_interval=30, verbose=False,
+    def wait_job_completion(self, job_id, workspace_id, wait_time=3600, request_interval=30, verbose=False,
                             verify=True):
         """Checks job status from CloudOS and wait for its complation.
 
         Parameters
         ----------
-        j_id : string
+        job_id : string
             The CloudOS job id of the job just launched.
+        workspace_id : string
+            The CloudOS workspace id from to check the job status.
         wait_time : int
             Max time to wait (in seconds) to job completion.
         request_interval : int
@@ -98,7 +102,7 @@ class Cloudos:
         if request_interval > wait_time:
             request_interval = wait_time
         while elapsed < wait_time:
-            j_status = self.get_job_status(job_id, verify)
+            j_status = self.get_job_status(job_id, workspace_id, verify)
             j_status_content = json.loads(j_status.content)
             j_status_h = j_status_content["status"]
             j_name = j_status_content["name"]
