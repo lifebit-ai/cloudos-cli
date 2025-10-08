@@ -325,10 +325,6 @@ class Cloudos:
             "apikey": apikey
         }
         r = self.get_job_status(j_id, workspace_id, verify)
-        if r.status_code == 401:
-            raise NotAuthorisedException
-        elif r.status_code >= 400:
-            raise BadRequestException(r)
         r_json = r.json()
         logs_obj = r_json["logs"]
         job_workspace = r_json["team"]
@@ -372,10 +368,6 @@ class Cloudos:
             raise JoBNotCompletedException(j_id, status)
 
         r = self.get_job_status(j_id, workspace_id, verify)
-        if r.status_code == 401:
-            raise NotAuthorisedException
-        if r.status_code >= 400:
-            raise BadRequestException(r)
         req_obj = r.json()
         job_workspace = req_obj["team"]
         if job_workspace != workspace_id:
