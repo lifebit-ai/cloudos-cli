@@ -111,7 +111,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="68b9aaab76724fd335457ed3"
-        cloudos job details --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+        cloudos job details --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   job_workdir:
     runs-on: ubuntu-latest
     strategy:
