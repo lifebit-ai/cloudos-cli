@@ -6,6 +6,12 @@
 
 - Adds more info in the Type column of the `ls --details` table
 
+## v2.62.1 (2025-10-07)
+
+### Patch
+
+- Fixes a wrongly passed parameters to the folder creation during datasets copy requests
+
 ## v2.62.0 (2025-10-02)
 
 ### Feat
