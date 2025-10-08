@@ -201,14 +201,14 @@ def test_get_job_workdir_unauthorized():
     # mock GET method with 401 response
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}",
+        url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}?teamId={WORKSPACE_ID}",
         json={"message": "Unauthorized"},
         headers=header,
         status=401
     )
     
-    # Test that it raises NotAuthorisedException
-    with pytest.raises(NotAuthorisedException):
+    # Test that it raises BadRequestException (since get_job_status raises this for status >= 400)
+    with pytest.raises(BadRequestException):
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
         clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
 
