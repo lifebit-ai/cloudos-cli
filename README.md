@@ -1352,7 +1352,7 @@ The output of this command is a list of files and folders present in the specifi
 > If the `<path>` is left empty, the command will return the list of folders present in the selected project.
 
 If you require more information on the files and folder listed, you can use the `--details` flag that will output a table containing the following columns:
-- Type (folder or file)
+- Type (s3 folder, azure folder , virtual folder, file (user uploaded) or file (virtual copy))
 - Owner
 - Size (in human readable format)
 - Last updated

@@ -1,10 +1,16 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.63.1 (2025-10-07)
+## v2.63.1 (2025-10-08)
 
 ### Patch
 
 - Adds workspace_id as `teamId` to get_job_status() endpoint request
+
+## v2.63.0 (2025-10-03)
+
+### Feat
+
+- Adds more info in the Type column of the `ls --details` table
 
 ## v2.62.1 (2025-10-07)
 
