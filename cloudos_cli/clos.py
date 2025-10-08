@@ -62,7 +62,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs/{}?teamID={}".format(cloudos_url,
+        r = retry_requests_get("{}/api/v1/jobs/{}?teamId={}".format(cloudos_url,
                                                           j_id, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
@@ -126,7 +126,7 @@ class Cloudos:
                         print(f'\tYour current job "{j_name}" (ID: {job_id}) status is: {j_status_h}.')
                     j_status_h_old = j_status_h
                 time.sleep(request_interval)
-        j_status = self.get_job_status(job_id, verify)
+        j_status = self.get_job_status(job_id, workspace_id, verify)
         j_status_content = json.loads(j_status.content)
         j_status_h = j_status_content["status"]
         j_name = j_status_content["name"]
@@ -369,7 +369,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        status = self.get_job_status(j_id, verify).json()["status"]
+        status = self.get_job_status(j_id, workspace_id, verify).json()["status"]
         if status != JOB_COMPLETED:
             raise JoBNotCompletedException(j_id, status)
 
