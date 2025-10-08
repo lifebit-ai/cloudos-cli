@@ -4,7 +4,7 @@
 
 ### Patch
 
-- Adds workspace_id as `teamId` to get_job_status() endpoint request
+- Adds workspace_id as `teamId` to get_job_status() endpoint request. This enables performing `cloudos job details/workdirs/logs/results/abort/status` on other users from the workspace
 
 ## v2.63.0 (2025-10-03)
 
