@@ -220,7 +220,7 @@ jobs:
         cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
-        cloudos job status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+        cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   logs_results_aws:
     needs: job_run_and_status
     runs-on: ubuntu-latest
