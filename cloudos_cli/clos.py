@@ -1376,7 +1376,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
+        r = retry_requests_put("{}/api/v1/jobs/{}/abort".format(cloudos_url, job),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
