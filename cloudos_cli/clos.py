@@ -37,7 +37,7 @@ class Cloudos:
     apikey: str
     cromwell_token: str
 
-    def get_job_status(self, j_id, workspace_id, verify=True):
+    def get_job_status(self, j_id, workspace_id=None, verify=True):
         """Get job status from CloudOS.
 
         Parameters
@@ -62,9 +62,11 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_get("{}/api/v1/jobs/{}?teamId={}".format(cloudos_url,
-                                                          j_id, workspace_id),
-                               headers=headers, verify=verify)
+        if workspace_id is not None:
+            url = f"{cloudos_url}/api/v1/jobs/{j_id}?teamId={workspace_id}"
+        else:
+            url = f"{cloudos_url}/api/v1/jobs/{j_id}"
+        r = retry_requests_get(url, headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
         elif r.status_code == 403:
@@ -1376,7 +1378,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_put("{}/api/v1/jobs/{}/abort".format(cloudos_url, job),
+        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
