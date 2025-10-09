@@ -335,7 +335,7 @@ class Cloudos:
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-        if r_json["status"] =='initializing':
+        if r_json["status"] =='initializing' or r_json["status"] =='scheduled':
             raise ValueError("Logs are not yet available. The job is still initializing.")
         cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
         container_name = cloud_storage["container"]
