@@ -340,7 +340,6 @@ class Cloudos:
         if "logs" not in r_json:
             raise ValueError("ERROR: Logs are not available.")
         else:
-            
             logs_obj = r_json["logs"]
             cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
             container_name = cloud_storage["container"]
