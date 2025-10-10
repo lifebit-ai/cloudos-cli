@@ -1985,7 +1985,7 @@ status from inside a python script.</p>
 </pre></div>
 </div>
 <p>To check the status:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">)</span>
 <span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
 </pre></div>
@@ -2051,7 +2051,7 @@ following command.</p>
 <span class="n">j</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">mainfile</span><span class="p">,</span>
            <span class="n">importsfile</span><span class="p">)</span>
 <span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span> <span class="n">workflow_type</span><span class="o">=</span><span class="s1">&#39;wdl&#39;</span><span class="p">,</span> <span class="n">cromwell_id</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;_id&quot;</span><span class="p">])</span>
-<span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">)</span>
+<span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">)</span>
 <span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
 

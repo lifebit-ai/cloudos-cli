@@ -561,12 +561,13 @@ Non-batch jobs are preserved in results as they don’t use queues.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.procurement.images.Images.get_job_status">
-<span class="sig-name descname"><span class="pre">get_job_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.procurement.images.Images.get_job_status" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_job_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.procurement.images.Images.get_job_status" title="Link to this definition">¶</a></dt>
 <dd><p>Get job status from CloudOS.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1022,12 +1023,13 @@ NextflowBatchComputeEnvironment</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.procurement.images.Images.wait_job_completion">
-<span class="sig-name descname"><span class="pre">wait_job_completion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.procurement.images.Images.wait_job_completion" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">wait_job_completion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.procurement.images.Images.wait_job_completion" title="Link to this definition">¶</a></dt>
 <dd><p>Checks job status from CloudOS and wait for its complation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
+<li><p><strong>job_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
 <li><p><strong>wait_time</strong> (<em>int</em>) – Max time to wait (in seconds) to job completion.</p></li>
 <li><p><strong>request_interval</strong> (<em>int</em>) – Time interval (in seconds) to request job status.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to output status on every request or not.</p></li>
