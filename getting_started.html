@@ -915,6 +915,10 @@ You can specify the AWS batch queue to use from the ones available in your works
 <span class="go">Trace file: s3://path/to/location/of/logs/trace.txt</span>
 </pre></div>
 </div>
+<p>You can also link the logs directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount the entire logs directory, providing access to all log files in your interactive session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+</pre></div>
+</div>
 </section>
 <section id="get-job-results">
 <h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
@@ -925,6 +929,10 @@ You can specify the AWS batch queue to use from the ones available in your works
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
 <span class="go">results: s3://path/to/location/of/results/results/</span>
+</pre></div>
+</div>
+<p>You can also link all result directories to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
 </section>
@@ -1150,6 +1158,13 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 
 <span class="go">Finding working directory path...</span>
 <span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
+</pre></div>
+</div>
+<p>You can also link the working directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This requires specifying a session ID either through the <code class="docutils literal notranslate"><span class="pre">--session-id</span></code> option or from a configured profile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
 </section>

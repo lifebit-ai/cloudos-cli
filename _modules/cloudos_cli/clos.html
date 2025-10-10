@@ -563,9 +563,12 @@
         <span class="n">job_workspace</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;team&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">job_workspace</span> <span class="o">!=</span> <span class="n">workspace_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Workspace provided or configured is different from workspace where the job was executed&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;initializing&#39;</span> <span class="ow">or</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;scheduled&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Working directories are not yet available. The job is still initializing.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;resumeWorkDir&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.&quot;</span><span class="p">)</span>
+        
         <span class="c1"># Check if logs field exists, if not fall back to original folder-based approach</span>
         <span class="k">elif</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
             <span class="c1"># Get workdir information from logs object using the same pattern as get_job_logs</span>
@@ -680,32 +683,38 @@
         <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="n">r_json</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">logs_obj</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;logs&quot;</span><span class="p">]</span>
+        
         <span class="n">job_workspace</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;team&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">job_workspace</span> <span class="o">!=</span> <span class="n">workspace_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Workspace provided or configured is different from workspace where the job was executed&quot;</span><span class="p">)</span>
-        <span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">cloud_storage</span> <span class="o">=</span> <span class="n">find_cloud</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">logs_obj</span><span class="p">)</span>
-        <span class="n">container_name</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;container&quot;</span><span class="p">]</span>
-        <span class="n">prefix_name</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span>
-        <span class="n">logs_bucket</span> <span class="o">=</span> <span class="n">logs_obj</span><span class="p">[</span><span class="n">container_name</span><span class="p">]</span>
-        <span class="n">logs_path</span> <span class="o">=</span> <span class="n">logs_obj</span><span class="p">[</span><span class="n">prefix_name</span><span class="p">]</span>
-        <span class="n">contents_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_storage_contents</span><span class="p">(</span><span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">logs_bucket</span><span class="p">,</span> <span class="n">logs_path</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
-        <span class="n">logs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">cloude_scheme</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;scheme&quot;</span><span class="p">]</span>
-        <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">cloude_scheme</span> <span class="o">==</span> <span class="s1">&#39;az&#39;</span><span class="p">:</span>
-            <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s1">.blob.core.windows.net/&#39;</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents_obj</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;isDir&quot;</span><span class="p">]:</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;stdout.txt&quot;</span><span class="p">:</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Nextflow standard output&quot;</span>
-                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;.nextflow.log&quot;</span><span class="p">:</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Nextflow log&quot;</span>
-                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;trace.txt&quot;</span><span class="p">:</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Trace file&quot;</span>
-                <span class="n">logs</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloude_scheme</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}{</span><span class="n">logs_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">logs</span></div>
+        <span class="k">if</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;initializing&#39;</span> <span class="ow">or</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;scheduled&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Logs are not yet available. The job is still initializing.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ERROR: Logs are not available.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logs_obj</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;logs&quot;</span><span class="p">]</span>
+            <span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">cloud_storage</span> <span class="o">=</span> <span class="n">find_cloud</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">logs_obj</span><span class="p">)</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;container&quot;</span><span class="p">]</span>
+            <span class="n">prefix_name</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span>
+            <span class="n">logs_bucket</span> <span class="o">=</span> <span class="n">logs_obj</span><span class="p">[</span><span class="n">container_name</span><span class="p">]</span>
+            <span class="n">logs_path</span> <span class="o">=</span> <span class="n">logs_obj</span><span class="p">[</span><span class="n">prefix_name</span><span class="p">]</span>
+            <span class="n">contents_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_storage_contents</span><span class="p">(</span><span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">logs_bucket</span><span class="p">,</span> <span class="n">logs_path</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
+            <span class="n">logs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">cloude_scheme</span> <span class="o">=</span> <span class="n">cloud_storage</span><span class="p">[</span><span class="s2">&quot;scheme&quot;</span><span class="p">]</span>
+            <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">if</span> <span class="n">cloude_scheme</span> <span class="o">==</span> <span class="s1">&#39;az&#39;</span><span class="p">:</span>
+                <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s1">.blob.core.windows.net/&#39;</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents_obj</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;isDir&quot;</span><span class="p">]:</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;stdout.txt&quot;</span><span class="p">:</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Nextflow standard output&quot;</span>
+                    <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;.nextflow.log&quot;</span><span class="p">:</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Nextflow log&quot;</span>
+                    <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;trace.txt&quot;</span><span class="p">:</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Trace file&quot;</span>
+                    <span class="n">logs</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloude_scheme</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}{</span><span class="n">logs_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="n">logs</span></div>
 
 
 <div class="viewcode-block" id="Cloudos.get_job_results">
