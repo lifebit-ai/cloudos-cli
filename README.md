@@ -1762,7 +1762,7 @@ j_id = j.send_job(job_config)
 To check the status:
 
 ```python
-j_status = j.get_job_status(j_id)
+j_status = j.get_job_status(j_id, workspace_id)
 j_status_h = json.loads(j_status.content)["status"]
 print(j_status_h)
 ```
@@ -1837,7 +1837,7 @@ print(c_status_h)
 j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name, True, mainfile,
            importsfile)
 j_id = j.send_job(job_config, workflow_type='wdl', cromwell_id=json.loads(c_status.content)["_id"])
-j_status = j.get_job_status(j_id)
+j_status = j.get_job_status(j_id, workspace_id)
 j_status_h = json.loads(j_status.content)["status"]
 print(j_status_h)
 

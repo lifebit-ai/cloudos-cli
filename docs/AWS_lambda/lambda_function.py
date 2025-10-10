@@ -20,7 +20,7 @@ def lambda_handler(event, context):
             parameter=(f'input={input_file_path}', 'outdir=results'),
             nextflow_profile='test,docker'
             )
-        job_status = cloudos_workflow.get_job_status(job_id)
+        job_status = cloudos_workflow.get_job_status(job_id, workspace_id)
         job_status_h = json.loads(job_status.content)["status"]
 
         # Return success response

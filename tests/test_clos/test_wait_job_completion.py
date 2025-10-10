@@ -7,6 +7,7 @@ from tests.functions_for_pytest import load_json_file
 INPUT = "tests/test_data/get_job_status.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
+WORKSPACE_ID = "5f6d3e9bd954e800b23f8c62"
 JOB_ID = '63bd590f72c38201551c3824'
 
 
@@ -26,7 +27,7 @@ def test_wait_job_completion():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}?teamId={WORKSPACE_ID}",
             body=json_data,
             headers=header,
             status=200)
@@ -34,6 +35,7 @@ def test_wait_job_completion():
     cl = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock job status
     status = cl.wait_job_completion(job_id=JOB_ID,
+                                    workspace_id=WORKSPACE_ID,
                                     wait_time=0.01,
                                     request_interval=0.01)
     assert isinstance(status, dict)

@@ -12,6 +12,7 @@ INPUT = "tests/test_data/get_job_details.json"
 INPUT_DOCKER = "tests/test_data/get_job_details_docker.json"
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
+WORKSPACE_ID = "5f6d3e9bd954e800b23f8c62"
 JOB_ID = "616ee9681b866a01d69fa1cd"
 JOB_STATUS = "completed"
 
@@ -31,14 +32,14 @@ def test_get_job_details_nextflow_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}?teamId={WORKSPACE_ID}",
             body=create_json,
             headers=header,
             status=200)
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_status(j_id=JOB_ID)
+    response = clos.get_job_status(JOB_ID, WORKSPACE_ID)
     # check the response
     result_string = response.content.decode("utf-8")
     result_json = json.loads(result_string)
@@ -70,14 +71,14 @@ def test_get_job_details_docker_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}?teamId={WORKSPACE_ID}",
             body=create_json,
             headers=header,
             status=200)
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     # get mock response
-    response = clos.get_job_status(j_id=JOB_ID)
+    response = clos.get_job_status(JOB_ID, WORKSPACE_ID)
     # check the response
     result_string = response.content.decode("utf-8")
     result_json = json.loads(result_string)

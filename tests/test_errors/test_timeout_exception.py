@@ -27,12 +27,12 @@ def test_time_out_exception():
     # mock GET method with the .json
     responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}?teamId={WORKSPACE_ID}",
             headers=header,
             status=STATUS_CODE)
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    response = clos.get_job_status(j_id=JOB_ID)
+    response = clos.get_job_status(JOB_ID, WORKSPACE_ID)
     timeout_ex = TimeOutException(response)
 
     assert timeout_ex.rv.status_code == STATUS_CODE
