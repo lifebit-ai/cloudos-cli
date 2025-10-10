@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.64.0 (2025-10-06)
+
+### Feat
+
+- Adds `--link` flag to `workdir`, `results` and `logs` commands
+
 ## v2.63.0 (2025-10-03)
 
 ### Feat

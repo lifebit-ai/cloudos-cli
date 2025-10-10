@@ -214,9 +214,12 @@ class Cloudos:
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        if r_json["status"] =='initializing' or r_json["status"] =='scheduled':
+            raise ValueError("Working directories are not yet available. The job is still initializing.")
 
         if "resumeWorkDir" not in r_json:
-            print("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
+            raise ValueError("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
+        
         # Check if logs field exists, if not fall back to original folder-based approach
         elif "logs" in r_json:
             # Get workdir information from logs object using the same pattern as get_job_logs
@@ -328,32 +331,38 @@ class Cloudos:
         elif r.status_code >= 400:
             raise BadRequestException(r)
         r_json = r.json()
-        logs_obj = r_json["logs"]
+        
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-        cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
-        container_name = cloud_storage["container"]
-        prefix_name = cloud_storage["prefix"]
-        logs_bucket = logs_obj[container_name]
-        logs_path = logs_obj[prefix_name]
-        contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
-        logs = {}
-        cloude_scheme = cloud_storage["scheme"]
-        storage_account_prefix = ''
-        if cloude_scheme == 'az':
-            storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
-        for item in contents_obj:
-            if not item["isDir"]:
-                filename = item["name"]
-                if filename == "stdout.txt":
-                    filename = "Nextflow standard output"
-                if filename == ".nextflow.log":
-                    filename = "Nextflow log"
-                if filename == "trace.txt":
-                    filename = "Trace file"
-                logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
-        return logs
+        if r_json["status"] =='initializing' or r_json["status"] =='scheduled':
+            raise ValueError("Logs are not yet available. The job is still initializing.")
+        if "logs" not in r_json:
+            raise ValueError("ERROR: Logs are not available.")
+        else:
+            logs_obj = r_json["logs"]
+            cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
+            container_name = cloud_storage["container"]
+            prefix_name = cloud_storage["prefix"]
+            logs_bucket = logs_obj[container_name]
+            logs_path = logs_obj[prefix_name]
+            contents_obj = self.get_storage_contents(cloud_name, cloud_meta, logs_bucket, logs_path, workspace_id, verify)
+            logs = {}
+            cloude_scheme = cloud_storage["scheme"]
+            storage_account_prefix = ''
+            if cloude_scheme == 'az':
+                storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
+            for item in contents_obj:
+                if not item["isDir"]:
+                    filename = item["name"]
+                    if filename == "stdout.txt":
+                        filename = "Nextflow standard output"
+                    if filename == ".nextflow.log":
+                        filename = "Nextflow log"
+                    if filename == "trace.txt":
+                        filename = "Trace file"
+                    logs[filename] = f"{cloude_scheme}://{storage_account_prefix}{logs_bucket}/{item['path']}"
+            return logs
 
     def get_job_results(self, j_id, workspace_id, verify=True):
         """

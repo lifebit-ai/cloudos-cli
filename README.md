@@ -608,6 +608,12 @@ Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
 Trace file: s3://path/to/location/of/logs/trace.txt
 ```
 
+You can also link the logs directory to an interactive session using the `--link` flag. This will mount the entire logs directory, providing access to all log files in your interactive session:
+
+```bash
+cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id your_session_id
+```
+
 #### Get Job Results
 
 The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
@@ -619,6 +625,12 @@ cloudos job results --profile my_profile --job-id "12345678910"
 ```console
 Executing results...
 results: s3://path/to/location/of/results/results/
+```
+
+You can also link all result directories to an interactive session using the `--link` flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:
+
+```bash
+cloudos job results --profile my_profile --job-id "12345678910" --link --session-id your_session_id
 ```
 
 
@@ -871,6 +883,15 @@ CloudOS job functionality: run, check and abort jobs in CloudOS.
 
 Finding working directory path...
 Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
+```
+
+You can also link the working directory to an interactive session using the `--link` flag. This requires specifying a session ID either through the `--session-id` option or from a configured profile:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355 \
+    --link --session-id your_session_id
 ```
 
 #### List Jobs
