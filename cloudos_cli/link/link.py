@@ -68,6 +68,7 @@ class Link(Cloudos):
             data = self.parse_file_explorer_path(folder)
             type_folder = "File Explorer"
         r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
+        
         if r.status_code == 403:
             raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
         elif r.status_code == 401:

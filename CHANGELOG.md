@@ -1,10 +1,16 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.63.1 (2025-10-08)
+## v2.64.1 (2025-10-10)
 
 ### Patch
 
 - Adds workspace_id as `teamId` to get_job_status() endpoint request. This enables performing `cloudos job details/workdirs/logs/results/abort/status` on other users from the workspace
+
+## v2.64.0 (2025-10-06)
+
+### Feat
+
+- Adds `--link` flag to `workdir`, `results` and `logs` commands
 
 ## v2.63.0 (2025-10-03)
 

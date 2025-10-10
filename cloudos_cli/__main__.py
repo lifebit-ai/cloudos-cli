@@ -908,6 +908,12 @@ def job_status(ctx,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
+@click.option('--link',
+              help='Link the working directory to an interactive session.',
+              is_flag=True)
+@click.option('--session-id',
+              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              required=False)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -924,6 +930,8 @@ def job_workdir(ctx,
                 cloudos_url,
                 workspace_id,
                 job_id,
+                link,
+                session_id,
                 verbose,
                 disable_ssl_verification,
                 ssl_cert,
@@ -951,17 +959,30 @@ def job_workdir(ctx,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
-            workspace_id=workspace_id
+            workspace_id=workspace_id,
+            session_id=session_id
         )
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
+    # Get session_id from user_options (which includes profile data)
+    session_id = user_options.get('session_id') or session_id
+
+    # Validate link flag requirements AFTER loading profile
+    if link and not session_id:
+        raise click.ClickException("--session-id is required when using --link flag")
 
     print('Finding working directory path...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
+        print('\tUsing the following parameters:')
+        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tWorkspace ID: {workspace_id}')
+        print(f'\t\tJob ID: {job_id}')
+        if link:
+            print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
@@ -970,6 +991,24 @@ def job_workdir(ctx,
     try:
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
+        
+        # Link to interactive session if requested
+        if link:
+            if verbose:
+                print(f'\tLinking working directory to interactive session {session_id}...')
+            
+            # Use Link class to perform the linking
+            link_client = Link(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                cromwell_token=None,  # Not needed for linking operations
+                workspace_id=workspace_id,
+                project_name=None,  # Not needed for S3 paths
+                verify=verify_ssl
+            )
+            
+            link_client.link_folder(workdir.strip(), session_id)
+            
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
@@ -992,6 +1031,12 @@ def job_workdir(ctx,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
+@click.option('--link',
+              help='Link the logs directories to an interactive session.',
+              is_flag=True)
+@click.option('--session-id',
+              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              required=False)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1008,6 +1053,8 @@ def job_logs(ctx,
              cloudos_url,
              workspace_id,
              job_id,
+             link,
+             session_id,
              verbose,
              disable_ssl_verification,
              ssl_cert,
@@ -1035,17 +1082,30 @@ def job_logs(ctx,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
-            workspace_id=workspace_id
+            workspace_id=workspace_id,
+            session_id=session_id
         )
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
+    # Get session_id from user_options (which includes profile data)
+    session_id = user_options.get('session_id') or session_id
+
+    # Validate link flag requirements AFTER loading profile
+    if link and not session_id:
+        raise click.ClickException("--session-id is required when using --link flag")
 
     print('Executing logs...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
+        print('\tUsing the following parameters:')
+        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tWorkspace ID: {workspace_id}')
+        print(f'\t\tJob ID: {job_id}')
+        if link:
+            print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
@@ -1054,7 +1114,37 @@ def job_logs(ctx,
     try:
         logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
         for name, path in logs.items():
-            print(f"{name}: {path}\n")
+            print(f"{name}: {path}")
+        
+        # Link to interactive session if requested
+        if link:
+            if logs:
+                # Extract the parent logs directory from any log file path
+                # All log files should be in the same logs directory
+                first_log_path = next(iter(logs.values()))
+                # Remove the filename to get the logs directory
+                # e.g., "s3://bucket/path/to/logs/filename.txt" -> "s3://bucket/path/to/logs"
+                logs_dir = '/'.join(first_log_path.split('/')[:-1])
+                
+                if verbose:
+                    print(f'\tLinking logs directory to interactive session {session_id}...')
+                    print(f'\t\tLogs directory: {logs_dir}')
+                
+                # Use Link class to perform the linking
+                link_client = Link(
+                    cloudos_url=cloudos_url,
+                    apikey=apikey,
+                    cromwell_token=None,  # Not needed for linking operations
+                    workspace_id=workspace_id,
+                    project_name=None,  # Not needed for S3 paths
+                    verify=verify_ssl
+                )
+                
+                link_client.link_folder(logs_dir, session_id)
+            else:
+                if verbose:
+                    print('\tNo logs found to link.')
+            
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
@@ -1077,6 +1167,12 @@ def job_logs(ctx,
 @click.option('--job-id',
               help='The job id in CloudOS to search for.',
               required=True)
+@click.option('--link',
+              help='Link the results directories to an interactive session.',
+              is_flag=True)
+@click.option('--session-id',
+              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              required=False)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1093,6 +1189,8 @@ def job_results(ctx,
                 cloudos_url,
                 workspace_id,
                 job_id,
+                link,
+                session_id,
                 verbose,
                 disable_ssl_verification,
                 ssl_cert,
@@ -1120,17 +1218,30 @@ def job_results(ctx,
             required_dict=required_dict,
             apikey=apikey,
             cloudos_url=cloudos_url,
-            workspace_id=workspace_id
+            workspace_id=workspace_id,
+            session_id=session_id
         )
     )
     apikey = user_options['apikey']
     cloudos_url = user_options['cloudos_url']
     workspace_id = user_options['workspace_id']
+    # Get session_id from user_options (which includes profile data)
+    session_id = user_options.get('session_id') or session_id
+
+    # Validate link flag requirements AFTER loading profile
+    if link and not session_id:
+        raise click.ClickException("--session-id is required when using --link flag")
 
     print('Executing results...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
+        print('\tUsing the following parameters:')
+        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tWorkspace ID: {workspace_id}')
+        print(f'\t\tJob ID: {job_id}')
+        if link:
+            print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
@@ -1139,7 +1250,28 @@ def job_results(ctx,
     try:
         results = cl.get_job_results(job_id, workspace_id, verify_ssl)
         for name, path in results.items():
-            print(f"{name}: {path}\n")
+            print(f"{name}: {path}")
+        
+        # Link to interactive session if requested
+        if link:
+            if verbose:
+                print(f'\tLinking {len(results)} result directories to interactive session {session_id}...')
+            
+            # Use Link class to perform the linking
+            link_client = Link(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                cromwell_token=None,  # Not needed for linking operations
+                workspace_id=workspace_id,
+                project_name=None,  # Not needed for S3 paths
+                verify=verify_ssl
+            )
+            
+            for name, path in results.items():
+                if verbose:
+                    print(f'\t\tLinking {name} ({path})...')
+                link_client.link_folder(path, session_id)
+            
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
