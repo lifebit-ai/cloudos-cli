@@ -257,8 +257,14 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     # Conditionally add the "Job Queue" key if the jobType is not "nextflowAzure"
     if j_details_h["jobType"] != "nextflowAzure":
         try:
-            job_details_json["Job Queue ID"] = str(j_details_h["batch"]["jobQueue"]["name"])
-            job_details_json["Job Queue Name"] = str(j_details_h["batch"]["jobQueue"]["label"])
+            batch = j_details_h.get("batch", {})
+            job_queue = batch.get("jobQueue", {}) if batch is not None else {}
+            if job_queue is not None:
+                job_details_json["Job Queue ID"] = str(job_queue.get("name", "Not Specified"))
+                job_details_json["Job Queue Name"] = str(job_queue.get("label", "Not Specified"))
+            else:
+                job_details_json["Job Queue ID"] = "Not Specified"
+                job_details_json["Job Queue Name"] = "Not Specified"
         except KeyError:
             job_details_json["Job Queue"] = "Master Node"
 

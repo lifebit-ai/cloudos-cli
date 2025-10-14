@@ -4,6 +4,12 @@
 
 ### Patch
 
+- For job details, make sure when None is present add "Not specified"
+
+## v2.64.1 (2025-10-10)
+
+### Patch
+
 - Adds workspace_id as `teamId` to get_job_status() endpoint request. This enables performing `cloudos job details/workdirs/logs/results/abort/status` on other users from the workspace
 
 ## v2.64.0 (2025-10-06)
