@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.64.1 (2025-10-10)
+## v2.64.2 (2025-10-14)
 
 ### Patch
 
