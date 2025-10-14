@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.64.2 (2025-10-14)
+
+### Patch
+
+- For job details, make sure when None is present add "Not specified"
+
 ## v2.64.1 (2025-10-10)
 
 ### Patch
