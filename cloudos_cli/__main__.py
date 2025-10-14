@@ -121,6 +121,125 @@ def _setup_debug(ctx, param, value):
     return value
 
 
+def with_profile_config(required_params=None):
+    """
+    Decorator to automatically handle profile configuration loading for commands.
+    
+    This decorator simplifies command functions by automatically loading configuration
+    from profiles and validating required parameters. It eliminates the need to manually
+    create required_dict and call load_profile_and_validate_data in each command.
+    
+    Parameters
+    ----------
+    required_params : list, optional
+        List of parameter names that are required. Common values:
+        - 'apikey': CloudOS API key
+        - 'workspace_id': CloudOS workspace ID
+        - 'project_name': Project name
+        - 'workflow_name': Workflow/pipeline name
+        - 'session_id': Interactive session ID
+        - 'procurement_id': Procurement ID
+        
+    Example
+    -------
+    @job.command('details')
+    @click.option('--apikey', help='Your CloudOS API key', required=True)
+    @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
+    @click.option('--job-id', help='The job id in CloudOS to search for.', required=True)
+    @click.option('--profile', help='Profile to use from the config file', default=None)
+    @click.pass_context
+    @with_profile_config(required_params=['apikey', 'workspace_id'])
+    def job_details(ctx, job_id, ...):
+        # apikey, cloudos_url, workspace_id are automatically available from ctx.obj
+        apikey = ctx.obj['apikey']
+        cloudos_url = ctx.obj['cloudos_url']
+        workspace_id = ctx.obj['workspace_id']
+        ...
+    
+    Returns
+    -------
+    function
+        Decorated function with automatic profile configuration loading.
+    """
+    import functools
+    
+    if required_params is None:
+        required_params = []
+    
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            import inspect
+            
+            # Get context from args or kwargs
+            ctx = kwargs.get('ctx') or (args[0] if args and isinstance(args[0], click.Context) else None)
+            
+            if ctx is None:
+                raise ValueError("Context not found. Make sure @click.pass_context is used before this decorator.")
+            
+            # Update logging context
+            update_command_context_from_click(ctx)
+            
+            # Get profile from kwargs
+            profile = kwargs.get('profile')
+            
+            # Try to get profile from default_map if not provided
+            if profile is None and ctx.default_map:
+                # Navigate through the command hierarchy to find the profile
+                try:
+                    command_path = ctx.command_path.split()[1:]  # Skip the root command
+                    profile_map = ctx.default_map
+                    for cmd in command_path:
+                        profile_map = profile_map.get(cmd, {})
+                    profile = profile_map.get('profile')
+                except (AttributeError, KeyError):
+                    pass
+            
+            # Build required_dict with all possible parameters
+            all_params = ['apikey', 'workspace_id', 'project_name', 'workflow_name', 
+                         'session_id', 'procurement_id']
+            required_dict = {param: param in required_params for param in all_params}
+            
+            # Create configuration manager and load profile
+            config_manager = ConfigurationProfile()
+            user_options = config_manager.load_profile_and_validate_data(
+                ctx,
+                INIT_PROFILE,
+                CLOUDOS_URL,
+                profile=profile,
+                required_dict=required_dict,
+                apikey=kwargs.get('apikey'),
+                cloudos_url=kwargs.get('cloudos_url'),
+                workspace_id=kwargs.get('workspace_id'),
+                project_name=kwargs.get('project_name'),
+                workflow_name=kwargs.get('workflow_name'),
+                execution_platform=kwargs.get('execution_platform'),
+                repository_platform=kwargs.get('repository_platform'),
+                session_id=kwargs.get('session_id'),
+                procurement_id=kwargs.get('procurement_id')
+            )
+            
+            # Store user_options in context for easy access
+            if ctx.obj is None:
+                ctx.obj = {}
+            ctx.obj.update(user_options)
+            
+            # Get function signature to determine which parameters it accepts
+            sig = inspect.signature(func)
+            func_params = set(sig.parameters.keys())
+            
+            # Only update kwargs with parameters that the function actually accepts
+            for key, value in user_options.items():
+                if key in func_params:
+                    kwargs[key] = value
+            
+            # Call the original function
+            return func(*args, **kwargs)
+        
+        return wrapper
+    return decorator
+
+
 @click.group(cls=pass_debug_to_subcommands())
 @click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks', 
               is_eager=True, expose_value=False, callback=_setup_debug)
@@ -831,6 +950,7 @@ def run(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_status(ctx,
                apikey,
                cloudos_url,
@@ -841,34 +961,7 @@ def job_status(ctx,
                ssl_cert,
                profile):
     """Check job status in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['status']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            workspace_id=workspace_id,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -925,6 +1018,7 @@ def job_status(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_workdir(ctx,
                 apikey,
                 cloudos_url,
@@ -937,37 +1031,8 @@ def job_workdir(ctx,
                 ssl_cert,
                 profile):
     """Get the path to the working directory of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['workdir']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1048,6 +1113,7 @@ def job_workdir(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_logs(ctx,
              apikey,
              cloudos_url,
@@ -1060,37 +1126,8 @@ def job_logs(ctx,
              ssl_cert,
              profile):
     """Get the path to the logs of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['logs']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1184,6 +1221,7 @@ def job_logs(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_results(ctx,
                 apikey,
                 cloudos_url,
@@ -1196,37 +1234,8 @@ def job_results(ctx,
                 ssl_cert,
                 profile):
     """Get the path to the results of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['results']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1318,6 +1327,7 @@ def job_results(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_details(ctx,
                 apikey,
                 cloudos_url,
@@ -1331,34 +1341,10 @@ def job_details(ctx,
                 ssl_cert,
                 profile):
     """Retrieve job details in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['details']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            workspace_id=workspace_id,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    print("apikey:", apikey)
+    print("cloudos_url:", cloudos_url)
+    print("workspace_id:", workspace_id)
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
         output_basename = f"{job_id}_details"
