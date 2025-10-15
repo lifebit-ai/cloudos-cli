@@ -124,22 +124,23 @@ def _setup_debug(ctx, param, value):
 def with_profile_config(required_params=None):
     """
     Decorator to automatically handle profile configuration loading for commands.
-    
+
     This decorator simplifies command functions by automatically loading configuration
     from profiles and validating required parameters. It eliminates the need to manually
     create required_dict and call load_profile_and_validate_data in each command.
-    
+
     Parameters
     ----------
     required_params : list, optional
-        List of parameter names that are required. Common values:
+        List of parameter names that can currently be added in a profile. Common values:
         - 'apikey': CloudOS API key
         - 'workspace_id': CloudOS workspace ID
         - 'project_name': Project name
         - 'workflow_name': Workflow/pipeline name
         - 'session_id': Interactive session ID
         - 'procurement_id': Procurement ID
-        
+        This list can be updated as new parameters are added to profiles.
+
     Example
     -------
     @job.command('details')
@@ -150,39 +151,37 @@ def with_profile_config(required_params=None):
     @click.pass_context
     @with_profile_config(required_params=['apikey', 'workspace_id'])
     def job_details(ctx, job_id, ...):
-        # apikey, cloudos_url, workspace_id are automatically available from ctx.obj
-        apikey = ctx.obj['apikey']
-        cloudos_url = ctx.obj['cloudos_url']
-        workspace_id = ctx.obj['workspace_id']
+        # apikey, cloudos_url, workspace_id are automatically available
+        cl = Cloudos(cloudos_url, apikey, None)
         ...
-    
+
     Returns
     -------
     function
         Decorated function with automatic profile configuration loading.
     """
     import functools
-    
+
     if required_params is None:
         required_params = []
-    
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             import inspect
-            
+
             # Get context from args or kwargs
             ctx = kwargs.get('ctx') or (args[0] if args and isinstance(args[0], click.Context) else None)
-            
+
             if ctx is None:
                 raise ValueError("Context not found. Make sure @click.pass_context is used before this decorator.")
-            
+
             # Update logging context
             update_command_context_from_click(ctx)
-            
+
             # Get profile from kwargs
             profile = kwargs.get('profile')
-            
+
             # Try to get profile from default_map if not provided
             if profile is None and ctx.default_map:
                 # Navigate through the command hierarchy to find the profile
@@ -194,12 +193,12 @@ def with_profile_config(required_params=None):
                     profile = profile_map.get('profile')
                 except (AttributeError, KeyError):
                     pass
-            
+
             # Build required_dict with all possible parameters
             all_params = ['apikey', 'workspace_id', 'project_name', 'workflow_name', 
                          'session_id', 'procurement_id']
             required_dict = {param: param in required_params for param in all_params}
-            
+
             # Create configuration manager and load profile
             config_manager = ConfigurationProfile()
             user_options = config_manager.load_profile_and_validate_data(
@@ -218,24 +217,24 @@ def with_profile_config(required_params=None):
                 session_id=kwargs.get('session_id'),
                 procurement_id=kwargs.get('procurement_id')
             )
-            
+
             # Store user_options in context for easy access
             if ctx.obj is None:
                 ctx.obj = {}
             ctx.obj.update(user_options)
-            
+
             # Get function signature to determine which parameters it accepts
             sig = inspect.signature(func)
             func_params = set(sig.parameters.keys())
-            
+
             # Only update kwargs with parameters that the function actually accepts
             for key, value in user_options.items():
                 if key in func_params:
                     kwargs[key] = value
-            
+
             # Call the original function
             return func(*args, **kwargs)
-        
+
         return wrapper
     return decorator
 
