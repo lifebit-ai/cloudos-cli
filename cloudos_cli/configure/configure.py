@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 import configparser
-import sys
 import click
+from cloudos_cli.logging.logger import update_command_context_from_click
 
 
 class ConfigurationProfile:
@@ -557,3 +557,173 @@ class ConfigurationProfile:
             'project_name': project_name,
             'session_id': session_id
         }
+
+
+# Not part of the class, but related to configuration
+CLOUDOS_URL = 'https://cloudos.lifebit.ai'
+INIT_PROFILE = 'initialisingProfile'
+# Decorator to load profile configuration and validate required parameters
+def with_profile_config(required_params=None):
+    """
+    Decorator to automatically handle profile configuration loading for commands.
+
+    This decorator simplifies command functions by automatically loading configuration
+    from profiles and validating required parameters. It eliminates the need to manually
+    create required_dict and call load_profile_and_validate_data in each command.
+
+    Parameters
+    ----------
+    required_params : list, optional
+        List of parameter names that can currently be added in a profile. Common values:
+        - 'apikey': CloudOS API key
+        - 'workspace_id': CloudOS workspace ID
+        - 'project_name': Project name
+        - 'workflow_name': Workflow/pipeline name
+        - 'session_id': Interactive session ID
+        - 'procurement_id': Procurement ID
+        This list can be updated as new parameters are added to profiles.
+
+    Example
+    -------
+    @job.command('details')
+    @click.option('--apikey', help='Your CloudOS API key', required=True)
+    @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
+    @click.option('--job-id', help='The job id in CloudOS to search for.', required=True)
+    @click.option('--profile', help='Profile to use from the config file', default=None)
+    @click.pass_context
+    @with_profile_config(required_params=['apikey', 'workspace_id'])
+    def job_details(ctx, job_id, ...):
+        # apikey, cloudos_url, workspace_id are automatically available
+        cl = Cloudos(cloudos_url, apikey, None)
+        ...
+
+    Returns
+    -------
+    function
+        Decorated function with automatic profile configuration loading.
+    """
+    import functools
+
+    if required_params is None:
+        required_params = []
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            import inspect
+
+            # Get context from args or kwargs
+            ctx = kwargs.get('ctx') or (args[0] if args and isinstance(args[0], click.Context) else None)
+
+            if ctx is None:
+                raise ValueError("Context not found. Make sure @click.pass_context is used before this decorator.")
+
+            # Update logging context
+            update_command_context_from_click(ctx)
+
+            # Get profile from kwargs
+            profile = kwargs.get('profile')
+
+            # Try to get profile from default_map if not provided
+            if profile is None and ctx.default_map:
+                # Navigate through the command hierarchy to find the profile
+                try:
+                    command_path = ctx.command_path.split()[1:]  # Skip the root command
+                    profile_map = ctx.default_map
+                    for cmd in command_path:
+                        profile_map = profile_map.get(cmd, {})
+                    profile = profile_map.get('profile')
+                except (AttributeError, KeyError):
+                    pass
+
+            # Build required_dict with all possible parameters
+            all_params = ['apikey', 'workspace_id', 'project_name', 'workflow_name', 
+                         'session_id', 'procurement_id']
+            required_dict = {param: param in required_params for param in all_params}
+
+            # Create configuration manager and load profile
+            config_manager = ConfigurationProfile()
+            user_options = config_manager.load_profile_and_validate_data(
+                ctx,
+                INIT_PROFILE,
+                CLOUDOS_URL,
+                profile=profile,
+                required_dict=required_dict,
+                apikey=kwargs.get('apikey'),
+                cloudos_url=kwargs.get('cloudos_url'),
+                workspace_id=kwargs.get('workspace_id'),
+                project_name=kwargs.get('project_name'),
+                workflow_name=kwargs.get('workflow_name'),
+                execution_platform=kwargs.get('execution_platform'),
+                repository_platform=kwargs.get('repository_platform'),
+                session_id=kwargs.get('session_id'),
+                procurement_id=kwargs.get('procurement_id')
+            )
+
+            # Store user_options in context for easy access
+            if ctx.obj is None:
+                ctx.obj = {}
+            ctx.obj.update(user_options)
+
+            # Get function signature to determine which parameters it accepts
+            sig = inspect.signature(func)
+            func_params = set(sig.parameters.keys())
+
+            # Only update kwargs with parameters that the function actually accepts
+            for key, value in user_options.items():
+                if key in func_params:
+                    kwargs[key] = value
+
+            # Call the original function
+            return func(*args, **kwargs)
+
+        return wrapper
+    return decorator
+
+
+def build_default_map_for_group(group, shared_config):
+    """
+    Recursively build a default_map dictionary for a Click group and all its subcommands.
+
+    This function introspects a Click group to discover all registered commands and subcommands,
+    then builds a default_map structure that applies the shared_config to all of them.
+    This eliminates the need to manually maintain a list of commands in default_map.
+
+    Parameters
+    ----------
+    group : click.Group
+        The Click group to introspect
+    shared_config : dict
+        The configuration dictionary to apply to all commands
+
+    Returns
+    -------
+    dict
+        A dictionary mapping command names to their configurations
+
+    Example
+    -------
+    # Instead of manually defining:
+    default_map = {
+        'job': {'status': shared_config, 'list': shared_config, ...},
+        'workflow': {'list': shared_config, ...}
+    }
+
+    # Use:
+    default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
+    """
+    default_map = {}
+
+    if not isinstance(group, click.Group):
+        return default_map
+
+    # Iterate through all commands in the group
+    for cmd_name, cmd in group.commands.items():
+        if isinstance(cmd, click.Group):
+            # If it's a subgroup, recursively build its default_map
+            default_map[cmd_name] = build_default_map_for_group(cmd, shared_config)
+        else:
+            # If it's a command, apply the shared config
+            default_map[cmd_name] = shared_config
+
+    return default_map

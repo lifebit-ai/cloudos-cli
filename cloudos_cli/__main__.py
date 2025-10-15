@@ -24,6 +24,7 @@ from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
+from cloudos_cli.configure.configure import with_profile_config, build_default_map_for_group
 
 
 # GLOBAL VARS
@@ -121,124 +122,6 @@ def _setup_debug(ctx, param, value):
     return value
 
 
-def with_profile_config(required_params=None):
-    """
-    Decorator to automatically handle profile configuration loading for commands.
-
-    This decorator simplifies command functions by automatically loading configuration
-    from profiles and validating required parameters. It eliminates the need to manually
-    create required_dict and call load_profile_and_validate_data in each command.
-
-    Parameters
-    ----------
-    required_params : list, optional
-        List of parameter names that can currently be added in a profile. Common values:
-        - 'apikey': CloudOS API key
-        - 'workspace_id': CloudOS workspace ID
-        - 'project_name': Project name
-        - 'workflow_name': Workflow/pipeline name
-        - 'session_id': Interactive session ID
-        - 'procurement_id': Procurement ID
-        This list can be updated as new parameters are added to profiles.
-
-    Example
-    -------
-    @job.command('details')
-    @click.option('--apikey', help='Your CloudOS API key', required=True)
-    @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
-    @click.option('--job-id', help='The job id in CloudOS to search for.', required=True)
-    @click.option('--profile', help='Profile to use from the config file', default=None)
-    @click.pass_context
-    @with_profile_config(required_params=['apikey', 'workspace_id'])
-    def job_details(ctx, job_id, ...):
-        # apikey, cloudos_url, workspace_id are automatically available
-        cl = Cloudos(cloudos_url, apikey, None)
-        ...
-
-    Returns
-    -------
-    function
-        Decorated function with automatic profile configuration loading.
-    """
-    import functools
-
-    if required_params is None:
-        required_params = []
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            import inspect
-
-            # Get context from args or kwargs
-            ctx = kwargs.get('ctx') or (args[0] if args and isinstance(args[0], click.Context) else None)
-
-            if ctx is None:
-                raise ValueError("Context not found. Make sure @click.pass_context is used before this decorator.")
-
-            # Update logging context
-            update_command_context_from_click(ctx)
-
-            # Get profile from kwargs
-            profile = kwargs.get('profile')
-
-            # Try to get profile from default_map if not provided
-            if profile is None and ctx.default_map:
-                # Navigate through the command hierarchy to find the profile
-                try:
-                    command_path = ctx.command_path.split()[1:]  # Skip the root command
-                    profile_map = ctx.default_map
-                    for cmd in command_path:
-                        profile_map = profile_map.get(cmd, {})
-                    profile = profile_map.get('profile')
-                except (AttributeError, KeyError):
-                    pass
-
-            # Build required_dict with all possible parameters
-            all_params = ['apikey', 'workspace_id', 'project_name', 'workflow_name', 
-                         'session_id', 'procurement_id']
-            required_dict = {param: param in required_params for param in all_params}
-
-            # Create configuration manager and load profile
-            config_manager = ConfigurationProfile()
-            user_options = config_manager.load_profile_and_validate_data(
-                ctx,
-                INIT_PROFILE,
-                CLOUDOS_URL,
-                profile=profile,
-                required_dict=required_dict,
-                apikey=kwargs.get('apikey'),
-                cloudos_url=kwargs.get('cloudos_url'),
-                workspace_id=kwargs.get('workspace_id'),
-                project_name=kwargs.get('project_name'),
-                workflow_name=kwargs.get('workflow_name'),
-                execution_platform=kwargs.get('execution_platform'),
-                repository_platform=kwargs.get('repository_platform'),
-                session_id=kwargs.get('session_id'),
-                procurement_id=kwargs.get('procurement_id')
-            )
-
-            # Store user_options in context for easy access
-            if ctx.obj is None:
-                ctx.obj = {}
-            ctx.obj.update(user_options)
-
-            # Get function signature to determine which parameters it accepts
-            sig = inspect.signature(func)
-            func_params = set(sig.parameters.keys())
-
-            # Only update kwargs with parameters that the function actually accepts
-            for key, value in user_options.items():
-                if key in func_params:
-                    kwargs[key] = value
-
-            # Call the original function
-            return func(*args, **kwargs)
-
-        return wrapper
-    return decorator
-
-
 @click.group(cls=pass_debug_to_subcommands())
 @click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks', 
               is_eager=True, expose_value=False, callback=_setup_debug)
@@ -252,8 +135,10 @@ def run_cloudos_cli(ctx):
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
+    
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
+    
     if profile_to_use is None:
         console = Console()
         console.print(
@@ -271,57 +156,6 @@ def run_cloudos_cli(ctx):
             'profile': INIT_PROFILE,
             'session_id': '',
         })
-        ctx.default_map = dict({
-            'job': {
-                'run': shared_config,
-                'abort': shared_config,
-                'status': shared_config,
-                'list': shared_config,
-                'logs': shared_config,
-                'workdir': shared_config,
-                'results': shared_config,
-                'details': shared_config,
-                'clone': shared_config,
-                'resume': shared_config,
-                'cost': shared_config
-            },
-            'workflow': {
-                'list': shared_config,
-                'import': shared_config
-            },
-            'project': {
-                'list': shared_config,
-                'create': shared_config
-            },
-            'cromwell': {
-                'status': shared_config,
-                'start': shared_config,
-                'stop': shared_config
-            },
-            'queue': {
-                'list': shared_config
-            },
-            'bash': {
-                'job': shared_config,
-                'array-job': shared_config
-            },
-            'datasets': {
-                'ls': shared_config,
-                'mv': shared_config,
-                'rename': shared_config,
-                'cp': shared_config,
-                'link': shared_config,
-                'mkdir': shared_config,
-                'rm': shared_config
-            },
-            'procurement': {
-                'images': {
-                    'ls': shared_config,
-                    'set': shared_config,
-                    'reset': shared_config
-                }
-            }
-        })
     else:
         profile_data = config_manager.load_profile(profile_name=profile_to_use)
         shared_config = dict({
@@ -336,57 +170,9 @@ def run_cloudos_cli(ctx):
             'profile': profile_to_use,
             'session_id': profile_data.get('session_id', "")
         })
-        ctx.default_map = dict({
-            'job': {
-                'run': shared_config,
-                'abort': shared_config,
-                'status': shared_config,
-                'list': shared_config,
-                'logs': shared_config,
-                'workdir': shared_config,
-                'results': shared_config,
-                'details': shared_config,
-                'clone': shared_config,
-                'resume': shared_config,
-                'cost': shared_config
-            },
-            'workflow': {
-                'list': shared_config,
-                'import': shared_config
-            },
-            'project': {
-                'list': shared_config,
-                'create': shared_config
-            },
-            'cromwell': {
-                'status': shared_config,
-                'start': shared_config,
-                'stop': shared_config
-            },
-            'queue': {
-                'list': shared_config
-            },
-            'bash': {
-                'job': shared_config,
-                'array-job': shared_config
-            },
-            'datasets': {
-                'ls': shared_config,
-                'mv': shared_config,
-                'rename': shared_config,
-                'cp': shared_config,
-                'link': shared_config,
-                'mkdir': shared_config,
-                'rm': shared_config
-            },
-            'procurement': {
-                'images': {
-                    'ls': shared_config,
-                    'set': shared_config,
-                    'reset': shared_config
-                }
-            }
-        })
+    
+    # Automatically build default_map from registered commands
+    ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
 
 
 @run_cloudos_cli.group(cls=pass_debug_to_subcommands())
