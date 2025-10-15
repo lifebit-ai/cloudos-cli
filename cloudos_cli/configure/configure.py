@@ -360,7 +360,11 @@ class ConfigurationProfile:
         print(f"Profile '{profile_name}' set as default.")
 
     def load_profile(self, profile_name):
-        """Load a profile from the config and credentials files.
+        """Load a profile from the config and credentials files dynamically.
+        
+        This method now returns ALL parameters from the profile, not just predefined ones.
+        This makes it extensible - you can add new parameters to profiles without modifying this method.
+        
         Parameters:
         ----------
         profile_name : str
@@ -368,7 +372,17 @@ class ConfigurationProfile:
         Returns:
         -------
         dict
-            A dictionary containing the profile details.
+            A dictionary containing all profile parameters. Returns all keys from both
+            credentials and config files for the specified profile.
+            
+        Examples
+        --------
+        # If you add accelerate_saving_results to your profile config:
+        config[profile_name]['accelerate_saving_results'] = 'true'
+        
+        # It will automatically be included in the returned dictionary:
+        profile_data = load_profile('myprofile')
+        # profile_data will contain 'accelerate_saving_results': 'true'
         """
         config = configparser.ConfigParser()
         credentials = configparser.ConfigParser()
@@ -383,17 +397,22 @@ class ConfigurationProfile:
             raise ValueError(f'Profile "{profile_name}" does not exist. Please create it ' +
                              f'with "cloudos configure --profile {profile_name}".\n')
 
-        return {
-            'apikey': credentials[profile_name].get('apikey', ""),
-            'cloudos_url': config[profile_name].get('cloudos_url', ""),
-            'workspace_id': config[profile_name].get('workspace_id', ""),
-            'procurement_id': config[profile_name].get('procurement_id', ""),
-            'project_name': config[profile_name].get('project_name', ""),
-            'workflow_name': config[profile_name].get('workflow_name', ""),
-            'execution_platform': config[profile_name].get('execution_platform', ""),
-            'repository_platform': config[profile_name].get('repository_platform', ""),
-            'session_id': config[profile_name].get('session_id', "")
-        }
+        # Dynamically load all parameters from the profile
+        profile_data = {}
+        
+        # Load all items from credentials file
+        if credentials.has_section(profile_name):
+            for key, value in credentials[profile_name].items():
+                profile_data[key] = value
+        
+        # Load all items from config file
+        if config.has_section(profile_name):
+            for key, value in config[profile_name].items():
+                # Skip the 'default' flag as it's not a user parameter
+                if key != 'default':
+                    profile_data[key] = value
+        
+        return profile_data
 
     def check_if_profile_exists(self, profile_name):
         """Check if a profile exists in the config file.
@@ -458,11 +477,13 @@ class ConfigurationProfile:
                 missing_required_params.append('--' + param_name.replace('_', '-'))
         return result
 
-    def load_profile_and_validate_data(self, ctx, init_profile, cloudos_url_default, profile, required_dict, apikey=None,
-                                       cloudos_url=None, workspace_id=None, project_name=None, workflow_name=None,
-                                       execution_platform=None, repository_platform=None, session_id=None, procurement_id=None):
+    def load_profile_and_validate_data(self, ctx, init_profile, cloudos_url_default, profile, required_dict, **cli_params):
         """
-        Load profile data and validate required parameters.
+        Load profile data and validate required parameters dynamically.
+        
+        This method now accepts any parameters via **cli_params, making it extensible.
+        You can add new parameters to profiles (like accelerate_saving_results) without
+        modifying this method.
 
         Parameters
         ----------
@@ -476,87 +497,98 @@ class ConfigurationProfile:
             The profile name to load.
         required_dict : dict
             A dictionary with param name as key and whether is required or not (as bool) as value.
-        apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform, session_id : string
-            The values coming from the CLI to be compared with the profile
+        **cli_params : dict
+            All CLI parameters passed as keyword arguments. Any parameter can be passed here
+            and will be resolved from the profile if available.
+            
+            Examples: apikey, cloudos_url, workspace_id, project_name, workflow_name, 
+                     execution_platform, repository_platform, session_id, procurement_id,
+                     accelerate_saving_results, etc.
 
         Returns
         -------
         dict
-            A dictionary containing the loaded and validated parameters.
+            A dictionary containing all loaded and validated parameters.
+            
+        Examples
+        --------
+        # Add a new parameter to profile without changing this method:
+        # 1. Add to profile creation (create_profile_from_input)
+        # 2. Add to load_profile method return dict
+        # 3. Pass it in cli_params when calling this method
+        # 4. It will automatically be resolved from profile!
         """
         missing = []
+        resolved_params = {}
 
         if profile != init_profile:
+            # Load profile data
             profile_data = self.load_profile(profile_name=profile)
-            apikey = self.get_param_value(ctx, apikey, 'apikey', profile_data['apikey'],
-                                          required=required_dict['apikey'], missing_required_params=missing)
-            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', profile_data['cloudos_url'])
-            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', profile_data['workspace_id'],
-                                                required=required_dict['workspace_id'], missing_required_params=missing)
-            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', profile_data['workflow_name'],
-                                                 required=required_dict['workflow_name'], missing_required_params=missing)
-            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
-                                                       profile_data['repository_platform'])
-            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform',
-                                                      profile_data['execution_platform'])
-            project_name = self.get_param_value(ctx, project_name, 'project_name', profile_data['project_name'],
-                                                required=required_dict['project_name'], missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', profile_data['session_id'],
-                                              required=required_dict['session_id'], missing_required_params=missing)
-            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', profile_data['procurement_id'],
-                                                required=required_dict['procurement_id'], missing_required_params=missing)
+            
+            # Dynamically process all parameters passed in cli_params
+            for param_name, cli_value in cli_params.items():
+                profile_value = profile_data.get(param_name, "")
+                is_required = required_dict.get(param_name, False)
+
+                # Resolve the parameter value
+                resolved_value = self.get_param_value(
+                    ctx, 
+                    cli_value, 
+                    param_name, 
+                    profile_value,
+                    required=is_required, 
+                    missing_required_params=missing
+                )
+                # Convert empty strings to None for optional parameters
+                # This prevents issues with functions that expect None for unset values
+                if resolved_value == "" and not is_required:
+                    resolved_value = None
+                resolved_params[param_name] = resolved_value
         else:
-            # when no profile is used, we need to check if the user provided all required parameters
-            apikey = self.get_param_value(ctx, apikey, 'apikey', apikey, required=required_dict['apikey'],
-                                          missing_required_params=missing)
-            resolved_cloudos_url = self.get_param_value(ctx, cloudos_url, 'cloudos_url', cloudos_url,
-                                          missing_required_params=missing) 
-            workspace_id = self.get_param_value(ctx, workspace_id, 'workspace_id', workspace_id,
-                                                required=required_dict['workspace_id'],
-                                                missing_required_params=missing)
-            workflow_name = self.get_param_value(ctx, workflow_name, 'workflow_name', workflow_name,
-                                                 required=required_dict['workflow_name'],
-                                                 missing_required_params=missing)
-            repository_platform = self.get_param_value(ctx, repository_platform, 'repository_platform',
-                                                       repository_platform)
-            execution_platform = self.get_param_value(ctx, execution_platform, 'execution_platform', execution_platform)
-            project_name = self.get_param_value(ctx, project_name, 'project_name', project_name,
-                                                required=required_dict['project_name'],
-                                                missing_required_params=missing)
-            session_id = self.get_param_value(ctx, session_id, 'session_id', session_id,
-                                              required=required_dict['session_id'],
-                                              missing_required_params=missing)
-            procurement_id = self.get_param_value(ctx, procurement_id, 'procurement_id', procurement_id)
+            # No profile used - check if user provided all required parameters
+            for param_name, cli_value in cli_params.items():
+                is_required = required_dict.get(param_name, False)
+
+                # Resolve the parameter value
+                resolved_value = self.get_param_value(
+                    ctx,
+                    cli_value,
+                    param_name,
+                    cli_value,  # Use CLI value as default when no profile
+                    required=is_required,
+                    missing_required_params=missing
+                )
+                # Convert empty strings to None for optional parameters
+                # This prevents issues with functions that expect None for unset values
+                if resolved_value == "" and not is_required:
+                    resolved_value = None
+                resolved_params[param_name] = resolved_value
+
+        # Special handling for cloudos_url with fallback to default
+        resolved_cloudos_url = resolved_params.get('cloudos_url', '')
         if not resolved_cloudos_url:
             click.secho(
                 f"No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
                 fg="yellow",
                 bold=True
             )
-            cloudos_url = cloudos_url_default
+            resolved_params['cloudos_url'] = cloudos_url_default
         else:
-            cloudos_url = resolved_cloudos_url
-        cloudos_url = cloudos_url.rstrip('/')
+            resolved_params['cloudos_url'] = resolved_cloudos_url.rstrip('/')
 
         # Raise once, after all checks
         if missing:
             formatted = ', '.join(p for p in missing)
-            raise click.UsageError(f"Missing required option/s: {formatted} \nYou can configure the following parameters " +
-                                   "persistently by running cloudos configure:\n  --apikey,\n  --cloudos-url,\n  " +
-                                   "--workspace-id,\n  --workflow-name,\n  --repository-platform,\n  " +
-                                   "--execution-platform,\n  --project-name,\n  --session-id,\n  --procurement-id\n" +
-                                   "For more information on the usage of the command, please run cloudos configure --help")
-        return {
-            'apikey': apikey,
-            'cloudos_url': cloudos_url,
-            'workspace_id': workspace_id,
-            'procurement_id': procurement_id,
-            'workflow_name': workflow_name,
-            'repository_platform': repository_platform,
-            'execution_platform': execution_platform,
-            'project_name': project_name,
-            'session_id': session_id
-        }
+            raise click.UsageError(
+                f"Missing required option/s: {formatted}\n"
+                f"You can configure the following parameters persistently by running cloudos configure:\n"
+                f"  --apikey, --cloudos-url, --workspace-id, --workflow-name,\n"
+                f"  --repository-platform, --execution-platform, --project-name,\n"
+                f"  --session-id, --procurement-id\n"
+                f"For more information on the usage of the command, please run cloudos configure --help"
+            )
+
+        return resolved_params
 
 
 # Not part of the class, but related to configuration
@@ -592,7 +624,7 @@ def with_profile_config(required_params=None):
     @click.option('--profile', help='Profile to use from the config file', default=None)
     @click.pass_context
     @with_profile_config(required_params=['apikey', 'workspace_id'])
-    def job_details(ctx, job_id, ...):
+    def job_details(ctx, apikey, workspace_id, job_id, ...):
         # apikey, cloudos_url, workspace_id are automatically available
         cl = Cloudos(cloudos_url, apikey, None)
         ...
@@ -636,28 +668,24 @@ def with_profile_config(required_params=None):
                 except (AttributeError, KeyError):
                     pass
 
-            # Build required_dict with all possible parameters
-            all_params = ['apikey', 'workspace_id', 'project_name', 'workflow_name', 
-                         'session_id', 'procurement_id']
-            required_dict = {param: param in required_params for param in all_params}
+            # Build required_dict dynamically from required_params
+            # Only parameters in required_params will be validated as required
+            required_dict = {param: param in required_params for param in required_params}
 
             # Create configuration manager and load profile
             config_manager = ConfigurationProfile()
+            
+            # Pass all kwargs dynamically to load_profile_and_validate_data
+            # This allows any parameter to be loaded from profile without modifying the decorator
+            # Remove 'profile' from kwargs since we're passing it explicitly
+            cli_params = {k: v for k, v in kwargs.items() if k != 'profile'}
             user_options = config_manager.load_profile_and_validate_data(
                 ctx,
                 INIT_PROFILE,
                 CLOUDOS_URL,
                 profile=profile,
                 required_dict=required_dict,
-                apikey=kwargs.get('apikey'),
-                cloudos_url=kwargs.get('cloudos_url'),
-                workspace_id=kwargs.get('workspace_id'),
-                project_name=kwargs.get('project_name'),
-                workflow_name=kwargs.get('workflow_name'),
-                execution_platform=kwargs.get('execution_platform'),
-                repository_platform=kwargs.get('repository_platform'),
-                session_id=kwargs.get('session_id'),
-                procurement_id=kwargs.get('procurement_id')
+                **cli_params  # Pass all parameters dynamically (except 'profile')!
             )
 
             # Store user_options in context for easy access
@@ -670,9 +698,15 @@ def with_profile_config(required_params=None):
             func_params = set(sig.parameters.keys())
 
             # Only update kwargs with parameters that the function actually accepts
+            # AND that were not explicitly provided by the user on the command line
+            # AND that have a meaningful value from the profile (not None)
             for key, value in user_options.items():
-                if key in func_params:
-                    kwargs[key] = value
+                if key in func_params and value is not None:
+                    # Check if the parameter was provided via command line
+                    param_source = ctx.get_parameter_source(key)
+                    # Only override if NOT from command line (i.e., use profile/default values)
+                    if param_source != click.core.ParameterSource.COMMANDLINE:
+                        kwargs[key] = value
 
             # Call the original function
             return func(*args, **kwargs)

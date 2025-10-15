@@ -1127,9 +1127,6 @@ def job_details(ctx,
                 profile):
     """Retrieve job details in CloudOS."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
-    print("apikey:", apikey)
-    print("cloudos_url:", cloudos_url)
-    print("workspace_id:", workspace_id)
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
         output_basename = f"{job_id}_details"
