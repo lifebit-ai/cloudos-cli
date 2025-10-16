@@ -144,7 +144,8 @@ def run_cloudos_cli(ctx):
         console.print(
             "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
         )
-        shared_config = dict({
+        # Default configuration when no profile exists
+        shared_config = {
             'apikey': '',
             'cloudos_url': CLOUDOS_URL,
             'workspace_id': '',
@@ -155,21 +156,12 @@ def run_cloudos_cli(ctx):
             'execution_platform': 'aws',
             'profile': INIT_PROFILE,
             'session_id': '',
-        })
+        }
     else:
-        profile_data = config_manager.load_profile(profile_name=profile_to_use)
-        shared_config = dict({
-            'apikey': profile_data.get('apikey', ""),
-            'cloudos_url': profile_data.get('cloudos_url', ""),
-            'workspace_id': profile_data.get('workspace_id', ""),
-            'procurement_id': profile_data.get('procurement_id', ""),
-            'project_name': profile_data.get('project_name', ""),
-            'workflow_name': profile_data.get('workflow_name', ""),
-            'repository_platform': profile_data.get('repository_platform', ""),
-            'execution_platform': profile_data.get('execution_platform', ""),
-            'profile': profile_to_use,
-            'session_id': profile_data.get('session_id', "")
-        })
+        # Automatically load all parameters from profile
+        shared_config = config_manager.load_profile(profile_name=profile_to_use)
+        # Ensure 'profile' key is always set to the profile name
+        shared_config['profile'] = profile_to_use
     
     # Automatically build default_map from registered commands
     ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
@@ -1510,6 +1502,9 @@ def clone_resume(ctx,
                  disable_ssl_verification,
                  ssl_cert,
                  profile):
+    print("apikey:", apikey)
+    print("cloudos_url:", cloudos_url)
+    print("workspace_id:", workspace_id)
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
@@ -2743,7 +2738,7 @@ def list_files(ctx,
                path,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
-
+    print("project_name", project_name)
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
