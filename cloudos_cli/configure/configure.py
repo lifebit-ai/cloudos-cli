@@ -539,6 +539,7 @@ class ConfigurationProfile:
                     required=is_required, 
                     missing_required_params=missing
                 )
+                
                 # Convert empty strings to None for optional parameters
                 # This prevents issues with functions that expect None for unset values
                 if resolved_value == "" and not is_required:
@@ -655,10 +656,16 @@ def with_profile_config(required_params=None):
 
             # Get profile from kwargs
             profile = kwargs.get('profile')
-
-            # Try to get profile from default_map if not provided
-            if profile is None and ctx.default_map:
-                # Navigate through the command hierarchy to find the profile
+            
+            # Check if profile was explicitly provided on command line
+            # If it was provided via CLI, use that; otherwise fall back to default_map
+            profile_source = ctx.get_parameter_source('profile')
+            
+            if profile_source == click.core.ParameterSource.COMMANDLINE:
+                # User explicitly specified --profile on command line, use it
+                pass  # profile is already set from kwargs
+            elif profile is None and ctx.default_map:
+                # No profile specified on CLI, try to get from default_map
                 try:
                     command_path = ctx.command_path.split()[1:]  # Skip the root command
                     profile_map = ctx.default_map
@@ -679,6 +686,7 @@ def with_profile_config(required_params=None):
             # This allows any parameter to be loaded from profile without modifying the decorator
             # Remove 'profile' from kwargs since we're passing it explicitly
             cli_params = {k: v for k, v in kwargs.items() if k != 'profile'}
+            
             user_options = config_manager.load_profile_and_validate_data(
                 ctx,
                 INIT_PROFILE,
@@ -700,6 +708,7 @@ def with_profile_config(required_params=None):
             # Only update kwargs with parameters that the function actually accepts
             # AND that were not explicitly provided by the user on the command line
             # AND that have a meaningful value from the profile (not None)
+            import sys
             for key, value in user_options.items():
                 if key in func_params and value is not None:
                     # Check if the parameter was provided via command line
