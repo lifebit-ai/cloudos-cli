@@ -24,7 +24,7 @@ from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
-from cloudos_cli.configure.configure import with_profile_config, build_default_map_for_group
+from cloudos_cli.configure.configure import with_profile_config, build_default_map_for_group, get_shared_config
 
 
 # GLOBAL VARS
@@ -136,57 +136,8 @@ def run_cloudos_cli(ctx):
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
     
-    config_manager = ConfigurationProfile()
-    profile_to_use = config_manager.determine_default_profile()
-    
-    if profile_to_use is None:
-        console = Console()
-        console.print(
-            "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
-        )
-        # Default configuration when no profile exists
-        shared_config = {
-            'apikey': '',
-            'cloudos_url': CLOUDOS_URL,
-            'workspace_id': '',
-            'procurement_id': '',
-            'project_name': '',
-            'workflow_name': '',
-            'repository_platform': 'github',
-            'execution_platform': 'aws',
-            'profile': INIT_PROFILE,
-            'session_id': '',
-        }
-    else:
-        # Load default profile without validation - just to provide defaults
-        # The with_profile_config decorator will handle validation when commands run
-        # This allows the default profile to have missing fields when not actually used
-        try:
-            shared_config = config_manager.load_profile(profile_name=profile_to_use)
-            # Ensure 'profile' key is always set to the profile name
-            shared_config['profile'] = profile_to_use
-            # Fill in any missing keys with empty strings to prevent KeyErrors
-            # but don't validate - validation happens at command level
-            default_keys = ['apikey', 'cloudos_url', 'workspace_id', 'procurement_id', 
-                          'project_name', 'workflow_name', 'repository_platform', 
-                          'execution_platform', 'session_id']
-            for key in default_keys:
-                if key not in shared_config:
-                    shared_config[key] = ''
-        except Exception:
-            # If loading the default profile fails, use empty defaults
-            shared_config = {
-                'apikey': '',
-                'cloudos_url': CLOUDOS_URL,
-                'workspace_id': '',
-                'procurement_id': '',
-                'project_name': '',
-                'workflow_name': '',
-                'repository_platform': 'github',
-                'execution_platform': 'aws',
-                'profile': profile_to_use,
-                'session_id': '',
-            }
+    # Load shared configuration (handles missing profiles and fields gracefully)
+    shared_config = get_shared_config(init_profile=INIT_PROFILE, default_cloudos_url=CLOUDOS_URL)
     
     # Automatically build default_map from registered commands
     ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)

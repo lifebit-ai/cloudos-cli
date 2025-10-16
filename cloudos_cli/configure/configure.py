@@ -770,3 +770,81 @@ def build_default_map_for_group(group, shared_config):
             default_map[cmd_name] = shared_config
 
     return default_map
+
+
+def get_shared_config(init_profile='initialisingProfile', default_cloudos_url='https://cloudos.lifebit.ai'):
+    """
+    Load shared configuration from the default profile with fallback to empty defaults.
+    
+    This function centralizes the logic for loading the shared configuration that will
+    be used to populate the default_map for all commands. It handles missing profiles,
+    incomplete profiles, and loading errors gracefully.
+    
+    The default profile is loaded without validation - just to provide default values.
+    The with_profile_config decorator will handle validation when commands actually run.
+    This allows the default profile to have missing fields when not actually used.
+    
+    Parameters
+    ----------
+    init_profile : str, optional
+        The profile name to use when no profile exists. Default is 'initialisingProfile'.
+    default_cloudos_url : str, optional
+        The default CloudOS URL to use. Default is 'https://cloudos.lifebit.ai'.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the shared configuration with all standard fields.
+        Missing fields are filled with empty strings to prevent KeyErrors.
+    
+    Example
+    -------
+    >>> shared_config = get_shared_config()
+    >>> ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
+    """
+    from rich.console import Console
+    
+    # Define all standard configuration keys with their default empty values
+    STANDARD_CONFIG_KEYS = {
+        'apikey': '',
+        'cloudos_url': default_cloudos_url,
+        'workspace_id': '',
+        'procurement_id': '',
+        'project_name': '',
+        'workflow_name': '',
+        'repository_platform': 'github',
+        'execution_platform': 'aws',
+        'profile': init_profile,
+        'session_id': '',
+    }
+    
+    config_manager = ConfigurationProfile()
+    profile_to_use = config_manager.determine_default_profile()
+    
+    if profile_to_use is None:
+        console = Console()
+        console.print(
+            "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
+        )
+        # Return default configuration when no profile exists
+        return STANDARD_CONFIG_KEYS.copy()
+    
+    # Load default profile without validation - just to provide defaults
+    try:
+        shared_config = config_manager.load_profile(profile_name=profile_to_use)
+        # Ensure 'profile' key is always set to the profile name
+        shared_config['profile'] = profile_to_use
+        
+        # Fill in any missing keys with default values to prevent KeyErrors
+        # but don't validate - validation happens at command level
+        for key, default_value in STANDARD_CONFIG_KEYS.items():
+            if key not in shared_config:
+                shared_config[key] = default_value
+        
+        return shared_config
+        
+    except Exception:
+        # If loading the default profile fails, use empty defaults
+        shared_config = STANDARD_CONFIG_KEYS.copy()
+        shared_config['profile'] = profile_to_use
+        return shared_config
