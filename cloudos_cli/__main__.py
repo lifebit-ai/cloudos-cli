@@ -158,10 +158,35 @@ def run_cloudos_cli(ctx):
             'session_id': '',
         }
     else:
-        # Automatically load all parameters from profile
-        shared_config = config_manager.load_profile(profile_name=profile_to_use)
-        # Ensure 'profile' key is always set to the profile name
-        shared_config['profile'] = profile_to_use
+        # Load default profile without validation - just to provide defaults
+        # The with_profile_config decorator will handle validation when commands run
+        # This allows the default profile to have missing fields when not actually used
+        try:
+            shared_config = config_manager.load_profile(profile_name=profile_to_use)
+            # Ensure 'profile' key is always set to the profile name
+            shared_config['profile'] = profile_to_use
+            # Fill in any missing keys with empty strings to prevent KeyErrors
+            # but don't validate - validation happens at command level
+            default_keys = ['apikey', 'cloudos_url', 'workspace_id', 'procurement_id', 
+                          'project_name', 'workflow_name', 'repository_platform', 
+                          'execution_platform', 'session_id']
+            for key in default_keys:
+                if key not in shared_config:
+                    shared_config[key] = ''
+        except Exception:
+            # If loading the default profile fails, use empty defaults
+            shared_config = {
+                'apikey': '',
+                'cloudos_url': CLOUDOS_URL,
+                'workspace_id': '',
+                'procurement_id': '',
+                'project_name': '',
+                'workflow_name': '',
+                'repository_platform': 'github',
+                'execution_platform': 'aws',
+                'profile': profile_to_use,
+                'session_id': '',
+            }
     
     # Automatically build default_map from registered commands
     ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
