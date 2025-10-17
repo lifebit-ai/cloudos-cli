@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.65.0 (2025-10-17)
+
+### Feat
+
+- Improve `configure` command implementation by removing duplicated code and logic
+- Backwards compatible and easier to maintain
+
 ## v2.64.2 (2025-10-14)
 
 ### Patch
