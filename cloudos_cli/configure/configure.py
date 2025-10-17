@@ -829,14 +829,13 @@ def get_shared_config(init_profile='initialisingProfile', default_cloudos_url='h
         # Return default configuration when no profile exists
         return STANDARD_CONFIG_KEYS.copy()
     
-    # Load default profile without validation - just to provide defaults
+    # Load default profile - just to provide defaults
     try:
         shared_config = config_manager.load_profile(profile_name=profile_to_use)
         # Ensure 'profile' key is always set to the profile name
         shared_config['profile'] = profile_to_use
         
         # Fill in any missing keys with default values to prevent KeyErrors
-        # but don't validate - validation happens at command level
         for key, default_value in STANDARD_CONFIG_KEYS.items():
             if key not in shared_config:
                 shared_config[key] = default_value
