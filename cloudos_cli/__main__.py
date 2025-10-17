@@ -24,7 +24,12 @@ from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
-from cloudos_cli.configure.configure import with_profile_config, build_default_map_for_group, get_shared_config
+from cloudos_cli.configure.configure import (
+    with_profile_config,
+    build_default_map_for_group,
+    get_shared_config,
+    CLOUDOS_URL
+)
 
 
 # GLOBAL VARS
@@ -37,8 +42,6 @@ AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
 
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
@@ -137,7 +140,7 @@ def run_cloudos_cli(ctx):
         print('Version: ' + __version__ + '\n')
     
     # Load shared configuration (handles missing profiles and fields gracefully)
-    shared_config = get_shared_config(init_profile=INIT_PROFILE, default_cloudos_url=CLOUDOS_URL)
+    shared_config = get_shared_config()
     
     # Automatically build default_map from registered commands
     ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
