@@ -309,16 +309,6 @@ class Job(Cloudos):
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
             resumable = True
-        if (
-            nextflow_profile is None and
-            job_config is None and
-            len(parameter) == 0 and
-            len(example_parameters) == 0 and 
-            workflow_type != 'docker'
-        ):
-            raise ValueError('No --job-config, --nextflow_profile, --parameter or ' +
-                             '--example_parameters were specified,' +
-                             '  please use at least one of these options.')
         if workflow_type == 'wdl' and job_config is None and len(parameter) == 0:
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
