@@ -35,14 +35,6 @@ jobs:
           echo "✅ Successfully logged into Quay.io"
           docker info | grep "Username" || echo "Quay login failed"
 
-      # --- AWS ECR login test ---
-      - name: Configure AWS credentials
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-        run: |
-          aws sts get-caller-identity
-          echo "✅ AWS credentials are valid"
       - name: Login to ECR
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
