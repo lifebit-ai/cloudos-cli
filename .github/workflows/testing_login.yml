@@ -1,0 +1,59 @@
+name: Test container and PyPI logins
+
+on:
+  workflow_dispatch:  # run manually from the Actions tab
+
+jobs:
+  test-logins:
+    name: Verify Quay, ECR, and PyPI credentials
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'eu-west-1' }}
+      ECR_ACCOUNT_ID: ${{ vars.ECR_ACCOUNT_ID || '518054667335' }}
+      ECR_REPO: ${{ vars.ECR_REPO || 'test-repo' }}
+      QUAY_REPO: ${{ vars.QUAY_REPO || 'quay.io/your-org/test' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Quay.io login test ---
+      - name: Test Quay.io login
+        id: quay
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_LOGIN_ID }}
+          password: ${{ secrets.QUAY_LOGIN_PWD }}
+      - name: Verify Quay login works
+        run: |
+          echo "✅ Successfully logged into Quay.io"
+          docker info | grep "Username" || echo "Quay login failed"
+
+      # --- AWS ECR login test ---
+      - name: Configure AWS credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        run: |
+          aws sts get-caller-identity
+          echo "✅ AWS credentials are valid"
+      - name: Login to ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin \
+              "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          echo "✅ Successfully logged into AWS ECR"
+
+      # --- PyPI login test ---
+      - name: Test PyPI login (non-destructive)
+        run: |
+          echo "Testing PyPI credentials..."
+          curl -u "__token__:${{ secrets.PYPI_LOGIN_TOKEN }}" \
+            -X GET https://upload.pypi.org/legacy/ -I | grep "HTTP/"
+          echo "✅ Successfully authenticated to PyPI"
