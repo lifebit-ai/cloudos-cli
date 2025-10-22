@@ -43,6 +43,19 @@ jobs:
             -X GET https://upload.pypi.org/legacy/ -I | grep "HTTP/"
           echo "✅ Successfully authenticated to PyPI"
 
+      # --- AWS/ECR login test ---
+      - name: Debug AWS credentials
+        run: |
+          echo "Checking AWS credential format..."
+          echo "Access Key ID length: ${#AWS_ACCESS_KEY_ID}"
+          echo "Secret Key length: ${#AWS_SECRET_ACCESS_KEY}"
+          echo "Access Key starts with: ${AWS_ACCESS_KEY_ID:0:4}..."
+          echo "Region: $AWS_REGION"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -66,25 +79,3 @@ jobs:
         run: |
           echo "✅ Successfully logged into AWS ECR"
           echo "Registry: ${{ steps.login-ecr.outputs.registry }}"
-
-      - name: Debug AWS credentials (without configuring)
-        run: |
-          echo "Checking AWS credential format..."
-          echo "Access Key ID length: ${#AWS_ACCESS_KEY_ID}"
-          echo "Secret Key length: ${#AWS_SECRET_ACCESS_KEY}"
-          echo "Access Key starts with: ${AWS_ACCESS_KEY_ID:0:4}..."
-          echo "Region: $AWS_REGION"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-
-      - name: Test basic AWS connection manually
-        run: |
-          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_KEY_ID }}"
-          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_KEY }}"
-          export AWS_DEFAULT_REGION="${{ env.AWS_REGION }}"
-          echo "Testing AWS STS..."
-          aws sts get-caller-identity || echo "Manual AWS test failed"
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
