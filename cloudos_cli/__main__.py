@@ -24,6 +24,12 @@ from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
 import logging
+from cloudos_cli.configure.configure import (
+    with_profile_config,
+    build_default_map_for_group,
+    get_shared_config,
+    CLOUDOS_URL
+)
 
 
 # GLOBAL VARS
@@ -36,8 +42,6 @@ AWS_NEXTFLOW_LATEST = '24.04.4'
 AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
 HPC_NEXTFLOW_LATEST = '22.10.8'
 ABORT_JOB_STATES = ['running', 'initializing']
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
 
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
@@ -134,141 +138,12 @@ def run_cloudos_cli(ctx):
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
-    config_manager = ConfigurationProfile()
-    profile_to_use = config_manager.determine_default_profile()
-    if profile_to_use is None:
-        console = Console()
-        console.print(
-            "[bold yellow]No profile found. Please create one with \"cloudos configure\"."
-        )
-        shared_config = dict({
-            'apikey': '',
-            'cloudos_url': CLOUDOS_URL,
-            'workspace_id': '',
-            'procurement_id': '',
-            'project_name': '',
-            'workflow_name': '',
-            'repository_platform': 'github',
-            'execution_platform': 'aws',
-            'profile': INIT_PROFILE,
-            'session_id': '',
-        })
-        ctx.default_map = dict({
-            'job': {
-                'run': shared_config,
-                'abort': shared_config,
-                'status': shared_config,
-                'list': shared_config,
-                'logs': shared_config,
-                'workdir': shared_config,
-                'results': shared_config,
-                'details': shared_config,
-                'clone': shared_config,
-                'resume': shared_config,
-                'cost': shared_config
-            },
-            'workflow': {
-                'list': shared_config,
-                'import': shared_config
-            },
-            'project': {
-                'list': shared_config,
-                'create': shared_config
-            },
-            'cromwell': {
-                'status': shared_config,
-                'start': shared_config,
-                'stop': shared_config
-            },
-            'queue': {
-                'list': shared_config
-            },
-            'bash': {
-                'job': shared_config,
-                'array-job': shared_config
-            },
-            'datasets': {
-                'ls': shared_config,
-                'mv': shared_config,
-                'rename': shared_config,
-                'cp': shared_config,
-                'link': shared_config,
-                'mkdir': shared_config,
-                'rm': shared_config
-            },
-            'procurement': {
-                'images': {
-                    'ls': shared_config,
-                    'set': shared_config,
-                    'reset': shared_config
-                }
-            }
-        })
-    else:
-        profile_data = config_manager.load_profile(profile_name=profile_to_use)
-        shared_config = dict({
-            'apikey': profile_data.get('apikey', ""),
-            'cloudos_url': profile_data.get('cloudos_url', ""),
-            'workspace_id': profile_data.get('workspace_id', ""),
-            'procurement_id': profile_data.get('procurement_id', ""),
-            'project_name': profile_data.get('project_name', ""),
-            'workflow_name': profile_data.get('workflow_name', ""),
-            'repository_platform': profile_data.get('repository_platform', ""),
-            'execution_platform': profile_data.get('execution_platform', ""),
-            'profile': profile_to_use,
-            'session_id': profile_data.get('session_id', "")
-        })
-        ctx.default_map = dict({
-            'job': {
-                'run': shared_config,
-                'abort': shared_config,
-                'status': shared_config,
-                'list': shared_config,
-                'logs': shared_config,
-                'workdir': shared_config,
-                'results': shared_config,
-                'details': shared_config,
-                'clone': shared_config,
-                'resume': shared_config,
-                'cost': shared_config
-            },
-            'workflow': {
-                'list': shared_config,
-                'import': shared_config
-            },
-            'project': {
-                'list': shared_config,
-                'create': shared_config
-            },
-            'cromwell': {
-                'status': shared_config,
-                'start': shared_config,
-                'stop': shared_config
-            },
-            'queue': {
-                'list': shared_config
-            },
-            'bash': {
-                'job': shared_config,
-                'array-job': shared_config
-            },
-            'datasets': {
-                'ls': shared_config,
-                'mv': shared_config,
-                'rename': shared_config,
-                'cp': shared_config,
-                'link': shared_config,
-                'mkdir': shared_config,
-                'rm': shared_config
-            },
-            'procurement': {
-                'images': {
-                    'ls': shared_config,
-                    'set': shared_config,
-                    'reset': shared_config
-                }
-            }
-        })
+    
+    # Load shared configuration (handles missing profiles and fields gracefully)
+    shared_config = get_shared_config()
+    
+    # Automatically build default_map from registered commands
+    ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
 
 
 @run_cloudos_cli.group(cls=pass_debug_to_subcommands())
@@ -500,6 +375,7 @@ def configure(ctx, profile, make_default):
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run(ctx,
         apikey,
         cloudos_url,
@@ -543,42 +419,6 @@ def run(ctx,
         ssl_cert,
         profile):
     """Submit a job to CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['run']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': True,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=workflow_name,
-            repository_platform=repository_platform,
-            execution_platform=execution_platform,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    workflow_name = user_options['workflow_name']
-    repository_platform = user_options['repository_platform']
-    execution_platform = user_options['execution_platform']
-    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if do_not_save_logs:
@@ -831,6 +671,7 @@ def run(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_status(ctx,
                apikey,
                cloudos_url,
@@ -841,34 +682,7 @@ def job_status(ctx,
                ssl_cert,
                profile):
     """Check job status in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['status']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            workspace_id=workspace_id,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -925,6 +739,7 @@ def job_status(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_workdir(ctx,
                 apikey,
                 cloudos_url,
@@ -937,37 +752,8 @@ def job_workdir(ctx,
                 ssl_cert,
                 profile):
     """Get the path to the working directory of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['workdir']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1048,6 +834,7 @@ def job_workdir(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_logs(ctx,
              apikey,
              cloudos_url,
@@ -1060,37 +847,8 @@ def job_logs(ctx,
              ssl_cert,
              profile):
     """Get the path to the logs of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['logs']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1184,6 +942,7 @@ def job_logs(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_results(ctx,
                 apikey,
                 cloudos_url,
@@ -1196,37 +955,8 @@ def job_results(ctx,
                 ssl_cert,
                 profile):
     """Get the path to the results of a specified job."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['results']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    # Get session_id from user_options (which includes profile data)
-    session_id = user_options.get('session_id') or session_id
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    # session_id is also resolved if provided in profile
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
@@ -1318,6 +1048,7 @@ def job_results(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_details(ctx,
                 apikey,
                 cloudos_url,
@@ -1331,34 +1062,7 @@ def job_details(ctx,
                 ssl_cert,
                 profile):
     """Retrieve job details in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['details']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            workspace_id=workspace_id,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
         output_basename = f"{job_id}_details"
@@ -1461,6 +1165,7 @@ def job_details(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_jobs(ctx,
               apikey,
               cloudos_url,
@@ -1486,34 +1191,7 @@ def list_jobs(ctx,
               ssl_cert,
               profile):
     """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['list']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -1606,6 +1284,7 @@ def list_jobs(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def abort_jobs(ctx,
                apikey,
                cloudos_url,
@@ -1616,34 +1295,7 @@ def abort_jobs(ctx,
                ssl_cert,
                profile):
     """Abort all specified jobs from a CloudOS workspace."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['job']['abort']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Aborting jobs...')
@@ -1708,6 +1360,7 @@ def abort_jobs(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def job_cost(ctx,
              apikey,
              cloudos_url,
@@ -1719,34 +1372,7 @@ def job_cost(ctx,
              ssl_cert,
              profile):
     """Retrieve job cost information in CloudOS."""
-    profile = profile or ctx.default_map['job']['cost']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'session_id': False,
-        'project_name': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=None
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     print('Retrieving cost information...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1832,6 +1458,7 @@ def job_cost(ctx,
               help='Profile to use from the config file',
               default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def clone_resume(ctx,
                  apikey,
                  cloudos_url,
@@ -1854,42 +1481,14 @@ def clone_resume(ctx,
                  disable_ssl_verification,
                  ssl_cert,
                  profile):
-    update_command_context_from_click(ctx)
+    print("apikey:", apikey)
+    print("cloudos_url:", cloudos_url)
+    print("workspace_id:", workspace_id)
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
     elif ctx.info_name == "resume":
         mode, action = "resume", "resuming"
-
-    profile = profile or ctx.default_map['job'][mode]['profile']
-
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    # Determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -1981,6 +1580,7 @@ job.add_command(clone_resume, "resume")
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_workflows(ctx,
                    apikey,
                    cloudos_url,
@@ -1993,34 +1593,7 @@ def list_workflows(ctx,
                    ssl_cert,
                    profile):
     """Collect all workflows from a CloudOS workspace in CSV format."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['workflow']['list']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -2077,6 +1650,7 @@ def list_workflows(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name'])
 def import_wf(ctx,
               apikey,
               cloudos_url,
@@ -2093,38 +1667,7 @@ def import_wf(ctx,
     """
     Import workflows from supported repository providers.
     """
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['workflow']['import']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': True,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=workflow_name,
-            repository_platform=repository_platform
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    workflow_name = user_options['workflow_name']
-    repository_platform = user_options['repository_platform']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     repo_import = ImportWorflow(
@@ -2179,6 +1722,7 @@ def import_wf(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_projects(ctx,
                   apikey,
                   cloudos_url,
@@ -2192,34 +1736,7 @@ def list_projects(ctx,
                   ssl_cert,
                   profile):
     """Collect all projects from a CloudOS workspace in CSV format."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['project']['list']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -2289,6 +1806,7 @@ def list_projects(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def create_project(ctx,
                    apikey,
                    cloudos_url,
@@ -2299,36 +1817,7 @@ def create_project(ctx,
                    ssl_cert,
                    profile):
     """Create a new project in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['project']['create']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            project_name=new_project
-        )
-    )
-    # replace the profile parameters with arguments given by the user
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     # verify ssl configuration
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -2379,6 +1868,7 @@ def create_project(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['cloudos_url', 'workspace_id'])
 def cromwell_status(ctx,
                     apikey,
                     cromwell_token,
@@ -2389,33 +1879,7 @@ def cromwell_status(ctx,
                     ssl_cert,
                     profile):
     """Check Cromwell server status in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['cromwell']['status']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -2465,6 +1929,7 @@ def cromwell_status(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['cloudos_url', 'workspace_id'])
 def cromwell_restart(ctx,
                      apikey,
                      cromwell_token,
@@ -2476,33 +1941,7 @@ def cromwell_restart(ctx,
                      ssl_cert,
                      profile):
     """Restart Cromwell server in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['cromwell']['status']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -2570,6 +2009,7 @@ def cromwell_restart(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['cloudos_url', 'workspace_id'])
 def cromwell_stop(ctx,
                   apikey,
                   cromwell_token,
@@ -2580,33 +2020,7 @@ def cromwell_stop(ctx,
                   ssl_cert,
                   profile):
     """Stop Cromwell server in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['cromwell']['status']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:
         raise ValueError("Please, use one of the following tokens: '--apikey', '--cromwell_token'")
@@ -2661,6 +2075,7 @@ def cromwell_stop(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_queues(ctx,
                 apikey,
                 cloudos_url,
@@ -2672,34 +2087,7 @@ def list_queues(ctx,
                 ssl_cert,
                 profile):
     """Collect all available job queues from a CloudOS workspace."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['queue']['list']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     outfile = output_basename + '.' + output_format
@@ -2840,6 +2228,7 @@ def remove_profile(ctx, profile):
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run_bash_job(ctx,
                  apikey,
                  command,
@@ -2869,43 +2258,7 @@ def run_bash_job(ctx,
                  ssl_cert,
                  profile):
     """Run a bash job in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['bash']['job']['profile']
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': True,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=workflow_name,
-            repository_platform=repository_platform,
-            execution_platform=execution_platform,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    workflow_name = user_options['workflow_name']
-    repository_platform = user_options['repository_platform']
-    execution_platform = user_options['execution_platform']
-    project_name = user_options['project_name']
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3131,6 +2484,7 @@ def run_bash_job(ctx,
                     'different than --project-name.'),
               default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run_bash_array_job(ctx,
                        apikey,
                        command,
@@ -3168,45 +2522,6 @@ def run_bash_array_job(ctx,
                        custom_script_path,
                        custom_script_project):
     """Run a bash array job in CloudOS."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['bash']['array-job']['profile']
-
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': True,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=workflow_name,
-            repository_platform=repository_platform,
-            execution_platform=execution_platform,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    workflow_name = user_options['workflow_name']
-    repository_platform = user_options['repository_platform']
-    execution_platform = user_options['execution_platform']
-    project_name = user_options['project_name']
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):
@@ -3390,6 +2705,7 @@ def run_bash_array_job(ctx,
                     '"Virtual Name", "Storage Path".'),
               is_flag=True)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_files(ctx,
                apikey,
                cloudos_url,
@@ -3401,38 +2717,7 @@ def list_files(ctx,
                path,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['datasets']['list'].get('profile')
-    config_manager = ConfigurationProfile()
-
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    user_options = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict=required_dict,
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=workspace_id,
-        workflow_name=None,
-        repository_platform=None,
-        execution_platform=None,
-        project_name=project_name
-    )
-
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
+    print("project_name", project_name)
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
@@ -3548,6 +2833,7 @@ def list_files(ctx,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspace_id,
                project_name, destination_project_name,
                disable_ssl_verification, ssl_cert, profile):
@@ -3559,45 +2845,11 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
      E.g.: 'Data/folderB'
     """
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['datasets']['move'].get('profile')
     # Validate destination constraint
     if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
         raise ValueError("Destination path must begin with 'Data/' or be 'Data'.")
     if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
         raise ValueError("SOURCE_PATH must start with  'Data/' or be 'Data'.")
-    print('Loading configuration profile')
-    # Load configuration profile
-    config_manager = ConfigurationProfile()
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3701,6 +2953,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def renaming_item(ctx,
                   source_path,
                   new_name,
@@ -3718,40 +2971,8 @@ def renaming_item(ctx,
      E.g.: 'Data/folderA/old_name.txt'\n
     NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
-    update_command_context_from_click(ctx)
     if not source_path.strip("/").startswith("Data/"):
         raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.")
-    print("Loading configuration profile...")
-    config_manager = ConfigurationProfile()
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Initialize Datasets clients
@@ -3817,6 +3038,7 @@ def renaming_item(ctx,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def copy_item_cli(ctx,
                   source_path,
                   destination_path,
@@ -3836,33 +3058,6 @@ def copy_item_cli(ctx,
     DESTINATION_PATH [path]: the full path to the destination folder. It must be a 'Data' folder path.
      E.g.: Data/plots
     """
-    update_command_context_from_click(ctx)
-    print("Loading configuration profile...")
-    config_manager = ConfigurationProfile()
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-    user_options = config_manager.load_profile_and_validate_data(
-        ctx, INIT_PROFILE, CLOUDOS_URL, profile=profile,
-        required_dict=required_dict,
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=workspace_id,
-        workflow_name=None,
-        repository_platform=None,
-        execution_platform=None,
-        project_name=project_name
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
-
     destination_project_name = destination_project_name or project_name
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Initialize clients
@@ -3953,6 +3148,7 @@ def copy_item_cli(ctx,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def mkdir_item(ctx,
                new_folder_path,
                apikey,
@@ -3967,7 +3163,6 @@ def mkdir_item(ctx,
 
     NEW_FOLDER_PATH [path]: Full path to the new folder including its name. Must start with 'Data'.
     """
-    update_command_context_from_click(ctx)
     new_folder_path = new_folder_path.strip("/")
     if not new_folder_path.startswith("Data"):
         raise ValueError("NEW_FOLDER_PATH must start with 'Data'.")
@@ -3978,38 +3173,6 @@ def mkdir_item(ctx,
 
     parent_path = "/".join(path_parts[:-1])
     folder_name = path_parts[-1]
-
-    print("Loading configuration profile...")
-    config_manager = ConfigurationProfile()
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -4075,6 +3238,7 @@ def mkdir_item(ctx,
 @click.option('--profile', default=None, help='Profile to use from the config file.')
 @click.option('--force', is_flag=True, help='Force delete files. Required when deleting user uploaded files. This may also delete the file from the cloud provider storage.')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def rm_item(ctx,
             target_path,
             apikey,
@@ -4091,40 +3255,8 @@ def rm_item(ctx,
     TARGET_PATH [path]: the full path to the file or folder to delete. Must start with 'Data'. \n
     E.g.: 'Data/folderA/file.txt' or 'Data/my_analysis/results/folderB'
     """
-    update_command_context_from_click(ctx)
     if not target_path.strip("/").startswith("Data/"):
         raise ValueError("TARGET_PATH must start with 'Data/', pointing to a file or folder.")
-    print("Loading configuration profile...")
-    config_manager = ConfigurationProfile()
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': True,
-        'session_id': False,
-        'procurement_id': False
-    }
-
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            workflow_name=None,
-            repository_platform=None,
-            execution_platform=None,
-            project_name=project_name
-        )
-    )
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    project_name = user_options['project_name']
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -4199,6 +3331,7 @@ def rm_item(ctx,
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id'])
 def link(ctx,
          path,
          apikey,
@@ -4215,41 +3348,6 @@ def link(ctx,
     PATH [path]: the full path to the S3 folder to link or relative to File Explorer.
     E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['datasets']['link']['profile']
-
-    # Create a dictionary with required and non-required params
-    required_dict = {
-        'apikey': True,
-        'workspace_id': True,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': True,
-        'procurement_id': False
-    }
-    # determine if the user provided all required parameters
-    config_manager = ConfigurationProfile()
-    user_options = (
-        config_manager.load_profile_and_validate_data(
-            ctx,
-            INIT_PROFILE,
-            CLOUDOS_URL,
-            profile=profile,
-            required_dict=required_dict,
-            apikey=apikey,
-            cloudos_url=cloudos_url,
-            workspace_id=workspace_id,
-            session_id=session_id,
-            project_name=project_name
-        )
-    )
-    # Unpack the user options
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    workspace_id = user_options['workspace_id']
-    session_id = user_options['session_id']
-    project_name = user_options['project_name']
-
     if not path.startswith("s3://") and project_name is None:
         # for non-s3 paths we need the project, for S3 we don't
         raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
@@ -4360,6 +3458,7 @@ def link(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'procurement_id'])
 def list_images(ctx,
                 apikey,
                 cloudos_url,
@@ -4370,39 +3469,6 @@ def list_images(ctx,
                 page,
                 limit):
     """List images associated with organisations of a given procurement."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
-    config_manager = ConfigurationProfile()
-
-    required_dict = {
-        'apikey': True,
-        'workspace_id': False,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': True
-    }
-
-    user_options = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict=required_dict,
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=None,
-        project_name=None,
-        workflow_name=None,
-        execution_platform=None,
-        repository_platform=None,
-        session_id=None,
-        procurement_id=procurement_id
-    )
-
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    procurement_id = user_options['procurement_id']
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     procurement_images = Images(
@@ -4456,6 +3522,7 @@ def list_images(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'procurement_id'])
 def set_organisation_image(ctx,
                            apikey,
                            cloudos_url,
@@ -4470,39 +3537,6 @@ def set_organisation_image(ctx,
                            ssl_cert,
                            profile):
     """Set a new image id or name to image associated with an organisations of a given procurement."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['procurement']['images']['ls'].get('profile')
-    config_manager = ConfigurationProfile()
-
-    required_dict = {
-        'apikey': True,
-        'workspace_id': False,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': True
-    }
-
-    user_options = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict=required_dict,
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=None,
-        project_name=None,
-        workflow_name=None,
-        execution_platform=None,
-        repository_platform=None,
-        session_id=None,
-        procurement_id=procurement_id
-    )
-
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    procurement_id = user_options['procurement_id']
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     procurement_images = Images(
@@ -4559,6 +3593,7 @@ def set_organisation_image(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
+@with_profile_config(required_params=['apikey', 'procurement_id'])
 def reset_organisation_image(ctx,
                              apikey,
                              cloudos_url,
@@ -4571,39 +3606,6 @@ def reset_organisation_image(ctx,
                              ssl_cert,
                              profile):
     """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
-    update_command_context_from_click(ctx)
-    profile = profile or ctx.default_map['procurement']['images']['set'].get('profile')
-    config_manager = ConfigurationProfile()
-
-    required_dict = {
-        'apikey': True,
-        'workspace_id': False,
-        'workflow_name': False,
-        'project_name': False,
-        'session_id': False,
-        'procurement_id': True
-    }
-
-    user_options = config_manager.load_profile_and_validate_data(
-        ctx,
-        INIT_PROFILE,
-        CLOUDOS_URL,
-        profile=profile,
-        required_dict=required_dict,
-        apikey=apikey,
-        cloudos_url=cloudos_url,
-        workspace_id=None,
-        project_name=None,
-        workflow_name=None,
-        execution_platform=None,
-        repository_platform=None,
-        session_id=None,
-        procurement_id=procurement_id
-    )
-
-    apikey = user_options['apikey']
-    cloudos_url = user_options['cloudos_url']
-    procurement_id = user_options['procurement_id']
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     procurement_images = Images(
