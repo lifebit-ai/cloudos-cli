@@ -337,8 +337,8 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.logging.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_command_context_from_click</span>
 
 
 <div class="viewcode-block" id="ConfigurationProfile">
@@ -712,7 +712,11 @@
 <div class="viewcode-block" id="ConfigurationProfile.load_profile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.load_profile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a profile from the config and credentials files.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a profile from the config and credentials files dynamically.</span>
+<span class="sd">        </span>
+<span class="sd">        This method now returns ALL parameters from the profile, not just predefined ones.</span>
+<span class="sd">        This makes it extensible - you can add new parameters to profiles without modifying this method.</span>
+<span class="sd">        </span>
 <span class="sd">        Parameters:</span>
 <span class="sd">        ----------</span>
 <span class="sd">        profile_name : str</span>
@@ -720,7 +724,17 @@
 <span class="sd">        Returns:</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            A dictionary containing the profile details.</span>
+<span class="sd">            A dictionary containing all profile parameters. Returns all keys from both</span>
+<span class="sd">            credentials and config files for the specified profile.</span>
+<span class="sd">            </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        # If you add accelerate_saving_results to your profile config:</span>
+<span class="sd">        config[profile_name][&#39;accelerate_saving_results&#39;] = &#39;true&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        # It will automatically be included in the returned dictionary:</span>
+<span class="sd">        profile_data = load_profile(&#39;myprofile&#39;)</span>
+<span class="sd">        # profile_data will contain &#39;accelerate_saving_results&#39;: &#39;true&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
@@ -735,17 +749,22 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Profile &quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">&quot; does not exist. Please create it &#39;</span> <span class="o">+</span>
                              <span class="sa">f</span><span class="s1">&#39;with &quot;cloudos configure --profile </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="n">credentials</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;cloudos_url&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;workspace_id&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;procurement_id&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;workflow_name&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;execution_platform&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;repository_platform&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-            <span class="s1">&#39;session_id&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session_id&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="p">}</span></div>
+        <span class="c1"># Dynamically load all parameters from the profile</span>
+        <span class="n">profile_data</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># Load all items from credentials file</span>
+        <span class="k">if</span> <span class="n">credentials</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile_name</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">credentials</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">profile_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        
+        <span class="c1"># Load all items from config file</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile_name</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Skip the &#39;default&#39; flag as it&#39;s not a user parameter</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
+                    <span class="n">profile_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        
+        <span class="k">return</span> <span class="n">profile_data</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.check_if_profile_exists">
@@ -822,11 +841,13 @@
 
 <div class="viewcode-block" id="ConfigurationProfile.load_profile_and_validate_data">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_profile_and_validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">init_profile</span><span class="p">,</span> <span class="n">cloudos_url_default</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">required_dict</span><span class="p">,</span> <span class="n">apikey</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                       <span class="n">cloudos_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workflow_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                       <span class="n">execution_platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repository_platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">procurement_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_profile_and_validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">init_profile</span><span class="p">,</span> <span class="n">cloudos_url_default</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">required_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">cli_params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Load profile data and validate required parameters.</span>
+<span class="sd">        Load profile data and validate required parameters dynamically.</span>
+<span class="sd">        </span>
+<span class="sd">        This method now accepts any parameters via **cli_params, making it extensible.</span>
+<span class="sd">        You can add new parameters to profiles (like accelerate_saving_results) without</span>
+<span class="sd">        modifying this method.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -840,88 +861,363 @@
 <span class="sd">            The profile name to load.</span>
 <span class="sd">        required_dict : dict</span>
 <span class="sd">            A dictionary with param name as key and whether is required or not (as bool) as value.</span>
-<span class="sd">        apikey, cloudos_url, workspace_id, project_name, workflow_name, execution_platform, repository_platform, session_id : string</span>
-<span class="sd">            The values coming from the CLI to be compared with the profile</span>
+<span class="sd">        **cli_params : dict</span>
+<span class="sd">            All CLI parameters passed as keyword arguments. Any parameter can be passed here</span>
+<span class="sd">            and will be resolved from the profile if available.</span>
+<span class="sd">            </span>
+<span class="sd">            Examples: apikey, cloudos_url, workspace_id, project_name, workflow_name, </span>
+<span class="sd">                     execution_platform, repository_platform, session_id, procurement_id,</span>
+<span class="sd">                     accelerate_saving_results, etc.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            A dictionary containing the loaded and validated parameters.</span>
+<span class="sd">            A dictionary containing all loaded and validated parameters.</span>
+<span class="sd">            </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        # Add a new parameter to profile without changing this method:</span>
+<span class="sd">        # 1. Add to profile creation (create_profile_from_input)</span>
+<span class="sd">        # 2. Add to load_profile method return dict</span>
+<span class="sd">        # 3. Pass it in cli_params when calling this method</span>
+<span class="sd">        # 4. It will automatically be resolved from profile!</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">resolved_params</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">profile</span> <span class="o">!=</span> <span class="n">init_profile</span><span class="p">:</span>
+            <span class="c1"># Load profile data</span>
             <span class="n">profile_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_profile</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
-            <span class="n">apikey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;apikey&#39;</span><span class="p">],</span>
-                                          <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;apikey&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">])</span>
-            <span class="n">workspace_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">],</span>
-                                                <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">workflow_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span> <span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">],</span>
-                                                 <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">repository_platform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">repository_platform</span><span class="p">,</span> <span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span>
-                                                       <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">])</span>
-            <span class="n">execution_platform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">execution_platform</span><span class="p">,</span> <span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span>
-                                                      <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">])</span>
-            <span class="n">project_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="s1">&#39;project_name&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">],</span>
-                                                <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="s1">&#39;session_id&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;session_id&#39;</span><span class="p">],</span>
-                                              <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;session_id&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">procurement_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">procurement_id</span><span class="p">,</span> <span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">[</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">],</span>
-                                                <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">],</span> <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
+            
+            <span class="c1"># Dynamically process all parameters passed in cli_params</span>
+            <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">cli_value</span> <span class="ow">in</span> <span class="n">cli_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">profile_value</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">is_required</span> <span class="o">=</span> <span class="n">required_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+                <span class="c1"># Resolve the parameter value</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span>
+                    <span class="n">ctx</span><span class="p">,</span> 
+                    <span class="n">cli_value</span><span class="p">,</span> 
+                    <span class="n">param_name</span><span class="p">,</span> 
+                    <span class="n">profile_value</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="n">is_required</span><span class="p">,</span> 
+                    <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span>
+                <span class="p">)</span>
+                
+                <span class="c1"># Convert empty strings to None for optional parameters</span>
+                <span class="c1"># This prevents issues with functions that expect None for unset values</span>
+                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
+                    <span class="n">resolved_value</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">resolved_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_value</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># when no profile is used, we need to check if the user provided all required parameters</span>
-            <span class="n">apikey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;apikey&#39;</span><span class="p">],</span>
-                                          <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span>
-                                          <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span> 
-            <span class="n">workspace_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span>
-                                                <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">],</span>
-                                                <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">workflow_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span> <span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span>
-                                                 <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">],</span>
-                                                 <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">repository_platform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">repository_platform</span><span class="p">,</span> <span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span>
-                                                       <span class="n">repository_platform</span><span class="p">)</span>
-            <span class="n">execution_platform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">execution_platform</span><span class="p">,</span> <span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span> <span class="n">execution_platform</span><span class="p">)</span>
-            <span class="n">project_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="s1">&#39;project_name&#39;</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span>
-                                                <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">],</span>
-                                                <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="s1">&#39;session_id&#39;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span>
-                                              <span class="n">required</span><span class="o">=</span><span class="n">required_dict</span><span class="p">[</span><span class="s1">&#39;session_id&#39;</span><span class="p">],</span>
-                                              <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
-            <span class="n">procurement_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">procurement_id</span><span class="p">,</span> <span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span> <span class="n">procurement_id</span><span class="p">)</span>
+            <span class="c1"># No profile used - check if user provided all required parameters</span>
+            <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">cli_value</span> <span class="ow">in</span> <span class="n">cli_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">is_required</span> <span class="o">=</span> <span class="n">required_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+                <span class="c1"># Resolve the parameter value</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_value</span><span class="p">(</span>
+                    <span class="n">ctx</span><span class="p">,</span>
+                    <span class="n">cli_value</span><span class="p">,</span>
+                    <span class="n">param_name</span><span class="p">,</span>
+                    <span class="n">cli_value</span><span class="p">,</span>  <span class="c1"># Use CLI value as default when no profile</span>
+                    <span class="n">required</span><span class="o">=</span><span class="n">is_required</span><span class="p">,</span>
+                    <span class="n">missing_required_params</span><span class="o">=</span><span class="n">missing</span>
+                <span class="p">)</span>
+                <span class="c1"># Convert empty strings to None for optional parameters</span>
+                <span class="c1"># This prevents issues with functions that expect None for unset values</span>
+                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
+                    <span class="n">resolved_value</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">resolved_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_value</span>
+
+        <span class="c1"># Special handling for cloudos_url with fallback to default</span>
+        <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="n">resolved_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">resolved_cloudos_url</span><span class="p">:</span>
             <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;No CloudOS URL provided via CLI or profile. Falling back to default: </span><span class="si">{</span><span class="n">cloudos_url_default</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                 <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
                 <span class="n">bold</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
-            <span class="n">cloudos_url</span> <span class="o">=</span> <span class="n">cloudos_url_default</span>
+            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cloudos_url_default</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">cloudos_url</span> <span class="o">=</span> <span class="n">resolved_cloudos_url</span>
-        <span class="n">cloudos_url</span> <span class="o">=</span> <span class="n">cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
 
         <span class="c1"># Raise once, after all checks</span>
         <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
             <span class="n">formatted</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">UsageError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing required option/s: </span><span class="si">{</span><span class="n">formatted</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">You can configure the following parameters &quot;</span> <span class="o">+</span>
-                                   <span class="s2">&quot;persistently by running cloudos configure:</span><span class="se">\n</span><span class="s2">  --apikey,</span><span class="se">\n</span><span class="s2">  --cloudos-url,</span><span class="se">\n</span><span class="s2">  &quot;</span> <span class="o">+</span>
-                                   <span class="s2">&quot;--workspace-id,</span><span class="se">\n</span><span class="s2">  --workflow-name,</span><span class="se">\n</span><span class="s2">  --repository-platform,</span><span class="se">\n</span><span class="s2">  &quot;</span> <span class="o">+</span>
-                                   <span class="s2">&quot;--execution-platform,</span><span class="se">\n</span><span class="s2">  --project-name,</span><span class="se">\n</span><span class="s2">  --session-id,</span><span class="se">\n</span><span class="s2">  --procurement-id</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                                   <span class="s2">&quot;For more information on the usage of the command, please run cloudos configure --help&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="n">apikey</span><span class="p">,</span>
-            <span class="s1">&#39;cloudos_url&#39;</span><span class="p">:</span> <span class="n">cloudos_url</span><span class="p">,</span>
-            <span class="s1">&#39;workspace_id&#39;</span><span class="p">:</span> <span class="n">workspace_id</span><span class="p">,</span>
-            <span class="s1">&#39;procurement_id&#39;</span><span class="p">:</span> <span class="n">procurement_id</span><span class="p">,</span>
-            <span class="s1">&#39;workflow_name&#39;</span><span class="p">:</span> <span class="n">workflow_name</span><span class="p">,</span>
-            <span class="s1">&#39;repository_platform&#39;</span><span class="p">:</span> <span class="n">repository_platform</span><span class="p">,</span>
-            <span class="s1">&#39;execution_platform&#39;</span><span class="p">:</span> <span class="n">execution_platform</span><span class="p">,</span>
-            <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="n">project_name</span><span class="p">,</span>
-            <span class="s1">&#39;session_id&#39;</span><span class="p">:</span> <span class="n">session_id</span>
-        <span class="p">}</span></div>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">UsageError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Missing required option/s: </span><span class="si">{</span><span class="n">formatted</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;You can configure the following parameters persistently by running cloudos configure:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  --apikey, --cloudos-url, --workspace-id, --workflow-name,</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  --repository-platform, --execution-platform, --project-name,</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;  --session-id, --procurement-id</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;For more information on the usage of the command, please run cloudos configure --help&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">resolved_params</span></div>
 </div>
+
+
+
+<span class="c1"># Not part of the class, but related to configuration</span>
+<span class="c1"># Global constants for CloudOS CLI</span>
+<span class="n">CLOUDOS_URL</span> <span class="o">=</span> <span class="s1">&#39;https://cloudos.lifebit.ai&#39;</span>
+<span class="n">INIT_PROFILE</span> <span class="o">=</span> <span class="s1">&#39;initialisingProfile&#39;</span>
+
+<span class="c1"># Define all standard configuration keys with their default empty values</span>
+<span class="c1"># This is the single source of truth for configuration fields</span>
+<span class="n">STANDARD_CONFIG_KEYS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cloudos_url&#39;</span><span class="p">:</span> <span class="n">CLOUDOS_URL</span><span class="p">,</span>
+    <span class="s1">&#39;workspace_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;procurement_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;workflow_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;repository_platform&#39;</span><span class="p">:</span> <span class="s1">&#39;github&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;execution_platform&#39;</span><span class="p">:</span> <span class="s1">&#39;aws&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;profile&#39;</span><span class="p">:</span> <span class="n">INIT_PROFILE</span><span class="p">,</span>
+    <span class="s1">&#39;session_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Decorator to load profile configuration and validate required parameters</span>
+<div class="viewcode-block" id="with_profile_config">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.with_profile_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">with_profile_config</span><span class="p">(</span><span class="n">required_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to automatically handle profile configuration loading for commands.</span>
+
+<span class="sd">    This decorator simplifies command functions by automatically loading configuration</span>
+<span class="sd">    from profiles and validating required parameters. It eliminates the need to manually</span>
+<span class="sd">    create required_dict and call load_profile_and_validate_data in each command.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    required_params : list, optional</span>
+<span class="sd">        List of parameter names that can currently be added in a profile. Common values:</span>
+<span class="sd">        - &#39;apikey&#39;: CloudOS API key</span>
+<span class="sd">        - &#39;workspace_id&#39;: CloudOS workspace ID</span>
+<span class="sd">        - &#39;project_name&#39;: Project name</span>
+<span class="sd">        - &#39;workflow_name&#39;: Workflow/pipeline name</span>
+<span class="sd">        - &#39;session_id&#39;: Interactive session ID</span>
+<span class="sd">        - &#39;procurement_id&#39;: Procurement ID</span>
+<span class="sd">        This list can be updated as new parameters are added to profiles.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    @job.command(&#39;details&#39;)</span>
+<span class="sd">    @click.option(&#39;--apikey&#39;, help=&#39;Your CloudOS API key&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--workspace-id&#39;, help=&#39;The specific CloudOS workspace id.&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--job-id&#39;, help=&#39;The job id in CloudOS to search for.&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--profile&#39;, help=&#39;Profile to use from the config file&#39;, default=None)</span>
+<span class="sd">    @click.pass_context</span>
+<span class="sd">    @with_profile_config(required_params=[&#39;apikey&#39;, &#39;workspace_id&#39;])</span>
+<span class="sd">    def job_details(ctx, apikey, workspace_id, job_id, ...):</span>
+<span class="sd">        # apikey, cloudos_url, workspace_id are automatically available</span>
+<span class="sd">        cl = Cloudos(cloudos_url, apikey, None)</span>
+<span class="sd">        ...</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function</span>
+<span class="sd">        Decorated function with automatic profile configuration loading.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+
+    <span class="k">if</span> <span class="n">required_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">required_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+
+            <span class="c1"># Get context from args or kwargs</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ctx&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Context not found. Make sure @click.pass_context is used before this decorator.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Update logging context</span>
+            <span class="n">update_command_context_from_click</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+            <span class="c1"># Get profile from kwargs</span>
+            <span class="n">profile</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Check if profile was explicitly provided on command line</span>
+            <span class="c1"># If it was provided via CLI, use that; otherwise fall back to default_map</span>
+            <span class="n">profile_source</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_parameter_source</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">profile_source</span> <span class="o">==</span> <span class="n">click</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ParameterSource</span><span class="o">.</span><span class="n">COMMANDLINE</span><span class="p">:</span>
+                <span class="c1"># User explicitly specified --profile on command line, use it</span>
+                <span class="k">pass</span>  <span class="c1"># profile is already set from kwargs</span>
+            <span class="k">elif</span> <span class="n">profile</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">:</span>
+                <span class="c1"># No profile specified on CLI, try to get from default_map</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">command_path</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">command_path</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># Skip the root command</span>
+                    <span class="n">profile_map</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span>
+                    <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">command_path</span><span class="p">:</span>
+                        <span class="n">profile_map</span> <span class="o">=</span> <span class="n">profile_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="n">profile</span> <span class="o">=</span> <span class="n">profile_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+                    <span class="k">pass</span>
+
+            <span class="c1"># Build required_dict dynamically from required_params</span>
+            <span class="c1"># Only parameters in required_params will be validated as required</span>
+            <span class="n">required_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">param</span><span class="p">:</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">required_params</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">required_params</span><span class="p">}</span>
+
+            <span class="c1"># Create configuration manager and load profile</span>
+            <span class="n">config_manager</span> <span class="o">=</span> <span class="n">ConfigurationProfile</span><span class="p">()</span>
+
+            <span class="c1"># Pass all kwargs dynamically to load_profile_and_validate_data</span>
+            <span class="c1"># This allows any parameter to be loaded from profile without modifying the decorator</span>
+            <span class="c1"># Remove &#39;profile&#39; from kwargs since we&#39;re passing it explicitly</span>
+            <span class="n">cli_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;profile&#39;</span><span class="p">}</span>
+
+            <span class="n">user_options</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">load_profile_and_validate_data</span><span class="p">(</span>
+                <span class="n">ctx</span><span class="p">,</span>
+                <span class="n">INIT_PROFILE</span><span class="p">,</span>
+                <span class="n">CLOUDOS_URL</span><span class="p">,</span>
+                <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+                <span class="n">required_dict</span><span class="o">=</span><span class="n">required_dict</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">cli_params</span>  <span class="c1"># Pass all parameters dynamically (except &#39;profile&#39;)!</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Store user_options in context for easy access</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_options</span><span class="p">)</span>
+
+            <span class="c1"># Get function signature to determine which parameters it accepts</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">func_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+            <span class="c1"># Only update kwargs with parameters that the function actually accepts</span>
+            <span class="c1"># AND that were not explicitly provided by the user on the command line</span>
+            <span class="c1"># AND that have a meaningful value from the profile (not None)</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">user_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">func_params</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Check if the parameter was provided via command line</span>
+                    <span class="n">param_source</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_parameter_source</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="c1"># Only override if NOT from command line (i.e., use profile/default values)</span>
+                    <span class="k">if</span> <span class="n">param_source</span> <span class="o">!=</span> <span class="n">click</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ParameterSource</span><span class="o">.</span><span class="n">COMMANDLINE</span><span class="p">:</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+            <span class="c1"># Call the original function</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">return</span> <span class="n">decorator</span></div>
+
+
+
+<div class="viewcode-block" id="build_default_map_for_group">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.build_default_map_for_group">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_default_map_for_group</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">shared_config</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively build a default_map dictionary for a Click group and all its subcommands.</span>
+
+<span class="sd">    This function introspects a Click group to discover all registered commands and subcommands,</span>
+<span class="sd">    then builds a default_map structure that applies the shared_config to all of them.</span>
+<span class="sd">    This eliminates the need to manually maintain a list of commands in default_map.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    group : click.Group</span>
+<span class="sd">        The Click group to introspect</span>
+<span class="sd">    shared_config : dict</span>
+<span class="sd">        The configuration dictionary to apply to all commands</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary mapping command names to their configurations</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    # Instead of manually defining:</span>
+<span class="sd">    default_map = {</span>
+<span class="sd">        &#39;job&#39;: {&#39;status&#39;: shared_config, &#39;list&#39;: shared_config, ...},</span>
+<span class="sd">        &#39;workflow&#39;: {&#39;list&#39;: shared_config, ...}</span>
+<span class="sd">    }</span>
+
+<span class="sd">    # Use:</span>
+<span class="sd">    default_map = build_default_map_for_group(run_cloudos_cli, shared_config)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">default_map</span>
+
+    <span class="c1"># Iterate through all commands in the group</span>
+    <span class="k">for</span> <span class="n">cmd_name</span><span class="p">,</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+            <span class="c1"># If it&#39;s a subgroup, recursively build its default_map</span>
+            <span class="n">default_map</span><span class="p">[</span><span class="n">cmd_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_default_map_for_group</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shared_config</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If it&#39;s a command, apply the shared config</span>
+            <span class="n">default_map</span><span class="p">[</span><span class="n">cmd_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared_config</span>
+
+    <span class="k">return</span> <span class="n">default_map</span></div>
+
+
+
+<div class="viewcode-block" id="get_shared_config">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.get_shared_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_shared_config</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load shared configuration from the default profile with fallback to empty defaults.</span>
+
+<span class="sd">    This function centralizes the logic for loading the shared configuration that will</span>
+<span class="sd">    be used to populate the default_map for all commands. It handles missing profiles,</span>
+<span class="sd">    incomplete profiles, and loading errors gracefully.</span>
+
+<span class="sd">    The default profile is loaded without validation - just to provide default values.</span>
+<span class="sd">    The with_profile_config decorator will handle validation when commands actually run.</span>
+<span class="sd">    This allows the default profile to have missing fields when not actually used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary containing the shared configuration with all standard fields.</span>
+<span class="sd">        Missing fields are filled with empty strings to prevent KeyErrors.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; shared_config = get_shared_config()</span>
+<span class="sd">    &gt;&gt;&gt; ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+
+    <span class="n">config_manager</span> <span class="o">=</span> <span class="n">ConfigurationProfile</span><span class="p">()</span>
+    <span class="n">profile_to_use</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">determine_default_profile</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">profile_to_use</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
+            <span class="s2">&quot;[bold yellow]No profile found. Please create one with </span><span class="se">\&quot;</span><span class="s2">cloudos configure</span><span class="se">\&quot;</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># Return default configuration when no profile exists</span>
+        <span class="k">return</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Load default profile - just to provide defaults</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">shared_config</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">load_profile</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_to_use</span><span class="p">)</span>
+        <span class="c1"># Ensure &#39;profile&#39; key is always set to the profile name</span>
+        <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
+
+        <span class="c1"># Fill in any missing keys with default values to prevent KeyErrors</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span> <span class="ow">in</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared_config</span><span class="p">:</span>
+                <span class="n">shared_config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_value</span>
+
+        <span class="k">return</span> <span class="n">shared_config</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># If loading the default profile fails, use empty defaults</span>
+        <span class="n">shared_config</span> <span class="o">=</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
+        <span class="k">return</span> <span class="n">shared_config</span></div>
 
 </pre></div>
         </article>

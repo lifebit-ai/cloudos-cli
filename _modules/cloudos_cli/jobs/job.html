@@ -1406,7 +1406,7 @@
                   <span class="n">profile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">do_not_save_logs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">use_fusion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">accelerate_saving_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">accelerate_saving_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">resumable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1612,10 +1612,10 @@
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
-
+        <span class="n">clean_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">cloned_payload</span><span class="p">)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cloned_payload</span><span class="p">),</span> 
-                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> 
+                                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">clean_payload</span><span class="p">),</span>
+                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
                                 <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
@@ -1625,7 +1625,30 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job successfully </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">d and launched to CloudOS, please check the &#39;</span> <span class="o">+</span>
               <span class="sa">f</span><span class="s2">&quot;following link: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">j_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">j_id</span></div>
+
+
+<div class="viewcode-block" id="Job.fix_boolean_strings">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.fix_boolean_strings">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fix_boolean_strings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively convert string booleans (&#39;True&#39;, &#39;False&#39;) into real booleans</span>
+<span class="sd">        inside dicts, lists, or nested structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">obj</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span></div>
 </div>
+
 
 </pre></div>
         </article>

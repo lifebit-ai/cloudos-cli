@@ -4,6 +4,14 @@ cloudos\_cli.configure.configure
 .. automodule:: cloudos_cli.configure.configure
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_default_map_for_group
+      get_shared_config
+      with_profile_config
+   
    .. rubric:: Classes
 
    .. autosummary::
