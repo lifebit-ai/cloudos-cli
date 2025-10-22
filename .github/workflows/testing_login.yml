@@ -2,7 +2,11 @@ name: Test container and PyPI logins
 
 on:
   workflow_dispatch:  # run manually from the Actions tab
-
+  push:
+    branches: [ release_automation ]  # Add this for testing
+    paths: 
+      - '.github/workflows/testing_login.yml'  # Only trigger when this file changes
+  
 jobs:
   test-logins:
     name: Verify Quay, ECR, and PyPI credentials
