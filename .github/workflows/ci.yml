@@ -456,10 +456,12 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job_cloned"
         JOB_ID: "68d51f6b5eb22f6f2f445539"
+        INSTANCE_TYPE: "m4.xlarge"
       run: |
         cloudos job clone \
           --job-id "$JOB_ID" \
           --job-name "$JOB_NAME_BASE" \
+          --instance-type "$INSTANCE_TYPE" \
           --workspace-id "$CLOUDOS_WORKSPACE_ID" \
           --project-name "$PROJECT_NAME" \
           --apikey "$CLOUDOS_TOKEN" \
@@ -534,10 +536,12 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job_cloned"
         JOB_ID: "68d51f7b41b37cb06dea2a11"
+        INSTANCE_TYPE: "m4.xlarge"
       run: |
         cloudos job clone \
           --job-id "$JOB_ID" \
           --job-name "$JOB_NAME_BASE" \
+          --instance-type "$INSTANCE_TYPE" \
           --workspace-id "$CLOUDOS_WORKSPACE_ID" \
           --project-name "$PROJECT_NAME" \
           --apikey "$CLOUDOS_TOKEN" \

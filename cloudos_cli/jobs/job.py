@@ -1026,7 +1026,7 @@ class Job(Cloudos):
                   profile=None,
                   do_not_save_logs=None,
                   use_fusion=None,
-                  accelerate_saving_results=None,
+                  accelerate_saving_results=False,
                   resumable=None,
                   project_name=None,
                   parameters=None,
@@ -1232,10 +1232,10 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-
+        clean_payload = self.fix_boolean_strings(cloned_payload)
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
-                                data=json.dumps(cloned_payload), 
-                                headers=headers, 
+                                data=json.dumps(clean_payload),
+                                headers=headers,
                                 verify=verify)
 
         if r.status_code >= 400:
@@ -1245,3 +1245,23 @@ class Job(Cloudos):
         print(f'\tJob successfully {mode}d and launched to CloudOS, please check the ' +
               f"following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}\n")
         return j_id
+
+    def fix_boolean_strings(self, obj):
+        """
+        Recursively convert string booleans ('True', 'False') into real booleans
+        inside dicts, lists, or nested structures.
+        """
+        if isinstance(obj, dict):
+            return {k: self.fix_boolean_strings(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.fix_boolean_strings(v) for v in obj]
+        elif isinstance(obj, str):
+            if obj.lower() == "true":
+                return True
+            elif obj.lower() == "false":
+                return False
+            else:
+                return obj
+        else:
+            return obj
+
