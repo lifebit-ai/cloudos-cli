@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.65.1 (2025-10-22)
+
+### Patch
+
+- For `job run`, allow sending the job without nextflow profile, parameter, job config as in the UI
+
 ## v2.65.0 (2025-10-17)
 
 ### Feat
