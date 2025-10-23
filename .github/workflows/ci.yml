@@ -320,7 +320,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.9"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -336,7 +336,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        PROJECT_NAME: "cloudos-cli-tests-tmp"
+        PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets ls --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
@@ -344,7 +344,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.9"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -360,7 +360,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        PROJECT_NAME: "cloudos-cli-tests-tmp"
+        PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME"  Data/mv_test 
@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.9"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -385,7 +385,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        PROJECT_NAME: "cloudos-cli-tests-tmp"
+        PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_rename new_renamed_folder
@@ -550,7 +550,7 @@ jobs:
           runs-on: ubuntu-latest
           strategy:
             matrix:
-              python-version: ["3.11"]
+              python-version: ["3.9"]
           steps:
           - uses: actions/checkout@v3
           - name: Set up Python ${{ matrix.python-version }}
@@ -566,7 +566,7 @@ jobs:
             env:
               CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
               CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-              PROJECT_NAME: "cloudos-cli-tests-tmp"
+              PROJECT_NAME: "cloudos-cli-tests"
               CLOUDOS_URL: "https://cloudos.lifebit.ai"
             run: |
               cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy
@@ -575,7 +575,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.9"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -591,7 +591,7 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
-        PROJECT_NAME: "cloudos-cli-tests-tmp"
+        PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos datasets mkdir --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
