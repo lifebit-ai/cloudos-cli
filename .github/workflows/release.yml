@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
           VER="${{ steps.version.outputs.VERSION }}"
           echo "Building Docker image for version: $VER"
-          docker build -f Dockerfile.quay -t "${QUAY_REPO}:${VER}" .
+          docker build -f Dockerfile -t "${QUAY_REPO}:${VER}" .
           docker push "${QUAY_REPO}:${VER}"
           echo "Pushed ${QUAY_REPO}:${VER}"
           
