@@ -11,10 +11,7 @@ permissions:
   id-token: write   # to request an OIDC token for AWS STS
 
 env:
-  AWS_REGION: eu-west-1
-  AWS_ACCOUNT_ID: <ACCOUNT_ID>            # <-- replace (e.g., 518054667335)
-  ECR_REPO: your-ecr-repo                 # <-- replace
-  QUAY_REPO: quay.io/your-org/your-image  # <-- replace
+  QUAY_REPO: quay.io/lifebitaiorg/cloudos-cli
   PYTHON_VERSION: "3.11"
 
 jobs:
@@ -51,114 +48,48 @@ jobs:
             git push origin "$TAG"
           fi
 
-      # -------- QUAY (no helper actions) --------
-      - name: Login to Quay.io (CLI)
-        env:
-          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin quay.io
+      # -------- PYTHON SETUP --------
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip build twine
+
+      # -------- QUAY (no helper actions) --------
+      - name: Test Quay.io login
+        id: quay
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_LOGIN_ID }}
+          password: ${{ secrets.QUAY_LOGIN_PWD }}
       - name: Build & push image to Quay (version + latest)
         run: |
           set -euo pipefail
           VER="${{ steps.version.outputs.VERSION }}"
+          echo "Building Docker image for version: $VER"
           docker build -f Dockerfile.quay -t "${QUAY_REPO}:${VER}" .
           docker push "${QUAY_REPO}:${VER}"
+          echo "Pushed ${QUAY_REPO}:${VER}"
+          
           docker tag  "${QUAY_REPO}:${VER}" "${QUAY_REPO}:latest"
           docker push "${QUAY_REPO}:latest"
 
       # -------- PYPI (no helper actions) --------
-      - name: Set up Python
-        run: |
-          set -euo pipefail
-          python3 --version || true
-          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-          python -m pip install --upgrade pip
-
       - name: Build distribution (sdist + wheel)
         run: |
           set -euo pipefail
-          python -m pip install --upgrade build twine
+          echo "Building Python distribution packages..."
           python -m build
 
       - name: Upload to PyPI with twine
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           set -euo pipefail
+          echo "Uploading to PyPI..."
           python -m twine upload --non-interactive dist/* --skip-existing
-
-    #   # -------- ECR (pure OIDC + CLI) --------
-    #   - name: Get GitHub OIDC token (JWT)
-    #     id: oidc
-    #     env:
-    #       REQ_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-    #       REQ_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-    #     run: |
-    #       set -euo pipefail
-    #       # Request an ID token with audience 'sts.amazonaws.com'
-    #       OIDC_JWT=$(curl -sSL -H "Authorization: bearer ${REQ_TOKEN}" "${REQ_URL}&audience=sts.amazonaws.com" | jq -r '.value')
-    #       if [ -z "$OIDC_JWT" ] || [ "$OIDC_JWT" = "null" ]; then
-    #         echo "Failed to obtain OIDC token"; exit 1;
-    #       fi
-    #       echo "OIDC_JWT=$OIDC_JWT" >> "$GITHUB_OUTPUT"
-
-    #   - name: Assume AWS role with web identity (STS)
-    #     id: awscreds
-    #     env:
-    #       AWS_REGION: ${{ env.AWS_REGION }}
-    #       ROLE_ARN: arn:aws:iam::<ACCOUNT_ID>:role/GitHubActionsECRPushRole   # <-- replace
-    #       OIDC_JWT: ${{ steps.oidc.outputs.OIDC_JWT }}
-    #     run: |
-    #       set -euo pipefail
-    #       # Use WebIdentity to get short-lived AWS creds
-    #       CREDS=$(aws sts assume-role-with-web-identity \
-    #         --role-arn "$ROLE_ARN" \
-    #         --role-session-name "gh-actions-ecr" \
-    #         --web-identity-token "$OIDC_JWT" \
-    #         --duration-seconds 3600 \
-    #         --query 'Credentials' \
-    #         --output json \
-    #         --region "$AWS_REGION")
-
-    #       export AWS_ACCESS_KEY_ID=$(echo "$CREDS" | jq -r '.AccessKeyId')
-    #       export AWS_SECRET_ACCESS_KEY=$(echo "$CREDS" | jq -r '.SecretAccessKey')
-    #       export AWS_SESSION_TOKEN=$(echo "$CREDS" | jq -r '.SessionToken')
-
-    #       [ -n "$AWS_ACCESS_KEY_ID" ] || { echo "Failed to assume role"; exit 1; }
-
-    #       echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"       >> "$GITHUB_OUTPUT"
-    #       echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
-    #       echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"       >> "$GITHUB_OUTPUT"
-
-    #   - name: Login to ECR (CLI) using the assumed credentials
-    #     env:
-    #       AWS_REGION: ${{ env.AWS_REGION }}
-    #       AWS_ACCESS_KEY_ID:     ${{ steps.awscreds.outputs.AWS_ACCESS_KEY_ID }}
-    #       AWS_SECRET_ACCESS_KEY: ${{ steps.awscreds.outputs.AWS_SECRET_ACCESS_KEY }}
-    #       AWS_SESSION_TOKEN:     ${{ steps.awscreds.outputs.AWS_SESSION_TOKEN }}
-    #       ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-    #     run: |
-    #       set -euo pipefail
-    #       aws sts get-caller-identity --region "$AWS_REGION" >/dev/null
-    #       aws ecr describe-repositories --repository-names "${ECR_REPO}" --region "$AWS_REGION" >/dev/null 2>&1 \
-    #         || aws ecr create-repository --repository-name "${ECR_REPO}" --region "$AWS_REGION"
-    #       aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
-
-    #   - name: Build & push image to ECR (version + latest)
-    #     env:
-    #       AWS_REGION: ${{ env.AWS_REGION }}
-    #       AWS_ACCESS_KEY_ID:     ${{ steps.awscreds.outputs.AWS_ACCESS_KEY_ID }}
-    #       AWS_SECRET_ACCESS_KEY: ${{ steps.awscreds.outputs.AWS_SECRET_ACCESS_KEY }}
-    #       AWS_SESSION_TOKEN:     ${{ steps.awscreds.outputs.AWS_SESSION_TOKEN }}
-    #       ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-    #     run: |
-    #       set -euo pipefail
-    #       VER="${{ steps.version.outputs.VERSION }}"
-    #       docker build -f Dockerfile.ecr -t "${ECR_REGISTRY}/${ECR_REPO}:${VER}" .
-    #       docker push "${ECR_REGISTRY}/${ECR_REPO}:${VER}"
-    #       docker tag  "${ECR_REGISTRY}/${ECR_REPO}:${VER}" "${ECR_REGISTRY}/${ECR_REPO}:latest"
-    #       docker push "${ECR_REGISTRY}/${ECR_REPO}:latest"
