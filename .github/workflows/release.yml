@@ -2,9 +2,7 @@ name: Secure Release (manual Docker/PyPI; OIDC without helper actions)
 
 on:
   push:
-    branches: [ release_automation ] # for testing purposes; the version will be 
-#   push:
-#     branches: [ main ]  # run on merges to main
+    branches: [ main ]  # run on merges to main
 
 permissions:
   contents: write   # to create/push git tags with GITHUB_TOKEN
@@ -93,4 +91,4 @@ jobs:
           set -euo pipefail
           echo "Uploading to PyPI..."
           python -m twine upload --non-interactive dist/* --skip-existing
-          echo "✅ Successfully uploaded to PyPI"
+          echo "Successfully uploaded to PyPI"
