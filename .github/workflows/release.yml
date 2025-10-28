@@ -55,10 +55,6 @@ jobs:
           draft: false
           prerelease: ${{ contains(steps.version.outputs.VERSION, 'a') || contains(steps.version.outputs.VERSION, 'b') || contains(steps.version.outputs.VERSION, 'rc') }}
           generate_release_notes: true
-          body: |
-            ##  CloudOS CLI ${{ steps.version.outputs.VERSION }}
-            
-            ```
 
       # -------- PYTHON SETUP --------
       - name: Set up Python ${{ env.PYTHON_VERSION }}
