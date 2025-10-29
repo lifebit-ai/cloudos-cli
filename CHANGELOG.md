@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.66.1 (2025-10-29)
+
+### Patch
+
+- Fix version tagging for the release in quay
+
 ## v2.66.0 (2025-10-22)
 
 ### Feat
