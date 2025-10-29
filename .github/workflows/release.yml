@@ -2,7 +2,7 @@ name: Secure Release (manual Docker/PyPI; OIDC without helper actions)
 
 on:
   push:
-    branches: [ main , release]  # run on merges to main
+    branches: [ main , release_automation]  # run on merges to main
 
 permissions:
   contents: write   # to create/push git tags with GITHUB_TOKEN
