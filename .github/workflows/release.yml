@@ -79,11 +79,11 @@ jobs:
           set -euo pipefail
           VER="${{ steps.version.outputs.VERSION }}"
           echo "Building Docker image for version: $VER"
-          docker build -f Dockerfile -t "${QUAY_REPO}:${VER}" .
-          docker push "${QUAY_REPO}:${VER}"
-          echo "Pushed ${QUAY_REPO}:${VER}"
-          
-          docker tag  "${QUAY_REPO}:${VER}" "${QUAY_REPO}:latest"
+          docker build -f Dockerfile -t "${QUAY_REPO}:v${VER}" .
+          docker push "${QUAY_REPO}:v${VER}"
+          echo "Pushed ${QUAY_REPO}:v${VER}"
+
+          docker tag  "${QUAY_REPO}:v${VER}" "${QUAY_REPO}:latest"
           docker push "${QUAY_REPO}:latest"
 
       # -------- PYPI (no helper actions) --------
