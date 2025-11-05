@@ -14,19 +14,25 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, verify=True):
 
     j_workdir = job.get_field_from_jobs_endpoint(j_id, field='workDirectory', verify=verify)
     j_related = cl.get_job_relatedness(workspace_id, j_workdir['folderId'], verify=verify)
+    j_workdir_parent = cl.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
 
+    print("j_workdir:", cl.get_job_workdir(j_id, workspace_id, verify=verify))
+    print("j_workdir_parent:", j_workdir_parent)
     # Display results as a formatted table
-    save_as_stdout(j_related)
+    save_as_stdout(j_related, cloudos_url=cloudos_url)
+
 
     # Save as JSON file
     save_as_json(j_related, 'related_analyses.json')
     print(f"\nResults also saved to: related_analyses.json")
 
+
 def save_as_json(data, filename):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
-def save_as_stdout(data):
+
+def save_as_stdout(data, cloudos_url="https://cloudos.lifebit.ai"):
     """Display related analyses in a formatted table with pagination.
     
     Parameters
@@ -92,7 +98,7 @@ def save_as_stdout(data):
         total_cost_formatted = format_cost(cost)
 
         # Add hyperlink to job_id_display
-        job_url = f"https://cloudos.lifebit.ai/app/advanced-analytics/analyses/{job_id_display}"
+        job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id_display}"
         job_id_with_link = f"[link={job_url}]{job_id_display}[/link]"
 
         rows.append([

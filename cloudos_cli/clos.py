@@ -1686,3 +1686,57 @@ class Cloudos:
                 }
 
         return related_jobs
+
+
+    def get_parent_job(self, workspace_id, folder_id, verify=True):
+        """Get the parent job of a given folder.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID.
+        folder_id : str
+            The ID of the folder whose parent job is to be retrieved.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing details of the parent job.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        params = {
+            "id": folder_id,
+            "status": "ready",
+            "teamId": workspace_id
+        }
+
+        url = f"{self.cloudos_url}/api/v1/folders/"
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        content = json.loads(response.content)
+        # The API returns a list of folders; we need to extract the parent job ID from the first item (if present)
+        if isinstance(content, list) and content:
+            parent_job_id = content[0].get("parent", {}).get("id")
+        else:
+            parent_job_id = None
+
+        if not parent_job_id:
+            return None
+        else:
+            return parent_job_id
