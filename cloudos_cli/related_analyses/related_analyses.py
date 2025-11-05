@@ -17,10 +17,10 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, verify=True):
 
     # Display results as a formatted table
     save_as_stdout(j_related)
-    
-    # Optionally save as JSON file
-    #save_as_json(j_related, 'related_analyses.json')
-    #print(f"\nResults also saved to: related_analyses.json")
+
+    # Save as JSON file
+    save_as_json(j_related, 'related_analyses.json')
+    print(f"\nResults also saved to: related_analyses.json")
 
 def save_as_json(data, filename):
     with open(filename, 'w') as f:

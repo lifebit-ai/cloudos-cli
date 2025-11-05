@@ -1404,7 +1404,7 @@ def job_cost(ctx,
               required=True)
 @click.option('--output-format',
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
-              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -1428,8 +1428,7 @@ def related(ctx,
             disable_ssl_verification,
             ssl_cert,
             profile):
-    """Retrieve job cost information in CloudOS."""
-    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+    """Retrieve related job analyses in CloudOS."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     related_analyses(cloudos_url, apikey, job_id, workspace_id, verify_ssl)
 
