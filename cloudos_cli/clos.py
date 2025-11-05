@@ -1646,7 +1646,6 @@ class Cloudos:
         }
 
         url = f"{self.cloudos_url}/api/v2/jobs"
-        print(url)
         response = retry_requests_get(url, params=params, headers=headers, verify=verify)
 
         if response.status_code >= 400:

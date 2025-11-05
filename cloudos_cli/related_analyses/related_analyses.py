@@ -7,7 +7,6 @@ from rich.text import Text
 from datetime import datetime
 
 
-
 def related_analyses(cloudos_url, apikey, j_id, workspace_id, verify=True):
     cl = Cloudos(cloudos_url, apikey, None)
     job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
@@ -38,10 +37,10 @@ def save_as_stdout(data):
         _id, createdAt, runTime, computeCostSpent).
     """
     console = Console(markup=True)
-    
+
     # Create table
     table = Table(title="Related Analyses")
-    
+
     # Add columns
     table.add_column("Status", style="cyan", no_wrap=True)
     table.add_column("Name", style="green", overflow="fold")
@@ -58,7 +57,7 @@ def save_as_stdout(data):
             return "N/A"
         try:
             dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-            return dt.strftime('%Y-%m-%d %H:%M:%S UTC')
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
         except (ValueError, AttributeError):
             return timestamp_str
     
@@ -89,7 +88,10 @@ def save_as_stdout(data):
             return f"${float(cost) / 100:.4f}"
         except (ValueError, TypeError):
             return "N/A"
-    
+
+    console.print(f"\nShared working directory: ")
+    console.print(f"\n[bold]Total related analyses found:[/bold] {len(data)}")
+
     # Add rows to table
     for job_id, job_info in data.items():
         status = job_info.get('status', 'N/A')
@@ -101,21 +103,12 @@ def save_as_stdout(data):
         submit_time = format_timestamp(job_info.get('createdAt'))
         run_time = format_runtime(job_info.get('runTime'))
         total_cost = format_cost(job_info.get('computeCostSpent'))
-        
-        # Add a "❌" icon if status is "failed", otherwise leave empty
-        if status.lower() == "failed":
-            status_icon = "❌"
-        elif status.lower() == "completed":
-            status_icon = "✅"
-        else:
-            status_icon = ""
+
         # Add hyperlink to job_id_display
         job_url = f"https://cloudos.lifebit.ai/app/advanced-analytics/analyses/{job_id_display}"
         job_id_display = f"[link={job_url}]{job_id_display}[/link]"
 
-        #table.add_row(link_text)
         table.add_row(
-            #f"{status_icon} {status}".strip(),
             status,
             name,
             owner,
@@ -124,8 +117,7 @@ def save_as_stdout(data):
             run_time,
             total_cost
         )
-    
+
     # Display table
     console.print(table)
-    console.print(f"\n[bold]Total related analyses found:[/bold] {len(data)}")
 
