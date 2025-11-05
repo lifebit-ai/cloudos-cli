@@ -12,6 +12,7 @@ from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, 
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
 from datetime import datetime
+from pathlib import PurePosixPath
 
 
 # GLOBAL VARS
@@ -284,6 +285,17 @@ class Cloudos:
             else:
                 raise ValueError("Unsupported cloud provider")
             return workdir_path
+
+
+    def get_workdir_folder_id(self, workdir_path):
+        path = PurePosixPath(workdir_path)
+        parts = path.parts
+        try:
+            job_index = parts.index("jobs") + 1
+            return parts[job_index]
+        except (ValueError, IndexError):
+            raise ValueError(f"Could not extract job ID from path: {workdir_path}")
+
 
     def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
         """
@@ -1587,3 +1599,91 @@ class Cloudos:
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
+
+    def get_job_relatedness(self, workspace_id, workdir_folder_id, page=1, limit=100, verify=True):
+        """Get related jobs that share the same working directory folder.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID.
+        workdir_folder_id : str
+            The working directory folder ID to filter jobs by.
+        page : int
+            Page number for pagination (default: 1)
+        limit : int
+            Number of results per page (default: 100)
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary where keys are job IDs and values are dictionaries
+            containing job details: status, name, user name, user surname,
+            _id, createdAt, runTime, and computeCostSpent.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build the API URL with query parameters
+        params = {
+            "limit": limit,
+            "page": page,
+            "sort": "-createdAt",
+            "archived.status": "false",
+            "workDirectory.folderId": workdir_folder_id,
+            "teamId": workspace_id
+        }
+
+        url = f"{self.cloudos_url}/api/v2/jobs"
+        print(url)
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        content = json.loads(response.content)
+
+        # Process the jobs and extract the required fields
+        related_jobs = {}
+
+        for job in content.get("jobs", []):
+            job_id = job.get("_id")
+            if job_id:
+                # Calculate runtime if both startTime and endTime exist
+                run_time = None
+                start_time = job.get("startTime")
+                end_time = job.get("endTime")
+                if start_time and end_time:
+                    try:
+                        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+                        run_time = (end_dt - start_dt).total_seconds()
+                    except (ValueError, AttributeError):
+                        run_time = None
+                
+                # Extract user information
+                user_info = job.get("user", {})
+                
+                related_jobs[job_id] = {
+                    "_id": job_id,
+                    "status": job.get("status"),
+                    "name": job.get("name"),
+                    "user_name": user_info.get("name"),
+                    "user_surname": user_info.get("surname"),
+                    "createdAt": job.get("createdAt"),
+                    "runTime": run_time,
+                    "computeCostSpent": job.get("computeCostSpent")
+                }
+
+        return related_jobs
