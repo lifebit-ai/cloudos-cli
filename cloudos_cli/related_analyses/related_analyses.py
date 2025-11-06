@@ -177,7 +177,7 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
     current_page = 0
     total_pages = (len(rows) + limit - 1) // limit if len(rows) > 0 else 1
 
-    link = f"https://cloudos.lifebit.ai/app/advanced-analytics/analyses/{j_workdir_parent}"
+    link = f"{cloudos_url}/app/advanced-analytics/analyses/{j_workdir_parent}"
     if "Intermediate results of this job were deleted by" in str(j_workdir_parent):
         console.print(f"[white on #fff08a]🗑️ {j_workdir_parent}[/white on #fff08a]")
     else:
