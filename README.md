@@ -45,6 +45,7 @@ Python package for interacting with CloudOS
       - [Get Job Workdir](#get-job-workdir)
       - [List Jobs](#list-jobs)
       - [Get Job Costs](#get-job-costs)
+      - [Get Job Related Analyses](#get-job-related-analyses)
     - [Bash Jobs](#bash-jobs)
       - [Send Array Job](#send-array-job)
       - [Submit a Bash Array Job](#submit-a-bash-array-job)
@@ -1162,6 +1163,114 @@ cat 62c83a1191fe06013b7ef355_costs.json
 }
 
 ```
+
+#### Get Job Related Analyses
+
+You can view related jobs that share the same working directory in a CloudOS workspace by using the `job related` command. This feature helps track job lineages, resume workflows, and understand job relationships.
+
+The information is retrieved from CloudOS and can be displayed in multiple formats:
+
+- **Console display**: Rich formatted tables with pagination and linked job IDs (by hovering over the job ID and pressing Cmd + Click on Mac or Ctrl + Click on Windows)
+- **JSON**: Complete job data for programmatic processing
+
+To get related analyses for a specific job:
+
+```bash
+cloudos job related --profile my_profile --job-id 66b5e5ded52f33061e2468d5
+```
+
+The expected output is a formatted table showing:
+
+```console
+Total related analyses found: 15
+
+                                              Related Analyses                                              
+┏━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Status    ┃ Name                               ┃ Owner          ┃ ID                       ┃ Submit time         ┃ Run time  ┃ Total Cost ┃
+┡━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ completed │ workflow_analysis_v1               │ John Smith     │ 66b5e5ded52f33061e2468d5 │ 2024-08-09 14:23:10 │ 45m 12s   │ $1.2340    │
+│ completed │ workflow_analysis_v1_resumed       │ John Smith     │ 66b6f2a1e52f33061e246abc │ 2024-08-10 09:15:22 │ 12m 5s    │ $0.3210    │
+│ running   │ workflow_analysis_v2               │ Jane Doe       │ 66b7a3b2f52f33061e246def │ 2024-08-11 11:30:45 │ 5m 30s    │ $0.1150    │
+│ failed    │ workflow_analysis_test             │ John Smith     │ 66b8c4d3g52f33061e246ghi │ 2024-08-12 16:42:18 │ 2m 15s    │ $0.0450    │
+│ completed │ workflow_downstream_processing     │ Jane Doe       │ 66b9d5e4h52f33061e246jkl │ 2024-08-13 08:20:33 │ 28m 40s   │ $0.7890    │
+│ aborted   │ workflow_analysis_v1_test2         │ John Smith     │ 66bae6f5i52f33061e246mno │ 2024-08-14 13:55:07 │ 1m 8s     │ $0.0120    │
+│ completed │ workflow_final_results             │ Jane Doe       │ 66bbf807j52f33061e246pqr │ 2024-08-15 10:12:44 │ 18m 22s   │ $0.5670    │
+│ queued    │ workflow_reanalysis                │ John Smith     │ 66bcd918k52f33061e246stu │ 2024-08-16 15:38:19 │ N/A       │ N/A        │
+│ completed │ workflow_quality_control           │ Jane Doe       │ 66bdea29l52f33061e246vwx │ 2024-08-17 07:45:52 │ 8m 15s    │ $0.2340    │
+│ completed │ workflow_variant_calling           │ John Smith     │ 66befb3am52f33061e246yz1 │ 2024-08-18 12:03:28 │ 55m 48s   │ $1.5620    │
+└───────────┴────────────────────────────────────┴────────────────┴──────────────────────────┴─────────────────────┴───────────┴────────────┘
+On page 1/2: n = next, p = prev, q = quit
+```
+
+The table displays key information for each related job:
+- **Status**: Current job state (completed, running, failed, aborted, queued, etc.)
+- **Name**: Job name assigned when submitted
+- **Owner**: User who submitted the job (first name and last name)
+- **ID**: Clickable job identifier that links to the job page in CloudOS
+- **Submit time**: When the job was submitted (formatted as YYYY-MM-DD HH:MM:SS)
+- **Run time**: Actual execution time (formatted as hours, minutes, seconds)
+- **Total Cost**: Compute cost in USD
+
+**Pagination controls:**
+- Press `n` to navigate to the next page
+- Press `p` to navigate to the previous page
+- Press `q` to quit and return to the terminal
+
+The console automatically clears between pages for a clean viewing experience, displaying 10 jobs per page.
+
+**Export options:**
+
+Save related analyses to JSON for programmatic analysis:
+
+```bash
+cloudos job related --profile my_profile --job-id 66b5e5ded52f33061e2468d5 --output-format json
+
+cat related_analyses.json
+{
+  "66b5e5ded52f33061e2468d5": {
+    "status": "completed",
+    "name": "workflow_analysis_v1",
+    "user_name": "John",
+    "user_surname": "Smith",
+    "_id": "66b5e5ded52f33061e2468d5",
+    "createdAt": "2024-08-09T14:23:10.000Z",
+    "runTime": 2712,
+    "computeCostSpent": 123400
+  },
+  "66b6f2a1e52f33061e246abc": {
+    "status": "completed",
+    "name": "workflow_analysis_v1_resumed",
+    "user_name": "John",
+    "user_surname": "Smith",
+    "_id": "66b6f2a1e52f33061e246abc",
+    "createdAt": "2024-08-10T09:15:22.000Z",
+    "runTime": 725,
+    "computeCostSpent": 32100
+  },
+  ...
+}
+```
+
+The JSON format includes:
+- `status`: Job execution status
+- `name`: Job name
+- `user_name` and `user_surname`: Owner information
+- `_id`: Job identifier
+- `createdAt`: ISO 8601 timestamp of job submission
+- `runTime`: Execution time in seconds
+- `computeCostSpent`: Total cost in cents (divide by 100 for dollars)
+
+**Use cases:**
+
+Related analyses are particularly useful for:
+- **Resumed workflows**: Find previous jobs to continue from checkpoints
+- **Job lineage tracking**: Understand which jobs are part of the same analysis
+- **Cost analysis**: Compare costs across related jobs
+- **Debugging**: Identify failed jobs in a workflow series
+- **Collaboration**: See all jobs from team members working on shared data
+
+> [!NOTE]
+> Related jobs are identified by their shared working directory folder ID. Only jobs within the same workspace that use the same working directory will be displayed.
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
