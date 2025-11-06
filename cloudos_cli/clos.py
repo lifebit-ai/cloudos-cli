@@ -1718,6 +1718,7 @@ class Cloudos:
             raise BadRequestException(response)
 
         content = json.loads(response.content)
+
         # The API returns a list of folders; we need to extract the parent job ID from the first item (if present)
         if isinstance(content, list) and content:
             parent_job_id = content[0].get("parent", {}).get("id")

@@ -1,6 +1,7 @@
 from cloudos_cli.clos import Cloudos
 import cloudos_cli.jobs.job as jb
 import json
+import click
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
@@ -8,13 +9,75 @@ from datetime import datetime
 
 
 def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, verify=True):
+    """
+    Retrieve and display related analyses for a given job in a Cloudos workspace.
+
+    This function fetches the working directory and related analyses information for a specified job.
+    If the job is a Bash job (which does not have related analyses), a warning is displayed.
+    If the job's intermediate results have been deleted, a message is shown indicating who deleted them and when.
+    The related analyses can be output in JSON format or displayed as a formatted table.
+
+    Parameters
+    ----------
+    cloudos_url: str
+        The base URL of the Cloudos instance.
+    apikey: str
+        API key for authentication.
+    j_id: str
+        The ID of the job to analyze.
+    workspace_id: str
+        The ID of the workspace containing the job.
+    output_format: str
+        Output format, either 'json' or another format for table display.
+    verify: bool, optional
+        Whether to verify SSL certificates. Defaults to True.
+
+    Raises
+    ------
+    ValueError: If the job does not have a working directory associated.
+    Exception: Propagates exceptions not related to missing 'workDirectory' field.
+    """
+
     cl = Cloudos(cloudos_url, apikey, None)
     job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                  mainfile=None, importsfile=None, verify=verify)
 
-    j_workdir = job.get_field_from_jobs_endpoint(j_id, field='workDirectory', verify=verify)
+    # Get job working directory
+    try:
+        j_workdir = job.get_field_from_jobs_endpoint(j_id, field='workDirectory', verify=verify)
+    except Exception as e:
+        if "Field 'workDirectory' not found in endpoint 'jobs'" in str(e):
+            click.secho("Bash jobs do not have 'Related Analyses' information.", fg="yellow", bold=True)
+            return
+        else:
+            raise e
+
+    # Get folder ID
+    folder_id = j_workdir.get('folderId')
+    if not folder_id:
+        raise ValueError("The job does not have a working directory associated.")
+
+    # Get related analyses
     j_related = cl.get_job_relatedness(workspace_id, j_workdir['folderId'], verify=verify)
-    j_workdir_parent = cl.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
+    deleted_by_id = j_workdir.get('deletedBy', {}).get('id')
+    deleted_by_name = j_workdir.get('deletedBy', {}).get('name')
+    deletion_date_iso = j_workdir.get('deletionDate')
+    if deletion_date_iso:
+        try:
+            dt = datetime.fromisoformat(deletion_date_iso.replace('Z', '+00:00'))
+            deletion_date_str = dt.strftime('%d/%m/%Y')
+        except Exception:
+            deletion_date_str = deletion_date_iso
+    else:
+        deletion_date_str = "N/A"
+
+    if deleted_by_id and deleted_by_name:
+        j_workdir_parent = Text(
+            f"Intermediate results of this job were deleted by [bold]{deleted_by_name}[/bold] on [bold]{deletion_date_str}[/bold]. Current job and all other jobs sharing the same working directory are not resumable anymore. You can restore intermediate data by cloning the job.",
+            style="yellow"
+        )
+    else:
+        j_workdir_parent = cl.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
 
     if output_format.lower() == 'json':
         # Save as JSON file
@@ -115,8 +178,10 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
     total_pages = (len(rows) + limit - 1) // limit if len(rows) > 0 else 1
 
     link = f"https://cloudos.lifebit.ai/app/advanced-analytics/analyses/{j_workdir_parent}"
-    console.print(f"Parent job link: [link={link}]{j_workdir_parent}[/link]")
-
+    if "Intermediate results of this job were deleted by" in str(j_workdir_parent):
+        console.print(f"[white on #fff08a]🗑️ {j_workdir_parent}[/white on #fff08a]")
+    else:
+        console.print(f"Parent job link: [link={link}]{j_workdir_parent}[/link]")
     console.print(f"\nTotal related analyses found: {len(data)}")
 
     # Display with pagination
