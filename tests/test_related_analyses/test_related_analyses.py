@@ -112,7 +112,7 @@ class TestRelatedAnalysesFunctions:
         
         # Should not raise any exceptions
         try:
-            save_as_stdout(test_data)
+            save_as_stdout(test_data, "parent_job_id")
             assert True
         except Exception as e:
             pytest.fail(f"save_as_stdout raised an exception: {e}")
@@ -126,7 +126,7 @@ class TestRelatedAnalysesFunctions:
         
         # Should not raise any exceptions
         try:
-            save_as_stdout(test_data)
+            save_as_stdout(test_data, "parent_job_id")
             assert True
         except Exception as e:
             pytest.fail(f"save_as_stdout raised an exception with empty data: {e}")
@@ -151,7 +151,7 @@ class TestRelatedAnalysesFunctions:
         
         # Should not raise any exceptions
         try:
-            save_as_stdout(test_data)
+            save_as_stdout(test_data, "parent_job_id")
             assert True
         except Exception as e:
             pytest.fail(f"save_as_stdout raised an exception with null values: {e}")
@@ -177,7 +177,7 @@ class TestRelatedAnalysesFunctions:
         
         # Should not raise any exceptions and should handle pagination
         try:
-            save_as_stdout(test_data)
+            save_as_stdout(test_data, "parent_job_id")
             # Verify mock_input was called (pagination controls were used)
             # With 25 jobs and 10 per page, we have 3 pages
             # Page 1->2 (n), Page 2->3 (n), Page 3 auto-exits (no input)
