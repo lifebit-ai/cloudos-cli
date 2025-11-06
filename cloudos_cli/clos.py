@@ -286,17 +286,6 @@ class Cloudos:
                 raise ValueError("Unsupported cloud provider")
             return workdir_path
 
-
-    def get_workdir_folder_id(self, workdir_path):
-        path = PurePosixPath(workdir_path)
-        parts = path.parts
-        try:
-            job_index = parts.index("jobs") + 1
-            return parts[job_index]
-        except (ValueError, IndexError):
-            raise ValueError(f"Could not extract job ID from path: {workdir_path}")
-
-
     def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
         """
         Handle 403 errors with more informative messages by checking job ownership
@@ -1686,7 +1675,6 @@ class Cloudos:
                 }
 
         return related_jobs
-
 
     def get_parent_job(self, workspace_id, folder_id, verify=True):
         """Get the parent job of a given folder.

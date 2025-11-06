@@ -16,16 +16,13 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, ver
     j_related = cl.get_job_relatedness(workspace_id, j_workdir['folderId'], verify=verify)
     j_workdir_parent = cl.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
 
-    print("j_workdir:", cl.get_job_workdir(j_id, workspace_id, verify=verify))
-    print("j_workdir_parent:", j_workdir_parent)
-
     if output_format.lower() == 'json':
         # Save as JSON file
         save_as_json(j_related, 'related_analyses.json')
         print(f"\nResults saved to: related_analyses.json")
         return
     # Display results as a formatted table
-    save_as_stdout(j_related, cloudos_url=cloudos_url)
+    save_as_stdout(j_related, j_workdir_parent, cloudos_url=cloudos_url)
 
 
 def save_as_json(data, filename):
@@ -33,7 +30,7 @@ def save_as_json(data, filename):
         json.dump(data, f, indent=4)
 
 
-def save_as_stdout(data, cloudos_url="https://cloudos.lifebit.ai"):
+def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.ai"):
     """Display related analyses in a formatted table with pagination.
     
     Parameters
@@ -117,7 +114,10 @@ def save_as_stdout(data, cloudos_url="https://cloudos.lifebit.ai"):
     current_page = 0
     total_pages = (len(rows) + limit - 1) // limit if len(rows) > 0 else 1
 
-    console.print(f"\n[bold]Total related analyses found:[/bold] {len(data)}")
+    link = f"https://cloudos.lifebit.ai/app/advanced-analytics/analyses/{j_workdir_parent}"
+    console.print(f"Parent job link: [link={link}]{j_workdir_parent}[/link]")
+
+    console.print(f"\nTotal related analyses found: {len(data)}")
 
     # Display with pagination
     while True:
