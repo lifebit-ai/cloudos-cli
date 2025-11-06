@@ -1406,9 +1406,6 @@ def job_cost(ctx,
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
               type=click.Choice(['stdout', 'json'], case_sensitive=False),
               default='stdout')
-@click.option('--verbose',
-              help='Whether to print information messages or not.',
-              is_flag=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -1419,18 +1416,17 @@ def job_cost(ctx,
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
 def related(ctx,
-    apikey,
+            apikey,
             cloudos_url,
             workspace_id,
             job_id,
             output_format,
-            verbose,
             disable_ssl_verification,
             ssl_cert,
             profile):
     """Retrieve related job analyses in CloudOS."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    related_analyses(cloudos_url, apikey, job_id, workspace_id, verify_ssl)
+    related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
 
 @click.command()

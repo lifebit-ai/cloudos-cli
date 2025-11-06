@@ -7,7 +7,7 @@ from rich.text import Text
 from datetime import datetime
 
 
-def related_analyses(cloudos_url, apikey, j_id, workspace_id, verify=True):
+def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, verify=True):
     cl = Cloudos(cloudos_url, apikey, None)
     job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                  mainfile=None, importsfile=None, verify=verify)
@@ -18,13 +18,14 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, verify=True):
 
     print("j_workdir:", cl.get_job_workdir(j_id, workspace_id, verify=verify))
     print("j_workdir_parent:", j_workdir_parent)
+
+    if output_format.lower() == 'json':
+        # Save as JSON file
+        save_as_json(j_related, 'related_analyses.json')
+        print(f"\nResults saved to: related_analyses.json")
+        return
     # Display results as a formatted table
     save_as_stdout(j_related, cloudos_url=cloudos_url)
-
-
-    # Save as JSON file
-    save_as_json(j_related, 'related_analyses.json')
-    print(f"\nResults also saved to: related_analyses.json")
 
 
 def save_as_json(data, filename):
