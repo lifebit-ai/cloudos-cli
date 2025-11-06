@@ -1,0 +1,48 @@
+{
+  "jobs": [
+    {
+      "_id": "66b5e5ded52f33061e2468d5",
+      "status": "completed",
+      "name": "Test Analysis 1",
+      "user": {
+        "name": "John",
+        "surname": "Doe"
+      },
+      "createdAt": "2025-11-05T10:23:45.123Z",
+      "startTime": "2025-11-05T10:24:00.000Z",
+      "endTime": "2025-11-05T10:26:30.000Z",
+      "computeCostSpent": 1250
+    },
+    {
+      "_id": "66b5e5ded52f33061e2468d6",
+      "status": "running",
+      "name": "Test Analysis 2",
+      "user": {
+        "name": "Jane",
+        "surname": "Smith"
+      },
+      "createdAt": "2025-11-05T11:15:20.456Z",
+      "startTime": "2025-11-05T11:15:35.000Z",
+      "endTime": null,
+      "computeCostSpent": null
+    },
+    {
+      "_id": "66b5e5ded52f33061e2468d7",
+      "status": "failed",
+      "name": "Test Analysis 3",
+      "user": {
+        "name": "Bob",
+        "surname": "Johnson"
+      },
+      "createdAt": "2025-11-05T12:00:00.789Z",
+      "startTime": "2025-11-05T12:00:15.000Z",
+      "endTime": "2025-11-05T13:30:45.000Z",
+      "computeCostSpent": 5400
+    }
+  ],
+  "paginationMetadata": {
+    "total": 3,
+    "page": 1,
+    "limit": 100
+  }
+}
