@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.68.0 (2025-11-07)
+
+### Feat
+
+- Adds checks for linking job completion
+- Fix workdir command to return correct path for resumed jobs.
+
+
 ## v2.66.1 (2025-10-29)
 
 ### Patch
