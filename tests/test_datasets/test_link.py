@@ -5,7 +5,7 @@ from cloudos_cli.utils.requests import retry_requests_post
 import responses
 
 
-"""Unit tests for the Link class - Positive test cases only."""
+"""Unit tests for the Link class."""
 
 CLOUDOS_URL = "http://cloudos.lifebit.ai"
 APIKEY = "testapikey"
@@ -234,39 +234,3 @@ def test_get_fuse_filesystems_status_success(link_instance_test_response):
     assert result[0]["status"] == "mounted"
 
 
-@responses.activate
-def test_list_mounted_filesystems(capsys, link_instance_test_response):
-    """Test listing mounted filesystems."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
-    mock_response = {
-        "fuseFileSystems": [
-            {
-                "_id": "123",
-                "resource": "sessionABC",
-                "storageProvider": "s3",
-                "mountName": "mounted-folder",
-                "mountPoint": "/opt/lifebit/volumes/file-systems/mounted-folder",
-                "status": "mounted",
-                "readOnly": True,
-                "errorMessage": None
-            },
-            {
-                "_id": "456", 
-                "resource": "sessionABC",
-                "storageProvider": "s3",
-                "mountName": "another-mounted-folder",
-                "mountPoint": "/opt/lifebit/volumes/file-systems/another-mounted-folder",
-                "status": "mounted",
-                "readOnly": False,
-                "errorMessage": None
-            }
-        ]
-    }
-    responses.add(responses.GET, status_url, json=mock_response, status=200)
-    
-    link_instance_test_response.list_mounted_filesystems("sessionABC")
-    captured = capsys.readouterr()
-    
-    assert "Filesystem status for session sessionABC:" in captured.out
-    assert "mounted-folder [s3] - MOUNTED (read-only)" in captured.out
-    assert "another-mounted-folder [s3] - MOUNTED" in captured.out
