@@ -1429,7 +1429,7 @@ def related(ctx,
     related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
 
-@click.command()
+@click.command(help='Clone or resume a job with modified parameters')
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
@@ -1581,9 +1581,15 @@ def clone_resume(ctx,
         raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}")
 
 
-# Register the same function under two names
+# Apply the best Click solution: Set specific help text for each command registration
+clone_resume.help = 'Clone a job with modified parameters'
 job.add_command(clone_resume, "clone")
-job.add_command(clone_resume, "resume")
+
+# Create a copy with different help text for resume
+import copy
+clone_resume_copy = copy.deepcopy(clone_resume)
+clone_resume_copy.help = 'Resume a job with modified parameters'
+job.add_command(clone_resume_copy, "resume")
 
 
 @workflow.command('list')
@@ -2761,7 +2767,6 @@ def list_files(ctx,
                path,
                details):
     """List contents of a path within a CloudOS workspace dataset."""
-    print("project_name", project_name)
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(

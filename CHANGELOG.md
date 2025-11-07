@@ -6,6 +6,13 @@
 
 - Implement viewing related job analyses
 
+## v2.66.2 (2025-11-5)
+
+### Patch
+
+- Fix job help message for resume and clone
+- Implements datasets ls for single files
+
 ## v2.66.1 (2025-10-29)
 
 ### Patch
