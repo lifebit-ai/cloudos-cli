@@ -1,0 +1,13 @@
+cloudos\_cli.related\_analyses
+==============================
+
+.. automodule:: cloudos_cli.related_analyses
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   related_analyses

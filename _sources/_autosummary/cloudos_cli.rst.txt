@@ -20,4 +20,5 @@
    logging
    procurement
    queue
+   related_analyses
    utils

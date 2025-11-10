@@ -1,0 +1,6 @@
+cloudos\_cli.related\_analyses.related\_analyses
+================================================
+
+.. currentmodule:: cloudos_cli.related_analyses
+
+.. autofunction:: related_analyses
