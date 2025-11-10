@@ -62,6 +62,15 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        
+        # Block Azure Blob Storage URLs as they are not supported by the API
+        if folder.startswith('az://'):
+            raise ValueError(
+                "Azure Blob Storage paths (az://) are not supported for linking. "
+                "Azure environments do not support linking files to Interactive Analysis sessions. "
+                "CloudOS currently only supports linking for AWS batch environments using S3 folders and File Explorer paths."
+            )
+        
         # determine if is file explorer or s3
         if folder.startswith('s3://'):
             data = self.parse_s3_path(folder)
