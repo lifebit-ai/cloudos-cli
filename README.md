@@ -1203,7 +1203,7 @@ On page 1/2: n = next, p = prev, q = quit
 ```
 
 The table displays key information for each related job:
-- **Status**: Current job state (completed, running, failed, aborted, queued, etc.)
+- **Status**: Current job state (initializing, running, completed, aborting, aborted, failed)
 - **Name**: Job name assigned when submitted
 - **Owner**: User who submitted the job (first name and last name)
 - **ID**: Job identifier in CloudOS
