@@ -189,6 +189,8 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
     console.print(f"\nTotal related analyses found: {len(data)}")
 
     # Display with pagination
+    show_error = None  # Track error messages to display
+    
     while True:
         start = current_page * limit
         end = start + limit
@@ -216,23 +218,33 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
         console.clear()
         console.print(table)
 
+        # Show error message if any (before clearing for next iteration)
+        if show_error:
+            console.print(show_error)
+            show_error = None  # Reset error after displaying
+
         # Show pagination info and controls
-        if total_pages > 1 and current_page < total_pages - 1:
+        if total_pages > 1:
             console.print(f"\nOn page {current_page + 1}/{total_pages}: [bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
 
             # Get user input for navigation
             choice = input(">>> ").strip().lower()
-            if choice in ("n", "next") and current_page < total_pages - 1:
-                current_page += 1
-            elif choice in ("p", "prev") and current_page > 0:
-                current_page -= 1
-            elif choice in ("p", "prev") and current_page == 0:
-                console.print("[red]Invalid choice. Already on the first page.[/red]")
-            elif choice in ("q", "quit"):
+
+            if choice in ("q", "quit"):
                 break
+            elif choice in ("n", "next"):
+                if current_page < total_pages - 1:
+                    current_page += 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the last page.[/red]"
+            elif choice in ("p", "prev"):
+                if current_page > 0:
+                    current_page -= 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the first page.[/red]"
             else:
-                console.print("[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]")
+                show_error = "[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"
         else:
-            # Only one page or last page, no need for input, just exit
+            # Only one page, no need for input, just exit
             break
 
