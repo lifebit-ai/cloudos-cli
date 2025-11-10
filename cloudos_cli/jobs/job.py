@@ -1266,7 +1266,7 @@ class Job(Cloudos):
         else:
             return obj
 
-    def get_job_relatedness(self, workspace_id, workdir_folder_id, page=1, limit=100, verify=True):
+    def get_job_relatedness(self, workspace_id, workdir_folder_id, limit=100, verify=True):
         """Get ALL related jobs that share the same working directory folder.
 
         This method retrieves all jobs sharing the same working directory folder,
@@ -1308,7 +1308,7 @@ class Job(Cloudos):
 
         # Fetch ALL related jobs using pagination
         all_jobs = []
-        current_page = page
+        current_page = 1
         batch_size = limit  # API request batch size
 
         while True:
