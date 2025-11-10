@@ -308,6 +308,7 @@ class Datasets(Cloudos):
             job_name = parts[path_depth]
             found = False
 
+            # First, check if this is a folder
             for job_folder in folder_content.get("folders", []):
                 if job_folder["name"] == job_name:
                     found = True
@@ -352,8 +353,30 @@ class Datasets(Cloudos):
                     else:
                         raise ValueError(f"Unsupported folder type '{folder_type}' for path '{path}'")
 
+            # If not found as a folder and this is the last part of the path, check if it's a file
+            if not found and path_depth == len(parts) - 1:
+                for file_item in folder_content.get("files", []):
+                    if file_item["name"] == job_name:
+                        # Return the file as a single-item result
+                        return {
+                            "files": [file_item],
+                            "folders": []
+                        }
+                
+                # Also check in contents array (for different API response formats)
+                for item in folder_content.get("contents", []):
+                    if item["name"] == job_name and not item.get("isDir", True):
+                        return {
+                            "files": [item],
+                            "folders": []
+                        }
+
             if not found:
-                raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
+                # Check if we're looking for a file but it's not the last part (invalid path)
+                if path_depth < len(parts) - 1:
+                    raise ValueError(f"Folder '{job_name}' not found under dataset '{dataset_name}'")
+                else:
+                    raise ValueError(f"File or folder '{job_name}' not found under dataset '{dataset_name}'")
 
         return folder_content
 
