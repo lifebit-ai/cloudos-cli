@@ -1,5 +1,5 @@
 """
-Functions and classes related to procurements.
+Functions and classes for related analyses
 """
 
 from .related_analyses import related_analyses
