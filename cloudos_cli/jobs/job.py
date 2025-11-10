@@ -1267,7 +1267,10 @@ class Job(Cloudos):
             return obj
 
     def get_job_relatedness(self, workspace_id, workdir_folder_id, page=1, limit=100, verify=True):
-        """Get related jobs that share the same working directory folder.
+        """Get ALL related jobs that share the same working directory folder.
+
+        This method retrieves all jobs sharing the same working directory folder,
+        using pagination internally to fetch all results from the API.
 
         Parameters
         ----------
@@ -1276,9 +1279,11 @@ class Job(Cloudos):
         workdir_folder_id : str
             The working directory folder ID to filter jobs by.
         page : int
-            Page number for pagination (default: 1)
+            Starting page number for pagination (default: 1). This parameter is kept
+            for backwards compatibility but fetches all jobs regardless.
         limit : int
-            Number of results per page (default: 100)
+            Batch size for API requests (default: 100). This parameter is kept
+            for backwards compatibility but fetches all jobs regardless.
         verify : [bool | str], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1301,22 +1306,19 @@ class Job(Cloudos):
             "apikey": self.apikey
         }
 
-        # Build the API URL with query parameters
-        # Prepare parameters for pagination
+        # Fetch ALL related jobs using pagination
         all_jobs = []
-        fetched = 0
-        batch_size = 100
-        total_to_fetch = limit
+        current_page = page
+        batch_size = limit  # API request batch size
 
-        while fetched < total_to_fetch:
-            current_limit = min(batch_size, total_to_fetch - fetched)
+        while True:
             params = {
-            "limit": current_limit,
-            "page": page,
-            "sort": "-createdAt",
-            "archived.status": "false",
-            "workDirectory.folderId": workdir_folder_id,
-            "teamId": workspace_id
+                "limit": batch_size,
+                "page": current_page,
+                "sort": "-createdAt",
+                "archived.status": "false",
+                "workDirectory.folderId": workdir_folder_id,
+                "teamId": workspace_id
             }
 
             url = f"{self.cloudos_url}/api/v2/jobs"
@@ -1327,22 +1329,19 @@ class Job(Cloudos):
 
             content = json.loads(response.content)
             jobs = content.get("jobs", [])
+
             if not jobs:
-                break
+                break  # No more jobs to fetch
 
             all_jobs.extend(jobs)
-            fetched += len(jobs)
-            if len(jobs) < current_limit:
-                break  # No more jobs to fetch
-            page += 1
 
-        # Replace content with all fetched jobs
-        content = {"jobs": all_jobs[:limit]}
+            if len(jobs) < batch_size:
+                break  # Last page reached (fewer jobs than batch size)
 
-        if response.status_code >= 400:
-            raise BadRequestException(response)
+            current_page += 1
 
-        content = json.loads(response.content)
+        # Create final content with all fetched jobs
+        content = {"jobs": all_jobs}
 
         # Process the jobs and extract the required fields
         related_jobs = {}
@@ -1361,10 +1360,10 @@ class Job(Cloudos):
                         run_time = (end_dt - start_dt).total_seconds()
                     except (ValueError, AttributeError):
                         run_time = None
-                
+
                 # Extract user information
                 user_info = job.get("user", {})
-                
+
                 related_jobs[job_id] = {
                     "_id": job_id,
                     "status": job.get("status"),
