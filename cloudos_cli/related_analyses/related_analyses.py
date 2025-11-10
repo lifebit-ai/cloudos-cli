@@ -58,7 +58,7 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, ver
         raise ValueError("The job does not have a working directory associated.")
 
     # Get related analyses
-    j_related = cl.get_job_relatedness(workspace_id, j_workdir['folderId'], verify=verify)
+    j_related = job.get_job_relatedness(workspace_id, j_workdir['folderId'], verify=verify)
     deleted_by_id = j_workdir.get('deletedBy', {}).get('id')
     deleted_by_name = j_workdir.get('deletedBy', {}).get('name')
     deletion_date_iso = j_workdir.get('deletionDate')
@@ -77,7 +77,7 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, ver
             style="yellow"
         )
     else:
-        j_workdir_parent = cl.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
+        j_workdir_parent = job.get_parent_job(workspace_id, j_workdir['folderId'], verify=verify)
 
     if output_format.lower() == 'json':
         # Save as JSON file

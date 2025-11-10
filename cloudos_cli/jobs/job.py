@@ -13,6 +13,7 @@ import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
 import click
+from datetime import datetime
 
 
 @dataclass
@@ -1265,3 +1266,168 @@ class Job(Cloudos):
         else:
             return obj
 
+    def get_job_relatedness(self, workspace_id, workdir_folder_id, page=1, limit=100, verify=True):
+        """Get related jobs that share the same working directory folder.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID.
+        workdir_folder_id : str
+            The working directory folder ID to filter jobs by.
+        page : int
+            Page number for pagination (default: 1)
+        limit : int
+            Number of results per page (default: 100)
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary where keys are job IDs and values are dictionaries
+            containing job details: status, name, user name, user surname,
+            _id, createdAt, runTime, and computeCostSpent.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build the API URL with query parameters
+        # Prepare parameters for pagination
+        all_jobs = []
+        fetched = 0
+        batch_size = 100
+        total_to_fetch = limit
+
+        while fetched < total_to_fetch:
+            current_limit = min(batch_size, total_to_fetch - fetched)
+            params = {
+            "limit": current_limit,
+            "page": page,
+            "sort": "-createdAt",
+            "archived.status": "false",
+            "workDirectory.folderId": workdir_folder_id,
+            "teamId": workspace_id
+            }
+
+            url = f"{self.cloudos_url}/api/v2/jobs"
+            response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+
+            if response.status_code >= 400:
+                raise BadRequestException(response)
+
+            content = json.loads(response.content)
+            jobs = content.get("jobs", [])
+            if not jobs:
+                break
+
+            all_jobs.extend(jobs)
+            fetched += len(jobs)
+            if len(jobs) < current_limit:
+                break  # No more jobs to fetch
+            page += 1
+
+        # Replace content with all fetched jobs
+        content = {"jobs": all_jobs[:limit]}
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        content = json.loads(response.content)
+
+        # Process the jobs and extract the required fields
+        related_jobs = {}
+
+        for job in content.get("jobs", []):
+            job_id = job.get("_id")
+            if job_id:
+                # Calculate runtime if both startTime and endTime exist
+                run_time = None
+                start_time = job.get("startTime")
+                end_time = job.get("endTime")
+                if start_time and end_time:
+                    try:
+                        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+                        run_time = (end_dt - start_dt).total_seconds()
+                    except (ValueError, AttributeError):
+                        run_time = None
+                
+                # Extract user information
+                user_info = job.get("user", {})
+                
+                related_jobs[job_id] = {
+                    "_id": job_id,
+                    "status": job.get("status"),
+                    "name": job.get("name"),
+                    "user_name": user_info.get("name"),
+                    "user_surname": user_info.get("surname"),
+                    "createdAt": job.get("createdAt"),
+                    "runTime": run_time,
+                    "computeCostSpent": job.get("computeCostSpent")
+                }
+
+        return related_jobs
+
+    def get_parent_job(self, workspace_id, folder_id, verify=True):
+        """Get the parent job of a given folder.
+
+        Parameters
+        ----------
+        workspace_id : str
+            The CloudOS workspace ID.
+        folder_id : str
+            The ID of the folder whose parent job is to be retrieved.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing details of the parent job.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        params = {
+            "id": folder_id,
+            "status": "ready",
+            "teamId": workspace_id
+        }
+
+        url = f"{self.cloudos_url}/api/v1/folders/"
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        content = json.loads(response.content)
+
+        # The API returns a list of folders; we need to extract the parent job ID from the first item (if present)
+        if isinstance(content, list) and content:
+            parent_job_id = content[0].get("parent", {}).get("id")
+        else:
+            parent_job_id = None
+
+        if not parent_job_id:
+            return None
+        else:
+            return parent_job_id
