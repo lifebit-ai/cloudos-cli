@@ -1278,9 +1278,6 @@ class Job(Cloudos):
             The CloudOS workspace ID.
         workdir_folder_id : str
             The working directory folder ID to filter jobs by.
-        page : int
-            Starting page number for pagination (default: 1). This parameter is kept
-            for backwards compatibility but fetches all jobs regardless.
         limit : int
             Batch size for API requests (default: 100). This parameter is kept
             for backwards compatibility but fetches all jobs regardless.
