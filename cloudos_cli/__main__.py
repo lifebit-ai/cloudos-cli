@@ -929,9 +929,6 @@ def job_logs(ctx,
 @click.option('--link',
               help='Link the results directories to an interactive session.',
               is_flag=True)
-@click.option('--delete',
-              help='Delete the results directories from CloudOS from a job.',
-              is_flag=True)
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
