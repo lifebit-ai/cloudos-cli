@@ -274,12 +274,9 @@ class Link(Cloudos):
                     target_mount = fs
                     break
             
-            if not target_mount:
-                raise ValueError(f"Mount '{mount_name}' not found in session {session_id}")
-            
-            status = target_mount.get("status")
-            if status in ["mounted", "failed"]:
+            if target_mount and target_mount.get("status") in ["mounted", "failed"]:
                 return target_mount
+            # If mount not found or still in progress, continue waiting
             
             time.sleep(check_interval)
         
