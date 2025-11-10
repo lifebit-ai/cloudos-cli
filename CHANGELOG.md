@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.67.0 (2025-11-06)
+
+### Feat
+
+- Implement viewing related job analyses
+
 ## v2.66.2 (2025-11-5)
 
 ### Patch
