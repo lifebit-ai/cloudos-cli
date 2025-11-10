@@ -38,7 +38,6 @@ def related_analyses(cloudos_url, apikey, j_id, workspace_id, output_format, ver
     Exception: Propagates exceptions not related to missing 'workDirectory' field.
     """
 
-    cl = Cloudos(cloudos_url, apikey, None)
     job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                  mainfile=None, importsfile=None, verify=verify)
 
