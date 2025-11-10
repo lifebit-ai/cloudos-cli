@@ -62,13 +62,10 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        # determine if is file explorer, s3, or azure blob
+        # determine if is file explorer or s3
         if folder.startswith('s3://'):
             data = self.parse_s3_path(folder)
             type_folder = "S3"
-        elif folder.startswith('az://'):
-            data = self.parse_azure_path(folder)
-            type_folder = "Azure Blob"
         else:
             data = self.parse_file_explorer_path(folder)
             type_folder = "File Explorer"
@@ -91,13 +88,6 @@ class Link(Cloudos):
                 full_path = (
                     f"s3://{data['dataItem']['data']['s3BucketName']}/"
                     f"{data['dataItem']['data']['s3Prefix']}"
-                )
-                mount_name = data['dataItem']['data']['name']
-            elif type_folder == "Azure Blob":
-                full_path = (
-                    f"az://{data['dataItem']['data']['storageAccount']}.blob.core.windows.net/"
-                    f"{data['dataItem']['data']['blobContainerName']}/"
-                    f"{data['dataItem']['data']['blobPrefix']}"
                 )
                 mount_name = data['dataItem']['data']['name']
             else:
@@ -166,74 +156,6 @@ class Link(Cloudos):
                 "s3BucketName": bucket,
                 "s3Prefix": prefix
             }
-            }
-        }
-
-    def parse_azure_path(self, azure_url):
-        """
-        Parses an Azure Blob Storage URL and extracts the storage account, container, and blob prefix.
-
-        Parameters
-        ----------
-        azure_url : str
-            The Azure Blob Storage URL to parse. Must start with "az://".
-            Format: az://{storage_account}.blob.core.windows.net/{container}/{blob_prefix}
-
-        Returns
-        -------
-        dict: A dictionary containing the parsed Azure information structured as:
-                "dataItem": {
-                    "type": "AzureBlobFolder",
-                    "data": {
-                        "name": str,                  # The base name (last segment of the prefix).
-                        "storageAccount": str,        # The storage account name.
-                        "blobContainerName": str,     # The blob container name.
-                        "blobPrefix": str             # The full blob prefix path.
-                    }
-                }
-
-        Raises
-        ------
-        ValueError
-            If the Azure URL does not start with "az://".
-            If the Azure URL format is invalid.
-            If the Azure URL does not include a container and blob prefix.
-        """
-        if not azure_url.startswith("az://"):
-            raise ValueError("Invalid Azure Blob Storage URL. Link must start with 'az://'")
-
-        parsed = urlparse(azure_url)
-        # Extract storage account from netloc (e.g., "67d97c06d5f03da2eee9ca8b.blob.core.windows.net")
-        storage_account_full = parsed.netloc
-        
-        if not storage_account_full.endswith(".blob.core.windows.net"):
-            raise ValueError("Invalid Azure Blob Storage URL. Must be in format: az://{storage_account}.blob.core.windows.net/{container}/{prefix}")
-        
-        # Extract just the storage account name (before .blob.core.windows.net)
-        storage_account = storage_account_full.replace(".blob.core.windows.net", "")
-        
-        # Parse the path to extract container and blob prefix
-        path_parts = parsed.path.lstrip('/').split('/', 1)
-        
-        if len(path_parts) < 2:
-            raise ValueError("Azure Blob Storage URL must include both container and blob prefix")
-        
-        container_name = path_parts[0]
-        blob_prefix = path_parts[1].rstrip('/')
-        
-        # Get the base name (last segment of the prefix)
-        prefix_parts = blob_prefix.split('/')
-        base_name = prefix_parts[-1]
-        
-        return {
-            "dataItem": {
-                "type": "AzureBlobFolder",
-                "data": {
-                    "name": base_name,
-                    "storageAccount": storage_account,
-                    "blobContainerName": container_name,
-                    "blobPrefix": blob_prefix
-                }
             }
         }
 
