@@ -68,7 +68,6 @@ class Link(Cloudos):
             raise ValueError(
                 "Azure Blob Storage paths (az://) are not supported for linking. "
                 "Azure environments do not support linking folders to Interactive Analysis sessions. "
-                "CloudOS currently only supports linking for AWS batch environments using S3 folders and File Explorer paths."
             )
         
         # determine if is file explorer or s3
