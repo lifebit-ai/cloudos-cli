@@ -929,6 +929,9 @@ def job_logs(ctx,
 @click.option('--link',
               help='Link the results directories to an interactive session.',
               is_flag=True)
+@click.option('--delete',
+              help='Delete the results directories from CloudOS from a job.',
+              is_flag=True)
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
@@ -1403,7 +1406,7 @@ def job_cost(ctx,
               help='The job id in CloudOS to get costs for.',
               required=True)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
+              help='The desired output format. Default=stdout.',
               type=click.Choice(['stdout', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--disable-ssl-verification',

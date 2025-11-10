@@ -1170,7 +1170,7 @@ You can view related jobs that share the same working directory in a CloudOS wor
 
 The information is retrieved from CloudOS and can be displayed in multiple formats:
 
-- **Console display**: Rich formatted tables with pagination and linked job IDs (by hovering over the job ID and pressing Cmd + Click on Mac or Ctrl + Click on Windows)
+- **Console display**: Rich formatted tables with pagination
 - **JSON**: Complete job data for programmatic processing
 
 To get related analyses for a specific job:
@@ -1206,7 +1206,7 @@ The table displays key information for each related job:
 - **Status**: Current job state (completed, running, failed, aborted, queued, etc.)
 - **Name**: Job name assigned when submitted
 - **Owner**: User who submitted the job (first name and last name)
-- **ID**: Clickable job identifier that links to the job page in CloudOS
+- **ID**: Job identifier in CloudOS
 - **Submit time**: When the job was submitted (formatted as YYYY-MM-DD HH:MM:SS)
 - **Run time**: Actual execution time (formatted as hours, minutes, seconds)
 - **Total Cost**: Compute cost in USD
