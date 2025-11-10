@@ -183,8 +183,8 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
         start = current_page * limit
         end = start + limit
 
-        # Clear screen using ANSI escape codes (preserves scrollback)
-        print("\033[2J\033[H", end="")
+        # Clear console first
+        console.clear()
 
         # Display parent job information (reprinted each iteration after clear)
         if "Intermediate results of this job were deleted by" in str(j_workdir_parent):
@@ -195,7 +195,7 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
         else:
             console.print("[dim]No parent job found[/dim]")
 
-        console.print(f"Total related analyses found: {len(data)}")
+        console.print(f"\nTotal related analyses found: {len(data)}")
 
         # Create and display table
         table = Table(title="Related Analyses")
