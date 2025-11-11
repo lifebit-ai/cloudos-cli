@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.67.1 (2025-11-11)
+
+### Patch
+
+- Add workspace_id to abort command through `get_job_status()`
+
 ## v2.67.0 (2025-11-06)
 
 ### Feat
