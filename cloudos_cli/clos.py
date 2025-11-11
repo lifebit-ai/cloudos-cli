@@ -439,6 +439,195 @@ class Cloudos:
                 results[filename] = f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
         return results
 
+    def get_folder_items_deletion_status(self, folder_id, workspace_id, verify=True):
+        """Get deletion status of items within a folder.
+
+        Simple API wrapper to query the datasets API for items in a folder
+        with their deletion status (ready/deleting).
+
+        Parameters
+        ----------
+        folder_id : str
+            The CloudOS folder ID.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        Response
+            The API response containing folders and files with their status.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        
+        # Query all possible deletion statuses
+        params = {
+            "status": ["ready", "deleted", "deleting", "scheduledForDeletion", "failedToDelete"],
+            "teamId": workspace_id
+        }
+        
+        url = f"{self.cloudos_url}/api/v1/datasets/{folder_id}/items"
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+        
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        
+        return response
+
+    def get_results_deletion_status(self, job_id, workspace_id, verify=True):
+        """Get the deletion status of a specific job's results folder.
+
+        This method orchestrates finding the job's results folder and retrieving
+        the deletion status of items within it.
+
+        Parameters
+        ----------
+        job_id : str
+            The CloudOS job ID.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the deletion status information with the following structure:
+            {
+                "job_id": str,  # The job ID
+                "job_name": str,  # The job name
+                "results_folder_id": str,  # The ID of the job's results folder
+                "results_folder_name": str,  # The name of the job's results folder
+                "items": dict  # Dictionary with 'folders' and 'files' arrays containing items and their status
+            }
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        ValueError
+            If the job's results folder is not found.
+        """
+        # First, get job details to find the project and job name
+        job_status = self.get_job_status(job_id, workspace_id, verify)
+        job_data = json.loads(job_status.content)
+        job_name = job_data.get("name", job_id)
+        project_info = job_data.get("project")
+        
+        if not project_info:
+            raise ValueError(f"Could not find project for job '{job_id}'")
+        
+        # Extract project ID and name from the project info dict
+        project_id = project_info.get("_id")
+        project_name = project_info.get("name")
+        
+        if not project_name or not project_id:
+            raise ValueError(f"Could not extract project information from job '{job_id}'")
+        
+        from cloudos_cli.datasets.datasets import Datasets
+        
+        # Create Datasets object to navigate to the Analysis Results folder
+        ds = Datasets(
+            cloudos_url=self.cloudos_url,
+            apikey=self.apikey,
+            cromwell_token=self.cromwell_token,
+            workspace_id=workspace_id,
+            project_name=project_name,
+            verify=verify
+        )
+        
+        # Get project content to find Analysis Results folder
+        try:
+            project_content = ds.list_project_content()
+        except Exception as e:
+            raise ValueError(f"Failed to list project content for project '{project_name}': {str(e)}")
+        
+        # Find the Analysis Results folder ID
+        analysis_results_id = None
+        for folder in project_content.get("folders", []):
+            if folder['name'] in ['Analyses Results', 'AnalysesResults']:
+                analysis_results_id = folder['_id']
+                break
+        
+        if not analysis_results_id:
+            raise ValueError(f"Analyses Results folder not found in project '{project_name}'.")
+        
+        # Get items in Analysis Results folder to find the job's specific results folder
+        # The Analysis Results folder contains folders for each job's results
+        try:
+            response = self.get_folder_items_deletion_status(analysis_results_id, workspace_id, verify)
+            content = json.loads(response.content)
+        except Exception as e:
+            raise ValueError(f"Failed to get items from Analyses Results folder: {str(e)}")
+        
+        # The API response contains folders and files arrays
+        # Find the entry matching our job_id
+        job_status_info = None
+        
+        # Check if it's a dict with folders/files arrays
+        if isinstance(content, dict):
+            # Check for 'folders' or 'files' keys (common dataset API response format)
+            items_to_search = []
+            if 'folders' in content:
+                items_to_search.extend(content['folders'])
+            if 'files' in content:
+                items_to_search.extend(content['files'])
+            
+            # If no folders/files keys, treat dict values as items
+            if not items_to_search:
+                items_to_search = list(content.values())
+            
+            for item in items_to_search:
+                if not isinstance(item, dict):
+                    continue
+                
+                item_name = item.get("name", "")
+                
+                # Match by exact job ID in the item name (format: workflowname-jobid)
+                # The folder name should contain the exact job ID
+                if job_id in item_name:
+                    job_status_info = item
+                    break
+        elif isinstance(content, list):
+            for item in content:
+                if not isinstance(item, dict):
+                    continue
+                
+                item_name = item.get("name", "")
+                
+                # Match by exact job ID in the item name
+                if job_id in item_name:
+                    job_status_info = item
+                    break
+        
+        if not job_status_info:
+            raise ValueError(
+                f"Results folder for job '{job_name}' (ID: {job_id}) not found in Analyses Results.\n"
+                f"This may indicate that the results have been deleted or are scheduled for deletion."
+            )
+        
+        return {
+            "job_id": job_id,
+            "job_name": job_name,
+            "results_folder_id": job_status_info.get("_id"),
+            "results_folder_name": job_status_info.get("name"),
+            "status": job_status_info.get("status"),
+            "items": job_status_info
+        }
+
     def _create_cromwell_header(self):
         """Generates cromwell header.
 
