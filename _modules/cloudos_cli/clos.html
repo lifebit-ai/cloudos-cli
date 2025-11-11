@@ -577,8 +577,44 @@
         <span class="k">if</span> <span class="s2">&quot;resumeWorkDir&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.&quot;</span><span class="p">)</span>
         
-        <span class="c1"># Check if logs field exists, if not fall back to original folder-based approach</span>
-        <span class="k">elif</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
+        <span class="c1"># If resumeWorkDir exists, use the folders API to get the shared working directory</span>
+        <span class="n">resume_workdir_id</span> <span class="o">=</span> <span class="n">r_json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resumeWorkDir&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resume_workdir_id</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Use folders API to get the actual shared working directory</span>
+                <span class="n">workdir_bucket_r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/folders&quot;</span><span class="p">,</span>
+                                                        <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">resume_workdir_id</span><span class="p">,</span> <span class="n">teamId</span><span class="o">=</span><span class="n">workspace_id</span><span class="p">),</span> 
+                                                        <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">workdir_bucket_r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">NotAuthorisedException</span>
+                <span class="k">elif</span> <span class="n">workdir_bucket_r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">workdir_bucket_r</span><span class="p">)</span>
+
+                <span class="n">workdir_bucket_o</span> <span class="o">=</span> <span class="n">workdir_bucket_r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workdir_bucket_o</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request returned more than one result for folder id </span><span class="si">{</span><span class="n">resume_workdir_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">workdir_bucket_info</span> <span class="o">=</span> <span class="n">workdir_bucket_o</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                
+                <span class="k">if</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;folderType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;S3Folder&quot;</span><span class="p">:</span>
+                    <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;s3BucketName&quot;</span><span class="p">]</span>
+                    <span class="n">bucket_path</span> <span class="o">=</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;s3Prefix&quot;</span><span class="p">]</span>
+                    <span class="n">workdir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">bucket_path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;folderType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;AzureBlobFolder&quot;</span><span class="p">:</span>
+                    <span class="n">storage_account</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az://</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">.blob.core.windows.net&quot;</span>
+                    <span class="n">container_name</span> <span class="o">=</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;blobContainerName&quot;</span><span class="p">]</span>
+                    <span class="n">blob_prefix</span> <span class="o">=</span> <span class="n">workdir_bucket_info</span><span class="p">[</span><span class="s2">&quot;blobPrefix&quot;</span><span class="p">]</span>
+                    <span class="n">workdir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_account</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">container_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">blob_prefix</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported cloud provider&quot;</span><span class="p">)</span>
+                
+                <span class="k">return</span> <span class="n">workdir_path</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># If folders API fails, fall back to logs-based approach</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not get shared workdir from folders API: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">pass</span>
+        
+        <span class="c1"># Check if logs field exists for fallback approach</span>
+        <span class="k">if</span> <span class="s2">&quot;logs&quot;</span> <span class="ow">in</span> <span class="n">r_json</span><span class="p">:</span>
             <span class="c1"># Get workdir information from logs object using the same pattern as get_job_logs</span>
             <span class="n">logs_obj</span> <span class="o">=</span> <span class="n">r_json</span><span class="p">[</span><span class="s2">&quot;logs&quot;</span><span class="p">]</span>
             <span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_meta</span><span class="p">,</span> <span class="n">cloud_storage</span> <span class="o">=</span> <span class="n">find_cloud</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">logs_obj</span><span class="p">)</span>
@@ -600,6 +636,7 @@
                 <span class="n">workdir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">logs_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">workdir_path_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported cloud provider&quot;</span><span class="p">)</span>
+            
             <span class="k">return</span> <span class="n">workdir_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Fallback to original folder-based approach for backward compatibility</span>
@@ -636,6 +673,7 @@
                 <span class="n">workdir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_account</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">container_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">blob_prefix</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported cloud provider&quot;</span><span class="p">)</span>
+            
             <span class="k">return</span> <span class="n">workdir_path</span></div>
 
 
