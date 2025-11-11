@@ -224,8 +224,44 @@ class Cloudos:
         if "resumeWorkDir" not in r_json:
             raise ValueError("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
         
-        # Check if logs field exists, if not fall back to original folder-based approach
-        elif "logs" in r_json:
+        # If resumeWorkDir exists, use the folders API to get the shared working directory
+        resume_workdir_id = r_json.get("resumeWorkDir")
+        if resume_workdir_id:
+            try:
+                # Use folders API to get the actual shared working directory
+                workdir_bucket_r = retry_requests_get(f"{cloudos_url}/api/v1/folders",
+                                                        params=dict(id=resume_workdir_id, teamId=workspace_id), 
+                                                        headers=headers, verify=verify)
+                if workdir_bucket_r.status_code == 401:
+                    raise NotAuthorisedException
+                elif workdir_bucket_r.status_code >= 400:
+                    raise BadRequestException(workdir_bucket_r)
+
+                workdir_bucket_o = workdir_bucket_r.json()
+                if len(workdir_bucket_o) > 1:
+                    raise ValueError(f"Request returned more than one result for folder id {resume_workdir_id}")
+                workdir_bucket_info = workdir_bucket_o[0]
+                
+                if workdir_bucket_info["folderType"] == "S3Folder":
+                    bucket_name = workdir_bucket_info["s3BucketName"]
+                    bucket_path = workdir_bucket_info["s3Prefix"]
+                    workdir_path = f"s3://{bucket_name}/{bucket_path}"
+                elif workdir_bucket_info["folderType"] == "AzureBlobFolder":
+                    storage_account = f"az://{workspace_id}.blob.core.windows.net"
+                    container_name = workdir_bucket_info["blobContainerName"]
+                    blob_prefix = workdir_bucket_info["blobPrefix"]
+                    workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
+                else:
+                    raise ValueError("Unsupported cloud provider")
+                
+                return workdir_path
+            except Exception as e:
+                # If folders API fails, fall back to logs-based approach
+                print(f"Warning: Could not get shared workdir from folders API: {e}")
+                pass
+        
+        # Check if logs field exists for fallback approach
+        if "logs" in r_json:
             # Get workdir information from logs object using the same pattern as get_job_logs
             logs_obj = r_json["logs"]
             cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
@@ -247,6 +283,7 @@ class Cloudos:
                 workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
             else:
                 raise ValueError("Unsupported cloud provider")
+            
             return workdir_path
         else:
             # Fallback to original folder-based approach for backward compatibility
@@ -283,6 +320,7 @@ class Cloudos:
                 workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
             else:
                 raise ValueError("Unsupported cloud provider")
+            
             return workdir_path
 
     def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
