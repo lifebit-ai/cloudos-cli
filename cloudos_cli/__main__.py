@@ -30,6 +30,7 @@ from cloudos_cli.configure.configure import (
     get_shared_config,
     CLOUDOS_URL
 )
+from cloudos_cli.related_analyses.related_analyses import related_analyses
 
 
 # GLOBAL VARS
@@ -1383,6 +1384,49 @@ def job_cost(ctx,
         print(f'\tSearching for cost data for job id: {job_id}')
     # Display costs with pagination
     cost_viewer.display_costs(job_id, workspace_id, output_format, verify_ssl)
+
+
+@job.command('related')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in CloudOS to get costs for.',
+              required=True)
+@click.option('--output-format',
+              help='The desired output format. Default=stdout.',
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def related(ctx,
+            apikey,
+            cloudos_url,
+            workspace_id,
+            job_id,
+            output_format,
+            disable_ssl_verification,
+            ssl_cert,
+            profile):
+    """Retrieve related job analyses in CloudOS."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
 
 @click.command(help='Clone or resume a job with modified parameters')
