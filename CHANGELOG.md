@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.69.0 (2025-11-12)
+
+### Feat
+
+- Adds (deletion) status check for job results
+- Adds (deletion) status check for job workdir
+- Adds error message for when trying to get workdirs or results that have been deleted
+
 
 ## v2.68.0 (2025-11-07)
 
