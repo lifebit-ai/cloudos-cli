@@ -467,6 +467,53 @@ class Cloudos:
         job_workspace = req_obj["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
+        
+        # Check if analysis results have been deleted or scheduled for deletion
+        # Similar to workdir check - if analysisResults exists with folderId, check its status
+        if "analysisResults" in req_obj and req_obj.get("analysisResults"):
+            analysis_results = req_obj["analysisResults"]
+            results_folder_id = analysis_results.get("folderId")
+            
+            if results_folder_id:
+                # Get the actual deletion status from the folders API
+                api_status = None
+                try:
+                    folder_response = self.get_folder_deletion_status(results_folder_id, workspace_id, verify)
+                    folder_data = json.loads(folder_response.content)
+                    
+                    # If the API returns the folder, get its status
+                    if folder_data and len(folder_data) > 0:
+                        api_status = folder_data[0].get("status")
+                    else:
+                        # If the folder is not returned, check if deletedBy exists in analysisResults
+                        if "deletedBy" in analysis_results:
+                            api_status = "scheduledForDeletion"  # Assume scheduled for deletion
+                        
+                except Exception:
+                    # If we can't get the status, check if deletedBy exists
+                    if "deletedBy" in analysis_results:
+                        api_status = "scheduledForDeletion"  # Assume scheduled for deletion
+                
+                # Build contextually appropriate error message based on status
+                # Only raise error for non-ready statuses (ready means it's available, so no error)
+                if api_status == "deleting":
+                    error_msg = "Analysis results are currently being deleted. The results folder is not accessible."
+                    raise ValueError(error_msg)
+                elif api_status == "scheduledForDeletion":
+                    error_msg = "Analysis results have been scheduled for deletion. The results folder is no longer available."
+                    raise ValueError(error_msg)
+                elif api_status == "deleted":
+                    error_msg = "Analysis results have been deleted. The results folder is no longer available."
+                    raise ValueError(error_msg)
+                elif api_status == "failedToDelete":
+                    error_msg = "Analysis results were marked for deletion but failed to delete. The results folder may not be accessible."
+                    raise ValueError(error_msg)
+                elif api_status != "ready" and api_status is not None:
+                    # For any other unknown status (not ready), raise generic error
+                    error_msg = "Analysis results have been removed. The results folder is no longer available."
+                    raise ValueError(error_msg)
+                # If status is "ready" or None, don't raise error - let the code continue to retrieve the results path
+        
         cloud_name, meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, req_obj["logs"])
         # cont_name
         results_obj = req_obj["results"]
