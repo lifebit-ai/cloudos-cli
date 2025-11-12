@@ -232,7 +232,7 @@ class Cloudos:
             # If workDirectory has a folderId, it means the job was resumeable but intermediate results were deleted
             if work_directory.get("folderId") is not None:
                 # Get the actual deletion status from the folders API
-                status_msg = "removed"
+                api_status = None
                 try:
                     folder_id = work_directory["folderId"]
                     folder_response = self.get_folder_deletion_status(folder_id, workspace_id, verify)
@@ -240,28 +240,36 @@ class Cloudos:
                     
                     # If the API returns the folder, get its status
                     if folder_data and len(folder_data) > 0:
-                        # Map API status to user-friendly message
-                        status_mapping = {
-                            "ready": "available",
-                            "deleting": "being deleted",
-                            "scheduledForDeletion": "scheduled for deletion",
-                            "deleted": "deleted",
-                            "failedToDelete": "marked for deletion but failed to delete"
-                        }
-                        
-                        api_status = folder_data[0].get("status", "removed")
-                        status_msg = status_mapping.get(api_status, "removed")
+                        api_status = folder_data[0].get("status")
                     else:
                         # If the folder is not returned, check if deletedBy exists in workDirectory
                         if "deletedBy" in work_directory:
-                            status_msg = "scheduled for deletion or deleted"
+                            api_status = "scheduledForDeletion"  # Assume scheduled for deletion
                         
                 except Exception:
                     # If we can't get the status, check if deletedBy exists
                     if "deletedBy" in work_directory:
-                        status_msg = "scheduled for deletion or deleted"
+                        api_status = "scheduledForDeletion"  # Assume scheduled for deletion
                 
-                raise ValueError(f"Intermediate job results have been {status_msg}. The working directory is no longer available.")
+                # Build contextually appropriate error message based on status
+                # Only raise error for non-ready statuses (ready means it's available, so no error)
+                if api_status == "deleting":
+                    error_msg = "Intermediate job results are currently being deleted. The working directory is not accessible."
+                    raise ValueError(error_msg)
+                elif api_status == "scheduledForDeletion":
+                    error_msg = "Intermediate job results have been scheduled for deletion. The working directory is no longer available."
+                    raise ValueError(error_msg)
+                elif api_status == "deleted":
+                    error_msg = "Intermediate job results have been deleted. The working directory is no longer available."
+                    raise ValueError(error_msg)
+                elif api_status == "failedToDelete":
+                    error_msg = "Intermediate job results were marked for deletion but failed to delete. The working directory may not be accessible."
+                    raise ValueError(error_msg)
+                elif api_status != "ready":
+                    # For any other unknown status (not ready), raise generic error
+                    error_msg = "Intermediate job results have been removed. The working directory is no longer available."
+                    raise ValueError(error_msg)
+                # If status is "ready", don't raise error - let the code continue to retrieve the workdir path
         
         # If resumeWorkDir exists, use the folders API to get the shared working directory
         if resume_workdir_id:
