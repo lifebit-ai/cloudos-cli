@@ -224,8 +224,46 @@ class Cloudos:
         if "resumeWorkDir" not in r_json:
             raise ValueError("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
         
-        # If resumeWorkDir exists, use the folders API to get the shared working directory
+        # Check if intermediate results have been deleted
+        # When intermediate results are deleted, resumeWorkDir becomes None but workDirectory still exists with folderId
         resume_workdir_id = r_json.get("resumeWorkDir")
+        if resume_workdir_id is None and "workDirectory" in r_json:
+            work_directory = r_json["workDirectory"]
+            # If workDirectory has a folderId, it means the job was resumeable but intermediate results were deleted
+            if work_directory.get("folderId") is not None:
+                # Get the actual deletion status from the folders API
+                status_msg = "removed"
+                try:
+                    folder_id = work_directory["folderId"]
+                    folder_response = self.get_folder_deletion_status(folder_id, workspace_id, verify)
+                    folder_data = json.loads(folder_response.content)
+                    
+                    # If the API returns the folder, get its status
+                    if folder_data and len(folder_data) > 0:
+                        # Map API status to user-friendly message
+                        status_mapping = {
+                            "ready": "available",
+                            "deleting": "being deleted",
+                            "scheduledForDeletion": "scheduled for deletion",
+                            "deleted": "deleted",
+                            "failedToDelete": "marked for deletion but failed to delete"
+                        }
+                        
+                        api_status = folder_data[0].get("status", "removed")
+                        status_msg = status_mapping.get(api_status, "removed")
+                    else:
+                        # If the folder is not returned, check if deletedBy exists in workDirectory
+                        if "deletedBy" in work_directory:
+                            status_msg = "scheduled for deletion or deleted"
+                        
+                except Exception:
+                    # If we can't get the status, check if deletedBy exists
+                    if "deletedBy" in work_directory:
+                        status_msg = "scheduled for deletion or deleted"
+                
+                raise ValueError(f"Intermediate job results have been {status_msg}. The working directory is no longer available.")
+        
+        # If resumeWorkDir exists, use the folders API to get the shared working directory
         if resume_workdir_id:
             try:
                 # Use folders API to get the actual shared working directory
@@ -527,6 +565,11 @@ class Cloudos:
         job_name = job_data.get("name", job_id)
         project_info = job_data.get("project")
         
+        # Extract deletedBy info from analysisResults if available
+        analysis_results_deleted_by = None
+        if "analysisResults" in job_data and job_data.get("analysisResults"):
+            analysis_results_deleted_by = job_data["analysisResults"].get("deletedBy")
+        
         if not project_info:
             raise ValueError(f"Could not find project for job '{job_id}'")
         
@@ -619,6 +662,11 @@ class Cloudos:
                 f"This may indicate that the results have been deleted or are scheduled for deletion."
             )
         
+        # Merge the deletedBy info from job data with the folder info
+        # The deletedBy from analysisResults is more reliable than folder's user field
+        if analysis_results_deleted_by:
+            job_status_info["deletedBy"] = analysis_results_deleted_by
+        
         return {
             "job_id": job_id,
             "job_name": job_name,
@@ -626,6 +674,144 @@ class Cloudos:
             "results_folder_name": job_status_info.get("name"),
             "status": job_status_info.get("status"),
             "items": job_status_info
+        }
+
+    def get_folder_deletion_status(self, folder_id, workspace_id, verify=True):
+        """Get deletion status of a specific folder by ID.
+
+        Simple API wrapper to query the folders API for a specific folder
+        with its deletion status (ready/deleting/etc).
+
+        Parameters
+        ----------
+        folder_id : str
+            The CloudOS folder ID.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        Response
+            The API response containing folder information with status.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        
+        # Query with all possible deletion statuses
+        params = {
+            "id": folder_id,
+            "status": ["ready", "deleted", "deleting", "scheduledForDeletion", "failedToDelete"],
+            "teamId": workspace_id
+        }
+        
+        url = f"{self.cloudos_url}/api/v1/folders/"
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+        
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+        
+        return response
+
+    def get_workdir_deletion_status(self, job_id, workspace_id, verify=True):
+        """Get the deletion status of a specific job's working directory.
+
+        This method retrieves the deletion status of the job's working directory
+        using the folders API endpoint.
+
+        Parameters
+        ----------
+        job_id : str
+            The CloudOS job ID.
+        workspace_id : str
+            The CloudOS workspace ID.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the deletion status information with the following structure:
+            {
+                "job_id": str,  # The job ID
+                "job_name": str,  # The job name
+                "workdir_folder_id": str,  # The ID of the job's working directory folder
+                "workdir_folder_name": str,  # The name of the job's working directory folder
+                "status": str,  # The deletion status
+                "items": dict  # Full folder object with metadata
+            }
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        ValueError
+            If the job's working directory is not found or not accessible.
+        """
+        # First, get job details to find the working directory folder ID
+        job_status = self.get_job_status(job_id, workspace_id, verify)
+        job_data = json.loads(job_status.content)
+        job_name = job_data.get("name", job_id)
+        
+        # Try to get the workdir folder ID from workDirectory.folderId first (new format)
+        # If not available, fall back to resumeWorkDir (old format)
+        workdir_folder_id = None
+        workdir_deleted_by = None
+        
+        if "workDirectory" in job_data and job_data.get("workDirectory"):
+            workdir_folder_id = job_data["workDirectory"].get("folderId")
+            # Get deletedBy info if available (contains user who scheduled deletion)
+            workdir_deleted_by = job_data["workDirectory"].get("deletedBy")
+        
+        if not workdir_folder_id and "resumeWorkDir" in job_data:
+            workdir_folder_id = job_data.get("resumeWorkDir")
+        
+        if not workdir_folder_id:
+            raise ValueError(
+                "Working directory is not available for this job. "
+                "This may be because the analysis was run without resumable mode enabled, "
+                "or because intermediate results have been removed."
+            )
+        
+        # Use the folders API to get the working directory status
+        response = self.get_folder_deletion_status(workdir_folder_id, workspace_id, verify)
+        
+        # Parse the response
+        content = json.loads(response.content)
+        
+        # The API returns an array with the folder info
+        if not content or len(content) == 0:
+            raise ValueError(
+                f"Working directory for job '{job_name}' (ID: {job_id}) not found.\n"
+                f"This may indicate that the working directory has been deleted or is scheduled for deletion."
+            )
+        
+        workdir_info = content[0]  # Get the first (and should be only) result
+        
+        # Merge the deletedBy info from job data with the folder info
+        # The deletedBy from workDirectory is more reliable than folder's user field
+        if workdir_deleted_by:
+            workdir_info["deletedBy"] = workdir_deleted_by
+        
+        return {
+            "job_id": job_id,
+            "job_name": job_name,
+            "workdir_folder_id": workdir_info.get("_id"),
+            "workdir_folder_name": workdir_info.get("name"),
+            "status": workdir_info.get("status"),
+            "items": workdir_info
         }
 
     def _create_cromwell_header(self):

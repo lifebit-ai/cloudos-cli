@@ -930,6 +930,42 @@ cloudos job workdir \
     --link --session-id your_session_id
 ```
 
+**Check Working Directory Deletion Status**
+
+You can check the deletion status of a job's working directory using the `--status` flag. This is useful for monitoring the deletion lifecycle of intermediate job files.
+
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910"
+```
+
+The command will display the current status of the working directory folder. Possible statuses include:
+- **available**: Working directory is available and accessible
+- **scheduled for deletion**: Working directory is scheduled to be deleted
+- **deleting**: Working directory is currently being deleted
+- **deleted**: Working directory has been deleted
+- **failed to delete**: Deletion process failed
+
+Example output for available working directory:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: available
+```
+
+For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion
+Status changed at: 2025-11-11T14:43:44.416Z
+User: Leila Mansouri (leila.mansouri@lifebit.ai)
+```
+
+Use the `--verbose` flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbose
+```
+
+> [!NOTE]
+> This command only works for jobs that were run with resumable mode enabled (using the `--resumable` flag). Jobs without resumable mode will not have a working directory to check.
+> If the working directory has been completely deleted, the command will report that the working directory was not found.
+
 #### List Jobs
 
 You can get a summary of workspace jobs in two different formats:
