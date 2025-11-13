@@ -31,6 +31,7 @@ from cloudos_cli.configure.configure import (
     CLOUDOS_URL
 )
 from cloudos_cli.related_analyses.related_analyses import related_analyses
+from cloudos_cli.delete.results import delete_job_results
 
 
 # GLOBAL VARS
@@ -929,6 +930,12 @@ def job_logs(ctx,
 @click.option('--link',
               help='Link the results directories to an interactive session.',
               is_flag=True)
+@click.option('--delete',
+              help='Delete the results directory of a CloudOS job.',
+              is_flag=True)
+@click.option('-y', '--yes',
+              help='Skip confirmation prompt when deleting results.',
+              is_flag=True)
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
@@ -950,6 +957,8 @@ def job_results(ctx,
                 workspace_id,
                 job_id,
                 link,
+                delete,
+                yes,
                 session_id,
                 verbose,
                 disable_ssl_verification,
@@ -982,12 +991,12 @@ def job_results(ctx,
         results = cl.get_job_results(job_id, workspace_id, verify_ssl)
         for name, path in results.items():
             print(f"{name}: {path}")
-        
+
         # Link to interactive session if requested
         if link:
             if verbose:
                 print(f'\tLinking {len(results)} result directories to interactive session {session_id}...')
-            
+
             # Use Link class to perform the linking
             link_client = Link(
                 cloudos_url=cloudos_url,
@@ -997,12 +1006,35 @@ def job_results(ctx,
                 project_name=None,  # Not needed for S3 paths
                 verify=verify_ssl
             )
-            
+
             for name, path in results.items():
                 if verbose:
                     print(f'\t\tLinking {name} ({path})...')
                 link_client.link_folder(path, session_id)
-            
+
+        # Delete results directory if requested
+        if delete:
+            # Ask for confirmation unless --yes flag is provided
+            if not yes:
+                confirmation_message = (
+                    "\n⚠️ Deleting final analysis results is irreversible. "
+                    "All data and backups will be permanently removed and cannot be recovered. "
+                    "You can skip this confirmation step by providing '-y' or '--yes' flag to "
+                    "'cloudos job results --delete'. "
+                    "Please confirm that you want to delete final results of this analysis? [y/n] "
+                )
+                click.secho(confirmation_message, fg='white', bg='yellow')
+                user_input = input().strip().lower()
+                if user_input != 'y':
+                    print('\nDeletion cancelled.')
+                    return
+            if verbose:
+                print(f'\nDeleting {len(results)} result directories from CloudOS...')
+            delete_job_results(cloudos_url, apikey, job_id, workspace_id, verify_ssl)
+            print('\tResults directories deleted successfully.')
+        else:
+            if yes:
+                click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:

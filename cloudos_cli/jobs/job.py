@@ -7,7 +7,7 @@ from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get, retry_requests_delete
 from pathlib import Path
 import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
@@ -1427,3 +1427,40 @@ class Job(Cloudos):
             return None
         else:
             return parent_job_id
+
+    def delete_job_results(self, folder_id, verify=True):
+        """Delete job results folder.
+
+        Parameters
+        ----------
+        folder_id : str
+            The ID of the folder to delete (typically a job results folder).
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the deletion response from the API.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v1/folders/{folder_id}?teamId={self.workspace_id}"
+        response = retry_requests_delete(url, headers=headers, verify=verify)
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        # DELETE requests may return empty responses
+        if response.content:
+            return json.loads(response.content)
+        return {"message": "Results deleted successfully"}
