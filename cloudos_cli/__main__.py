@@ -1031,7 +1031,7 @@ def job_results(ctx,
             if verbose:
                 print(f'\nDeleting {len(results)} result directories from CloudOS...')
             delete_job_results(cloudos_url, apikey, job_id, workspace_id, verify_ssl)
-            print('\tResults directories deleted successfully.')
+            print('Results directories deleted successfully.')
         else:
             if yes:
                 click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)

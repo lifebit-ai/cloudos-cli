@@ -1449,6 +1449,8 @@ class Job(Cloudos):
         ------
         BadRequestException
             If the request fails with a status code indicating an error.
+        ValueError
+            If the folder ID is invalid or the folder does not exist.
         """
         headers = {
             "Content-type": "application/json",
@@ -1457,10 +1459,26 @@ class Job(Cloudos):
         url = f"{self.cloudos_url}/api/v1/folders/{folder_id}?teamId={self.workspace_id}"
         response = retry_requests_delete(url, headers=headers, verify=verify)
 
-        if response.status_code >= 400:
+        # Handle specific status codes according to API specification
+        if response.status_code == 204:
+            # NoContent - successful deletion
+            return {"message": "Results deleted successfully", "status": "deleted"}
+        elif response.status_code == 400:
+            raise ValueError("Operation not permitted: Workspace does not allow deleting results folders.")
+        elif response.status_code == 401:
+            raise ValueError("Unauthorized: Invalid or missing API key.")
+        elif response.status_code == 403:
+            raise ValueError("Forbidden: You don't have permission to delete this folder.")
+        elif response.status_code == 404:
+            raise ValueError(f"Resource not found: Folder with ID '{folder_id}' does not exist or has already been deleted.")
+        elif response.status_code == 409:
+            raise ValueError("Conflict: The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
+        elif response.status_code == 500:
+            raise ValueError("Internal server error: The server encountered an error while processing the deletion request.")
+        elif response.status_code >= 400:
             raise BadRequestException(response)
 
-        # DELETE requests may return empty responses
+        # For any other successful response, parse content if available
         if response.content:
             return json.loads(response.content)
         return {"message": "Results deleted successfully"}
