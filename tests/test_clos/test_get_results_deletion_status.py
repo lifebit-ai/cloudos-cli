@@ -85,11 +85,20 @@ def test_get_results_deletion_status_ready():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
     # Mock GET method for project content
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
@@ -188,10 +197,19 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
@@ -284,10 +302,19 @@ def test_get_results_deletion_status_deleting():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
@@ -376,10 +403,19 @@ def test_get_results_deletion_status_deleted():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
@@ -468,10 +504,19 @@ def test_get_results_deletion_status_failed_to_delete():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
@@ -554,10 +599,19 @@ def test_get_results_deletion_status_alternative_folder_name():
         status=200
     )
     
+    # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v1/datasets/{PROJECT_ID}",
-        json=project_content_response,
+        url=f"{CLOUDOS_URL}/api/v2/projects?teamId={WORKSPACE_ID}&search=test_project",
+        json={"projects": [{"_id": PROJECT_ID, "name": "test_project"}]},
+        headers=header,
+        status=200
+    )
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
+        json={"datasets": project_content_response.get("folders", [])},
         headers=header,
         status=200
     )
