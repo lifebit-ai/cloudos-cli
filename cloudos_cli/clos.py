@@ -269,7 +269,9 @@ class Cloudos:
                     # For any other unknown status (not ready), raise generic error
                     error_msg = "Intermediate job results have been removed. The working directory is no longer available."
                     raise ValueError(error_msg)
-                # If status is "ready", don't raise error - let the code continue to retrieve the workdir path
+                # If status is "ready", set resume_workdir_id so we can retrieve the workdir path
+                elif api_status == "ready":
+                    resume_workdir_id = folder_id
         
         # If resumeWorkDir exists, use the folders API to get the shared working directory
         if resume_workdir_id:

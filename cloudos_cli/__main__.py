@@ -1097,8 +1097,8 @@ def job_results(ctx,
                 if folder_info.get("updatedAt"):
                     console.print(f'[magenta]Status changed at:[/magenta] {folder_info.get("updatedAt")}')
                 
-                # Show user information if available
-                user_info = folder_info.get("user", {})
+                # Show user information - prefer deletedBy over user field
+                user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
                 if user_info:
                     user_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
                     user_email = user_info.get('email', '')
