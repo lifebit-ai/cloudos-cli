@@ -730,6 +730,9 @@ def job_status(ctx,
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
+@click.option('--status',
+              help='Check the deletion status of the working directory.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -749,20 +752,101 @@ def job_workdir(ctx,
                 job_id,
                 link,
                 session_id,
+                status,
                 verbose,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Get the path to the working directory of a specified job."""
+    """Get the path to the working directory of a specified job or check deletion status."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     # session_id is also resolved if provided in profile
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Handle --status flag
+    if status:
+        console = Console()
+        
+        if verbose:
+            console.print('[bold cyan]Checking deletion status of job working directory...[/bold cyan]')
+            console.print('\t[dim]...Preparing objects[/dim]')
+            console.print('\t[bold]Using the following parameters:[/bold]')
+            console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
+            console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
+            console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
+        
+        # Use Cloudos object to access the deletion status method
+        cl = Cloudos(cloudos_url, apikey, None)
+        
+        if verbose:
+            console.print('\t[dim]The following Cloudos object was created:[/dim]')
+            console.print('\t' + str(cl) + '\n')
+        
+        try:
+            deletion_status = cl.get_workdir_deletion_status(
+                job_id=job_id,
+                workspace_id=workspace_id,
+                verify=verify_ssl
+            )
+            
+            # Convert API status to user-friendly terminology with color
+            status_config = {
+                "ready": ("available", "green"),
+                "deleting": ("deleting", "yellow"),
+                "scheduledForDeletion": ("scheduled for deletion", "yellow"),
+                "deleted": ("deleted", "red"),
+                "failedToDelete": ("failed to delete", "red")
+            }
+            
+            # Get the status of the workdir folder itself and convert it
+            api_status = deletion_status.get("status", "unknown")
+            folder_status, status_color = status_config.get(api_status, (api_status, "white"))
+            folder_info = deletion_status.get("items", {})
+            
+            # Display results in a clear, styled format with human-readable sentence
+            console.print(f'The working directory of job [cyan]{deletion_status["job_id"]}[/cyan] is in status: [bold {status_color}]{folder_status}[/bold {status_color}]')
+            
+            # For non-available statuses, always show update time and user info
+            if folder_status != "available":
+                if folder_info.get("updatedAt"):
+                    console.print(f'[magenta]Status changed at:[/magenta] {folder_info.get("updatedAt")}')
+                
+                # Show user information - prefer deletedBy over user field
+                user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
+                if user_info:
+                    user_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+                    user_email = user_info.get('email', '')
+                    if user_name or user_email:
+                        user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
+                        console.print(f'[blue]User:[/blue] {user_display}')
+            
+            # Display detailed information if verbose
+            if verbose:
+                console.print(f'\n[bold]Additional information:[/bold]')
+                console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
+                console.print(f'  [cyan]Working directory folder name:[/cyan] {deletion_status["workdir_folder_name"]}')
+                console.print(f'  [cyan]Working directory folder ID:[/cyan] {deletion_status["workdir_folder_id"]}')
+                
+                # Show folder metadata if available
+                if folder_info.get("createdAt"):
+                    console.print(f'  [cyan]Created at:[/cyan] {folder_info.get("createdAt")}')
+                if folder_info.get("updatedAt"):
+                    console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
+                if folder_info.get("folderType"):
+                    console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
+        
+        except ValueError as e:
+            raise click.ClickException(str(e))
+        except Exception as e:
+            raise click.ClickException(f"Failed to retrieve deletion status: {str(e)}")
+        
+        return
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
         raise click.ClickException("--session-id is required when using --link flag")
 
     print('Finding working directory path...')
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
         print('\tUsing the following parameters:')
@@ -939,6 +1023,9 @@ def job_logs(ctx,
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
+@click.option('--status',
+              help='Check the deletion status of the job results.',
+              is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -960,20 +1047,101 @@ def job_results(ctx,
                 delete,
                 yes,
                 session_id,
+                status,
                 verbose,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Get the path to the results of a specified job."""
+    """Get the path to the results of a specified job or check deletion status."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     # session_id is also resolved if provided in profile
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Handle --status flag
+    if status:
+        console = Console()
+        
+        if verbose:
+            console.print('[bold cyan]Checking deletion status of job results...[/bold cyan]')
+            console.print('\t[dim]...Preparing objects[/dim]')
+            console.print('\t[bold]Using the following parameters:[/bold]')
+            console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
+            console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
+            console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
+        
+        # Use Cloudos object to access the deletion status method
+        cl = Cloudos(cloudos_url, apikey, None)
+        
+        if verbose:
+            console.print('\t[dim]The following Cloudos object was created:[/dim]')
+            console.print('\t' + str(cl) + '\n')
+        
+        try:
+            deletion_status = cl.get_results_deletion_status(
+                job_id=job_id,
+                workspace_id=workspace_id,
+                verify=verify_ssl
+            )
+            
+            # Convert API status to user-friendly terminology with color
+            status_config = {
+                "ready": ("available", "green"),
+                "deleting": ("deleting", "yellow"),
+                "scheduledForDeletion": ("scheduled for deletion", "yellow"),
+                "deleted": ("deleted", "red"),
+                "failedToDelete": ("failed to delete", "red")
+            }
+            
+            # Get the status of the results folder itself and convert it
+            api_status = deletion_status.get("status", "unknown")
+            folder_status, status_color = status_config.get(api_status, (api_status, "white"))
+            folder_info = deletion_status.get("items", {})
+            
+            # Display results in a clear, styled format with human-readable sentence
+            console.print(f'The results of job [cyan]{deletion_status["job_id"]}[/cyan] are in status: [bold {status_color}]{folder_status}[/bold {status_color}]')
+            
+            # For non-available statuses, always show update time and user info
+            if folder_status != "available":
+                if folder_info.get("updatedAt"):
+                    console.print(f'[magenta]Status changed at:[/magenta] {folder_info.get("updatedAt")}')
+                
+                # Show user information - prefer deletedBy over user field
+                user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
+                if user_info:
+                    user_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+                    user_email = user_info.get('email', '')
+                    if user_name or user_email:
+                        user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
+                        console.print(f'[blue]User:[/blue] {user_display}')
+            
+            # Display detailed information if verbose
+            if verbose:
+                console.print(f'\n[bold]Additional information:[/bold]')
+                console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
+                console.print(f'  [cyan]Results folder name:[/cyan] {deletion_status["results_folder_name"]}')
+                console.print(f'  [cyan]Results folder ID:[/cyan] {deletion_status["results_folder_id"]}')
+                
+                # Show folder metadata if available
+                if folder_info.get("createdAt"):
+                    console.print(f'  [cyan]Created at:[/cyan] {folder_info.get("createdAt")}')
+                if folder_info.get("updatedAt"):
+                    console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
+                if folder_info.get("folderType"):
+                    console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
+        
+        except ValueError as e:
+            raise click.ClickException(str(e))
+        except Exception as e:
+            raise click.ClickException(f"Failed to retrieve deletion status: {str(e)}")
+        
+        return
 
     # Validate link flag requirements AFTER loading profile
     if link and not session_id:
         raise click.ClickException("--session-id is required when using --link flag")
 
     print('Executing results...')
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
         print('\t...Preparing objects')
         print('\tUsing the following parameters:')
