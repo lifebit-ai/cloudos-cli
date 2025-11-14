@@ -940,6 +940,37 @@ You can specify the AWS batch queue to use from the ones available in your works
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
+<p><strong>Check Results Deletion Status</strong></p>
+<p>You can check the deletion status of a job’s results folder using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of analysis results.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<p>The command will display the current status of the results folder. Possible statuses include:</p>
+<ul class="simple">
+<li><p><strong>available</strong>: Results are available and accessible</p></li>
+<li><p><strong>scheduled for deletion</strong>: Results are scheduled to be deleted</p></li>
+<li><p><strong>deleting</strong>: Results are currently being deleted</p></li>
+<li><p><strong>deleted</strong>: Results have been deleted</p></li>
+<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
+</ul>
+<p>Example output for available results:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 1234567890 are in status: available</span>
+</pre></div>
+</div>
+<p>For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion</span>
+<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
+<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the results folder name, folder ID, creation and update timestamps:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]
+If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.</p>
+</div></blockquote>
 </section>
 <section id="clone-or-resume-job">
 <h4>Clone or Resume job<a class="headerlink" href="#clone-or-resume-job" title="Link to this heading">¶</a></h4>
@@ -1172,6 +1203,38 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 <span class="w">    </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
+<p><strong>Check Working Directory Deletion Status</strong></p>
+<p>You can check the deletion status of a job’s working directory using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of intermediate job files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<p>The command will display the current status of the working directory folder. Possible statuses include:</p>
+<ul class="simple">
+<li><p><strong>available</strong>: Working directory is available and accessible</p></li>
+<li><p><strong>scheduled for deletion</strong>: Working directory is scheduled to be deleted</p></li>
+<li><p><strong>deleting</strong>: Working directory is currently being deleted</p></li>
+<li><p><strong>deleted</strong>: Working directory has been deleted</p></li>
+<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
+</ul>
+<p>Example output for available working directory:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: available</span>
+</pre></div>
+</div>
+<p>For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion</span>
+<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
+<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]
+This command only works for jobs that were run with resumable mode enabled (using the <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> flag). Jobs without resumable mode will not have a working directory to check.
+If the working directory has been completely deleted, the command will report that the working directory was not found.</p>
+</div></blockquote>
 </section>
 <section id="list-jobs">
 <h4>List Jobs<a class="headerlink" href="#list-jobs" title="Link to this heading">¶</a></h4>

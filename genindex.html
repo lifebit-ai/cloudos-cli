@@ -1119,8 +1119,6 @@
           <li><a href="cli.html#cmdoption-cloudos-job-run-nextflow-profile">cloudos-job-run command line option</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     --nextflow-version
 
@@ -1130,6 +1128,8 @@
           <li><a href="cli.html#cmdoption-cloudos-job-run-nextflow-version">cloudos-job-run command line option</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     --organisation-id
 
@@ -1456,6 +1456,15 @@
           <li><a href="cli.html#cmdoption-cloudos-workflow-import-ssl-cert">cloudos-workflow-import command line option</a>
 </li>
           <li><a href="cli.html#cmdoption-cloudos-workflow-list-ssl-cert">cloudos-workflow-list command line option</a>
+</li>
+        </ul></li>
+        <li>
+    --status
+
+        <ul>
+          <li><a href="cli.html#cmdoption-cloudos-job-results-status">cloudos-job-results command line option</a>
+</li>
+          <li><a href="cli.html#cmdoption-cloudos-job-workdir-status">cloudos-job-workdir command line option</a>
 </li>
         </ul></li>
         <li>
@@ -2747,6 +2756,8 @@
 </li>
           <li><a href="cli.html#cmdoption-cloudos-job-results-ssl-cert">--ssl-cert</a>
 </li>
+          <li><a href="cli.html#cmdoption-cloudos-job-results-status">--status</a>
+</li>
           <li><a href="cli.html#cmdoption-cloudos-job-results-verbose">--verbose</a>
 </li>
           <li><a href="cli.html#cmdoption-cloudos-job-results-workspace-id">--workspace-id</a>
@@ -2901,6 +2912,8 @@
           <li><a href="cli.html#cmdoption-cloudos-job-workdir-session-id">--session-id</a>
 </li>
           <li><a href="cli.html#cmdoption-cloudos-job-workdir-ssl-cert">--ssl-cert</a>
+</li>
+          <li><a href="cli.html#cmdoption-cloudos-job-workdir-status">--status</a>
 </li>
           <li><a href="cli.html#cmdoption-cloudos-job-workdir-verbose">--verbose</a>
 </li>
@@ -3605,6 +3618,34 @@
 </li>
         <li><a href="_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.get_file_or_folder_id">get_file_or_folder_id() (in module cloudos_cli.utils.array_job)</a>
 </li>
+        <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_folder_deletion_status">get_folder_deletion_status() (cloudos_cli.clos.Cloudos method)</a>
+
+        <ul>
+          <li><a href="_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.get_folder_deletion_status">(cloudos_cli.datasets.datasets.Datasets method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_folder_deletion_status">(cloudos_cli.jobs.job.Job method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_folder_deletion_status">(cloudos_cli.link.link.Link method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.get_folder_deletion_status">(cloudos_cli.procurement.images.Images method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_folder_deletion_status">(cloudos_cli.queue.queue.Queue method)</a>
+</li>
+        </ul></li>
+        <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_folder_items_deletion_status">get_folder_items_deletion_status() (cloudos_cli.clos.Cloudos method)</a>
+
+        <ul>
+          <li><a href="_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.get_folder_items_deletion_status">(cloudos_cli.datasets.datasets.Datasets method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_folder_items_deletion_status">(cloudos_cli.jobs.job.Job method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_folder_items_deletion_status">(cloudos_cli.link.link.Link method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.get_folder_items_deletion_status">(cloudos_cli.procurement.images.Images method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_folder_items_deletion_status">(cloudos_cli.queue.queue.Queue method)</a>
+</li>
+        </ul></li>
         <li><a href="_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_fuse_filesystems_status">get_fuse_filesystems_status() (cloudos_cli.link.link.Link method)</a>
 </li>
         <li><a href="_autosummary/cloudos_cli.cost.cost.html#cloudos_cli.cost.cost.CostViewer.get_job_costs">get_job_costs() (cloudos_cli.cost.cost.CostViewer method)</a>
@@ -3733,6 +3774,20 @@
           <li><a href="_autosummary/cloudos_cli.import_wf.import_wf.html#cloudos_cli.import_wf.import_wf.WFImport.get_repo_main_file">(cloudos_cli.import_wf.import_wf.WFImport method)</a>
 </li>
         </ul></li>
+        <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_results_deletion_status">get_results_deletion_status() (cloudos_cli.clos.Cloudos method)</a>
+
+        <ul>
+          <li><a href="_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.get_results_deletion_status">(cloudos_cli.datasets.datasets.Datasets method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_results_deletion_status">(cloudos_cli.jobs.job.Job method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_results_deletion_status">(cloudos_cli.link.link.Link method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.get_results_deletion_status">(cloudos_cli.procurement.images.Images method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_results_deletion_status">(cloudos_cli.queue.queue.Queue method)</a>
+</li>
+        </ul></li>
         <li><a href="_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.get_shared_config">get_shared_config() (in module cloudos_cli.configure.configure)</a>
 </li>
         <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_storage_contents">get_storage_contents() (cloudos_cli.clos.Cloudos method)</a>
@@ -3761,6 +3816,20 @@
           <li><a href="_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.get_user_info">(cloudos_cli.procurement.images.Images method)</a>
 </li>
           <li><a href="_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_user_info">(cloudos_cli.queue.queue.Queue method)</a>
+</li>
+        </ul></li>
+        <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_workdir_deletion_status">get_workdir_deletion_status() (cloudos_cli.clos.Cloudos method)</a>
+
+        <ul>
+          <li><a href="_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.get_workdir_deletion_status">(cloudos_cli.datasets.datasets.Datasets method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_workdir_deletion_status">(cloudos_cli.jobs.job.Job method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_workdir_deletion_status">(cloudos_cli.link.link.Link method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.get_workdir_deletion_status">(cloudos_cli.procurement.images.Images method)</a>
+</li>
+          <li><a href="_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_workdir_deletion_status">(cloudos_cli.queue.queue.Queue method)</a>
 </li>
         </ul></li>
         <li><a href="_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_workflow_content">get_workflow_content() (cloudos_cli.clos.Cloudos method)</a>
