@@ -265,7 +265,7 @@ class Cloudos:
                 elif api_status == "failedToDelete":
                     error_msg = "Intermediate job results were marked for deletion but failed to delete. The working directory may not be accessible."
                     raise ValueError(error_msg)
-                elif api_status != "ready":
+                elif api_status != "ready" and api_status is not None:
                     # For any other unknown status (not ready), raise generic error
                     error_msg = "Intermediate job results have been removed. The working directory is no longer available."
                     raise ValueError(error_msg)

@@ -833,20 +833,6 @@ def job_workdir(ctx,
                     console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
                 if folder_info.get("folderType"):
                     console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
-                
-                # Show update time and user information for any non-available status
-                if folder_status != "available":
-                    if folder_info.get("updatedAt"):
-                        console.print(f'  [cyan]Status changed at:[/cyan] {folder_info.get("updatedAt")}')
-                    
-                    # Show user information - prefer deletedBy over user field
-                    user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
-                    if user_info:
-                        user_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
-                        user_email = user_info.get('email', '')
-                        if user_name or user_email:
-                            user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
-                            console.print(f'  [cyan]User:[/cyan] {user_display}')
         
         except ValueError as e:
             raise click.ClickException(str(e))
@@ -1134,20 +1120,6 @@ def job_results(ctx,
                     console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
                 if folder_info.get("folderType"):
                     console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
-                
-                # Show update time and user information for any non-available status
-                if folder_status != "available":
-                    if folder_info.get("updatedAt"):
-                        console.print(f'  [cyan]Status changed at:[/cyan] {folder_info.get("updatedAt")}')
-                    
-                    # Show user information if available
-                    user_info = folder_info.get("user", {})
-                    if user_info:
-                        user_name = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
-                        user_email = user_info.get('email', '')
-                        if user_name or user_email:
-                            user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
-                            console.print(f'  [cyan]User:[/cyan] {user_display}')
         
         except ValueError as e:
             raise click.ClickException(str(e))
