@@ -1428,14 +1428,16 @@ class Job(Cloudos):
         else:
             return parent_job_id
 
-    def delete_job_results(self, folder_id, verify=True):
+    def delete_job_results(self, job_id, mode, verify=True):
         """Delete job results folder.
 
         Parameters
         ----------
-        folder_id : str
-            The ID of the folder to delete (typically a job results folder).
-        verify : [bool | str], optional
+        job_id : str
+            The CloudOS job ID whose results folder is to be deleted.
+        mode : str
+            The mode to use for deletion (e.g., "analysisResults" or "workDirectory").
+        verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file. Default is True.
@@ -1456,7 +1458,8 @@ class Job(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        url = f"{self.cloudos_url}/api/v1/folders/{folder_id}?teamId={self.workspace_id}"
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/data?properties[]={mode}&teamId={self.workspace_id}"
+
         response = retry_requests_delete(url, headers=headers, verify=verify)
 
         # Handle specific status codes according to API specification
@@ -1464,13 +1467,13 @@ class Job(Cloudos):
             # NoContent - successful deletion
             return {"message": "Results deleted successfully", "status": "deleted"}
         elif response.status_code == 400:
-            raise ValueError("Operation not permitted: Workspace does not allow deleting results folders.")
+            raise ValueError(f"Operation not permitted: Workspace does not allow deleting '{mode}' folders.")
         elif response.status_code == 401:
             raise ValueError("Unauthorized: Invalid or missing API key.")
         elif response.status_code == 403:
             raise ValueError("Forbidden: You don't have permission to delete this folder.")
         elif response.status_code == 404:
-            raise ValueError(f"Resource not found: Folder with ID '{folder_id}' does not exist or has already been deleted.")
+            raise ValueError(f"Resource not found: Folder from job ID '{job_id}' does not exist or has already been deleted.")
         elif response.status_code == 409:
             raise ValueError("Conflict: The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
         elif response.status_code == 500:
@@ -1481,4 +1484,4 @@ class Job(Cloudos):
         # For any other successful response, parse content if available
         if response.content:
             return json.loads(response.content)
-        return {"message": "Results deleted successfully"}
+        return {"message": f"'{mode}' deleted successfully"}
