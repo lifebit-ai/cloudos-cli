@@ -344,7 +344,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryError</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 
 <div class="viewcode-block" id="WFImport">
@@ -353,7 +352,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">cloudos_apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">platform</span><span class="p">,</span>
                  <span class="n">workflow_name</span><span class="p">,</span> <span class="n">workflow_url</span><span class="p">,</span> <span class="n">workflow_docs_link</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">workflow_description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">cost_limit</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">main_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span> <span class="o">=</span> <span class="n">cloudos_url</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">workflow_url</span> <span class="o">=</span> <span class="n">workflow_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.git&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflow_url</span> <span class="o">=</span> <span class="n">workflow_url</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">&#39;.git&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span> <span class="o">=</span> <span class="n">workspace_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow_url</span><span class="p">)</span>
