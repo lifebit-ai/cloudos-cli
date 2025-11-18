@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.69.1 (2025-11-18)
+
+### Feat
+
+- Patches import workflow for an edge case when the repo name ends with "g", "i" or "t"
+
 ## v2.69.0 (2025-11-12)
 
 ### Feat
