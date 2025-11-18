@@ -46,6 +46,7 @@ Python package for interacting with CloudOS
       - [List Jobs](#list-jobs)
       - [Get Job Costs](#get-job-costs)
       - [Get Job Related Analyses](#get-job-related-analyses)
+      - [Delete Job Results](#delete-job-results)
     - [Bash Jobs](#bash-jobs)
       - [Send Array Job](#send-array-job)
       - [Submit a Bash Array Job](#submit-a-bash-array-job)
@@ -1342,6 +1343,79 @@ Related analyses are particularly useful for:
 
 > [!NOTE]
 > Related jobs are identified by their shared working directory folder ID. Only jobs within the same workspace that use the same working directory will be displayed.
+
+#### Delete Job Results
+
+CloudOS allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.
+
+> [!WARNING]
+> Deleting job results is **irreversible**. All data and backups will be permanently removed and cannot be recovered. Use this feature with caution.
+
+**Delete Results with Confirmation**
+
+To delete the results directory of a completed job, use the `--delete` flag with the `job results` command. By default, a confirmation prompt will be displayed before deletion:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete
+```
+
+The expected output will show a warning confirmation:
+
+```console
+Executing results...
+Results: s3://lifebit-featured-datasets/results/62c83a1191fe06013b7ef355
+
+⚠️ Deleting final analysis results is irreversible. All data and backups will be permanently removed and cannot be recovered. You can skip this confirmation step by providing '-y' or '--yes' flag to 'cloudos job results --delete'. Please confirm that you want to delete final results of this analysis? [y/n]
+```
+
+Type `y` to proceed with deletion or `n` to cancel:
+
+```console
+y
+
+Results directories deleted successfully.
+```
+
+**Skip Confirmation Prompt**
+
+For automated workflows or when you're certain about deletion, you can skip the confirmation prompt using the `-y` or `--yes` flag:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete --yes
+```
+
+This will immediately proceed with deletion without prompting for confirmation:
+
+```console
+Executing results...
+Results: s3://lifebit-featured-datasets/results/62c83a1191fe06013b7ef355
+
+Results directories deleted successfully.
+```
+
+**Error Handling**
+
+The deletion command handles various scenarios with specific error messages:
+
+- **Job not found**: If the specified job ID doesn't exist or is not accessible
+- **No results directory**: If the job doesn't have a results directory associated with it
+- **Permission denied**: If your API key doesn't have permission to delete the results
+- **Resource conflict**: If the folder cannot be deleted due to dependencies
+
+Example when a job has no results:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete
+```
+
+```console
+Executing results...
+Selected job does not have 'Results' information.
+```
+
+> [!NOTE]
+> The `--delete` flag is compatible with other `job results` options. You can combine it with `--verbose` for detailed logging, but cannot be used together with `--link` or `--status` flags.
+
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
