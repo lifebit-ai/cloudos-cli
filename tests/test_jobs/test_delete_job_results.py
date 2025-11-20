@@ -64,6 +64,7 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
         responses.DELETE,
         url=url,
         status=404,
+        json={"message": "The access to the S3Folder is not allowed"},
         match=[matchers.query_param_matcher(params)]
     )
     
@@ -79,8 +80,7 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(FOLDER_ID)
     
-    assert "Resource not found" in str(exc_info.value)
-    assert FOLDER_ID in str(exc_info.value)
+    assert "The access to the S3Folder is not allowed" in str(exc_info.value)
 
 
 @mock.patch('cloudos_cli.jobs.job.Job.project_id', new_callable=mock.PropertyMock)
