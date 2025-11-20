@@ -1459,7 +1459,6 @@ class Job(Cloudos):
             "apikey": self.apikey
         }
         url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/data?properties[]={mode}&teamId={self.workspace_id}"
-
         response = retry_requests_delete(url, headers=headers, verify=verify)
 
         # Handle specific status codes according to API specification
