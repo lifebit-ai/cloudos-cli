@@ -6,6 +6,12 @@
 
 - Adds job results --delete [--yes] to delete "final" job results. Delete functionality needs to be enabled in the workspace
 
+## v2.69.1 (2025-11-18)
+
+### Feat
+
+- Patches import workflow for an edge case when the repo name ends with "g", "i" or "t"
+
 ## v2.69.0 (2025-11-12)
 
 ### Feat
