@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.70.0 (2025-11-17)
+
+### Feat
+
+- Adds job results --delete [--yes] to delete "final" job results. Delete functionality needs to be enabled in the workspace
+
 ## v2.69.1 (2025-11-18)
 
 ### Feat

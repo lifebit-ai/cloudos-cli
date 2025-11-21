@@ -7,7 +7,7 @@ from typing import Union
 import json
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
-from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get, retry_requests_delete
 from pathlib import Path
 import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
@@ -1427,3 +1427,58 @@ class Job(Cloudos):
             return None
         else:
             return parent_job_id
+
+    def delete_job_results(self, folder_id, verify=True):
+        """Delete job results folder.
+
+        Parameters
+        ----------
+        folder_id : str
+            The ID of the folder to delete (typically a job results folder).
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the deletion response from the API.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        ValueError
+            If the folder ID is invalid or the folder does not exist.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v1/folders/{folder_id}?teamId={self.workspace_id}"
+        response = retry_requests_delete(url, headers=headers, verify=verify)
+
+        # Handle specific status codes according to API specification
+        if response.status_code == 204:
+            # NoContent - successful deletion
+            return {"message": "Results deleted successfully", "status": "deleted"}
+        elif response.status_code == 400:
+            raise ValueError("Operation not permitted: Workspace does not allow deleting results folders.")
+        elif response.status_code == 401:
+            raise ValueError("Unauthorized: Invalid or missing API key.")
+        elif response.status_code == 403:
+            raise ValueError("Forbidden: You don't have permission to delete this folder.")
+        elif response.status_code == 404:
+            raise ValueError(f"{json.loads(response.content)['message']}")
+        elif response.status_code == 409:
+            raise ValueError("Conflict: The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
+        elif response.status_code == 500:
+            raise ValueError("Internal server error: The server encountered an error while processing the deletion request.")
+        elif response.status_code >= 400:
+            raise BadRequestException(response)
+
+        # For any other successful response, parse content if available
+        if response.content:
+            return json.loads(response.content)
+        return {"message": "Results deleted successfully"}
