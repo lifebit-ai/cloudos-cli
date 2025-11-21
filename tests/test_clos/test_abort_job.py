@@ -28,7 +28,7 @@ def test_abort_job_correct_response():
     # mock GET method with the .json
     responses.add(
             responses.PUT,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/abort?teamId={WORKSPACE_ID}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs/{JOB_ID}/abort?teamId={WORKSPACE_ID}",
             headers=header,
             status=200)
     # start cloudOS service
@@ -56,7 +56,7 @@ def test_abort_job_incorrect_response():
     # mock GET method with the .json
     responses.add(
             responses.PUT,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/abort?teamId={WORKSPACE_ID}",
+            url=f"{CLOUDOS_URL}/api/v2/jobs/{JOB_ID}/abort?teamId={WORKSPACE_ID}",
             body=error_json,
             headers=header,
             status=400)
