@@ -1,10 +1,39 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.67.1 (2025-11-11)
+## v2.70.1 (2025-11-11)
 
 ### Patch
 
 - Add workspace_id to abort command through `get_job_status()`
+
+## v2.70.0 (2025-11-17)
+
+### Feat
+
+- Adds job results --delete [--yes] to delete "final" job results. Delete functionality needs to be enabled in the workspace
+
+## v2.69.1 (2025-11-18)
+
+### Feat
+
+- Patches import workflow for an edge case when the repo name ends with "g", "i" or "t"
+
+## v2.69.0 (2025-11-12)
+
+### Feat
+
+- Adds (deletion) status check for job results
+- Adds (deletion) status check for job workdir
+- Adds error message for when trying to get workdirs or results that have been deleted
+
+
+## v2.68.0 (2025-11-07)
+
+### Feat
+
+- Adds checks for linking job completion
+- Fix workdir command to return correct path for resumed jobs.
+
 
 ## v2.67.0 (2025-11-06)
 
@@ -12,12 +41,14 @@
 
 - Implement viewing related job analyses
 
+
 ## v2.66.2 (2025-11-5)
 
 ### Patch
 
 - Fix job help message for resume and clone
 - Implements datasets ls for single files
+
 
 ## v2.66.1 (2025-10-29)
 

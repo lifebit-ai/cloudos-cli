@@ -46,6 +46,7 @@ Python package for interacting with CloudOS
       - [List Jobs](#list-jobs)
       - [Get Job Costs](#get-job-costs)
       - [Get Job Related Analyses](#get-job-related-analyses)
+      - [Delete Job Results](#delete-job-results)
     - [Bash Jobs](#bash-jobs)
       - [Send Array Job](#send-array-job)
       - [Submit a Bash Array Job](#submit-a-bash-array-job)
@@ -634,6 +635,41 @@ You can also link all result directories to an interactive session using the `--
 cloudos job results --profile my_profile --job-id "12345678910" --link --session-id your_session_id
 ```
 
+**Check Results Deletion Status**
+
+You can check the deletion status of a job's results folder using the `--status` flag. This is useful for monitoring the deletion lifecycle of analysis results.
+
+```bash
+cloudos job results --status --profile my_profile --job-id "12345678910"
+```
+
+The command will display the current status of the results folder. Possible statuses include:
+- **available**: Results are available and accessible
+- **scheduled for deletion**: Results are scheduled to be deleted
+- **deleting**: Results are currently being deleted
+- **deleted**: Results have been deleted
+- **failed to delete**: Deletion process failed
+
+Example output for available results:
+```console
+The results of job 1234567890 are in status: available
+```
+
+For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:
+```console
+The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion
+Status changed at: 2025-11-11T14:43:44.416Z
+User: Leila Mansouri (leila.mansouri@lifebit.ai)
+```
+
+Use the `--verbose` flag to see detailed information including the results folder name, folder ID, creation and update timestamps:
+```bash
+cloudos job results --status --profile my_profile --job-id "12345678910" --verbose
+```
+
+> [!NOTE]
+> If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.
+
 
 #### Clone or Resume job
 
@@ -894,6 +930,42 @@ cloudos job workdir \
     --job-id 62c83a1191fe06013b7ef355 \
     --link --session-id your_session_id
 ```
+
+**Check Working Directory Deletion Status**
+
+You can check the deletion status of a job's working directory using the `--status` flag. This is useful for monitoring the deletion lifecycle of intermediate job files.
+
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910"
+```
+
+The command will display the current status of the working directory folder. Possible statuses include:
+- **available**: Working directory is available and accessible
+- **scheduled for deletion**: Working directory is scheduled to be deleted
+- **deleting**: Working directory is currently being deleted
+- **deleted**: Working directory has been deleted
+- **failed to delete**: Deletion process failed
+
+Example output for available working directory:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: available
+```
+
+For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion
+Status changed at: 2025-11-11T14:43:44.416Z
+User: Leila Mansouri (leila.mansouri@lifebit.ai)
+```
+
+Use the `--verbose` flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbose
+```
+
+> [!NOTE]
+> This command only works for jobs that were run with resumable mode enabled (using the `--resumable` flag). Jobs without resumable mode will not have a working directory to check.
+> If the working directory has been completely deleted, the command will report that the working directory was not found.
 
 #### List Jobs
 
@@ -1271,6 +1343,79 @@ Related analyses are particularly useful for:
 
 > [!NOTE]
 > Related jobs are identified by their shared working directory folder ID. Only jobs within the same workspace that use the same working directory will be displayed.
+
+#### Delete Job Results
+
+CloudOS allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.
+
+> [!WARNING]
+> Deleting job results is **irreversible**. All data and backups will be permanently removed and cannot be recovered. Use this feature with caution.
+
+**Delete Results with Confirmation**
+
+To delete the results directory of a completed job, use the `--delete` flag with the `job results` command. By default, a confirmation prompt will be displayed before deletion:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete
+```
+
+The expected output will show a warning confirmation:
+
+```console
+Executing results...
+Results: s3://lifebit-featured-datasets/results/62c83a1191fe06013b7ef355
+
+⚠️ Deleting final analysis results is irreversible. All data and backups will be permanently removed and cannot be recovered. You can skip this confirmation step by providing '-y' or '--yes' flag to 'cloudos job results --delete'. Please confirm that you want to delete final results of this analysis? [y/n]
+```
+
+Type `y` to proceed with deletion or `n` to cancel:
+
+```console
+y
+
+Results directories deleted successfully.
+```
+
+**Skip Confirmation Prompt**
+
+For automated workflows or when you're certain about deletion, you can skip the confirmation prompt using the `-y` or `--yes` flag:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete --yes
+```
+
+This will immediately proceed with deletion without prompting for confirmation:
+
+```console
+Executing results...
+Results: s3://lifebit-featured-datasets/results/62c83a1191fe06013b7ef355
+
+Results directories deleted successfully.
+```
+
+**Error Handling**
+
+The deletion command handles various scenarios with specific error messages:
+
+- **Job not found**: If the specified job ID doesn't exist or is not accessible
+- **No results directory**: If the job doesn't have a results directory associated with it
+- **Permission denied**: If your API key doesn't have permission to delete the results
+- **Resource conflict**: If the folder cannot be deleted due to dependencies
+
+Example when a job has no results:
+
+```bash
+cloudos job results --profile my_profile --job-id 62c83a1191fe06013b7ef355 --delete
+```
+
+```console
+Executing results...
+Selected job does not have 'Results' information.
+```
+
+> [!NOTE]
+> The `--delete` flag is compatible with other `job results` options. You can combine it with `--verbose` for detailed logging, but cannot be used together with `--link` or `--status` flags.
+
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.

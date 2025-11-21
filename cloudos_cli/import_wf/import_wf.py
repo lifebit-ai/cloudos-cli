@@ -4,14 +4,13 @@ from cloudos_cli.utils.errors import BadRequestException, AccountNotLinkedExcept
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 import json
 from requests.exceptions import RetryError
-import sys
 
 
 class WFImport(ABC):
     def __init__(self, cloudos_url, cloudos_apikey, workspace_id, platform,
                  workflow_name, workflow_url, workflow_docs_link="", workflow_description="", cost_limit=30, main_file=None, verify=True):
         self.cloudos_url = cloudos_url
-        self.workflow_url = workflow_url.rstrip('.git')
+        self.workflow_url = workflow_url.removesuffix('.git')
         self.workspace_id = workspace_id
         self.platform = platform
         self.parsed_url = urlsplit(self.workflow_url)

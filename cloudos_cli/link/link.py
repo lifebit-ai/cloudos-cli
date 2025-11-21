@@ -3,12 +3,14 @@ This is the main class for linking files to interactive sessions.
 """
 
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, List, Dict
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.requests import retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from urllib.parse import urlparse
 from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 import json
+import time
+import rich_click as click
 
 
 @dataclass
@@ -60,6 +62,14 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        
+        # Block Azure Blob Storage URLs as they are not supported by the API
+        if folder.startswith('az://'):
+            raise ValueError(
+                "Azure Blob Storage paths (az://) are not supported for linking. "
+                "Azure environments do not support linking folders to Interactive Analysis sessions. "
+            )
+        
         # determine if is file explorer or s3
         if folder.startswith('s3://'):
             data = self.parse_s3_path(folder)
@@ -87,9 +97,27 @@ class Link(Cloudos):
                     f"s3://{data['dataItem']['data']['s3BucketName']}/"
                     f"{data['dataItem']['data']['s3Prefix']}"
                 )
+                mount_name = data['dataItem']['data']['name']
             else:
                 full_path = folder
-            print(f"Succesfully linked {type_folder} folder: {full_path}")
+                mount_name = data['dataItem']['name']
+            
+            try:
+                # Wait for mount completion and check final status
+                final_status = self.wait_for_mount_completion(session_id, mount_name)
+                
+                if final_status["status"] == "mounted":
+                    click.secho(f"Successfully mounted {type_folder} folder: {full_path}", fg='green', bold=True)
+                elif final_status["status"] == "failed":
+                    error_msg = final_status.get("errorMessage", "Unknown error")
+                    click.secho(f"Failed to mount {type_folder} folder: {full_path}", fg='red', bold=True)
+                    click.secho(f"  Error: {error_msg}", fg='red')
+                else:
+                    click.secho(f"Mount status: {final_status['status']} for {type_folder} folder: {full_path}", fg='yellow', bold=True)
+                    
+            except ValueError as e:
+                click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
+                click.secho(f"  The linking request was submitted, but verification failed.", fg='yellow')
 
     def parse_s3_path(self, s3_url):
         """
@@ -176,3 +204,89 @@ class Link(Cloudos):
                 "name": f"{parts[-1]}"
             }
         }
+
+    def get_fuse_filesystems_status(self, session_id: str) -> List[Dict]:
+        """Get the status of fuse filesystems for an interactive session.
+
+        Parameters
+        ----------
+        session_id : str
+            The interactive session ID.
+
+        Returns
+        -------
+        List[Dict]
+            List of fuse filesystem objects with their status information.
+
+        Raises
+        ------
+        ValueError
+            If the API request fails or returns an error.
+        """
+        url = (
+            f"{self.cloudos_url}/api/v1/"
+            f"interactive-sessions/{session_id}/fuse-filesystems"
+            f"?teamId={self.workspace_id}"
+        )
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
+        
+        if r.status_code == 401:
+            raise ValueError("Forbidden: Invalid API key or insufficient permissions")
+        elif r.status_code == 404:
+            raise ValueError(f"Interactive session {session_id} not found")
+        elif r.status_code != 200:
+            raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
+        
+        response_data = json.loads(r.content)
+        return response_data.get("fuseFileSystems", [])
+
+    def wait_for_mount_completion(self, session_id: str, mount_name: str, 
+                                timeout: int = 360, check_interval: int = 2) -> Dict:
+        """Wait for a specific mount to complete and return its final status.
+
+        Parameters
+        ----------
+        session_id : str
+            The interactive session ID.
+        mount_name : str
+            The name of the mount to check.
+        timeout : int, optional
+            Maximum time to wait in seconds (default: 60).
+        check_interval : int, optional
+            Time between status checks in seconds (default: 2).
+
+        Returns
+        -------
+        Dict
+            The final status object of the mount.
+
+        Raises
+        ------
+        ValueError
+            If the mount is not found or timeout is reached.
+        """
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            filesystems = self.get_fuse_filesystems_status(session_id)
+            
+            # Find the mount by name
+            target_mount = None
+            for fs in filesystems:
+                if fs.get("mountName") == mount_name:
+                    target_mount = fs
+                    break
+            
+            if target_mount and target_mount.get("status") in ["mounted", "failed"]:
+                return target_mount
+            # If mount not found or still in progress, continue waiting
+            
+            time.sleep(check_interval)
+        
+        raise ValueError(f"Timeout waiting for mount '{mount_name}' to complete after {timeout} seconds")
+
