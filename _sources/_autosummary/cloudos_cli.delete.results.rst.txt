@@ -1,0 +1,12 @@
+cloudos\_cli.delete.results
+===========================
+
+.. automodule:: cloudos_cli.delete.results
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      delete_job_results
+   
