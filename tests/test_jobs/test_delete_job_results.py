@@ -223,7 +223,7 @@ def test_delete_job_results_bad_request_400(mock_workflow_id, mock_project_id):
         job.delete_job_results(FOLDER_ID)
     
     assert "Operation not permitted" in str(exc_info.value)
-    assert "Workspace does not allow deleting results folders" in str(exc_info.value)
+    assert "Your workspace does not have the option to delete results folders enabled. Please consult with the organisation owner to enable this feature." in str(exc_info.value)
 
 
 @mock.patch('cloudos_cli.jobs.job.Job.project_id', new_callable=mock.PropertyMock)

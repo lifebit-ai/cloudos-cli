@@ -62,10 +62,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        if workspace_id is not None:
-            url = f"{cloudos_url}/api/v1/jobs/{j_id}?teamId={workspace_id}"
-        else:
-            url = f"{cloudos_url}/api/v1/jobs/{j_id}"
+        url = f"{cloudos_url}/api/v1/jobs/{j_id}?teamId={workspace_id}"
         r = retry_requests_get(url, headers=headers, verify=verify)
         if r.status_code == 401:
             raise NotAuthorisedException
@@ -1857,7 +1854,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_put("{}/api/v1/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
+        r = retry_requests_put("{}/api/v2/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
