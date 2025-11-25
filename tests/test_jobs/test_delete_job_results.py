@@ -9,7 +9,8 @@ from cloudos_cli.utils.errors import BadRequestException
 APIKEY = 'test_api_key_12345'
 CLOUDOS_URL = 'https://test.cloudos.lifebit.ai'
 WORKSPACE_ID = 'test_workspace_123'
-FOLDER_ID = 'test_folder_456'
+JOB_ID = 'test_job_123'
+MODE = 'analysisResults'  # Can be 'analysisResults' or 'workDirectory'
 
 
 @mock.patch('cloudos_cli.jobs.job.Job.project_id', new_callable=mock.PropertyMock)
@@ -22,8 +23,8 @@ def test_delete_job_results_success_204(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -41,7 +42,7 @@ def test_delete_job_results_success_204(mock_workflow_id, mock_project_id):
         workflow_name="test_workflow"
     )
     
-    result = job.delete_job_results(FOLDER_ID)
+    result = job.delete_job_results(JOB_ID, MODE)
     
     assert result["message"] == "Results deleted successfully"
     assert result["status"] == "deleted"
@@ -57,13 +58,14 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
         url=url,
         status=404,
+        json={"message": f"Job with ID '{JOB_ID}' not found"},
         match=[matchers.query_param_matcher(params)]
     )
     
@@ -77,10 +79,10 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
     )
     
     with pytest.raises(ValueError) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
-    assert "Resource not found" in str(exc_info.value)
-    assert FOLDER_ID in str(exc_info.value)
+    assert JOB_ID in str(exc_info.value)
+    assert "not found" in str(exc_info.value).lower()
 
 
 @mock.patch('cloudos_cli.jobs.job.Job.project_id', new_callable=mock.PropertyMock)
@@ -93,8 +95,8 @@ def test_delete_job_results_unauthorized_401(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -113,7 +115,7 @@ def test_delete_job_results_unauthorized_401(mock_workflow_id, mock_project_id):
     )
     
     with pytest.raises(ValueError) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
     assert "Unauthorized" in str(exc_info.value)
     assert "API key" in str(exc_info.value)
@@ -129,8 +131,8 @@ def test_delete_job_results_forbidden_403(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -149,7 +151,7 @@ def test_delete_job_results_forbidden_403(mock_workflow_id, mock_project_id):
     )
     
     with pytest.raises(ValueError) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
     assert "Forbidden" in str(exc_info.value)
     assert "permission" in str(exc_info.value)
@@ -165,8 +167,8 @@ def test_delete_job_results_conflict_409(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -185,7 +187,7 @@ def test_delete_job_results_conflict_409(mock_workflow_id, mock_project_id):
     )
     
     with pytest.raises(ValueError) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
     assert "Conflict" in str(exc_info.value)
 
@@ -200,8 +202,8 @@ def test_delete_job_results_bad_request_400(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -220,10 +222,10 @@ def test_delete_job_results_bad_request_400(mock_workflow_id, mock_project_id):
     )
     
     with pytest.raises(ValueError) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
     assert "Operation not permitted" in str(exc_info.value)
-    assert "Workspace does not allow deleting results folders" in str(exc_info.value)
+    assert "workspace does not have the option to delete" in str(exc_info.value).lower()
 
 
 @mock.patch('cloudos_cli.jobs.job.Job.project_id', new_callable=mock.PropertyMock)
@@ -236,8 +238,8 @@ def test_delete_job_results_server_error_500(mock_workflow_id, mock_project_id):
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
     
-    url = f"{CLOUDOS_URL}/api/v1/folders/{FOLDER_ID}"
-    params = {"teamId": WORKSPACE_ID}
+    url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
+    params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
     
     responses.add(
         responses.DELETE,
@@ -257,7 +259,7 @@ def test_delete_job_results_server_error_500(mock_workflow_id, mock_project_id):
     
     # The retry mechanism will exhaust retries on 500 errors
     with pytest.raises(Exception) as exc_info:
-        job.delete_job_results(FOLDER_ID)
+        job.delete_job_results(JOB_ID, MODE)
     
     # Should raise either RetryError or the underlying ValueError after retries
     assert "Max retries exceeded" in str(exc_info.value) or "Internal server error" in str(exc_info.value)

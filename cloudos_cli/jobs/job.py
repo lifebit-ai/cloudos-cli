@@ -1472,7 +1472,14 @@ class Job(Cloudos):
         elif response.status_code == 403:
             raise ValueError("Forbidden: You don't have permission to delete this folder.")
         elif response.status_code == 404:
-            raise ValueError(f"{json.loads(response.content)['message']}")
+            if response.content:
+                try:
+                    error_message = json.loads(response.content).get('message', f"Job with ID '{job_id}' not found or data does not exist.")
+                except (json.JSONDecodeError, KeyError):
+                    error_message = f"Job with ID '{job_id}' not found or data does not exist."
+            else:
+                error_message = f"Job with ID '{job_id}' not found or data does not exist."
+            raise ValueError(error_message)
         elif response.status_code == 409:
             raise ValueError("Conflict: The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
         elif response.status_code == 500:
