@@ -1464,7 +1464,7 @@ class Job(Cloudos):
             # NoContent - successful deletion
             return {"message": "Results deleted successfully", "status": "deleted"}
         elif response.status_code == 400:
-            raise ValueError("Operation not permitted: Workspace does not allow deleting results folders.")
+            raise ValueError("You don't have permission to delete final results for this job. This action is restricted by your Organisation Admin. Please reach out to them if you believe this is unexpected.")
         elif response.status_code == 401:
             raise ValueError("Unauthorized: Invalid or missing API key.")
         elif response.status_code == 403:
