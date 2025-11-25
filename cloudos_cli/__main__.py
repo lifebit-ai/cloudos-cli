@@ -894,32 +894,6 @@ def job_workdir(ctx,
     except Exception as e:
         raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
 
-    try:
-        workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-        print(f"Working directory for job {job_id}: {workdir}")
-        
-        # Link to interactive session if requested
-        if link:
-            if verbose:
-                print(f'\tLinking working directory to interactive session {session_id}...')
-            
-            # Use Link class to perform the linking
-            link_client = Link(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                cromwell_token=None,  # Not needed for linking operations
-                workspace_id=workspace_id,
-                project_name=None,  # Not needed for S3 paths
-                verify=verify_ssl
-            )
-            
-            link_client.link_folder(workdir.strip(), session_id)
-            
-    except BadRequestException as e:
-        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
-    except Exception as e:
-        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
-
     # Delete workdir directory if requested
     if delete:
         try:
@@ -935,13 +909,13 @@ def job_workdir(ctx,
                     "providing -y or --yes flag to cloudos job workdir --delete. Please confirm "
                     "that you want to delete intermediate results of this analysis? [y/n] "
                 )
-                click.secho(confirmation_message, fg='white', bg='yellow')
+                click.secho(confirmation_message, fg='black', bg='yellow')
                 user_input = input().strip().lower()
                 if user_input != 'y':
                     print('\nDeletion cancelled.')
                     return
             delete_job_results(cloudos_url, apikey, job_id, workspace_id, "workDirectory",verify_ssl)
-            print('Intermediate results directories deleted successfully.')
+            print('\nIntermediate results directories deleted successfully.')
         except BadRequestException as e:
             raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
         except Exception as e:
@@ -1263,7 +1237,7 @@ def job_results(ctx,
             if verbose:
                 print(f'\nDeleting {len(results)} result directories from CloudOS...')
             delete_job_results(cloudos_url, apikey, job_id, workspace_id, "analysisResults", verify_ssl)
-            print('Results directories deleted successfully.')
+            print('\nResults directories deleted successfully.')
         else:
             if yes:
                 click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)

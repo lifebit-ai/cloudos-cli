@@ -1466,7 +1466,7 @@ class Job(Cloudos):
             # NoContent - successful deletion
             return {"message": "Results deleted successfully", "status": "deleted"}
         elif response.status_code == 400:
-            raise ValueError(f"Operation not permitted: Workspace does not allow deleting '{mode}' folders.")
+            raise ValueError(f"Operation not permitted: Your workspace does not have the option to delete {'results' if mode == 'analysisResults' else 'intermediate'} folders enabled. Please consult with the organisation owner to enable this feature.")
         elif response.status_code == 401:
             raise ValueError("Unauthorized: Invalid or missing API key.")
         elif response.status_code == 403:
