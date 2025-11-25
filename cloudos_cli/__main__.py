@@ -1229,7 +1229,7 @@ def job_results(ctx,
                     "'cloudos job results --delete'. "
                     "Please confirm that you want to delete final results of this analysis? [y/n] "
                 )
-                click.secho(confirmation_message, fg='white', bg='yellow')
+                click.secho(confirmation_message, fg='black', bg='yellow')
                 user_input = input().strip().lower()
                 if user_input != 'y':
                     print('\nDeletion cancelled.')
@@ -1554,7 +1554,7 @@ def abort_jobs(ctx,
 
     for job in jobs:
         try:
-            j_status = cl.get_job_status(job, None, verify_ssl)
+            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
         except Exception as e:
             click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
