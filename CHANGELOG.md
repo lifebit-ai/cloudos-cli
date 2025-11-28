@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.71.0 (2025-11-26)
+
+### Feat
+
+- Adds job workdir --delete [--yes] to delete "intermediate" job results. Delete functionality needs to be enabled in the workspace
+
 ## v2.70.1 (2025-11-11)
 
 ### Patch

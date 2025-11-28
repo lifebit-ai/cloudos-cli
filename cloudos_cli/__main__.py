@@ -31,7 +31,6 @@ from cloudos_cli.configure.configure import (
     CLOUDOS_URL
 )
 from cloudos_cli.related_analyses.related_analyses import related_analyses
-from cloudos_cli.delete.results import delete_job_results
 
 
 # GLOBAL VARS
@@ -727,6 +726,12 @@ def job_status(ctx,
 @click.option('--link',
               help='Link the working directory to an interactive session.',
               is_flag=True)
+@click.option('--delete',
+              help='Delete the results directory of a CloudOS job.',
+              is_flag=True)
+@click.option('-y', '--yes',
+              help='Skip confirmation prompt when deleting results.',
+              is_flag=True)
 @click.option('--session-id',
               help='The specific CloudOS interactive session id. Required when using --link flag.',
               required=False)
@@ -751,6 +756,8 @@ def job_workdir(ctx,
                 workspace_id,
                 job_id,
                 link,
+                delete,
+                yes,
                 session_id,
                 status,
                 verbose,
@@ -885,6 +892,39 @@ def job_workdir(ctx,
         raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
+
+    # Delete workdir directory if requested
+    if delete:
+        try:
+            # Ask for confirmation unless --yes flag is provided
+            if not yes:
+                confirmation_message = (
+                    "\n⚠️ Deleting intermediate results is permanent and cannot be undone. "
+                    "All associated data will be permanently removed and cannot be recovered. "
+                    "The current job, as well as any other jobs sharing the same working directory, "
+                    "will no longer be resumable. This action will be logged in the audit trail "
+                    "(if auditing is enabled for your organisation), and you will be recorded as "
+                    "the user who performed the deletion. You can skip this confirmation step by "
+                    "providing -y or --yes flag to cloudos job workdir --delete. Please confirm "
+                    "that you want to delete intermediate results of this analysis? [y/n] "
+                )
+                click.secho(confirmation_message, fg='black', bg='yellow')
+                user_input = input().strip().lower()
+                if user_input != 'y':
+                    print('\nDeletion cancelled.')
+                    return
+            # Proceed with deletion
+            job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
+                        mainfile=None, importsfile=None, verify=verify_ssl)
+            job.delete_job_results(job_id, "workDirectory", verify=verify_ssl)
+            click.secho('\nIntermediate results directories deleted successfully.', fg='green', bold=True)
+        except BadRequestException as e:
+            raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Failed to retrieve intermediate results for job '{job_id}': {str(e)}")
+    else:
+        if yes:
+            click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
 
 
 @job.command('logs')
@@ -1198,8 +1238,11 @@ def job_results(ctx,
                     return
             if verbose:
                 print(f'\nDeleting {len(results)} result directories from CloudOS...')
-            delete_job_results(cloudos_url, apikey, job_id, workspace_id, verify_ssl)
-            print('Results directories deleted successfully.')
+            # Proceed with deletion
+            job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
+                        mainfile=None, importsfile=None, verify=verify_ssl)
+            job.delete_job_results(job_id, "analysisResults", verify=verify_ssl)
+            click.secho('\nResults directories deleted successfully.', fg='green', bold=True)
         else:
             if yes:
                 click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
