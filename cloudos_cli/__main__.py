@@ -31,7 +31,6 @@ from cloudos_cli.configure.configure import (
     CLOUDOS_URL
 )
 from cloudos_cli.related_analyses.related_analyses import related_analyses
-from cloudos_cli.delete.results import delete_job_results
 
 
 # GLOBAL VARS
@@ -914,7 +913,10 @@ def job_workdir(ctx,
                 if user_input != 'y':
                     print('\nDeletion cancelled.')
                     return
-            delete_job_results(cloudos_url, apikey, job_id, workspace_id, "workDirectory",verify_ssl)
+            # Proceed with deletion
+            job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
+                        mainfile=None, importsfile=None, verify=verify_ssl)
+            job.delete_job_results(job_id, "workDirectory", verify=verify_ssl)
             print('\nIntermediate results directories deleted successfully.')
         except BadRequestException as e:
             raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
@@ -1236,7 +1238,10 @@ def job_results(ctx,
                     return
             if verbose:
                 print(f'\nDeleting {len(results)} result directories from CloudOS...')
-            delete_job_results(cloudos_url, apikey, job_id, workspace_id, "analysisResults", verify_ssl)
+            # Proceed with deletion
+            job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
+                        mainfile=None, importsfile=None, verify=verify_ssl)
+            job.delete_job_results(job_id, "analysisResults", verify=verify_ssl)
             print('\nResults directories deleted successfully.')
         else:
             if yes:
