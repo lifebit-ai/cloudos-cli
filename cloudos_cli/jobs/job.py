@@ -1454,6 +1454,9 @@ class Job(Cloudos):
         ValueError
             If the folder ID is invalid or the folder does not exist.
         """
+        if mode not in ["analysisResults", "workDirectory"]:
+            raise ValueError(f"Invalid mode '{mode}'. Supported modes are 'analysisResults' and 'workDirectory'.")
+
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
