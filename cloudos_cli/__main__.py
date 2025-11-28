@@ -917,7 +917,7 @@ def job_workdir(ctx,
             job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                         mainfile=None, importsfile=None, verify=verify_ssl)
             job.delete_job_results(job_id, "workDirectory", verify=verify_ssl)
-            print('\nIntermediate results directories deleted successfully.')
+            click.secho('\nIntermediate results directories deleted successfully.', fg='green', bold=True)
         except BadRequestException as e:
             raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
         except Exception as e:
@@ -1242,7 +1242,7 @@ def job_results(ctx,
             job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                         mainfile=None, importsfile=None, verify=verify_ssl)
             job.delete_job_results(job_id, "analysisResults", verify=verify_ssl)
-            print('\nResults directories deleted successfully.')
+            click.secho('\nResults directories deleted successfully.', fg='green', bold=True)
         else:
             if yes:
                 click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
