@@ -1232,7 +1232,9 @@ def job_results(ctx,
                     "Please confirm that you want to delete final results of this analysis? [y/n] "
                 )
                 click.secho(confirmation_message, fg='black', bg='yellow')
-                user_input = input().strip().lower()
+                from cloudos_cli.utils.prompt import smart_input
+                #user_input = input().strip().lower()
+                user_input = smart_input().strip().lower()
                 if user_input != 'y':
                     print('\nDeletion cancelled.')
                     return
