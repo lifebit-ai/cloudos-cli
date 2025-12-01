@@ -5,5 +5,5 @@ import os
 def smart_input():
 
     print("> ", end="", flush=True)
-    name = sys.stdin.readline().strip()
+    name = input()
     return name
