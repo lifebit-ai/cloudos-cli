@@ -1224,19 +1224,21 @@ def job_results(ctx,
         if delete:
             # Ask for confirmation unless --yes flag is provided
             if not yes:
-                confirmation_message = (
-                    "\n⚠️ Deleting final analysis results is irreversible. "
-                    "All data and backups will be permanently removed and cannot be recovered. "
-                    "You can skip this confirmation step by providing '-y' or '--yes' flag to "
-                    "'cloudos job results --delete'. "
-                    "Please confirm that you want to delete final results of this analysis? [y/n] "
-                )
-                click.secho(confirmation_message, fg='black', bg='yellow')
                 from cloudos_cli.utils.prompt import smart_input
-                #user_input = input().strip().lower()
-                user_input = smart_input().strip().lower()
-                if user_input != 'y':
-                    print('\nDeletion cancelled.')
+                from rich.console import Console
+                
+                console = Console()
+                console.print("\n[yellow]⚠️  WARNING: Deleting final analysis results is irreversible.[/yellow]")
+                console.print("[dim]All data and backups will be permanently removed and cannot be recovered.[/dim]")
+                console.print("[dim]You can skip this confirmation by using '-y' or '--yes' flag.[/dim]\n")
+                
+                # Use the Rich Confirm prompt
+                confirmed = smart_input(
+                    "Please confirm that you want to delete final results of this analysis",
+                    use_confirm=True
+                )
+                if not confirmed:
+                    console.print('\n[yellow]Deletion cancelled.[/yellow]')
                     return
             if verbose:
                 print(f'\nDeleting {len(results)} result directories from CloudOS...')
