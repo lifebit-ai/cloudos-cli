@@ -1,4 +1,5 @@
 import sys
+import os
 
 
 def smart_input(prompt="> "):
@@ -8,7 +9,7 @@ def smart_input(prompt="> "):
     This function handles different execution contexts:
     - Terminal: Uses standard input() function
     - Jupyter Python cells: Uses standard input() which displays input widget
-    - Jupyter bash cells: Detects non-interactive mode and uses getpass fallback
+    - Jupyter bash cells: Reads from environment variable set by user
     
     Parameters
     ----------
@@ -19,25 +20,48 @@ def smart_input(prompt="> "):
     -------
     str
         The user's input string.
+        
+    Notes
+    -----
+    For Jupyter bash cells, set the environment variable before running:
+        export CLOUDOS_CONFIRM="y"
+        !cloudos job results --delete --job-id YOUR_JOB_ID
+    Or better yet, use the --yes flag to skip confirmation.
     """
-    # Check if stdin is available and interactive
+    # Check if we're in a non-interactive environment
     if not sys.stdin.isatty():
-        # Non-interactive mode (e.g., piped input, subprocess from Jupyter bash)
-        # Try to use getpass which can read from /dev/tty
+        # Check if answer was provided via environment variable
+        env_answer = os.environ.get('CLOUDOS_CONFIRM', '').strip().lower()
+        if env_answer:
+            sys.stderr.write(f"{prompt}{env_answer}\n")
+            sys.stderr.flush()
+            return env_answer
+        
+        # Try getpass as fallback (works in some terminal contexts)
         try:
             import getpass
-            # Print prompt to stderr so it's visible
             sys.stderr.write(prompt)
             sys.stderr.flush()
             return getpass.getpass('')
-        except:
-            # If getpass fails, we're truly in a non-interactive environment
-            # Return empty string or raise error
-            raise RuntimeError(
-                "Cannot read input in non-interactive mode. "
-                "If running from Jupyter bash cell (!command), use Python cell instead, "
-                "or provide --yes flag to skip confirmation."
-            )
+        except Exception:
+            pass
+        
+        # If nothing works, provide helpful error
+        raise RuntimeError(
+            "\n" + "="*70 + "\n"
+            "❌ Cannot read input in non-interactive mode (Jupyter bash cell).\n\n"
+            "Choose one of these solutions:\n\n"
+            "1. Use Python cell instead of bash:\n"
+            "   import subprocess\n"
+            "   subprocess.run(['cloudos', 'job', 'results', '--delete', ...])\n\n"
+            "2. Use the --yes flag to skip confirmation:\n"
+            "   !cloudos job results --delete --job-id ID --yes\n\n"
+            "3. Set environment variable before bash command:\n"
+            "   import os\n"
+            "   os.environ['CLOUDOS_CONFIRM'] = 'y'\n"
+            "   !cloudos job results --delete --job-id ID\n"
+            + "="*70
+        )
     
     # Interactive mode (terminal or Jupyter Python cell)
     return input(prompt)

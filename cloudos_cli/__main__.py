@@ -1234,7 +1234,7 @@ def job_results(ctx,
                 click.secho(confirmation_message, fg='black', bg='yellow')
                 from cloudos_cli.utils.prompt import smart_input
                 #user_input = input().strip().lower()
-                user_input = print(smart_input().strip().lower())
+                user_input = smart_input().strip().lower()
                 if user_input != 'y':
                     print('\nDeletion cancelled.')
                     return
