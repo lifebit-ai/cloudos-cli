@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.73.0 (2025-12-02)
+
+### Feat
+
+- Adds CSV output format for `datasets ls` with or without `--details`
+- Adds PR template
+
 ## v2.71.0 (2025-11-26)
 
 ### Feat
