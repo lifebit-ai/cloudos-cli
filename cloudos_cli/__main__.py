@@ -3004,7 +3004,7 @@ def run_bash_array_job(ctx,
               default='stdout')
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
-                    'Default={job_id}_details'),
+                    'Default=datasets_ls'),
               required=False)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
@@ -3114,8 +3114,7 @@ def list_files(ctx,
 
             # Generate default basename if not provided
             if not output_basename:
-                path_suffix = path.replace('/', '_') if path else 'root'
-                output_basename = f'datasets_{path_suffix}'
+                output_basename = f'datasets_ls'
 
             csv_filename = f'{output_basename}.csv'
 
