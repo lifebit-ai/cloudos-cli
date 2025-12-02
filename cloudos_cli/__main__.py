@@ -3140,9 +3140,9 @@ def list_files(ctx,
                 # CSV with just names
                 with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
                     writer = csv.writer(csvfile)
-                    writer.writerow(['Name'])
+                    writer.writerow(['Name', 'Storage Path'])
                     for item in processed_items:
-                        writer.writerow([item['name']])
+                        writer.writerow([item['name'], item['storage_path']])
 
             click.secho(f'\nDatasets list saved to: {csv_filename}', fg='green', bold=True)
 
