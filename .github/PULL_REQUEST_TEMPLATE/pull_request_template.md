@@ -3,9 +3,11 @@
 Does this
 
 # JIRA
-> Please add here as many related tasks this PR covers with its brief description
+> Please add here as many related tasks this PR covers with its brief description, if more than one ticket
 
-- https://lifebit.atlassian.net/browse/LP-XXXX - brief description
+- https://lifebit.atlassian.net/browse/LP-XXXX - adds CSV, JSON outputs
+- https://lifebit.atlassian.net/browse/LP-XXXX - pytests
+- https://lifebit.atlassian.net/browse/LP-XXXX - documentation
 
 # Changes
 
