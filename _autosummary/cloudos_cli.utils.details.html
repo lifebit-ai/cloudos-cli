@@ -361,7 +361,7 @@
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.utils.details.create_job_details">
-<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_details_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_basename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_details"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_details" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_details_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_basename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://cloudos.lifebit.ai'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_details"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_details" title="Link to this definition">¶</a></dt>
 <dd><p>Creates formatted job details output from job data in multiple formats.</p>
 <p>This function processes job details from the CloudOS API response and outputs
 the information in a user-specified format (stdout table, JSON, or CSV).
@@ -404,6 +404,7 @@ is ‘json’ or ‘csv’.</p></li>
 <li><p><strong>parameters</strong> (<em>bool</em>) – Whether to create a separate configuration file containing job parameters.
 If True and parameters exist, creates a ‘.config’ file with Nextflow-style
 parameter formatting.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em><em>, </em><em>optional</em>) – The base URL of the CloudOS instance. Defaults to “<a class="reference external" href="https://cloudos.lifebit.ai">https://cloudos.lifebit.ai</a>”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
