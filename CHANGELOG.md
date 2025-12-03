@@ -7,6 +7,12 @@
 - Adds CSV output format for `datasets ls` with or without `--details`
 - Adds PR template
 
+## v2.72.0 (2025-12-02)
+
+### Feat
+
+- Adds clickable link to job details
+
 ## v2.71.0 (2025-11-26)
 
 ### Feat
