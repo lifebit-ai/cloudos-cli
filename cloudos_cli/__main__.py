@@ -1331,7 +1331,7 @@ def job_details(ctx,
             raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to retrieve details for job '{job_id}': {str(e)}")
-    create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters)
+    create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters, cloudos_url)
 
 
 @job.command('list')
