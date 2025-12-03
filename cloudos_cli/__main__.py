@@ -3005,6 +3005,7 @@ def run_bash_array_job(ctx,
 @click.option('--output-basename',
               help=('Output file base name to save jobs details. ' +
                     'Default=datasets_ls'),
+              default='datasets_ls',
               required=False)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
