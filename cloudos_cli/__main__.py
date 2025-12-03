@@ -3112,10 +3112,6 @@ def list_files(ctx,
         if output_format == 'csv':
             import csv
 
-            # Generate default basename if not provided
-            if not output_basename:
-                output_basename = f'datasets_ls'
-
             csv_filename = f'{output_basename}.csv'
 
             if details:
