@@ -1356,6 +1356,11 @@ def job_details(ctx,
               help='The desired output format. For json option --all-fields will be automatically set to True. Default=stdout.',
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
+@click.option('--table-columns',
+              help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
+                    'Available columns: status,name,project,owner,pipeline,id,submit_time,end_time,run_time,commit,cost,resources,storage_type. ' +
+                    'Default: all columns'),
+              default=None)
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -1416,6 +1421,7 @@ def list_jobs(ctx,
               workspace_id,
               output_basename,
               output_format,
+              table_columns,
               all_fields,
               last_n_jobs,
               page,
@@ -1439,6 +1445,20 @@ def list_jobs(ctx,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     
+    # Process table_columns if provided
+    selected_columns = None
+    if table_columns:
+        # Split and clean column names
+        selected_columns = [col.strip().lower() for col in table_columns.split(',')]
+        # Validate column names
+        valid_columns = ['status', 'name', 'project', 'owner', 'pipeline', 'id', 
+                        'submit_time', 'end_time', 'run_time', 'commit', 'cost', 
+                        'resources', 'storage_type']
+        invalid_cols = [col for col in selected_columns if col not in valid_columns]
+        if invalid_cols:
+            raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
+                           f"Valid columns are: {', '.join(valid_columns)}")
+    
     # Only set outfile if not using stdout
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
@@ -1460,9 +1480,10 @@ def list_jobs(ctx,
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
     
-    # Validate page_size limit
+    # Validate page_size limit - must be done before API call
     if page_size > 100:
-        raise ValueError('Please, use a page_size value <= 100')
+        click.secho('Error: Page size cannot exceed 100. Please use --page-size with a value <= 100', fg='red', err=True)
+        raise SystemExit(1)
 
     result = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
                              filter_status=filter_status,
@@ -1479,6 +1500,19 @@ def list_jobs(ctx,
     my_jobs_r = result['jobs']
     pagination_metadata = result['pagination_metadata']
     
+    # Validate requested page exists
+    if pagination_metadata:
+        total_jobs = pagination_metadata.get('Pagination-Count', 0)
+        current_page = pagination_metadata.get('Pagination-Page', 1)
+        current_page_size = pagination_metadata.get('Pagination-Limit', page_size)
+        
+        if total_jobs > 0:
+            total_pages = (total_jobs + current_page_size - 1) // current_page_size
+            if page > total_pages:
+                click.secho(f'Error: Page {page} does not exist. There are only {total_pages} page(s) available with {total_jobs} total job(s). '
+                           f'Please use --page with a value between 1 and {total_pages}', fg='red', err=True)
+                raise SystemExit(1)
+    
     if len(my_jobs_r) == 0:
         # Check if any filtering options are being used
         filters_used = any([
@@ -1494,7 +1528,7 @@ def list_jobs(ctx,
         if output_format == 'stdout':
             # For stdout, always show a user-friendly message
             from cloudos_cli.utils.details import create_job_list_table
-            create_job_list_table([], cloudos_url, pagination_metadata)
+            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns)
         else:
             if filters_used:
                 print('A total of 0 jobs collected.')
@@ -1508,7 +1542,7 @@ def list_jobs(ctx,
     elif output_format == 'stdout':
         # Display as table
         from cloudos_cli.utils.details import create_job_list_table
-        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata)
+        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         cl.save_job_list_to_csv(my_jobs, outfile)

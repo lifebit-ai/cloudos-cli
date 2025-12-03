@@ -313,7 +313,7 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         print(f"\tJob details have been saved to '{output_basename}.csv'")
 
 
-def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
+def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_columns=None):
     """
     Creates a formatted job list table for stdout output.
 
@@ -328,6 +328,10 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
         - 'Pagination-Count': Total number of jobs matching the filter
         - 'Pagination-Page': Current page number
         - 'Pagination-Limit': Page size
+    selected_columns : list, optional
+        List of column names to display. If None, all columns are shown.
+        Valid values: 'status', 'name', 'project', 'owner', 'pipeline', 'id',
+        'submit_time', 'end_time', 'run_time', 'commit', 'cost', 'resources', 'storage_type'
 
     Returns
     -------
@@ -353,20 +357,42 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
     # Create table
     table = Table(title="Job List")
     
-    # Add columns matching the required fields
-    table.add_column("Status", style="cyan", no_wrap=True)
-    table.add_column("Name", style="green", overflow="ellipsis", min_width=15, max_width=25)
-    table.add_column("Project", style="magenta", overflow="fold")
-    table.add_column("Owner", style="blue", overflow="fold")
-    table.add_column("Pipeline", style="yellow", no_wrap=True)
-    table.add_column("ID", style="white", no_wrap=True)
-    table.add_column("Submit time", style="cyan", no_wrap=True)
-    table.add_column("End time", style="cyan", no_wrap=True)
-    table.add_column("Run time", style="green", no_wrap=True)
-    table.add_column("Commit", style="magenta", overflow="fold")
-    table.add_column("Cost", style="yellow", no_wrap=True)
-    table.add_column("Resources", style="blue", overflow="fold")
-    table.add_column("Storage type", style="white", no_wrap=True)
+    # Define all available columns with their configurations
+    all_columns = {
+        'status': {"header": "Status", "style": "cyan", "no_wrap": True},
+        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "min_width": 15, "max_width": 25},
+        'project': {"header": "Project", "style": "magenta", "overflow": "fold"},
+        'owner': {"header": "Owner", "style": "blue", "overflow": "fold"},
+        'pipeline': {"header": "Pipeline", "style": "yellow", "no_wrap": True},
+        'id': {"header": "ID", "style": "white", "no_wrap": True},
+        'submit_time': {"header": "Submit time", "style": "cyan", "no_wrap": True},
+        'end_time': {"header": "End time", "style": "cyan", "no_wrap": True},
+        'run_time': {"header": "Run time", "style": "green", "no_wrap": True},
+        'commit': {"header": "Commit", "style": "magenta", "overflow": "fold"},
+        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True},
+        'resources': {"header": "Resources", "style": "blue", "overflow": "fold"},
+        'storage_type': {"header": "Storage type", "style": "white", "no_wrap": True}
+    }
+    
+    # Determine which columns to display
+    if selected_columns is None:
+        # Default: show all columns in order
+        columns_to_show = list(all_columns.keys())
+    else:
+        # Show only selected columns, preserving order
+        columns_to_show = [col for col in all_columns.keys() if col in selected_columns]
+    
+    # Add columns to table
+    for col_key in columns_to_show:
+        col_config = all_columns[col_key]
+        table.add_column(
+            col_config["header"],
+            style=col_config.get("style"),
+            no_wrap=col_config.get("no_wrap", False),
+            overflow=col_config.get("overflow"),
+            min_width=col_config.get("min_width"),
+            max_width=col_config.get("max_width")
+        )
     
     # Process each job
     for job in jobs:
@@ -491,22 +517,26 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
         else:
             storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
         
-        # Add row to table
-        table.add_row(
-            status,
-            name,
-            project,
-            owner,
-            pipeline,
-            job_id_with_link,
-            submit_time,
-            end_time,
-            run_time,
-            commit,
-            cost,
-            resources,
-            storage_type
-        )
+        # Map column keys to their values
+        column_values = {
+            'status': status,
+            'name': name,
+            'project': project,
+            'owner': owner,
+            'pipeline': pipeline,
+            'id': job_id_with_link,
+            'submit_time': submit_time,
+            'end_time': end_time,
+            'run_time': run_time,
+            'commit': commit,
+            'cost': cost,
+            'resources': resources,
+            'storage_type': storage_type
+        }
+        
+        # Add row to table with only selected columns
+        row_values = [column_values[col] for col in columns_to_show]
+        table.add_row(*row_values)
     
     console.print(table)
     

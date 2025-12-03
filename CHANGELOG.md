@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.74.0 (2025-12-3)
+
+### Feat
+
+- adds tablular standard output for job list
+
 ## v2.71.0 (2025-11-26)
 
 ### Feat
