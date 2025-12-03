@@ -311,3 +311,205 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
             # Write values in the second row
             writer.writerow(job_details_json.values())
         print(f"\tJob details have been saved to '{output_basename}.csv'")
+
+
+def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
+    """
+    Creates a formatted job list table for stdout output.
+
+    Parameters
+    ----------
+    jobs : list
+        List of job dictionaries from the CloudOS API.
+    cloudos_url : str
+        The CloudOS service URL for generating job links.
+    pagination_metadata : dict, optional
+        Pagination metadata from the API response containing:
+        - 'Pagination-Count': Total number of jobs matching the filter
+        - 'Pagination-Page': Current page number
+        - 'Pagination-Limit': Page size
+
+    Returns
+    -------
+    None
+        Prints the formatted table to console.
+    """
+    console = Console()
+    
+    if not jobs:
+        console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
+        # Still show pagination info even when no jobs
+        if pagination_metadata:
+            total_jobs = pagination_metadata.get('Pagination-Count', 0)
+            current_page = pagination_metadata.get('Pagination-Page', 1)
+            page_size = pagination_metadata.get('Pagination-Limit', 10)
+            total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
+            
+            console.print(f"\n[cyan]Total jobs matching filter:[/cyan] {total_jobs}")
+            console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
+            console.print(f"[cyan]Jobs on this page:[/cyan] {len(jobs)}")
+        return
+    
+    # Create table
+    table = Table(title="Job List")
+    
+    # Add columns matching the required fields
+    table.add_column("Status", style="cyan", no_wrap=True)
+    table.add_column("Name", style="green", overflow="ellipsis", min_width=15, max_width=25)
+    table.add_column("Project", style="magenta", overflow="fold")
+    table.add_column("Owner", style="blue", overflow="fold")
+    table.add_column("Pipeline", style="yellow", no_wrap=True)
+    table.add_column("ID", style="white", no_wrap=True)
+    table.add_column("Submit time", style="cyan", no_wrap=True)
+    table.add_column("End time", style="cyan", no_wrap=True)
+    table.add_column("Run time", style="green", no_wrap=True)
+    table.add_column("Commit", style="magenta", overflow="fold")
+    table.add_column("Cost", style="yellow", no_wrap=True)
+    table.add_column("Resources", style="blue", overflow="fold")
+    table.add_column("Storage type", style="white", no_wrap=True)
+    
+    # Process each job
+    for job in jobs:
+        # Status with emoji
+        status_raw = str(job.get("status", "N/A"))
+        status_emoji_map = {
+            "completed": "✅",
+            "running": "🔄",
+            "failed": "❌",
+            "aborted": "⛔",
+            "initialising": "⏳",
+            "N/A": "❓"
+        }
+        status = status_emoji_map.get(status_raw.lower(), status_raw)
+        
+        # Name
+        name = str(job.get("name", "N/A"))
+        
+        # Project
+        project = str(job.get("project", {}).get("name", "N/A"))
+        
+        # Owner
+        user_info = job.get("user", {})
+        owner = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
+        if not owner:
+            owner = "N/A"
+        
+        # Pipeline
+        pipeline = str(job.get("workflow", {}).get("name", "N/A"))
+        # Only show the first line if pipeline name contains newlines
+        pipeline = pipeline.split('\n')[0].strip()
+        # Truncate to 25 chars with ellipsis if longer
+        if len(pipeline) > 25:
+            pipeline = pipeline[:22] + "..."
+        
+        # ID with hyperlink
+        job_id = str(job.get("_id", "N/A"))
+        job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
+        job_id_with_link = f"[link={job_url}]{job_id}[/link]"
+        
+        # Submit time
+        created_at = job.get("createdAt")
+        if created_at:
+            try:
+                dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                submit_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
+            except (ValueError, TypeError):
+                submit_time = "N/A"
+        else:
+            submit_time = "N/A"
+        
+        # End time
+        end_time_raw = job.get("endTime")
+        if end_time_raw:
+            try:
+                dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                end_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
+            except (ValueError, TypeError):
+                end_time = "N/A"
+        else:
+            end_time = "N/A"
+        
+        # Run time (calculate from startTime and endTime)
+        start_time_raw = job.get("startTime")
+        if start_time_raw and end_time_raw:
+            try:
+                start_dt = datetime.fromisoformat(start_time_raw.replace('Z', '+00:00'))
+                end_dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                duration = end_dt - start_dt
+                total_seconds = int(duration.total_seconds())
+                hours = total_seconds // 3600
+                minutes = (total_seconds % 3600) // 60
+                seconds = total_seconds % 60
+                if hours > 0:
+                    run_time = f"{hours}h {minutes}m {seconds}s"
+                elif minutes > 0:
+                    run_time = f"{minutes}m {seconds}s"
+                else:
+                    run_time = f"{seconds}s"
+            except (ValueError, TypeError):
+                run_time = "N/A"
+        else:
+            run_time = "N/A"
+        
+        # Commit
+        revision = job.get("revision", {})
+        if job.get("jobType") == "dockerAWS":
+            commit = str(revision.get("digest", "N/A"))
+        else:
+            commit = str(revision.get("commit", "N/A"))
+        # Truncate commit to 7 characters if it's longer
+        if commit != "N/A" and len(commit) > 7:
+            commit = commit[:7]
+        
+        # Cost
+        cost_raw = job.get("computeCostSpent") or job.get("realInstancesExecutionCost")
+        if cost_raw is not None:
+            try:
+                cost = f"${float(cost_raw) / 100:.4f}"
+            except (ValueError, TypeError):
+                cost = "N/A"
+        else:
+            cost = "N/A"
+        
+        # Resources (instance type only)
+        master_instance = job.get("masterInstance", {})
+        used_instance = master_instance.get("usedInstance", {})
+        instance_type = used_instance.get("type", "N/A")
+        resources = instance_type if instance_type else "N/A"
+        
+        # Storage type
+        storage_mode = job.get("storageMode", "N/A")
+        if storage_mode == "regular":
+            storage_type = "Regular"
+        elif storage_mode == "lustre":
+            storage_type = "Lustre"
+        else:
+            storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
+        
+        # Add row to table
+        table.add_row(
+            status,
+            name,
+            project,
+            owner,
+            pipeline,
+            job_id_with_link,
+            submit_time,
+            end_time,
+            run_time,
+            commit,
+            cost,
+            resources,
+            storage_type
+        )
+    
+    console.print(table)
+    
+    # Display pagination info at the bottom
+    if pagination_metadata:
+        total_jobs = pagination_metadata.get('Pagination-Count', 0)
+        current_page = pagination_metadata.get('Pagination-Page', 1)
+        page_size = pagination_metadata.get('Pagination-Limit', 10)
+        total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
+        
+        console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")

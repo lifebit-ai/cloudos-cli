@@ -1353,9 +1353,9 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help='The desired output format. For json option --all-fields will be automatically set to True. Default=stdout.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -1434,11 +1434,15 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
+    """Collect and display workspace jobs from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
+    
+    # Only set outfile if not using stdout
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
+    
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -1455,17 +1459,26 @@ def list_jobs(ctx,
 
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
+    
+    # Validate page_size limit
+    if page_size > 100:
+        raise ValueError('Please, use a page_size value <= 100')
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
-                                filter_status=filter_status,
-                                filter_job_name=filter_job_name,
-                                filter_project=filter_project,
-                                filter_workflow=filter_workflow,
-                                filter_job_id=filter_job_id,
-                                filter_only_mine=filter_only_mine,
-                                filter_owner=filter_owner,
-                                filter_queue=filter_queue,
-                                last=last)
+    result = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
+                             filter_status=filter_status,
+                             filter_job_name=filter_job_name,
+                             filter_project=filter_project,
+                             filter_workflow=filter_workflow,
+                             filter_job_id=filter_job_id,
+                             filter_only_mine=filter_only_mine,
+                             filter_owner=filter_owner,
+                             filter_queue=filter_queue,
+                             last=last)
+    
+    # Extract jobs and pagination metadata from result
+    my_jobs_r = result['jobs']
+    pagination_metadata = result['pagination_metadata']
+    
     if len(my_jobs_r) == 0:
         # Check if any filtering options are being used
         filters_used = any([
@@ -1478,15 +1491,24 @@ def list_jobs(ctx,
             filter_owner,
             filter_queue
         ])
-        if filters_used:
-            print('A total of 0 jobs collected.')
-        elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('A total of 0 jobs collected. This is likely because your workspace ' +
-                  'has no jobs created yet.')
+        if output_format == 'stdout':
+            # For stdout, always show a user-friendly message
+            from cloudos_cli.utils.details import create_job_list_table
+            create_job_list_table([], cloudos_url, pagination_metadata)
         else:
-            print('A total of 0 jobs collected. This is likely because the --page you requested ' +
-                  'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
-                  'using --page parameter.')
+            if filters_used:
+                print('A total of 0 jobs collected.')
+            elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+                print('A total of 0 jobs collected. This is likely because your workspace ' +
+                      'has no jobs created yet.')
+            else:
+                print('A total of 0 jobs collected. This is likely because the --page you requested ' +
+                      'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
+                      'using --page parameter.')
+    elif output_format == 'stdout':
+        # Display as table
+        from cloudos_cli.utils.details import create_job_list_table
+        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         cl.save_job_list_to_csv(my_jobs, outfile)
@@ -1496,7 +1518,7 @@ def list_jobs(ctx,
         print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
         print(f'\tJob list saved to {outfile}')
     else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+        raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
 @job.command('abort')
