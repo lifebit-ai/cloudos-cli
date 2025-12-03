@@ -390,8 +390,13 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None):
         
         # Owner
         user_info = job.get("user", {})
-        owner = f"{user_info.get('name', '')} {user_info.get('surname', '')}".strip()
-        if not owner:
+        name_part = user_info.get('name', '')
+        surname_part = user_info.get('surname', '')
+        if name_part and surname_part:
+            owner = f"{name_part}\n{surname_part}"
+        elif name_part or surname_part:
+            owner = name_part or surname_part
+        else:
             owner = "N/A"
         
         # Pipeline
