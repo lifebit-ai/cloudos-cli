@@ -383,7 +383,8 @@ class Cloudos:
 
         try:
             # Try to get job info from job list to see the owner
-            jobs = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            result = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            jobs = result['jobs']  # Extract jobs list from the dictionary
             job_owner_name = None
             
             for job in jobs:

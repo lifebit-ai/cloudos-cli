@@ -70,8 +70,10 @@ def test_filter_by_status():
     )
     clos = setup_clos()
     result = clos.get_job_list(WORKSPACE_ID, filter_status="completed", page=1, page_size=10)
-    assert isinstance(result, list)
-    assert len(result) == 2
+    assert isinstance(result, dict)
+    assert 'jobs' in result
+    assert isinstance(result['jobs'], list)
+    assert len(result['jobs']) == 2
 
 @responses.activate
 def test_filter_by_job_name():
@@ -91,7 +93,8 @@ def test_filter_by_job_name():
     )
     clos = setup_clos()
     result = clos.get_job_list(WORKSPACE_ID, filter_job_name="test-job-1", page=1, page_size=10)
-    assert isinstance(result, list)
+    assert isinstance(result, dict)
+    assert 'jobs' in result
 
 @responses.activate
 def test_filter_by_job_id():
@@ -111,7 +114,8 @@ def test_filter_by_job_id():
     )
     clos = setup_clos()
     result = clos.get_job_list(WORKSPACE_ID, filter_job_id="job1", page=1, page_size=10)
-    assert isinstance(result, list)
+    assert isinstance(result, dict)
+    assert 'jobs' in result
 
 @responses.activate
 def test_filter_only_mine():
@@ -137,7 +141,8 @@ def test_filter_only_mine():
     )
     clos = setup_clos()
     result = clos.get_job_list(WORKSPACE_ID, filter_only_mine=True, page=1, page_size=10)
-    assert isinstance(result, list)
+    assert isinstance(result, dict)
+    assert 'jobs' in result
 
 @responses.activate
 @mock.patch('cloudos_cli.queue.queue.Queue.get_job_queues')
@@ -151,7 +156,10 @@ def test_filter_by_queue(mock_get_queues):
     )
     clos = setup_clos()
     result = clos.get_job_list(WORKSPACE_ID, filter_queue="v41", page=1, page_size=10)
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert result[0]["_id"] == "job1"
+    assert isinstance(result, dict)
+    assert 'jobs' in result
+    jobs = result['jobs']
+    assert isinstance(jobs, list)
+    assert len(jobs) == 1
+    assert jobs[0]["_id"] == "job1"
 

@@ -2094,7 +2094,8 @@ You can also collect your last 30 submitted jobs for a given workspace using the
 following command.
 
 ```python
-my_jobs_r = j.get_job_list(workspace_id)
+result = j.get_job_list(workspace_id)
+my_jobs_r = result['jobs']  # Extract jobs list from the result
 my_jobs = j.process_job_list(my_jobs_r)
 print(my_jobs)
 ```
