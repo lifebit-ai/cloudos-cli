@@ -73,7 +73,7 @@ def get_path(param, param_kind_map, execution_platform, storage_provider, mode="
     return value
 
 
-def create_job_details(j_details_h, job_id, output_format, output_basename, parameters):
+def create_job_details(j_details_h, job_id, output_format, output_basename, parameters, cloudos_url="https://cloudos.lifebit.ai"):
     """
     Creates formatted job details output from job data in multiple formats.
 
@@ -113,6 +113,8 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         Whether to create a separate configuration file containing job parameters.
         If True and parameters exist, creates a '.config' file with Nextflow-style
         parameter formatting.
+    cloudos_url : str, optional
+        The base URL of the CloudOS instance. Defaults to "https://cloudos.lifebit.ai".
 
     Returns
     -------
@@ -293,6 +295,11 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         for key, value in job_details_json.items():
             if key == "Parameters":
                 table.add_row(key, "\n".join(value.split(";")))
+            elif key == "ID":
+                # Add hyperlink to job ID
+                job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{value}"
+                job_id_with_link = f"[link={job_url}]{value}[/link]"
+                table.add_row(key, job_id_with_link)
             else:
                 table.add_row(key, str(value))
 
