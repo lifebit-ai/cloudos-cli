@@ -167,8 +167,8 @@ if [[ ! -f "joblist.csv" ]]; then
     exit 1
 fi
 
-# Extract job IDs from CSV (skip header, get first column)
-tail -n +2 joblist.csv | cut -d',' -f1 > "$TEMP_FILE"
+# Extract job IDs, names, and status from CSV (skip header, get columns: ID (6th), Name (2nd), Status (1st))
+tail -n +2 joblist.csv | awk -F',' '{print $6 "," $2 "," $1}' > "$TEMP_FILE"
 
 JOB_COUNT=$(wc -l < "$TEMP_FILE" | tr -d ' ')
 
@@ -191,9 +191,9 @@ SKIPPED_WORKDIR=0
 
 # Process each job
 COUNTER=0
-while IFS= read -r JOB_ID; do
+while IFS=',' read -r JOB_ID JOB_NAME JOB_STATUS; do
     COUNTER=$((COUNTER + 1))
-    echo -e "${GREEN}[$COUNTER/$JOB_COUNT] Processing job: $JOB_ID${NC}"
+    echo -e "${GREEN}[$COUNTER/$JOB_COUNT] Processing job: $JOB_NAME (ID: $JOB_ID, Status: $JOB_STATUS)${NC}"
 
     # Delete results if requested
     if [[ "$DELETE_RESULTS" == true ]]; then
