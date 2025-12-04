@@ -1634,6 +1634,39 @@ If you require more information on the files and folder listed, you can use the 
 - Virtual Name (the file or folder name)
 - Storage Path
 
+**Output Format Options**
+
+The `datasets ls` command supports different output formats using the `--output-format` option:
+
+- **`stdout` (default)**: Displays results in the console with Rich formatting
+  - Without `--details`: Simple list of file/folder names with color coding (blue underlined for folders)
+  - With `--details`: Rich formatted table with all file information
+  
+- **`csv`**: Saves results to a CSV file
+  - Without `--details`: CSV with two columns: "Name,Storage Path"
+  - With `--details`: CSV with columns "Type, Owner, Size, Size (bytes), Last Updated, Virtual Name, Storage Path"
+
+Examples:
+
+```bash
+# Simple list to console (default)
+cloudos datasets ls Data --profile my_profile
+
+# Detailed table in console
+cloudos datasets ls Data --details --profile my_profile
+
+# Simple CSV output
+cloudos datasets ls Data --profile my_profile --output-format csv
+
+# Detailed CSV output
+cloudos datasets ls Data --details --output-format csv --profile my_profile
+
+# Custom output filename
+cloudos datasets ls Data --details --output-format csv --output-basename my_files --profile my_profile
+```
+
+When using `--output-format csv`, you can optionally specify a custom base filename using `--output-basename`. If not provided, the filename will be auto-generated based on the path (e.g., `datasets_ls.csv`).
+
 #### Move Files
 
 Relocate files and folders within the same project or across different projects. This is useful for reorganizing data and moving results to appropriate locations.

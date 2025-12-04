@@ -2997,6 +2997,16 @@ def run_bash_array_job(ctx,
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
                     '"Virtual Name", "Storage Path".'),
               is_flag=True)
+@click.option('--output-format',
+              help=('The desired display for the output, either directly in standard output or saved as file. ' +
+                    'Default=stdout.'),
+              type=click.Choice(['stdout', 'csv'], case_sensitive=False),
+              default='stdout')
+@click.option('--output-basename',
+              help=('Output file base name to save jobs details. ' +
+                    'Default=datasets_ls'),
+              default='datasets_ls',
+              required=False)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
 def list_files(ctx,
@@ -3008,7 +3018,9 @@ def list_files(ctx,
                project_name,
                profile,
                path,
-               details):
+               details,
+               output_format,
+               output_basename):
     """List contents of a path within a CloudOS workspace dataset."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -3024,89 +3036,144 @@ def list_files(ctx,
     try:
         result = datasets.list_folder_content(path)
         contents = result.get("contents") or result.get("datasets", [])
+
         if not contents:
             contents = result.get("files", []) + result.get("folders", [])
 
-        if details:
-            console = Console(width=None)
-            table = Table(show_header=True, header_style="bold white")
-            table.add_column("Type", style="cyan", no_wrap=True)
-            table.add_column("Owner", style="white")
-            table.add_column("Size", style="magenta")
-            table.add_column("Last Updated", style="green")
-            table.add_column("Virtual Name", style="bold", overflow="fold")
-            table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+        # Process items to extract data
+        processed_items = []
+        for item in contents:
+            is_folder = "folderType" in item or item.get("isDir", False)
+            type_ = "folder" if is_folder else "file"
 
-            for item in contents:
-                is_folder = "folderType" in item or item.get("isDir", False)
-                type_ = "folder" if is_folder else "file"
+            # Enhanced type information
+            if is_folder:
+                folder_type = item.get("folderType")
+                if folder_type == "VirtualFolder":
+                    type_ = "virtual folder"
+                elif folder_type == "S3Folder":
+                    type_ = "s3 folder"
+                elif folder_type == "AzureBlobFolder":
+                    type_ = "azure folder"
+                else:
+                    type_ = "folder"
+            else:
+                # Check if file is managed by Lifebit (user uploaded)
+                is_managed_by_lifebit = item.get("isManagedByLifebit", False)
+                if is_managed_by_lifebit:
+                    type_ = "file (user uploaded)"
+                else:
+                    type_ = "file (virtual copy)"
+                    
+            user = item.get("user", {})
+            if isinstance(user, dict):
+                name = user.get("name", "").strip()
+                surname = user.get("surname", "").strip()
+            else:
+                name = surname = ""
+            if name and surname:
+                owner = f"{name} {surname}"
+            elif name:
+                owner = name
+            elif surname:
+                owner = surname
+            else:
+                owner = "-"
 
-                # Enhanced type information
-                if is_folder:
-                    folder_type = item.get("folderType")
-                    if folder_type == "VirtualFolder":
-                        type_ = "virtual folder"
-                    elif folder_type == "S3Folder":
-                        type_ = "s3 folder"
-                    elif folder_type == "AzureBlobFolder":
-                        type_ = "azure folder"
+            raw_size = item.get("sizeInBytes", item.get("size"))
+            size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
+
+            updated = item.get("updatedAt") or item.get("lastModified", "-")
+            filepath = item.get("name", "-")
+
+            if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
+                bucket = item.get("s3BucketName")
+                key = item.get("s3ObjectKey") or item.get("s3Prefix")
+                storage_path = f"s3://{bucket}/{key}" if bucket and key else "-"
+            elif item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
+                account = item.get("blobStorageAccountName")
+                container = item.get("blobContainerName")
+                key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
+                storage_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
+            else:
+                storage_path = "-"
+
+            processed_items.append({
+                'type': type_,
+                'owner': owner,
+                'size': size,
+                'raw_size': raw_size,
+                'updated': updated,
+                'name': filepath,
+                'storage_path': storage_path,
+                'is_folder': is_folder
+            })
+
+        # Output handling
+        if output_format == 'csv':
+            import csv
+
+            csv_filename = f'{output_basename}.csv'
+
+            if details:
+                # CSV with all details
+                with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+                    fieldnames = ['Type', 'Owner', 'Size', 'Size (bytes)', 'Last Updated', 'Virtual Name', 'Storage Path']
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+
+                    for item in processed_items:
+                        writer.writerow({
+                            'Type': item['type'],
+                            'Owner': item['owner'],
+                            'Size': item['size'],
+                            'Size (bytes)': item['raw_size'] if item['raw_size'] is not None else '',
+                            'Last Updated': item['updated'],
+                            'Virtual Name': item['name'],
+                            'Storage Path': item['storage_path']
+                        })
+            else:
+                # CSV with just names
+                with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(['Name', 'Storage Path'])
+                    for item in processed_items:
+                        writer.writerow([item['name'], item['storage_path']])
+
+            click.secho(f'\nDatasets list saved to: {csv_filename}', fg='green', bold=True)
+
+        else:  # stdout
+            if details:
+                console = Console(width=None)
+                table = Table(show_header=True, header_style="bold white")
+                table.add_column("Type", style="cyan", no_wrap=True)
+                table.add_column("Owner", style="white")
+                table.add_column("Size", style="magenta")
+                table.add_column("Last Updated", style="green")
+                table.add_column("Virtual Name", style="bold", overflow="fold")
+                table.add_column("Storage Path", style="dim", no_wrap=False, overflow="fold", ratio=2)
+
+                for item in processed_items:
+                    style = Style(color="blue", underline=True) if item['is_folder'] else None
+                    table.add_row(
+                        item['type'],
+                        item['owner'],
+                        item['size'],
+                        item['updated'],
+                        item['name'],
+                        item['storage_path'],
+                        style=style
+                    )
+
+                console.print(table)
+
+            else:
+                console = Console()
+                for item in processed_items:
+                    if item['is_folder']:
+                        console.print(f"[blue underline]{item['name']}[/]")
                     else:
-                        type_ = "folder"
-                else:
-                    # Check if file is managed by Lifebit (user uploaded)
-                    is_managed_by_lifebit = item.get("isManagedByLifebit", False)
-                    if is_managed_by_lifebit:
-                        type_ = "file (user uploaded)"
-                    else:
-                        type_ = "file (virtual copy)"
-                        
-                user = item.get("user", {})
-                if isinstance(user, dict):
-                    name = user.get("name", "").strip()
-                    surname = user.get("surname", "").strip()
-                else:
-                    name = surname = ""
-                if name and surname:
-                    owner = f"{name} {surname}"
-                elif name:
-                    owner = name
-                elif surname:
-                    owner = surname
-                else:
-                    owner = "-"
-
-                raw_size = item.get("sizeInBytes", item.get("size"))
-                size = format_bytes(raw_size) if not is_folder and raw_size is not None else "-"
-
-                updated = item.get("updatedAt") or item.get("lastModified", "-")
-                filepath = item.get("name", "-")
-
-                if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
-                    bucket = item.get("s3BucketName")
-                    key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                    s3_path = f"s3://{bucket}/{key}" if bucket and key else "-"
-                elif item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
-                    account = item.get("blobStorageAccountName")
-                    container = item.get("blobContainerName")
-                    key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
-                    s3_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
-                else:
-                    s3_path = "-"
-
-                style = Style(color="blue", underline=True) if is_folder else None
-                table.add_row(type_, owner, size, updated, filepath, s3_path, style=style)
-
-            console.print(table)
-
-        else:
-            console = Console()
-            for item in contents:
-                name = item.get("name", "")
-                is_folder = item.get("folderType") or item.get("isDir")
-                if is_folder:
-                    console.print(f"[blue underline]{name}[/]")
-                else:
-                    console.print(name)
+                        console.print(item['name'])
 
     except Exception as e:
         raise ValueError(f"Failed to list files for project '{project_name}': {str(e)}")
