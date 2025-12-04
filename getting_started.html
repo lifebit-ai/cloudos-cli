@@ -1877,6 +1877,40 @@ If the <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;
 <li><p>Virtual Name (the file or folder name)</p></li>
 <li><p>Storage Path</p></li>
 </ul>
+<p><strong>Output Format Options</strong></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">datasets</span> <span class="pre">ls</span></code> command supports different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">stdout</span></code> (default)</strong>: Displays results in the console with Rich formatting</p>
+<ul>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">--details</span></code>: Simple list of file/folder names with color coding (blue underlined for folders)</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">--details</span></code>: Rich formatted table with all file information</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">csv</span></code></strong>: Saves results to a CSV file</p>
+<ul>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">--details</span></code>: CSV with two columns: “Name,Storage Path”</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">--details</span></code>: CSV with columns “Type, Owner, Size, Size (bytes), Last Updated, Virtual Name, Storage Path”</p></li>
+</ul>
+</li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simple list to console (default)</span>
+cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>Data<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Detailed table in console</span>
+cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>Data<span class="w"> </span>--details<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Simple CSV output</span>
+cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>Data<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv
+
+<span class="c1"># Detailed CSV output</span>
+cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>Data<span class="w"> </span>--details<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Custom output filename</span>
+cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>Data<span class="w"> </span>--details<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-basename<span class="w"> </span>my_files<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p>When using <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">csv</span></code>, you can optionally specify a custom base filename using <code class="docutils literal notranslate"><span class="pre">--output-basename</span></code>. If not provided, the filename will be auto-generated based on the path (e.g., <code class="docutils literal notranslate"><span class="pre">datasets_ls.csv</span></code>).</p>
 </section>
 <section id="move-files">
 <h4>Move Files<a class="headerlink" href="#move-files" title="Link to this heading">¶</a></h4>
