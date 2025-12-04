@@ -167,8 +167,27 @@ if [[ ! -f "joblist.csv" ]]; then
     exit 1
 fi
 
-# Extract job IDs, names, and status from CSV (skip header, get columns: ID (6th), Name (2nd), Status (1st))
-tail -n +2 joblist.csv | awk -F',' '{print $6 "," $2 "," $1}' > "$TEMP_FILE"
+# Read the header to find column positions dynamically
+# This prevents issues when columns like "Pipeline" are missing from the API response,
+# which would cause column positions to shift and lead to extracting wrong job IDs
+HEADER=$(head -n 1 joblist.csv)
+
+# Find the column positions for ID, Name, and Status
+ID_COL=$(echo "$HEADER" | awk -F',' '{for(i=1;i<=NF;i++){if($i=="ID")print i}}')
+NAME_COL=$(echo "$HEADER" | awk -F',' '{for(i=1;i<=NF;i++){if($i=="Name")print i}}')
+STATUS_COL=$(echo "$HEADER" | awk -F',' '{for(i=1;i<=NF;i++){if($i=="Status")print i}}')
+
+# Validate that all required columns were found
+if [[ -z "$ID_COL" ]] || [[ -z "$NAME_COL" ]] || [[ -z "$STATUS_COL" ]]; then
+    echo -e "${RED}Error: Could not find required columns (ID, Name, Status) in job list CSV${NC}"
+    echo "Available columns: $HEADER"
+    rm -f joblist.csv
+    exit 1
+fi
+
+# Extract job IDs, names, and status from CSV using dynamic column positions
+tail -n +2 joblist.csv | awk -F',' -v id_col="$ID_COL" -v name_col="$NAME_COL" -v status_col="$STATUS_COL" \
+    '{print $id_col "," $name_col "," $status_col}' > "$TEMP_FILE"
 
 JOB_COUNT=$(wc -l < "$TEMP_FILE" | tr -d ' ')
 
