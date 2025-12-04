@@ -94,17 +94,17 @@ done
 # Validate required arguments
 if [[ -z "$PROFILE" ]]; then
     echo -e "${RED}Error: --profile is required${NC}"
-    usage
+    exit 1
 fi
 
 if [[ -z "$PROJECT_NAME" ]]; then
     echo -e "${RED}Error: --project-name is required${NC}"
-    usage
+    exit 1
 fi
 
 if [[ "$DELETE_RESULTS" == false && "$DELETE_WORKDIR" == false ]]; then
     echo -e "${RED}Error: At least one deletion option (--results, --workdir, or --both) is required${NC}"
-    usage
+    exit 1
 fi
 
 # Validate FILTER_STATUS if provided
@@ -120,6 +120,7 @@ if [[ -n "$FILTER_STATUS" ]]; then
     
     if [[ "$STATUS_VALID" == false ]]; then
         echo -e "${RED}Error: Invalid status '$FILTER_STATUS'. Valid statuses are: $(IFS=','; echo "${VALID_STATUSES[*]}")${NC}"
+        exit 1
     fi
 fi
 
