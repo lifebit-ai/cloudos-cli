@@ -426,7 +426,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         if invalid_cols:
             raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
                            f"Valid columns are: {', '.join(valid_columns)}")
-        columns_to_show = [col for col in valid_columns if col in selected_columns]
+        columns_to_show = selected_columns  # Preserve user-specified order
     
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
