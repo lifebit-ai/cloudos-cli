@@ -437,17 +437,17 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     
     # Process each job
     for job in jobs:
-        # Status with emoji
+        # Status with emoji (padded for consistent width)
         status_raw = str(job.get("status", "N/A"))
         status_emoji_map = {
-            "completed": "✅",
-            "running": "🔄",
-            "failed": "❌",
-            "aborted": "⛔",
-            "initialising": "⏳",
-            "N/A": "❓"
+            "completed": "✅ ",
+            "running": "🔄 ",
+            "failed": "❌ ",
+            "aborted": "⛔ ",
+            "initialising": "⏳ ",
+            "N/A": "❓ "
         }
-        status = status_emoji_map.get(status_raw.lower(), status_raw)
+        status = status_emoji_map.get(status_raw.lower(), status_raw + " ")
         
         # Name
         name = str(job.get("name", "N/A"))
