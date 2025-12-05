@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.73.1 (2025-12-05)
+
+### Patch
+
+- Removes semi-colon ':' from error messages
+
 ## v2.73.0 (2025-12-02)
 
 ### Feat
