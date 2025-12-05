@@ -421,7 +421,7 @@ class Cloudos:
         if r_json["status"] =='initializing' or r_json["status"] =='scheduled':
             raise ValueError("Logs are not yet available. The job is still initializing.")
         if "logs" not in r_json:
-            raise ValueError("Error. Logs are not available.")
+            raise ValueError("Logs are not available.")
         else:
             logs_obj = r_json["logs"]
             cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)

@@ -10,6 +10,7 @@ the refactoring to improve readability and consistency.
 """
 
 import unittest
+import pytest
 
 
 class TestJobErrorMessages(unittest.TestCase):
@@ -266,7 +267,7 @@ class TestCLOSErrorMessages(unittest.TestCase):
     def test_logs_not_available_error_message(self):
         """Test that logs not available error uses 'Error.' prefix"""
         with self.assertRaises(ValueError) as context:
-            raise ValueError("Error. Logs are not available.")
+            raise ValueError("Logs are not available.")
         
         self.assertIn("Error.", str(context.exception))
         self.assertNotIn("ERROR:", str(context.exception))
@@ -414,7 +415,7 @@ class TestErrorMessageConsistency(unittest.TestCase):
             "Job 'test' not found or not accessible. Error",
             "Failed to retrieve working directory for job 'test'. Error",
             "Move failed. 400 - Bad request",
-            "Error. Logs are not available.",
+            "Logs are not available.",
             "More than one workflow type detected for workflow. types",
             "Your repository platform is not supported. platform",
         ]
@@ -425,17 +426,6 @@ class TestErrorMessageConsistency(unittest.TestCase):
             if len(parts) > 1:
                 # After the first period, there should be no colons before variables
                 self.assertNotIn(':', parts[1].split('{')[0], f"Found colon in: {msg}")
-
-    def test_error_prefix_format(self):
-        """Test that ERROR: prefix has been changed to Error."""
-        correct_format = "Error. Logs are not available."
-        incorrect_format = "ERROR: Logs are not available."
-        
-        self.assertIn("Error.", correct_format)
-        self.assertNotIn("ERROR:", correct_format)
-        
-        # Ensure the incorrect format is what we're replacing
-        self.assertIn("ERROR:", incorrect_format)
 
 
 if __name__ == "__main__":
@@ -701,9 +691,9 @@ class TestCLOSErrorMessages:
     def test_logs_not_available_error_message(self):
         """Test that logs not available error uses 'Error.' prefix"""
         with pytest.raises(ValueError) as exc_info:
-            raise ValueError("Error. Logs are not available.")
+            raise ValueError("Logs are not available.")
         
-        assert "Error." in str(exc_info.value)
+        assert "Logs are not available." in str(exc_info.value)
         assert "ERROR:" not in str(exc_info.value)
 
     def test_failed_to_list_project_content_error_message(self):
@@ -849,7 +839,7 @@ class TestErrorMessageConsistency:
             "Job 'test' not found or not accessible. Error",
             "Failed to retrieve working directory for job 'test'. Error",
             "Move failed. 400 - Bad request",
-            "Error. Logs are not available.",
+            "Logs are not available.",
             "More than one workflow type detected for workflow. types",
             "Your repository platform is not supported. platform",
         ]
@@ -860,17 +850,6 @@ class TestErrorMessageConsistency:
             if len(parts) > 1:
                 # After the first period, there should be no colons before variables
                 assert ':' not in parts[1].split('{')[0], f"Found colon in: {msg}"
-
-    def test_error_prefix_format(self):
-        """Test that ERROR: prefix has been changed to Error."""
-        correct_format = "Error. Logs are not available."
-        incorrect_format = "ERROR: Logs are not available."
-        
-        assert "Error." in correct_format
-        assert "ERROR:" not in correct_format
-        
-        # Ensure the incorrect format is what we're replacing
-        assert "ERROR:" in incorrect_format
 
 
 if __name__ == "__main__":
