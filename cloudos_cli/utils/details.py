@@ -323,7 +323,21 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
 
 def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_columns=None):
     """
-    Creates a formatted job list table for stdout output.
+    Creates a formatted job list table for stdout output with responsive design.
+
+    The table automatically adapts to terminal width by showing different column sets:
+    - Very narrow (<60 chars): Essential columns only (status, name, pipeline, id)
+    - Narrow (<90 chars): + Important columns (project, owner, run_time, cost)
+    - Medium (<120 chars): + Useful columns (submit_time, end_time, commit)
+    - Wide (≥120 chars): + Extended columns (resources, storage_type)
+
+    Status symbols are displayed with colors:
+    - Green ✓ for completed jobs
+    - Grey ◐ for running jobs
+    - Red ✗ for failed jobs
+    - Orange ■ for aborted jobs
+    - Grey ○ for initialising jobs
+    - Grey ? for unknown status
 
     Parameters
     ----------
@@ -336,15 +350,23 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         - 'Pagination-Count': Total number of jobs matching the filter
         - 'Pagination-Page': Current page number
         - 'Pagination-Limit': Page size
-    selected_columns : list, optional
-        List of column names to display. If None, all columns are shown.
-        Valid values: 'status', 'name', 'project', 'owner', 'pipeline', 'id',
+    selected_columns : str or list, optional
+        Column names to display. Can be:
+        - None: Auto-responsive based on terminal width
+        - String: Comma-separated column names (e.g., "status,name,cost")
+        - List: List of column names
+        Valid columns: 'status', 'name', 'project', 'owner', 'pipeline', 'id',
         'submit_time', 'end_time', 'run_time', 'commit', 'cost', 'resources', 'storage_type'
 
     Returns
     -------
     None
-        Prints the formatted table to console.
+        Prints the formatted table to console with pagination information.
+
+    Raises
+    ------
+    ValueError
+        If invalid column names are provided in selected_columns.
     """
     console = Console()
 
@@ -437,17 +459,17 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     
     # Process each job
     for job in jobs:
-        # Status with emoji (padded for consistent width)
+        # Status with colored and bold ANSI symbols
         status_raw = str(job.get("status", "N/A"))
-        status_emoji_map = {
-            "completed": "✅ ",
-            "running": "🔄 ",
-            "failed": "❌ ",
-            "aborted": "⛔ ",
-            "initialising": "⏳ ",
-            "N/A": "❓ "
+        status_symbol_map = {
+            "completed": "[bold green]✓[/bold green]",      # Green check mark
+            "running": "[bold bright_black]◐[/bold bright_black]",       # Grey half-filled circle
+            "failed": "[bold red]✗[/bold red]",             # Red X mark
+            "aborted": "[bold orange3]■[/bold orange3]",    # Orange square
+            "initialising": "[bold bright_black]○[/bold bright_black]",  # Grey circle
+            "N/A": "[bold bright_black]?[/bold bright_black]"            # Grey question mark
         }
-        status = status_emoji_map.get(status_raw.lower(), status_raw + " ")
+        status = status_symbol_map.get(status_raw.lower(), status_raw)
         
         # Name
         name = str(job.get("name", "N/A"))

@@ -969,7 +969,7 @@ cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbo
 
 #### List Jobs
 
-View your workspace jobs in a clean, formatted table directly in your terminal. By default, jobs are displayed as a rich table with clickable job IDs and visual status indicators.
+View your workspace jobs in a clean, formatted table directly in your terminal. The table automatically adapts to your terminal width, showing different column sets for optimal viewing. By default, jobs are displayed as a rich table with clickable job IDs and colored visual status indicators.
 
 **Output Formats**
 
@@ -996,9 +996,9 @@ Executing list...
 ┏━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
 ┃ Status ┃ Name         ┃ Project     ┃ Owner    ┃ Pipeline     ┃ ID                      ┃ Submit time  ┃
 ┡━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
-│ ✅     │ analysis_run │ test-proj   │ John     │ rnatoy       │ 692ee71c40e98ed6ed529e43│ 2025-12-02   │
+│ ✓      │ analysis_run │ test-proj   │ John     │ rnatoy       │ 692ee71c40e98ed6ed529e43│ 2025-12-02   │
 │        │              │             │ Doe      │              │                         │ 15:30:45     │
-│ 🔄     │ test_job     │ research    │ Jane     │ VEP          │ 692ee81d50f98ed7fe639f54│ 2025-12-02   │
+│ ◐      │ test_job     │ research    │ Jane     │ VEP          │ 692ee81d50f98ed7fe639f54│ 2025-12-02   │
 │        │              │             │ Smith    │              │                         │ 14:20:30     │
 └────────┴──────────────┴─────────────┴──────────┴──────────────┴─────────────────────────┴──────────────┘
 
@@ -1007,12 +1007,12 @@ Showing 10 of 45 total jobs | Page 1 of 5
 
 **Status Indicators**
 
-Jobs are displayed with visual status indicators:
-- ✅ Completed
-- 🔄 Running
-- ❌ Failed
-- ⛔ Aborted
-- ⏳ Initialising
+Jobs are displayed with colored visual status indicators:
+- **Green ✓** Completed
+- **Grey ◐** Running
+- **Red ✗** Failed
+- **Orange ■** Aborted
+- **Grey ○** Initialising
 
 **Clickable Job IDs**
 
