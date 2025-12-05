@@ -408,11 +408,11 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             columns_to_show = priority_columns['essential']
         elif terminal_width < 90:
             columns_to_show = priority_columns['essential'] + priority_columns['important']
-        elif terminal_width < 120:
+        elif terminal_width < 130:
             columns_to_show = (priority_columns['essential'] + 
                              priority_columns['important'] + 
                              priority_columns['useful'])
-        elif terminal_width >120:
+        elif terminal_width >130:
             columns_to_show = (priority_columns['essential'] + 
                              priority_columns['important'] + 
                              priority_columns['useful'] +
