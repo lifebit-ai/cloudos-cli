@@ -391,7 +391,7 @@ class Job(Cloudos):
                              "textValue": p_value}
                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f'The provided parameters are not valid. {parameter}')
+                raise ValueError(f'The provided parameters "{parameter}" are not valid. ')
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)

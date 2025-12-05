@@ -1580,7 +1580,7 @@ class Cloudos:
         # make unique
         wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
-            raise ValueError(f'More than one workflow type detected for {workflow_name}. {wt}')
+            raise ValueError(f'More than one workflow type ("{wt}") detected for "{workflow_name}". ')
         return str(wt[0])
 
     def is_module(self, workflow_name, workspace_id, verify=True, last=False):
@@ -1764,7 +1764,7 @@ class Cloudos:
             repository_project = workflow_url.split('/')[4]
             repository_id = repository_name
         else:
-            raise ValueError(f'Your repository platform is not supported. {platform_url}. ' +
+            raise ValueError(f'Your repository platform "{platform_url}" is not supported. ' +
                              'Please use either GitHub or BitbucketServer.')
         repository_name = workflow_url.split('/')[-1]
 
@@ -1984,7 +1984,7 @@ class Cloudos:
         pag_content = json.loads(response.content)
         max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
         if max_pagination == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name} in workspace. {workspace_id}')
+            raise ValueError(f'No workflow found with name "{workflow_name}" in workspace "{workspace_id}"')
 
         return max_pagination
 
@@ -2040,9 +2040,9 @@ class Cloudos:
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
         if len(wf) == 0 or len(content["workflows"]) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name} in workspace. {workspace_id}')
+            raise ValueError(f'No workflow found with name "{workflow_name}" in workspace "{workspace_id}"')
         if len(wf) > 1 and not last:
-            raise ValueError(f'More than one workflow found with name. {workflow_name}. ' + \
+            raise ValueError(f'More than one workflow found with name "{workflow_name}". ' + \
                              "To run the last imported workflow use '--last' flag.")
         else:
             content = youngest_workflow_id_by_name(content, workflow_name)
