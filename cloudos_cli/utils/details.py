@@ -386,7 +386,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     
     # Define all available columns with their configurations
     all_columns = {
-        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 3, "max_width": 3},
+        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
         'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "min_width": 6, "max_width": 20},
         'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "min_width": 6, "max_width": 15},
         'owner': {"header": "Owner", "style": "blue", "overflow": "ellipsis", "min_width": 6, "max_width": 12},
