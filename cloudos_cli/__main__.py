@@ -1355,7 +1355,7 @@ def job_details(ctx,
 @click.option('--output-format',
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
               type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')              
+              default='csv')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -2538,21 +2538,10 @@ def remove_profile(ctx, profile):
               default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
-              type=float)
-@click.option('--job-id',
-              help='The CloudOS job id of the job to be cloned.',
-              required=True)
-@click.option('--accelerate-file-staging',
-              help='Enables AWS S3 mountpoint for quicker file staging.',
-              is_flag=True)
+              type=float,
+              default=30.0)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
-              is_flag=True)
-@click.option('--resumable',
-              help='Whether to make the job able to be resumed or not.',
-              is_flag=True)
-@click.option('--verbose',
-              help='Whether to print information messages or not.',
               is_flag=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
@@ -2560,11 +2549,8 @@ def remove_profile(ctx, profile):
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-@click.option('--profile',
-              help='Profile to use from the config file',
-              default=None)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id'])
+@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run_bash_job(ctx,
                  apikey,
                  command,
