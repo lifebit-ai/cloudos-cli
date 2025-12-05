@@ -9,5 +9,6 @@ cloudos\_cli.utils.details
    .. autosummary::
    
       create_job_details
+      create_job_list_table
       get_path
    

@@ -2174,7 +2174,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-list">
 <h4>list<a class="headerlink" href="#cloudos-job-list" title="Link to this heading">¶</a></h4>
-<p>Collect workspace jobs from a CloudOS workspace in CSV or JSON format.</p>
+<p>Collect and display workspace jobs from a CloudOS workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2207,12 +2207,18 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-list-output-format">
 <span class="sig-name descname"><span class="pre">--output-format</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_format&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-output-format" title="Link to this definition">¶</a></dt>
-<dd><p>The desired file format (file extension) for the output. For json option –all-fields will be automatically set to True. Default=csv.</p>
+<dd><p>The desired output format. For json option –all-fields will be automatically set to True. Default=stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
-<dd class="field-odd"><p>csv | json</p>
+<dd class="field-odd"><p>stdout | csv | json</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-list-table-columns">
+<span class="sig-name descname"><span class="pre">--table-columns</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;table_columns&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-table-columns" title="Link to this definition">¶</a></dt>
+<dd><p>Comma-separated list of columns to display in the table. Only applicable when –output-format=stdout. Available columns: status,name,project,owner,pipeline,id,submit_time,end_time,run_time,commit,cost,resources,storage_type. Default: responsive (auto-selects columns based on terminal width)</p>
 </dd></dl>
 
 <dl class="std option">

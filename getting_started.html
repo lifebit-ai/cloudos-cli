@@ -1239,11 +1239,46 @@ If the working directory has been completely deleted, the command will report th
 </section>
 <section id="list-jobs">
 <h4>List Jobs<a class="headerlink" href="#list-jobs" title="Link to this heading">¶</a></h4>
-<p>You can get a summary of workspace jobs in two different formats:</p>
+<p>View your workspace jobs in a clean, formatted table directly in your terminal. The table automatically adapts to your terminal width, showing different column sets for optimal viewing. By default, jobs are displayed as a rich table with job IDs and colored visual status indicators.</p>
+<p><strong>Output Formats</strong></p>
+<p>CloudOS CLI provides three output formats for job listings:</p>
 <ul class="simple">
-<li><p>CSV: this is a table with a minimum predefined set of columns by default, or all the available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> argument.</p></li>
-<li><p>JSON: all the available information from the workspace jobs, in JSON format (<code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> is always enabled for this format).</p></li>
+<li><p><strong>Table (default)</strong>: Rich formatted table displayed in the terminal with pagination information</p></li>
+<li><p><strong>CSV</strong>: Tabular format with predefined or all available columns using <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code></p></li>
+<li><p><strong>JSON</strong>: Complete job information in JSON format (<code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> is always enabled)</p></li>
 </ul>
+<p><strong>Default Behavior</strong></p>
+<p>By default, the command displays the 10 most recent jobs in a formatted table:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p>The output shows a rich table with job information and pagination details:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+
+<span class="go">                                                    Job List                                                    </span>
+<span class="go">┏━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓</span>
+<span class="go">┃ Status ┃ Name         ┃ Project     ┃ Owner    ┃ Pipeline     ┃ ID                      ┃ Submit time  ┃</span>
+<span class="go">┡━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩</span>
+<span class="go">│ ✓      │ analysis_run │ test-proj   │ John     │ rnatoy       │ 692ee71c40e98ed6ed529e43│ 2025-12-02   │</span>
+<span class="go">│        │              │             │ Doe      │              │                         │ 15:30:45     │</span>
+<span class="go">│ ◐      │ test_job     │ research    │ Jane     │ VEP          │ 692ee81d50f98ed7fe639f54│ 2025-12-02   │</span>
+<span class="go">│        │              │             │ Smith    │              │                         │ 14:20:30     │</span>
+<span class="go">└────────┴──────────────┴─────────────┴──────────┴──────────────┴─────────────────────────┴──────────────┘</span>
+
+<span class="go">Showing 10 of 45 total jobs | Page 1 of 5</span>
+</pre></div>
+</div>
+<p><strong>Status Indicators</strong></p>
+<p>Jobs are displayed with colored visual status indicators:</p>
+<ul class="simple">
+<li><p><strong>Green ✓</strong> Completed</p></li>
+<li><p><strong>Grey ◐</strong> Running</p></li>
+<li><p><strong>Red ✗</strong> Failed</p></li>
+<li><p><strong>Orange ■</strong> Aborted</p></li>
+<li><p><strong>Grey ○</strong> Initialising</p></li>
+</ul>
+<p><strong>Clickable Job IDs</strong></p>
+<p>Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in CloudOS.</p>
 <p><strong>Job Listing Control Options</strong></p>
 <p>CloudOS CLI provides two ways to control the number of jobs retrieved:</p>
 <ol class="arabic simple">
@@ -1254,68 +1289,80 @@ If the working directory has been completely deleted, the command will report th
 <div><p>[!IMPORTANT]
 <strong>These options are mutually exclusive</strong>. When <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> is specified, it takes precedence and <code class="docutils literal notranslate"><span class="pre">--page</span></code>/<code class="docutils literal notranslate"><span class="pre">--page-size</span></code> parameters are ignored. A warning message will be displayed if both are provided.</p>
 </div></blockquote>
-<p><strong>Default Behavior</strong></p>
-<p>By default, the command retrieves the first page with 10 jobs (equivalent to <code class="docutils literal notranslate"><span class="pre">--page</span> <span class="pre">1</span> <span class="pre">--page-size</span> <span class="pre">10</span></code>):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
-</pre></div>
-</div>
-<p>The expected output is something similar to:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
-<span class="go">	Job list collected with a total of 10 jobs.</span>
-<span class="go">	Job list saved to joblist.csv</span>
-</pre></div>
-</div>
 <p><strong>Pagination Examples</strong></p>
 <p>Retrieve specific pages using <code class="docutils literal notranslate"><span class="pre">--page</span></code> and <code class="docutils literal notranslate"><span class="pre">--page-size</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get page 2 with 15 jobs per page</span>
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">15</span>
 
-<span class="c1"># Get page 5 with maximum 100 jobs per page</span>
+<span class="c1"># Get page 5 with maximum 100 jobs per page (maximum allowed)</span>
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">5</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">100</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p>[!NOTE]
+<code class="docutils literal notranslate"><span class="pre">--page-size</span></code> has a maximum limit of 100 jobs per page. Attempting to use a larger value will result in an error.</p>
+</div></blockquote>
 <p><strong>Last N Jobs Examples</strong></p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> to get the most recent jobs:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the last 50 jobs</span>
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">50</span>
 
 <span class="c1"># Get all workspace jobs</span>
-cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span>all<span class="w"> </span>--output-format<span class="w"> </span>json
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span>all
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
-<span class="go">	Job list collected with a total of 276 jobs.</span>
-<span class="go">	Job list saved to joblist.json</span>
+<p><strong>Customizing Table Columns</strong></p>
+<p>You can customize which columns are displayed in the table using the <code class="docutils literal notranslate"><span class="pre">--table-columns</span></code> option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Show only status, name, and cost columns</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--table-columns<span class="w"> </span>status,name,cost
+
+<span class="c1"># Show a minimal view</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--table-columns<span class="w"> </span>status,name,id,submit_time
 </pre></div>
 </div>
+<p>Available columns: <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">owner</span></code>, <code class="docutils literal notranslate"><span class="pre">pipeline</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">submit_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code>, <code class="docutils literal notranslate"><span class="pre">run_time</span></code>, <code class="docutils literal notranslate"><span class="pre">commit</span></code>, <code class="docutils literal notranslate"><span class="pre">cost</span></code>, <code class="docutils literal notranslate"><span class="pre">resources</span></code>, <code class="docutils literal notranslate"><span class="pre">storage_type</span></code></p>
 <blockquote>
-<div><p>[!NOTE]</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--page-size</span></code> has a maximum limit of 100 jobs per page</p></li>
-<li><p>When filters or <code class="docutils literal notranslate"><span class="pre">--archived</span></code> flag are applied, pagination is applied to the filtered results</p></li>
-<li><p>If both <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> and pagination parameters are provided, only <code class="docutils literal notranslate"><span class="pre">--last-n-jobs</span></code> will be used</p></li>
-</ul>
+<div><p>[!NOTE]
+The <code class="docutils literal notranslate"><span class="pre">--table-columns</span></code> option only applies when using the default table output format (stdout).</p>
 </div></blockquote>
-<p>You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.</p>
+<p><strong>File Output Formats</strong></p>
+<p>To save job lists to files instead of displaying them in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save as CSV with default columns</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv
+
+<span class="c1"># Save as CSV with all available fields</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
+
+<span class="c1"># Save as JSON with complete job data</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json
+</pre></div>
+</div>
+<p>The expected output for file formats:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
+<span class="go">	Job list collected with a total of 10 jobs.</span>
+<span class="go">	Job list saved to joblist.csv</span>
+</pre></div>
+</div>
+<p><strong>Filtering Jobs</strong></p>
+<p>You can find specific jobs within your workspace using the filtering options. Filters can be combined to narrow down results and work with all output formats.</p>
 <p><strong>Available filters:</strong></p>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-status</span></code></strong>: Filter jobs by execution status (e.g., completed, running, failed, aborted, queued, pending, initializing)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-status</span></code></strong>: Filter jobs by execution status (e.g., completed, running, failed, aborted, initialising)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-job-name</span></code></strong>: Filter jobs by job name (case insensitive partial matching)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-project</span></code></strong>: Filter jobs by project name (exact match required)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-workflow</span></code></strong>: Filter jobs by workflow/pipeline name (exact match required)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-job-id</span></code></strong>: Filter jobs by specific job ID (exact match required)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-only-mine</span></code></strong>: Show only jobs belonging to the current user</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-owner</span></code></strong>: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be “Name Surname”)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-owner</span></code></strong>: Show only jobs for the specified owner (exact match required, e.g., “John Doe”)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-queue</span></code></strong>: Filter jobs by queue name (only applies to batch jobs)</p></li>
 </ul>
 <p><strong>Filtering Examples</strong></p>
-<p>You can find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.</p>
 <p>Using pagination approach (default):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get completed jobs from page 1 (default 20 jobs)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get completed jobs from page 1 (default 10 jobs)</span>
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-status<span class="w"> </span>completed
 
-<span class="c1"># Get completed jobs from page 2 with 15 jobs per page</span>
-cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">15</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
+<span class="c1"># Get completed jobs from page 2 with 20 jobs per page</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--page-size<span class="w"> </span><span class="m">20</span><span class="w"> </span>--filter-status<span class="w"> </span>completed
 </pre></div>
 </div>
 <p>Using last-n-jobs approach:</p>
@@ -1324,7 +1371,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 </pre></div>
 </div>
 <p>Find jobs with “analysis” in the name from a specific project:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using pagination (gets first 20 matching jobs)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using pagination (gets first 10 matching jobs)</span>
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
 
 <span class="c1"># Using last-n-jobs</span>
@@ -1336,7 +1383,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--page-size<span class="w"> </span><span class="m">50</span><span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
 
 <span class="c1"># Using last-n-jobs to search all jobs</span>
-cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="s1">&#39;all&#39;</span><span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span>all<span class="w"> </span>--filter-workflow<span class="w"> </span>rnatoy<span class="w"> </span>--filter-queue<span class="w"> </span>high-priority-queue
 </pre></div>
 </div>
 <blockquote>
@@ -1345,6 +1392,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 <li><p>Project and workflow names must match exactly (case sensitive)</p></li>
 <li><p>Job name filtering is case insensitive and supports partial matches</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">--last</span></code> flag can be used with <code class="docutils literal notranslate"><span class="pre">--filter-workflow</span></code> when multiple workflows have the same name</p></li>
+<li><p>When filters are applied, pagination information reflects the filtered results</p></li>
 </ul>
 </div></blockquote>
 </section>
@@ -2261,7 +2309,8 @@ status from inside a python script.</p>
 repeat the above code.</p>
 <p>You can also collect your last 30 submitted jobs for a given workspace using the
 following command.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_jobs_r</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
+<span class="n">my_jobs_r</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">]</span>  <span class="c1"># Extract jobs list from the result</span>
 <span class="n">my_jobs</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">process_job_list</span><span class="p">(</span><span class="n">my_jobs_r</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">my_jobs</span><span class="p">)</span>
 </pre></div>

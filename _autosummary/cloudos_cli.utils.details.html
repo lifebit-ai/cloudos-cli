@@ -353,7 +353,10 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_job_details" title="cloudos_cli.utils.details.create_job_details"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_job_details</span></code></a>(j_details_h, job_id, ...)</p></td>
 <td><p>Creates formatted job details output from job data in multiple formats.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_job_list_table" title="cloudos_cli.utils.details.create_job_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_job_list_table</span></code></a>(jobs, cloudos_url[, ...])</p></td>
+<td><p>Creates a formatted job list table for stdout output with responsive design.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
 <td><p>Constructs a storage path based on the parameter kind and execution platform.</p></td>
 </tr>
 </tbody>
@@ -433,6 +436,51 @@ parameter formatting.</p></li>
 - ‘dataItem’: Data file/object parameters</p>
 <p>Time calculations assume UTC timezone and convert ISO format timestamps
 to human-readable duration strings.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.utils.details.create_job_list_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagination_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Creates a formatted job list table for stdout output with responsive design.</p>
+<p>The table automatically adapts to terminal width by showing different column sets:
+- Very narrow (&lt;60 chars): Essential columns only (status, name, pipeline, id)
+- Narrow (&lt;90 chars): + Important columns (project, owner, run_time, cost)
+- Medium (&lt;120 chars): + Useful columns (submit_time, end_time, commit)
+- Wide (≥120 chars): + Extended columns (resources, storage_type)</p>
+<p>Status symbols are displayed with colors:
+- Green ✓ for completed jobs
+- Grey ◐ for running jobs
+- Red ✗ for failed jobs
+- Orange ■ for aborted jobs
+- Grey ○ for initialising jobs
+- Grey ? for unknown status</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>list</em>) – List of job dictionaries from the CloudOS API.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – The CloudOS service URL for generating job links.</p></li>
+<li><p><strong>pagination_metadata</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pagination metadata from the API response containing:
+- ‘Pagination-Count’: Total number of jobs matching the filter
+- ‘Pagination-Page’: Current page number
+- ‘Pagination-Limit’: Page size</p></li>
+<li><p><strong>selected_columns</strong> (<em>str</em><em> or </em><em>list</em><em>, </em><em>optional</em>) – Column names to display. Can be:
+- None: Auto-responsive based on terminal width
+- String: Comma-separated column names (e.g., “status,name,cost”)
+- List: List of column names
+Valid columns: ‘status’, ‘name’, ‘project’, ‘owner’, ‘pipeline’, ‘id’,
+‘submit_time’, ‘end_time’, ‘run_time’, ‘commit’, ‘cost’, ‘resources’, ‘storage_type’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Prints the formatted table to console with pagination information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If invalid column names are provided in selected_columns.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -548,6 +596,7 @@ leaves the constructed path as generated from the API</p></li>
             <ul>
 <li><a class="reference internal" href="#">cloudos_cli.utils.details</a><ul>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.create_job_details"><code class="docutils literal notranslate"><span class="pre">create_job_details()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.utils.details.create_job_list_table"><code class="docutils literal notranslate"><span class="pre">create_job_list_table()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.get_path"><code class="docutils literal notranslate"><span class="pre">get_path()</span></code></a></li>
 </ul>
 </li>

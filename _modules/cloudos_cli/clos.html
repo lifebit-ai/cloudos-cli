@@ -737,7 +737,8 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Try to get job info from job list to see the owner</span>
-            <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">last_n_jobs</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">last_n_jobs</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="n">jobs</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">]</span>  <span class="c1"># Extract jobs list from the dictionary</span>
             <span class="n">job_owner_name</span> <span class="o">=</span> <span class="kc">None</span>
             
             <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
@@ -1564,6 +1565,7 @@
         <span class="c1"># --- Fetch jobs page by page ---</span>
         <span class="n">all_jobs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_page_size</span>
+        <span class="n">last_pagination_metadata</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track the last pagination metadata</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;page&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_page</span>
@@ -1574,6 +1576,9 @@
 
             <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="n">page_jobs</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            
+            <span class="c1"># Capture pagination metadata</span>
+            <span class="n">last_pagination_metadata</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;paginationMetadata&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="c1"># No jobs returned, we&#39;ve reached the end</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">page_jobs</span><span class="p">:</span>
@@ -1624,7 +1629,7 @@
         <span class="k">if</span> <span class="n">use_pagination_mode</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_job_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">all_jobs</span> <span class="o">=</span> <span class="n">all_jobs</span><span class="p">[:</span><span class="n">target_job_count</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">all_jobs</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;jobs&#39;</span><span class="p">:</span> <span class="n">all_jobs</span><span class="p">,</span> <span class="s1">&#39;pagination_metadata&#39;</span><span class="p">:</span> <span class="n">last_pagination_metadata</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="Cloudos.process_job_list">
