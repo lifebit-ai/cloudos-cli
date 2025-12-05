@@ -1491,7 +1491,6 @@ def list_jobs(ctx,
     # Validate requested page exists
     if pagination_metadata:
         total_jobs = pagination_metadata.get('Pagination-Count', 0)
-        current_page = pagination_metadata.get('Pagination-Page', 1)
         current_page_size = pagination_metadata.get('Pagination-Limit', page_size)
         
         if total_jobs > 0:
