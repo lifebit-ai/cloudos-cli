@@ -2543,12 +2543,19 @@ def remove_profile(ctx, profile):
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
               is_flag=True)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run_bash_job(ctx,
@@ -3505,8 +3512,7 @@ def copy_item_cli(ctx,
             item_type = "s3_folder"
         else:
             raise ValueError("Could not determine item type.")
-        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}' " +
-               f"in project '{destination_project_name} ...")
+        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType") == "S3Folder":
