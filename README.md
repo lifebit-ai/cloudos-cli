@@ -1416,6 +1416,9 @@ Selected job does not have 'Results' information.
 > [!NOTE]
 > The `--delete` flag is compatible with other `job results` options. You can combine it with `--verbose` for detailed logging, but cannot be used together with `--link` or `--status` flags.
 
+**Bulk Deletion**
+
+For bulk deletion of job results and working directories across multiple jobs in a project, see the [delete_project_jobs.sh utility script](docs/utils/delete_project_jobs.md) in the `utils` folder. This script allows you to efficiently delete results and/or working directories for all jobs in a project.
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
