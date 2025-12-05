@@ -390,13 +390,11 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             columns_to_show = (priority_columns['essential'] + 
                              priority_columns['important'] + 
                              priority_columns['useful'])
-        elif terminal_width < 150:
+        elif terminal_width >120:
             columns_to_show = (priority_columns['essential'] + 
                              priority_columns['important'] + 
                              priority_columns['useful'] +
                              priority_columns['extended'])
-        else:
-            columns_to_show = list(all_columns.keys())
     else:
         # Accept either a comma-separated string or a list
         if isinstance(selected_columns, str):
