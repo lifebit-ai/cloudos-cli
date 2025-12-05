@@ -1353,9 +1353,14 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help='The desired output format. For json option --all-fields will be automatically set to True. Default=stdout.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--table-columns',
+              help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
+                    'Available columns: status,name,project,owner,pipeline,id,submit_time,end_time,run_time,commit,cost,resources,storage_type. ' +
+                    'Default: responsive (auto-selects columns based on terminal width)'),
+              default=None)
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
