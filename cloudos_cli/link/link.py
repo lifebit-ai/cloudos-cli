@@ -82,7 +82,7 @@ class Link(Cloudos):
         if r.status_code == 403:
             raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
         elif r.status_code == 401:
-            raise ValueError(f"Forbidden: Invalid API key or insufficient permissions")
+            raise ValueError(f"Forbidden. Invalid API key or insufficient permissions")
         elif r.status_code == 400:
             r_content = json.loads(r.content)
             if r_content["message"] == "Invalid Supported DataItem folderType. Supported values are S3Folder":
@@ -236,7 +236,7 @@ class Link(Cloudos):
         r = retry_requests_get(url, headers=headers, verify=self.verify)
         
         if r.status_code == 401:
-            raise ValueError("Forbidden: Invalid API key or insufficient permissions")
+            raise ValueError("Forbidden. Invalid API key or insufficient permissions")
         elif r.status_code == 404:
             raise ValueError(f"Interactive session {session_id} not found")
         elif r.status_code != 200:

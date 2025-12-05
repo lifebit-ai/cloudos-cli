@@ -256,4 +256,4 @@ class CostViewer:
             else:
                 raise ValueError(f"{str(e)}")
         except Exception as e:
-            raise ValueError(f"[Error] An unexpected error occurred: {str(e)}")
+            raise ValueError(f"[Error] An unexpected error occurred. {str(e)}")

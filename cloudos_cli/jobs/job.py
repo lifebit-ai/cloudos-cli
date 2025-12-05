@@ -391,7 +391,7 @@ class Job(Cloudos):
                              "textValue": p_value}
                     workflow_params.append(param)
             if len(workflow_params) == 0:
-                raise ValueError(f'The provided parameters are not valid: {parameter}')
+                raise ValueError(f'The provided parameters are not valid. {parameter}')
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
@@ -1101,7 +1101,7 @@ class Job(Cloudos):
                     source_job_id, field="status", verify=verify
                 )
             except Exception as e:
-                raise ValueError(f"The job status cannot be retrieved: {e}")
+                raise ValueError(f"The job status cannot be retrieved. {e}")
 
             allowed_statuses = {"completed", "aborted", "failed"}
             if status not in allowed_statuses:
@@ -1191,7 +1191,7 @@ class Job(Cloudos):
                     if not queue_id:
                         raise ValueError(f"Queue with name '{queue_name}' not found in workspace '{self.workspace_id}'")
                 except Exception as e:
-                    raise ValueError(f"Error filtering by queue '{queue_name}': {str(e)}")
+                    raise ValueError(f"Error filtering by queue '{queue_name}'. {str(e)}")
             else:
                 print("Azure workspace does not use job queues, option '--job-queue' is ignored.\n")
 
@@ -1469,11 +1469,11 @@ class Job(Cloudos):
             # NoContent - successful deletion
             return {"message": "Results deleted successfully", "status": "deleted"}
         elif response.status_code == 400:
-            raise ValueError(f"Operation not permitted: Your workspace does not have the option to delete {'results' if mode == 'analysisResults' else 'intermediate'} folders enabled. Please consult with the organisation owner to enable this feature.")
+            raise ValueError(f"Operation not permitted. Your workspace does not have the option to delete {'results' if mode == 'analysisResults' else 'intermediate'} folders enabled. Please consult with the organisation owner to enable this feature.")
         elif response.status_code == 401:
-            raise ValueError("Unauthorized: Invalid or missing API key.")
+            raise ValueError("Unauthorized. Invalid or missing API key.")
         elif response.status_code == 403:
-            raise ValueError("Forbidden: You don't have permission to delete this folder.")
+            raise ValueError("Forbidden. You don't have permission to delete this folder.")
         elif response.status_code == 404:
             if response.content:
                 try:
@@ -1484,9 +1484,9 @@ class Job(Cloudos):
                 error_message = f"Job with ID '{job_id}' not found or data does not exist."
             raise ValueError(error_message)
         elif response.status_code == 409:
-            raise ValueError("Conflict: The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
+            raise ValueError("Conflict. The folder cannot be deleted due to a conflict (e.g., folder is not empty or has dependencies).")
         elif response.status_code == 500:
-            raise ValueError("Internal server error: The server encountered an error while processing the deletion request.")
+            raise ValueError("Internal server error. The server encountered an error while processing the deletion request.")
         elif response.status_code >= 400:
             raise BadRequestException(response)
 
