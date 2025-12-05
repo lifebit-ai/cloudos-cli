@@ -41,7 +41,10 @@ def test_get_job_list_correct_response():
     # get mock response
     response = clos.get_job_list(WORKSPACE_ID, last_n_jobs=1, page=1, page_size=10)
     # check the response
-    assert isinstance(response, list)
+    assert isinstance(response, dict)
+    assert 'jobs' in response
+    assert 'pagination_metadata' in response
+    assert isinstance(response['jobs'], list)
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())

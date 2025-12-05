@@ -383,7 +383,8 @@ class Cloudos:
 
         try:
             # Try to get job info from job list to see the owner
-            jobs = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            result = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
+            jobs = result['jobs']  # Extract jobs list from the dictionary
             job_owner_name = None
             
             for job in jobs:
@@ -1181,6 +1182,7 @@ class Cloudos:
         # --- Fetch jobs page by page ---
         all_jobs = []
         params["limit"] = current_page_size
+        last_pagination_metadata = None  # Track the last pagination metadata
 
         while True:
             params["page"] = current_page
@@ -1191,6 +1193,9 @@ class Cloudos:
 
             content = r.json()
             page_jobs = content.get('jobs', [])
+            
+            # Capture pagination metadata
+            last_pagination_metadata = content.get('paginationMetadata', None)
 
             # No jobs returned, we've reached the end
             if not page_jobs:
@@ -1241,7 +1246,7 @@ class Cloudos:
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
             all_jobs = all_jobs[:target_job_count]
 
-        return all_jobs
+        return {'jobs': all_jobs, 'pagination_metadata': last_pagination_metadata}
 
     @staticmethod
     def process_job_list(r, all_fields=False):

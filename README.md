@@ -971,10 +971,54 @@ cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbo
 
 #### List Jobs
 
-You can get a summary of workspace jobs in two different formats:
+View your workspace jobs in a clean, formatted table directly in your terminal. The table automatically adapts to your terminal width, showing different column sets for optimal viewing. By default, jobs are displayed as a rich table with job IDs and colored visual status indicators.
 
-- CSV: this is a table with a minimum predefined set of columns by default, or all the available columns using the `--all-fields` argument.
-- JSON: all the available information from the workspace jobs, in JSON format (`--all-fields` is always enabled for this format).
+**Output Formats**
+
+CloudOS CLI provides three output formats for job listings:
+
+- **Table (default)**: Rich formatted table displayed in the terminal with pagination information
+- **CSV**: Tabular format with predefined or all available columns using `--all-fields`
+- **JSON**: Complete job information in JSON format (`--all-fields` is always enabled)
+
+**Default Behavior**
+
+By default, the command displays the 10 most recent jobs in a formatted table:
+
+```bash
+cloudos job list --profile my_profile
+```
+
+The output shows a rich table with job information and pagination details:
+
+```console
+Executing list...
+
+                                                    Job List                                                    
+┏━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Status ┃ Name         ┃ Project     ┃ Owner    ┃ Pipeline     ┃ ID                      ┃ Submit time  ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ ✓      │ analysis_run │ test-proj   │ John     │ rnatoy       │ 692ee71c40e98ed6ed529e43│ 2025-12-02   │
+│        │              │             │ Doe      │              │                         │ 15:30:45     │
+│ ◐      │ test_job     │ research    │ Jane     │ VEP          │ 692ee81d50f98ed7fe639f54│ 2025-12-02   │
+│        │              │             │ Smith    │              │                         │ 14:20:30     │
+└────────┴──────────────┴─────────────┴──────────┴──────────────┴─────────────────────────┴──────────────┘
+
+Showing 10 of 45 total jobs | Page 1 of 5
+```
+
+**Status Indicators**
+
+Jobs are displayed with colored visual status indicators:
+- **Green ✓** Completed
+- **Grey ◐** Running
+- **Red ✗** Failed
+- **Orange ■** Aborted
+- **Grey ○** Initialising
+
+**Clickable Job IDs**
+
+Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in CloudOS.
 
 **Job Listing Control Options**
 
@@ -986,22 +1030,6 @@ CloudOS CLI provides two ways to control the number of jobs retrieved:
 > [!IMPORTANT]
 > **These options are mutually exclusive**. When `--last-n-jobs` is specified, it takes precedence and `--page`/`--page-size` parameters are ignored. A warning message will be displayed if both are provided.
 
-**Default Behavior**
-
-By default, the command retrieves the first page with 10 jobs (equivalent to `--page 1 --page-size 10`):
-
-```bash
-cloudos job list --profile my_profile --output-format csv --all-fields
-```
-
-The expected output is something similar to:
-
-```console
-Executing list...
-	Job list collected with a total of 10 jobs.
-	Job list saved to joblist.csv
-```
-
 **Pagination Examples**
 
 Retrieve specific pages using `--page` and `--page-size`:
@@ -1010,9 +1038,12 @@ Retrieve specific pages using `--page` and `--page-size`:
 # Get page 2 with 15 jobs per page
 cloudos job list --profile my_profile --page 2 --page-size 15
 
-# Get page 5 with maximum 100 jobs per page
+# Get page 5 with maximum 100 jobs per page (maximum allowed)
 cloudos job list --profile my_profile --page 5 --page-size 100
 ```
+
+> [!NOTE]
+> `--page-size` has a maximum limit of 100 jobs per page. Attempting to use a larger value will result in an error.
 
 **Last N Jobs Examples**
 
@@ -1023,54 +1054,87 @@ Use `--last-n-jobs` to get the most recent jobs:
 cloudos job list --profile my_profile --last-n-jobs 50
 
 # Get all workspace jobs
-cloudos job list --profile my_profile --last-n-jobs all --output-format json
+cloudos job list --profile my_profile --last-n-jobs all
 ```
-```console
-Executing list...
-	Job list collected with a total of 276 jobs.
-	Job list saved to joblist.json
+
+**Customizing Table Columns**
+
+You can customize which columns are displayed in the table using the `--table-columns` option:
+
+```bash
+# Show only status, name, and cost columns
+cloudos job list --profile my_profile --table-columns status,name,cost
+
+# Show a minimal view
+cloudos job list --profile my_profile --table-columns status,name,id,submit_time
 ```
+
+Available columns: `status`, `name`, `project`, `owner`, `pipeline`, `id`, `submit_time`, `end_time`, `run_time`, `commit`, `cost`, `resources`, `storage_type`
 
 > [!NOTE]
-> - `--page-size` has a maximum limit of 100 jobs per page
-> - When filters or `--archived` flag are applied, pagination is applied to the filtered results
-> - If both `--last-n-jobs` and pagination parameters are provided, only `--last-n-jobs` will be used 
+> The `--table-columns` option only applies when using the default table output format (stdout).
 
-You find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
+**File Output Formats**
+
+To save job lists to files instead of displaying them in the terminal:
+
+```bash
+# Save as CSV with default columns
+cloudos job list --profile my_profile --output-format csv
+
+# Save as CSV with all available fields
+cloudos job list --profile my_profile --output-format csv --all-fields
+
+# Save as JSON with complete job data
+cloudos job list --profile my_profile --output-format json
+```
+
+The expected output for file formats:
+
+```console
+Executing list...
+	Job list collected with a total of 10 jobs.
+	Job list saved to joblist.csv
+```
+
+**Filtering Jobs**
+
+You can find specific jobs within your workspace using the filtering options. Filters can be combined to narrow down results and work with all output formats.
 
 **Available filters:**
 
-- **`--filter-status`**: Filter jobs by execution status (e.g., completed, running, failed, aborted, queued, pending, initializing)
+- **`--filter-status`**: Filter jobs by execution status (e.g., completed, running, failed, aborted, initialising)
 - **`--filter-job-name`**: Filter jobs by job name (case insensitive partial matching)
 - **`--filter-project`**: Filter jobs by project name (exact match required)
 - **`--filter-workflow`**: Filter jobs by workflow/pipeline name (exact match required)
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
-- **`--filter-owner`**: Show only job for the specified owner (exact match required, i.e needs to be in quotes and be "Name Surname")
+- **`--filter-owner`**: Show only jobs for the specified owner (exact match required, e.g., "John Doe")
 - **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
 
 **Filtering Examples**
 
-You can find specific jobs within your workspace using the listing filtering options. Filters can be combined to narrow down results and all filtering is performed after retrieving jobs from the server.
-
 Using pagination approach (default):
+
 ```bash
-# Get completed jobs from page 1 (default 20 jobs)
+# Get completed jobs from page 1 (default 10 jobs)
 cloudos job list --profile my_profile --filter-status completed
 
-# Get completed jobs from page 2 with 15 jobs per page
-cloudos job list --profile my_profile --page 2 --page-size 15 --filter-status completed
+# Get completed jobs from page 2 with 20 jobs per page
+cloudos job list --profile my_profile --page 2 --page-size 20 --filter-status completed
 ```
 
 Using last-n-jobs approach:
+
 ```bash
 # Get all completed jobs from the last 50 jobs
 cloudos job list --profile my_profile --last-n-jobs 50 --filter-status completed
 ```
 
 Find jobs with "analysis" in the name from a specific project:
+
 ```bash
-# Using pagination (gets first 20 matching jobs)
+# Using pagination (gets first 10 matching jobs)
 cloudos job list --profile my_profile --filter-job-name analysis --filter-project "My Research Project"
 
 # Using last-n-jobs
@@ -1078,18 +1142,20 @@ cloudos job list --profile my_profile --last-n-jobs 100 --filter-job-name analys
 ```
 
 Get all jobs using a specific workflow and queue:
+
 ```bash
 # Using pagination with larger page size
 cloudos job list --profile my_profile --page-size 50 --filter-workflow rnatoy --filter-queue high-priority-queue
 
 # Using last-n-jobs to search all jobs
-cloudos job list --profile my_profile --last-n-jobs 'all' --filter-workflow rnatoy --filter-queue high-priority-queue
+cloudos job list --profile my_profile --last-n-jobs all --filter-workflow rnatoy --filter-queue high-priority-queue
 ```
 
 > [!NOTE]
 > - Project and workflow names must match exactly (case sensitive)
 > - Job name filtering is case insensitive and supports partial matches
 > - The `--last` flag can be used with `--filter-workflow` when multiple workflows have the same name
+> - When filters are applied, pagination information reflects the filtered results
 
 #### Get Job Costs
 
@@ -2154,7 +2220,8 @@ You can also collect your last 30 submitted jobs for a given workspace using the
 following command.
 
 ```python
-my_jobs_r = j.get_job_list(workspace_id)
+result = j.get_job_list(workspace_id)
+my_jobs_r = result['jobs']  # Extract jobs list from the result
 my_jobs = j.process_job_list(my_jobs_r)
 print(my_jobs)
 ```

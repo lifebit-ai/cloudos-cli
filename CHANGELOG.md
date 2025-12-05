@@ -6,11 +6,19 @@
 
 - Adds new link command
 
+## v2.75.0 (2025-12-03)
+
+### Feat
+
+- adds tablular standard output for job list
+
+
 ## v2.74.0 (2025-12-05)
 
 ### Feat
 
 - Adds bulk deletion script with documentation
+
 
 ## v2.73.0 (2025-12-02)
 
