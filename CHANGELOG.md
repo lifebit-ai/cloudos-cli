@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.74.0 (2025-12-05)
+
+### Feat
+
+- Adds bulk deletion script with documentation
+
 ## v2.73.0 (2025-12-02)
 
 ### Feat
