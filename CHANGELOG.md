@@ -1,10 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.74.0 (2025-12-3)
+## v2.74.0 (2025-12-03)
 
 ### Feat
 
 - adds tablular standard output for job list
+
+## v2.73.0 (2025-12-02)
+
+### Feat
+
+- Adds CSV output format for `datasets ls` with or without `--details`
+- Adds PR template
 
 ## v2.72.0 (2025-12-02)
 
