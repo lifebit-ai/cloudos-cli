@@ -370,7 +370,7 @@ class TestLinkErrorMessages(unittest.TestCase):
     def test_forbidden_invalid_api_key_error_message(self):
         """Test that forbidden error uses period"""
         with self.assertRaises(ValueError) as context:
-            raise ValueError("Forbidden. Invalid API key or insufficient permissions")
+            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
 
         self.assertIn("Forbidden.", str(context.exception))
         self.assertNotIn("Forbidden:", str(context.exception))
@@ -794,7 +794,7 @@ class TestLinkErrorMessages:
     def test_forbidden_invalid_api_key_error_message(self):
         """Test that forbidden error uses period"""
         with pytest.raises(ValueError) as exc_info:
-            raise ValueError("Forbidden. Invalid API key or insufficient permissions")
+            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
 
         assert "Forbidden." in str(exc_info.value)
         assert "Forbidden:" not in str(exc_info.value)
