@@ -969,7 +969,7 @@ cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbo
 
 #### List Jobs
 
-View your workspace jobs in a clean, formatted table directly in your terminal. The table automatically adapts to your terminal width, showing different column sets for optimal viewing. By default, jobs are displayed as a rich table with clickable job IDs and colored visual status indicators.
+View your workspace jobs in a clean, formatted table directly in your terminal. The table automatically adapts to your terminal width, showing different column sets for optimal viewing. By default, jobs are displayed as a rich table with job IDs and colored visual status indicators.
 
 **Output Formats**
 
