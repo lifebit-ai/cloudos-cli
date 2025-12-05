@@ -3,6 +3,7 @@ from rich.console import Console
 from rich.table import Table
 import json
 import csv
+import os
 
 
 def get_path(param, param_kind_map, execution_platform, storage_provider, mode="parameters"):
@@ -346,6 +347,66 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         Prints the formatted table to console.
     """
     console = Console()
+
+    # Get terminal width for responsive design
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except OSError:
+        terminal_width = 80  # Default fallback
+    
+    # Define column priority groups for small terminals
+    priority_columns = {
+        'essential': ['status', 'name', 'pipeline', 'id'],  # ~40 chars minimum
+        'important': ['project', 'owner', 'run_time', 'cost'],  # +30 chars
+        'useful': [ 'submit_time', 'end_time', 'commit'],  # +50 chars
+        'extended': [ 'resources', 'storage_type']  # +30 chars
+    }
+    
+    # Define all available columns with their configurations
+    all_columns = {
+        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 2, "max_width": 2},
+        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "min_width": 6, "max_width": 20},
+        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "min_width": 6, "max_width": 15},
+        'owner': {"header": "Owner", "style": "blue", "overflow": "ellipsis", "min_width": 6, "max_width": 12},
+        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "min_width": 6, "max_width": 15},
+        'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "min_width": 6, "max_width": 12},
+        'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 10, "max_width": 16},
+        'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 10, "max_width": 16},
+        'run_time': {"header": "Runtime", "style": "green", "no_wrap": True, "min_width": 5, "max_width": 10},
+        'commit': {"header": "Commit", "style": "magenta", "no_wrap": True, "min_width": 7, "max_width": 8},
+        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True, "min_width": 6, "max_width": 10},
+        'resources': {"header": "Resources", "style": "blue", "overflow": "ellipsis", "min_width": 3, "max_width": 15},
+        'storage_type': {"header": "Storage", "style": "white", "no_wrap": True, "min_width": 3, "max_width": 8}
+    }
+
+    # Validate and process selected_columns
+    if selected_columns is None:
+        # Auto-select columns based on terminal width if none specified
+        if terminal_width < 60:
+            columns_to_show = priority_columns['essential']
+        elif terminal_width < 90:
+            columns_to_show = priority_columns['essential'] + priority_columns['important']
+        elif terminal_width < 120:
+            columns_to_show = (priority_columns['essential'] + 
+                             priority_columns['important'] + 
+                             priority_columns['useful'])
+        elif terminal_width < 150:
+            columns_to_show = (priority_columns['essential'] + 
+                             priority_columns['important'] + 
+                             priority_columns['useful'] +
+                             priority_columns['extended'])
+        else:
+            columns_to_show = list(all_columns.keys())
+    else:
+        # Accept either a comma-separated string or a list
+        if isinstance(selected_columns, str):
+            selected_columns = [col.strip().lower() for col in selected_columns.split(',')]
+        valid_columns = list(all_columns.keys())
+        invalid_cols = [col for col in selected_columns if col not in valid_columns]
+        if invalid_cols:
+            raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
+                           f"Valid columns are: {', '.join(valid_columns)}")
+        columns_to_show = [col for col in valid_columns if col in selected_columns]
     
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
@@ -363,31 +424,6 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     
     # Create table
     table = Table(title="Job List")
-    
-    # Define all available columns with their configurations
-    all_columns = {
-        'status': {"header": "Status", "style": "cyan", "no_wrap": True},
-        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "min_width": 15, "max_width": 25},
-        'project': {"header": "Project", "style": "magenta", "overflow": "fold"},
-        'owner': {"header": "Owner", "style": "blue", "overflow": "fold"},
-        'pipeline': {"header": "Pipeline", "style": "yellow", "no_wrap": True},
-        'id': {"header": "ID", "style": "white", "no_wrap": True},
-        'submit_time': {"header": "Submit time", "style": "cyan", "no_wrap": True},
-        'end_time': {"header": "End time", "style": "cyan", "no_wrap": True},
-        'run_time': {"header": "Run time", "style": "green", "no_wrap": True},
-        'commit': {"header": "Commit", "style": "magenta", "overflow": "fold"},
-        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True},
-        'resources': {"header": "Resources", "style": "blue", "overflow": "fold"},
-        'storage_type': {"header": "Storage type", "style": "white", "no_wrap": True}
-    }
-    
-    # Determine which columns to display
-    if selected_columns is None:
-        # Default: show all columns in order
-        columns_to_show = list(all_columns.keys())
-    else:
-        # Show only selected columns, preserving order
-        columns_to_show = [col for col in all_columns.keys() if col in selected_columns]
     
     # Add columns to table
     for col_key in columns_to_show:
@@ -421,16 +457,26 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         # Project
         project = str(job.get("project", {}).get("name", "N/A"))
         
-        # Owner
+        # Owner (compact format for small terminals)
         user_info = job.get("user", {})
         name_part = user_info.get('name', '')
         surname_part = user_info.get('surname', '')
-        if name_part and surname_part:
-            owner = f"{name_part}\n{surname_part}"
-        elif name_part or surname_part:
-            owner = name_part or surname_part
+        if terminal_width < 90:
+            # Compact format: just first name or first letter of each
+            if name_part and surname_part:
+                owner = f"{name_part[0]}.{surname_part[0]}."
+            elif name_part or surname_part:
+                owner = (name_part or surname_part)[:8]
+            else:
+                owner = "N/A"
         else:
-            owner = "N/A"
+            # Full format for wider terminals
+            if name_part and surname_part:
+                owner = f"{name_part}\n{surname_part}"
+            elif name_part or surname_part:
+                owner = name_part or surname_part
+            else:
+                owner = "N/A"
         
         # Pipeline
         pipeline = str(job.get("workflow", {}).get("name", "N/A"))
@@ -445,23 +491,33 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
         job_id_with_link = f"[link={job_url}]{job_id}[/link]"
         
-        # Submit time
+        # Submit time (compact format for small terminals)
         created_at = job.get("createdAt")
         if created_at:
             try:
                 dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                submit_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                if terminal_width < 90:
+                    # Compact format: MM-DD HH:MM
+                    submit_time = dt.strftime('%m-%d\n%H:%M')
+                else:
+                    # Full format
+                    submit_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
             except (ValueError, TypeError):
                 submit_time = "N/A"
         else:
             submit_time = "N/A"
         
-        # End time
+        # End time (compact format for small terminals)
         end_time_raw = job.get("endTime")
         if end_time_raw:
             try:
                 dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
-                end_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                if terminal_width < 90:
+                    # Compact format: MM-DD HH:MM
+                    end_time = dt.strftime('%m-%d\n%H:%M')
+                else:
+                    # Full format
+                    end_time = dt.strftime('%Y-%m-%d\n%H:%M:%S')
             except (ValueError, TypeError):
                 end_time = "N/A"
         else:

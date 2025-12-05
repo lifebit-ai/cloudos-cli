@@ -19,7 +19,7 @@ from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
-from cloudos_cli.utils.details import create_job_details
+from cloudos_cli.utils.details import create_job_details, create_job_list_table
 from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
@@ -1359,7 +1359,7 @@ def job_details(ctx,
 @click.option('--table-columns',
               help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
                     'Available columns: status,name,project,owner,pipeline,id,submit_time,end_time,run_time,commit,cost,resources,storage_type. ' +
-                    'Default: all columns'),
+                    'Default: responsive (auto-selects columns based on terminal width)'),
               default=None)
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
@@ -1445,20 +1445,8 @@ def list_jobs(ctx,
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     
-    # Process table_columns if provided
-    selected_columns = None
-    if table_columns:
-        # Split and clean column names
-        selected_columns = [col.strip().lower() for col in table_columns.split(',')]
-        # Validate column names
-        valid_columns = ['status', 'name', 'project', 'owner', 'pipeline', 'id', 
-                        'submit_time', 'end_time', 'run_time', 'commit', 'cost', 
-                        'resources', 'storage_type']
-        invalid_cols = [col for col in selected_columns if col not in valid_columns]
-        if invalid_cols:
-            raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
-                           f"Valid columns are: {', '.join(valid_columns)}")
-    
+    # Pass table_columns directly to create_job_list_table for validation and processing
+    selected_columns = table_columns
     # Only set outfile if not using stdout
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
@@ -1527,7 +1515,6 @@ def list_jobs(ctx,
         ])
         if output_format == 'stdout':
             # For stdout, always show a user-friendly message
-            from cloudos_cli.utils.details import create_job_list_table
             create_job_list_table([], cloudos_url, pagination_metadata, selected_columns)
         else:
             if filters_used:
@@ -1541,7 +1528,6 @@ def list_jobs(ctx,
                       'using --page parameter.')
     elif output_format == 'stdout':
         # Display as table
-        from cloudos_cli.utils.details import create_job_list_table
         create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
@@ -2558,26 +2544,33 @@ def remove_profile(ctx, profile):
               default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
-              type=float,
-              default=30.0)
+              type=float)
+@click.option('--job-id',
+              help='The CloudOS job id of the job to be cloned.',
+              required=True)
+@click.option('--accelerate-file-staging',
+              help='Enables AWS S3 mountpoint for quicker file staging.',
+              is_flag=True)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
               is_flag=True)
-@click.option('--request-interval',
-              help=('Time interval to request (in seconds) the job status. ' +
-                    'For large jobs is important to use a high number to ' +
-                    'make fewer requests so that is not considered spamming by the API. ' +
-                    'Default=30.'),
-              default=30)
+@click.option('--resumable',
+              help='Whether to make the job able to be resumed or not.',
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
               is_flag=True)
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
-@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--profile',
+              help='Profile to use from the config file',
+              default=None)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def run_bash_job(ctx,
                  apikey,
                  command,
@@ -3320,10 +3313,9 @@ def renaming_item(ctx,
     NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
     if not source_path.strip("/").startswith("Data/"):
-        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.")
+        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file or folder in that dataset.")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    # Initialize Datasets clients
     client = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
@@ -3466,7 +3458,8 @@ def copy_item_cli(ctx,
             item_type = "s3_folder"
         else:
             raise ValueError("Could not determine item type.")
-        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}'...")
+        print(f"Copying {item_type.replace('_', ' ')} '{source_name}' to '{destination_path}' " +
+               f"in project '{destination_project_name} ...")
         if destination_folder.get("folderType") is True and destination_folder.get("kind") in ("Data", "Cohorts", "AnalysesResults"):
             destination_kind = "Dataset"
         elif destination_folder.get("folderType") == "S3Folder":
