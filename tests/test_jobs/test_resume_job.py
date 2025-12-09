@@ -39,6 +39,7 @@ PROJECTS_INPUT = "tests/test_data/projects.json"
 WORKFLOWS_INPUT = "tests/test_data/workflows.json"
 QUEUES_INPUT = "tests/test_data/job_queues.json"
 JOB_DETAILS_INPUT = "tests/test_data/get_job_details.json"
+BRANCHES_INPUT = "tests/test_data/get_branches.json"
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
@@ -154,13 +155,31 @@ def test_resume_job_with_overrides():
         status=200
     )
 
-    # Mock GET request for job details (resume work dir)
+    # Mock GET request for job details (resume work dir and workflow for branch validation)
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/jobs/{SOURCE_JOB_ID}?teamId={WORKSPACE_ID}",
         body=job_details,
         headers=headers,
         status=200
+    )
+
+    # Mock GET request for branches (needed for branch validation)
+    branches_data = load_json_file(BRANCHES_INPUT)
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/git/github/getBranches",
+        body=branches_data,
+        headers=headers,
+        status=200,
+        match=[matchers.query_param_matcher({
+            "repositoryIdentifier": "820526317",
+            "owner": "lifebit-ai",
+            "workflowOwnerId": "5d72291a024bb8943d8f219a",
+            "page": "1",
+            "limit": "6",
+            "teamId": WORKSPACE_ID
+        })]
     )
 
     # Mock POST request for job creation  
@@ -205,7 +224,7 @@ def test_resume_job_with_overrides():
         workflow_name=WORKFLOW_NAME
     )
 
-    # Test resume with overrides
+    # Test resume with overrides including branch
     result_job_id = job.clone_or_resume_job(
         source_job_id=SOURCE_JOB_ID,
         mode="resume",
@@ -214,6 +233,7 @@ def test_resume_job_with_overrides():
         master_instance="c5.2xlarge",
         nextflow_version="24.04.4",
         branch="develop",
+        repository_platform="github",
         profile="test",
         do_not_save_logs=False,
         use_fusion=True,
