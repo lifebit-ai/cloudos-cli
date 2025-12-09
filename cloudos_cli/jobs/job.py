@@ -1024,6 +1024,7 @@ class Job(Cloudos):
                   job_name=None,
                   nextflow_version=None,
                   branch=None,
+                  repository_platform=None,
                   profile=None,
                   do_not_save_logs=None,
                   use_fusion=None,
@@ -1051,6 +1052,8 @@ class Job(Cloudos):
             Nextflow version override.
         branch : str, optional
             Git branch override.
+        repository_platform : str, optional
+            Repository platform override.
         profile : str, optional
             Nextflow profile override.
         do_not_save_logs : bool, optional
@@ -1087,6 +1090,7 @@ class Job(Cloudos):
         # remove unwanted fields
         del cloned_payload['_id']
         del cloned_payload['resourceId']
+
 
         if mode == "resume":
             try:
@@ -1133,17 +1137,33 @@ class Job(Cloudos):
             nextflow_version not in ['22.11.1-edge', 'latest']:
             print("Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
+
         # Override branch if provided
         # sometimes revision is missing from the 'request-payload' API, make sure is present
         if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
-            cloned_payload['revision'] = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
-            cloned_payload['revision']['revisionType'] = 'digest'
-        if branch:
-            cloned_payload['revision']['revisionType'] = 'branch'
-            cloned_payload['revision']['branch'] = branch
+            revision = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
+            # cloned_payload['revision']['revisionType'] = 'branch'
+            cloned_payload['revision'] = revision
             # Clear other revision types
-            cloned_payload['revision'].pop('commit', None)
             cloned_payload['revision'].pop('tag', None)
+        if branch:
+            workflow = self.get_field_from_jobs_endpoint(source_job_id, field="workflow", verify=verify)
+            branches = self.get_branches(
+                repository_identifier=workflow["repository"]["repositoryId"],
+                owner=workflow["repository"]["owner"]["login"],
+                workflow_owner_id=workflow["owner"]["id"],
+                strategy=repository_platform
+            )
+            if branch not in [b.get('name') for b in branches.get('branches', [])]:
+                raise ValueError(f"Branch '{branch}' not found in repository. Available branches: {[b.get('name') for b in branches.get('branches', [])]}")
+            else:
+                cloned_payload['revision']['commit'] = [b.get('commit').get('sha') for b in branches.get('branches', []) if b.get('name') == branch][0]
+
+            cloned_payload['revision']['branch'] = branch
+        print("cloned_payload['revision']: ", cloned_payload['revision'])
+        exit()
+        print("cloned_payload revision after branch override: ", cloned_payload['revision'])
+        exit()
 
         # Override profile if provided
         if profile:
@@ -1234,6 +1254,12 @@ class Job(Cloudos):
             "apikey": self.apikey
         }
         clean_payload = self.fix_boolean_strings(cloned_payload)
+        # Print curl command for debugging
+        curl_command = f"""curl -X POST '{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}' \\
+      -H 'Content-Type: application/json' \\
+      -H 'apikey: {self.apikey}' \\
+      -d '{json.dumps(clean_payload, separators=(",", ":"))}'"""
+        print(f"\nCURL command for debugging:\n{curl_command}\n")
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(clean_payload),
                                 headers=headers,
@@ -1494,3 +1520,60 @@ class Job(Cloudos):
         if response.content:
             return json.loads(response.content)
         return {"message": f"'{mode}' deleted successfully"}
+
+    def get_branches(self, repository_identifier, owner, workflow_owner_id,
+                     strategy='github', branch_name='', page=1, limit=6, verify=True):
+        """Get branches from a GitHub repository.
+
+        Parameters
+        ----------
+        repository_identifier : str
+            The GitHub repository identifier (repository ID).
+        owner : str
+            The owner of the repository (e.g., 'lifebit-ai').
+        workflow_owner_id : str
+            The workflow owner ID in CloudOS.
+        branch_name : str, optional
+            Filter branches by name. Default is '' (empty string to get all branches).
+        page : int, optional
+            Page number for pagination. Default is 1.
+        limit : int, optional
+            Number of results per page. Default is 6.
+        verify : [bool|string], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the branches information from the API.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        params = {
+            "repositoryIdentifier": repository_identifier,
+            "owner": owner,
+            "workflowOwnerId": workflow_owner_id,
+            "branchName": branch_name,
+            "page": page,
+            "limit": limit,
+            "teamId": self.workspace_id
+        }
+
+        url = f"{self.cloudos_url}/api/v1/git/{strategy}/getBranches"
+        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+
+        if response.status_code >= 400:
+            raise BadRequestException(response)
+
+        return json.loads(response.content)
+
