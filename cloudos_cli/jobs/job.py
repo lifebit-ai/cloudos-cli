@@ -1160,10 +1160,6 @@ class Job(Cloudos):
                 cloned_payload['revision']['commit'] = [b.get('commit').get('sha') for b in branches.get('branches', []) if b.get('name') == branch][0]
 
             cloned_payload['revision']['branch'] = branch
-        print("cloned_payload['revision']: ", cloned_payload['revision'])
-        exit()
-        print("cloned_payload revision after branch override: ", cloned_payload['revision'])
-        exit()
 
         # Override profile if provided
         if profile:
@@ -1254,12 +1250,7 @@ class Job(Cloudos):
             "apikey": self.apikey
         }
         clean_payload = self.fix_boolean_strings(cloned_payload)
-        # Print curl command for debugging
-        curl_command = f"""curl -X POST '{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}' \\
-      -H 'Content-Type: application/json' \\
-      -H 'apikey: {self.apikey}' \\
-      -d '{json.dumps(clean_payload, separators=(",", ":"))}'"""
-        print(f"\nCURL command for debugging:\n{curl_command}\n")
+
         r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(clean_payload),
                                 headers=headers,
