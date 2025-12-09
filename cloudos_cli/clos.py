@@ -422,7 +422,7 @@ class Cloudos:
         if r_json["status"] =='initializing' or r_json["status"] =='scheduled':
             raise ValueError("Logs are not yet available. The job is still initializing.")
         if "logs" not in r_json:
-            raise ValueError("ERROR: Logs are not available.")
+            raise ValueError("Logs are not available.")
         else:
             logs_obj = r_json["logs"]
             cloud_name, cloud_meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, logs_obj)
@@ -651,7 +651,7 @@ class Cloudos:
         try:
             project_content = ds.list_project_content()
         except Exception as e:
-            raise ValueError(f"Failed to list project content for project '{project_name}': {str(e)}")
+            raise ValueError(f"Failed to list project content for project '{project_name}'. {str(e)}")
         
         # Find the Analysis Results folder ID
         analysis_results_id = None
@@ -669,7 +669,7 @@ class Cloudos:
             response = self.get_folder_items_deletion_status(analysis_results_id, workspace_id, verify)
             content = json.loads(response.content)
         except Exception as e:
-            raise ValueError(f"Failed to get items from Analyses Results folder: {str(e)}")
+            raise ValueError(f"Failed to get items from Analyses Results folder. {str(e)}")
         
         # The API response contains folders and files arrays
         # Find the entry matching our job_id
@@ -948,7 +948,7 @@ class Cloudos:
             else:
                 raise ValueError(f"User '{filter_owner}' not found.")
         except Exception as e:
-            raise ValueError(f"Error resolving user '{filter_owner}': {str(e)}")
+            raise ValueError(f"Error resolving user '{filter_owner}'. {str(e)}")
 
     def get_cromwell_status(self, workspace_id, verify=True):
         """Get Cromwell server status from CloudOS.
@@ -1143,7 +1143,7 @@ class Cloudos:
                 else:
                     raise ValueError(f"Project '{filter_project}' not found.")
             except Exception as e:
-                raise ValueError(f"Error resolving project '{filter_project}': {str(e)}")
+                raise ValueError(f"Error resolving project '{filter_project}'. {str(e)}")
 
         # Resolve workflow name to ID
         if filter_workflow:
@@ -1160,7 +1160,7 @@ class Cloudos:
                 else:
                     raise ValueError(f"Workflow '{filter_workflow}' not found.")
             except Exception as e:
-                raise ValueError(f"Error resolving workflow '{filter_workflow}': {str(e)}")
+                raise ValueError(f"Error resolving workflow '{filter_workflow}'. {str(e)}")
 
         # Get current user ID for filter_only_mine
         if filter_only_mine:
@@ -1172,7 +1172,7 @@ class Cloudos:
                 else:
                     raise ValueError("Could not retrieve current user information.")
             except Exception as e:
-                raise ValueError(f"Error getting current user info: {str(e)}")
+                raise ValueError(f"Error getting current user info. {str(e)}")
 
         # Resolve owner username to user ID
         if filter_owner:
@@ -1240,7 +1240,7 @@ class Cloudos:
                 else:
                     raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
             except Exception as e:
-                raise ValueError(f"Error filtering by queue '{filter_queue}': {str(e)}")
+                raise ValueError(f"Error filtering by queue '{filter_queue}'. {str(e)}")
 
         # --- Apply limit after all filtering ---
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
@@ -1585,7 +1585,7 @@ class Cloudos:
         # make unique
         wt = list(dict.fromkeys(wt_all))
         if len(wt) > 1:
-            raise ValueError(f'More than one workflow type detected for {workflow_name}: {wt}')
+            raise ValueError(f'More than one workflow type ("{wt}") detected for "{workflow_name}". ')
         return str(wt[0])
 
     def is_module(self, workflow_name, workspace_id, verify=True, last=False):
@@ -1769,7 +1769,7 @@ class Cloudos:
             repository_project = workflow_url.split('/')[4]
             repository_id = repository_name
         else:
-            raise ValueError(f'Your repository platform is not supported: {platform_url}. ' +
+            raise ValueError(f'Your repository platform "{platform_url}" is not supported. ' +
                              'Please use either GitHub or BitbucketServer.')
         repository_name = workflow_url.split('/')[-1]
 
@@ -1989,7 +1989,7 @@ class Cloudos:
         pag_content = json.loads(response.content)
         max_pagination = pag_content["paginationMetadata"]["Pagination-Count"]
         if max_pagination == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
+            raise ValueError(f'No workflow found with name "{workflow_name}" in workspace "{workspace_id}"')
 
         return max_pagination
 
@@ -2045,9 +2045,9 @@ class Cloudos:
         wf = [wf.get("name") for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
 
         if len(wf) == 0 or len(content["workflows"]) == 0:
-            raise ValueError(f'No workflow found with name: {workflow_name} in workspace: {workspace_id}')
+            raise ValueError(f'No workflow found with name "{workflow_name}" in workspace "{workspace_id}"')
         if len(wf) > 1 and not last:
-            raise ValueError(f'More than one workflow found with name: {workflow_name}. ' + \
+            raise ValueError(f'More than one workflow found with name "{workflow_name}". ' + \
                              "To run the last imported workflow use '--last' flag.")
         else:
             content = youngest_workflow_id_by_name(content, workflow_name)
