@@ -702,9 +702,9 @@ def job_status(ctx,
         print(f'\tTo further check your job status you can either go to {j_url} ' +
               'or repeat the command you just used.')
     except BadRequestException as e:
-        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+        raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}'. {str(e)}")
 
 
 @job.command('workdir')
@@ -889,9 +889,9 @@ def job_workdir(ctx,
             link_client.link_folder(workdir.strip(), session_id)
             
     except BadRequestException as e:
-        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+        raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to retrieve working directory for job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to retrieve working directory for job '{job_id}'. {str(e)}")
 
     # Delete workdir directory if requested
     if delete:
@@ -919,9 +919,9 @@ def job_workdir(ctx,
             job.delete_job_results(job_id, "workDirectory", verify=verify_ssl)
             click.secho('\nIntermediate results directories deleted successfully.', fg='green', bold=True)
         except BadRequestException as e:
-            raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+            raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
         except Exception as e:
-            raise ValueError(f"Failed to retrieve intermediate results for job '{job_id}': {str(e)}")
+            raise ValueError(f"Failed to retrieve intermediate results for job '{job_id}'. {str(e)}")
     else:
         if yes:
             click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
@@ -1030,9 +1030,9 @@ def job_logs(ctx,
                     print('\tNo logs found to link.')
             
     except BadRequestException as e:
-        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+        raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to retrieve logs for job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to retrieve logs for job '{job_id}'. {str(e)}")
 
 
 @job.command('results')
@@ -1247,9 +1247,9 @@ def job_results(ctx,
             if yes:
                 click.secho("\n'--yes' flag is ignored when '--delete' is not specified.", fg='yellow', bold=True)
     except BadRequestException as e:
-        raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+        raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to retrieve results for job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to retrieve results for job '{job_id}'. {str(e)}")
 
 
 @job.command('details')
@@ -1328,9 +1328,9 @@ def job_details(ctx,
         if '403' in str(e) or 'Forbidden' in str(e):
             raise ValueError("API can only show job details of your own jobs, cannot see other user's job details.")
         else:
-            raise ValueError(f"Job '{job_id}' not found or not accessible: {str(e)}")
+            raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to retrieve details for job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to retrieve details for job '{job_id}'. {str(e)}")
     create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters, cloudos_url)
 
 
@@ -1860,9 +1860,9 @@ def clone_resume(ctx,
         print(f"Job successfully {mode}d. New job ID: {cloned_resumed_job_id}")
 
     except BadRequestException as e:
-        raise ValueError(f"Failed to {mode} job. Job '{job_id}' not found or not accessible: {str(e)}")
+        raise ValueError(f"Failed to {mode} job. Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}': {str(e)}")
+        raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}'. {str(e)}")
 
 
 # Apply the best Click solution: Set specific help text for each command registration
@@ -3217,7 +3217,7 @@ def list_files(ctx,
                         console.print(item['name'])
 
     except Exception as e:
-        raise ValueError(f"Failed to list files for project '{project_name}': {str(e)}")
+        raise ValueError(f"Failed to list files for project '{project_name}'. {str(e)}")
 
 
 @datasets.command(name="mv")
@@ -3281,7 +3281,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
     try:
         source_contents = source_client.list_folder_content(source_parent_path)
     except Exception as e:
-        raise ValueError(f"Could not resolve source path '{source_path}': {str(e)}")
+        raise ValueError(f"Could not resolve source path '{source_path}'. {str(e)}")
 
     found_source = None
     for collection in ["files", "folders"]:
@@ -3322,7 +3322,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             raise ValueError(f"Unrecognized folderType '{folder_type}' for destination '{destination_path}'")
 
     except Exception as e:
-        raise ValueError(f"Could not resolve destination path '{destination_path}': {str(e)}")
+        raise ValueError(f"Could not resolve destination path '{destination_path}'. {str(e)}")
     print(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
                f"in project '{destination_project_name} ...")
     # === Perform Move ===
@@ -3337,9 +3337,9 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
             click.secho(f"{source_kind} '{source_item_name}' moved to '{destination_path}' " +
                         f"in project '{destination_project_name}'.", fg="green", bold=True)
         else:
-            raise ValueError(f"Move failed: {response.status_code} - {response.text}")
+            raise ValueError(f"Move failed. {response.status_code} - {response.text}")
     except Exception as e:
-        raise ValueError(f"Move operation failed: {str(e)}")
+        raise ValueError(f"Move operation failed. {str(e)}")
 
 
 @datasets.command(name="rename")
@@ -3392,7 +3392,7 @@ def renaming_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}'. {str(e)}")
 
     # Search for file/folder
     found_item = None
@@ -3420,9 +3420,9 @@ def renaming_item(ctx,
                 bold=True
             )
         else:
-            raise ValueError(f"Rename failed: {response.status_code} - {response.text}")
+            raise ValueError(f"Rename failed. {response.status_code} - {response.text}")
     except Exception as e:
-        raise ValueError(f"Rename operation failed: {str(e)}")
+        raise ValueError(f"Rename operation failed. {str(e)}")
 
 
 @datasets.command(name="cp")
@@ -3490,7 +3490,7 @@ def copy_item_cli(ctx,
         source_content = source_client.list_folder_content(source_parent)
         dest_content = dest_client.list_folder_content(dest_parent)
     except Exception as e:
-        raise ValueError(f"Could not access paths: {str(e)}")
+        raise ValueError(f"Could not access paths. {str(e)}")
     # Find the source item
     source_item = None
     for item in source_content.get('files', []) + source_content.get('folders', []):
@@ -3532,9 +3532,9 @@ def copy_item_cli(ctx,
         if response.ok:
             click.secho("Item copied successfully.", fg="green", bold=True)
         else:
-            raise ValueError(f"Copy failed: {response.status_code} - {response.text}")
+            raise ValueError(f"Copy failed. {response.status_code} - {response.text}")
     except Exception as e:
-        raise ValueError(f"Copy operation failed: {str(e)}")
+        raise ValueError(f"Copy operation failed. {str(e)}")
 
 
 @datasets.command(name="mkdir")
@@ -3593,7 +3593,7 @@ def mkdir_item(ctx,
     try:
         contents = client.list_folder_content(parent_of_parent_path)
     except Exception as e:
-        raise ValueError(f"Could not list contents at '{parent_of_parent_path}': {str(e)}")
+        raise ValueError(f"Could not list contents at '{parent_of_parent_path}'. {str(e)}")
 
     # Find the parent folder in the contents
     folder_info = next(
@@ -3621,9 +3621,9 @@ def mkdir_item(ctx,
         if response.ok:
             click.secho(f"Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
         else:
-            raise ValueError(f"Folder creation failed: {response.status_code} - {response.text}")
+            raise ValueError(f"Folder creation failed. {response.status_code} - {response.text}")
     except Exception as e:
-        raise ValueError(f"Folder creation failed: {str(e)}")
+        raise ValueError(f"Folder creation failed. {str(e)}")
 
 
 @datasets.command(name="rm")
@@ -3675,7 +3675,7 @@ def rm_item(ctx,
     try:
         contents = client.list_folder_content(parent_path)
     except Exception as e:
-        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}': {str(e)}")
+        raise ValueError(f"Could not list contents at '{parent_path or '[project root]'}'. {str(e)}")
 
     found_item = None
     for item in contents.get('files', []) + contents.get('folders', []):
@@ -3710,9 +3710,9 @@ def rm_item(ctx,
                 )
                 click.secho("This item will still be available on your Cloud Provider.", fg="yellow")
         else:
-            raise ValueError(f"Removal failed: {response.status_code} - {response.text}")
+            raise ValueError(f"Removal failed. {response.status_code} - {response.text}")
     except Exception as e:
-        raise ValueError(f"Remove operation failed: {str(e)}")
+        raise ValueError(f"Remove operation failed. {str(e)}")
 
 
 @datasets.command(name="link")
@@ -3833,7 +3833,7 @@ def link(ctx,
     except Exception as e:
         if is_s3:
             print("If you are linking an S3 path, please ensure it is a folder.")
-        raise ValueError(f"Could not link folder: {e}")
+        raise ValueError(f"Could not link folder. {e}")
 
 
 @images.command(name="ls")
