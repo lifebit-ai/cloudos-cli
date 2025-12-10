@@ -526,7 +526,7 @@ class Link(Cloudos):
             if is_s3:
                 raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
             else:
-                raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.")
+                raise ValueError("Linking files or virtual folders is not supported. Link the parent folder instead.")
         elif is_folder is None and is_s3:
             click.secho("Unable to verify whether the path is a folder. Proceeding with linking; " +
                        "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
