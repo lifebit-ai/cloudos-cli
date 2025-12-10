@@ -1579,10 +1579,10 @@ class Job(Cloudos):
 
             content = json.loads(response.content)
             branches = content.get("branches", [])
-            
+
             if total is None:
                 total = content.get("total", len(branches))
-            
+
             if not branches:
                 break  # No more branches to fetch
 
