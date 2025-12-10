@@ -3988,23 +3988,6 @@ def reset_organisation_image(ctx,
     except Exception as e:
         raise ValueError(f"{str(e)}")
 
-if __name__ == "__main__":
-    # Setup logging
-    debug_mode = '--debug' in sys.argv
-    setup_logging(debug_mode)
-    logger = logging.getLogger("CloudOS")
-    # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
-    try:
-        run_cloudos_cli()
-    except Exception as e:
-        if debug_mode:
-            logger.error(e, exc_info=True)
-            traceback.print_exc()
-        else:
-            logger.error(e)
-            click.echo(click.style(f"Error: {e}", fg='red'), err=True)
-        sys.exit(1)
-
 @run_cloudos_cli.command('link')
 @click.argument('path', required=False)
 @click.option('-k',
@@ -4067,7 +4050,7 @@ def link_command(ctx,
     """
     Link folders to an interactive analysis session.
     
-    This command is used to link folders (S3, Azure Blob, or File Explorer) 
+    This command is used to link folders
     to an active interactive analysis session for direct access to data.
     
     PATH: Optional path to link (S3). 
@@ -4137,9 +4120,6 @@ def link_command(ctx,
         verify=verify_ssl
     )
     
-    # Initialize Cloudos client for job-related operations
-    cl = Cloudos(cloudos_url, apikey, None)
-    
     try:
         if job_id:
             # Job-based linking
@@ -4147,80 +4127,15 @@ def link_command(ctx,
             
             # Link results
             if results:
-                try:
-                    if verbose:
-                        print('\tFetching job results...')
-                    results_dict = cl.get_job_results(job_id, workspace_id, verify_ssl)
-                    
-                    if results_dict:
-                        print(f'\tLinking {len(results_dict)} result directories...')
-                        for name, path in results_dict.items():
-                            if verbose:
-                                print(f'\t\tLinking {name} ({path})...')
-                            link_client.link_folder(path, session_id)
-                    else:
-                        click.secho('\tNo results found to link.', fg='yellow')
-                        
-                except JoBNotCompletedException as e:
-                    click.secho(f'\tCannot link results: {str(e)}', fg='red')
-                except Exception as e:
-                    error_msg = str(e)
-                    if "Results are not available" in error_msg or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
-                        click.secho(f'\tCannot link results: {error_msg}', fg='red')
-                    else:
-                        click.secho(f'\tFailed to link results: {error_msg}', fg='red')
+                link_client.link_job_results(job_id, workspace_id, session_id, verify_ssl, verbose)
             
             # Link workdir
             if workdir:
-                try:
-                    if verbose:
-                        print('\tFetching job working directory...')
-                    workdir_path = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-                    
-                    if workdir_path:
-                        print(f'\tLinking working directory...')
-                        if verbose:
-                            print(f'\t\tWorkdir: {workdir_path}')
-                        link_client.link_folder(workdir_path.strip(), session_id)
-                    else:
-                        click.secho('\tNo working directory found to link.', fg='yellow')
-                        
-                except Exception as e:
-                    error_msg = str(e)
-                    if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower():
-                        click.secho(f'\tCannot link workdir: {error_msg}', fg='red')
-                    elif "not available" in error_msg.lower() or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
-                        click.secho(f'\tCannot link workdir: {error_msg}', fg='red')
-                    else:
-                        click.secho(f'\tFailed to link workdir: {error_msg}', fg='red')
+                link_client.link_job_workdir(job_id, workspace_id, session_id, verify_ssl, verbose)
             
             # Link logs
             if logs:
-                try:
-                    if verbose:
-                        print('\tFetching job logs...')
-                    logs_dict = cl.get_job_logs(job_id, workspace_id, verify_ssl)
-                    
-                    if logs_dict:
-                        # Extract the parent logs directory from any log file path
-                        first_log_path = next(iter(logs_dict.values()))
-                        logs_dir = '/'.join(first_log_path.split('/')[:-1])
-                        
-                        print(f'\tLinking logs directory...')
-                        if verbose:
-                            print(f'\t\tLogs directory: {logs_dir}')
-                        link_client.link_folder(logs_dir, session_id)
-                    else:
-                        click.secho('\tNo logs found to link.', fg='yellow')
-                        
-                except Exception as e:
-                    error_msg = str(e)
-                    if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower():
-                        click.secho(f'\tCannot link logs: {error_msg}', fg='red')
-                    elif "not available" in error_msg.lower():
-                        click.secho(f'\tCannot link logs: {error_msg}', fg='red')
-                    else:
-                        click.secho(f'\tFailed to link logs: {error_msg}', fg='red')
+                link_client.link_job_logs(job_id, workspace_id, session_id, verify_ssl, verbose)
             
             print('\nLinking operation completed.')
             
@@ -4228,79 +4143,29 @@ def link_command(ctx,
             # Direct path linking
             print(f'Linking path to interactive session {session_id}...\n')
             
-            # Validate path requirements
-            if not path.startswith("s3://") and not path.startswith("az://") and not project_name:
-                raise click.UsageError("When using File Explorer paths, '--project-name' must be provided.")
+            # Link path with validation
+            link_client.link_path_with_validation(path, session_id, project_name, verify_ssl, verbose)
             
-            # Use the same validation logic as datasets link command
-            is_s3 = path.startswith("s3://")
-            is_azure = path.startswith("az://")
-            is_folder = True
-            
-            if is_s3 or is_azure:
-                # Cloud path validation
-                try:
-                    if path.endswith('/'):
-                        is_folder = True
-                    else:
-                        path_parts = path.rstrip("/").split("/")
-                        if path_parts:
-                            last_part = path_parts[-1]
-                            if '.' not in last_part:
-                                is_folder = True
-                            else:
-                                is_folder = None
-                        else:
-                            is_folder = None
-                except Exception:
-                    is_folder = None
-            else:
-                # File Explorer path validation
-                try:
-                    datasets = Datasets(
-                        cloudos_url=cloudos_url,
-                        apikey=apikey,
-                        workspace_id=workspace_id,
-                        project_name=project_name,
-                        verify=verify_ssl,
-                        cromwell_token=None
-                    )
-                    parts = path.strip("/").split("/")
-                    parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
-                    item_name = parts[-1]
-                    contents = datasets.list_folder_content(parent_path)
-                    found = None
-                    for item in contents.get("folders", []):
-                        if item.get("name") == item_name:
-                            found = item
-                            break
-                    if not found:
-                        for item in contents.get("files", []):
-                            if item.get("name") == item_name:
-                                found = item
-                                break
-                    if found and ("folderType" not in found):
-                        is_folder = False
-                except Exception:
-                    is_folder = None
-            
-            if is_folder is False:
-                if is_s3 or is_azure:
-                    raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
-                else:
-                    raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.")
-            elif is_folder is None and (is_s3 or is_azure):
-                click.secho("Unable to verify whether the path is a folder. Proceeding with linking; " +
-                           "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
-                           fg='yellow', bold=True)
-            
-            if verbose:
-                print(f'\tLinking {path}...')
-            
-            link_client.link_folder(path, session_id)
             print('\nLinking operation completed.')
             
     except BadRequestException as e:
         raise ValueError(f"Request failed: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to link folder(s): {str(e)}")
+
+if __name__ == "__main__":
+    # Setup logging
+    debug_mode = '--debug' in sys.argv
+    setup_logging(debug_mode)
+    logger = logging.getLogger("CloudOS")
+    # Check if debug flag was passed (fallback for cases where Click doesn't handle it)
+    try:
+        run_cloudos_cli()
+    except Exception as e:
+        if debug_mode:
+            logger.error(e, exc_info=True)
+            traceback.print_exc()
+        else:
+            logger.error(e)
+            click.echo(click.style(f"Error: {e}", fg='red'), err=True)
+        sys.exit(1)

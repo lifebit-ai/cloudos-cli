@@ -6,12 +6,14 @@ from dataclasses import dataclass
 from typing import Union, List, Dict
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
+from cloudos_cli.utils.errors import JoBNotCompletedException
+from cloudos_cli.datasets import Datasets
 from urllib.parse import urlparse
 from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 import json
 import time
 import rich_click as click
-
+        
 
 @dataclass
 class Link(Cloudos):
@@ -289,4 +291,249 @@ class Link(Cloudos):
             time.sleep(check_interval)
         
         raise ValueError(f"Timeout waiting for mount '{mount_name}' to complete after {timeout} seconds")
+
+    def link_job_results(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
+        """
+        Link job results to an interactive session.
+        
+        Parameters
+        ----------
+        job_id : str
+            The job ID to link results from
+        workspace_id : str
+            The workspace ID
+        session_id : str
+            The interactive session ID
+        verify_ssl : Union[bool, str]
+            SSL verification setting
+        verbose : bool
+            Whether to print verbose output
+            
+        Returns
+        -------
+        None
+            Prints status messages to console
+        """
+        try:
+            if verbose:
+                print('\tFetching job results...')
+                
+            # Create a temporary Cloudos client for API calls
+            cl = Cloudos(self.cloudos_url, self.apikey, None)
+            results_dict = cl.get_job_results(job_id, workspace_id, verify_ssl)
+            
+            if results_dict:
+                print(f'\tLinking {len(results_dict)} result directories...')
+                for name, path in results_dict.items():
+                    if verbose:
+                        print(f'\t\tLinking {name} ({path})...')
+                    self.link_folder(path, session_id)
+            else:
+                click.secho('\tNo results found to link.', fg='yellow')
+                
+        except JoBNotCompletedException as e:
+            click.secho(f'\tCannot link results: {str(e)}', fg='red')
+        except Exception as e:
+            error_msg = str(e)
+            if "Results are not available" in error_msg or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
+                click.secho(f'\tCannot link results: {error_msg}', fg='red')
+            else:
+                click.secho(f'\tFailed to link results: {error_msg}', fg='red')
+
+    def link_job_workdir(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
+        """
+        Link job working directory to an interactive session.
+        
+        Parameters
+        ----------
+        job_id : str
+            The job ID to link workdir from
+        workspace_id : str
+            The workspace ID
+        session_id : str
+            The interactive session ID
+        verify_ssl : Union[bool, str]
+            SSL verification setting
+        verbose : bool
+            Whether to print verbose output
+            
+        Returns
+        -------
+        None
+            Prints status messages to console
+        """
+        try:
+            if verbose:
+                print('\tFetching job working directory...')
+                
+            # Create a temporary Cloudos client for API calls
+            cl = Cloudos(self.cloudos_url, self.apikey, None)
+            workdir_path = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
+            
+            if workdir_path:
+                print(f'\tLinking working directory...')
+                if verbose:
+                    print(f'\t\tWorkdir: {workdir_path}')
+                self.link_folder(workdir_path.strip(), session_id)
+            else:
+                click.secho('\tNo working directory found to link.', fg='yellow')
+                
+        except Exception as e:
+            error_msg = str(e)
+            if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower() or "not available" in error_msg.lower() or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
+                click.secho(f'\tCannot link workdir: {error_msg}', fg='red')
+            else:
+                click.secho(f'\tFailed to link workdir: {error_msg}', fg='red')
+
+    def link_job_logs(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
+        """
+        Link job logs to an interactive session.
+        
+        Parameters
+        ----------
+        job_id : str
+            The job ID to link logs from
+        workspace_id : str
+            The workspace ID
+        session_id : str
+            The interactive session ID
+        verify_ssl : Union[bool, str]
+            SSL verification setting
+        verbose : bool
+            Whether to print verbose output
+            
+        Returns
+        -------
+        None
+            Prints status messages to console
+        """
+        try:
+            if verbose:
+                print('\tFetching job logs...')
+                
+            # Create a temporary Cloudos client for API calls
+            cl = Cloudos(self.cloudos_url, self.apikey, None)
+            logs_dict = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+            
+            if logs_dict:
+                # Extract the parent logs directory from any log file path
+                first_log_path = next(iter(logs_dict.values()))
+                logs_dir = '/'.join(first_log_path.split('/')[:-1])
+                
+                print(f'\tLinking logs directory...')
+                if verbose:
+                    print(f'\t\tLogs directory: {logs_dir}')
+                self.link_folder(logs_dir, session_id)
+            else:
+                click.secho('\tNo logs found to link.', fg='yellow')
+                
+        except Exception as e:
+            error_msg = str(e)
+            if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower() or "not available" in error_msg.lower() or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
+                click.secho(f'\tCannot link logs: {error_msg}', fg='red')
+            else:
+                click.secho(f'\tFailed to link logs: {error_msg}', fg='red')
+
+    def link_path_with_validation(self, path: str, session_id: str, project_name: str = None, verify_ssl=None, verbose: bool = False):
+        """
+        Link a path (S3 or File Explorer) to an interactive session with validation.
+        
+        Parameters
+        ----------
+        path : str
+            The path to link
+        session_id : str
+            The interactive session ID
+        project_name : str, optional
+            The project name (required for File Explorer paths)
+        verify_ssl : Union[bool, str], optional
+            SSL verification setting
+        verbose : bool
+            Whether to print verbose output
+            
+        Returns
+        -------
+        None
+            Prints status messages to console
+            
+        Raises
+        ------
+        click.UsageError
+            If Azure path is provided or validation fails
+        ValueError
+            If path validation fails
+        """        
+        # Check for Azure paths and provide informative error message
+        if path.startswith("az://"):
+            raise click.UsageError("Azure Blob Storage paths (az://) are not supported for linking. Please use S3 paths (s3://) or File Explorer paths instead.")
+        
+        # Validate path requirements
+        if not path.startswith("s3://") and not project_name:
+            raise click.UsageError("When using File Explorer paths, '--project-name' must be provided.")
+        
+        # Use the same validation logic as datasets link command
+        is_s3 = path.startswith("s3://")
+        is_folder = True
+        
+        if is_s3:
+            # S3 path validation
+            try:
+                if path.endswith('/'):
+                    is_folder = True
+                else:
+                    path_parts = path.rstrip("/").split("/")
+                    if path_parts:
+                        last_part = path_parts[-1]
+                        if '.' not in last_part:
+                            is_folder = True
+                        else:
+                            is_folder = None
+                    else:
+                        is_folder = None
+            except Exception:
+                is_folder = None
+        else:
+            # File Explorer path validation
+            try:
+                datasets = Datasets(
+                    cloudos_url=self.cloudos_url,
+                    apikey=self.apikey,
+                    workspace_id=self.workspace_id,
+                    project_name=project_name,
+                    verify=verify_ssl or self.verify,
+                    cromwell_token=None
+                )
+                parts = path.strip("/").split("/")
+                parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
+                item_name = parts[-1]
+                contents = datasets.list_folder_content(parent_path)
+                found = None
+                for item in contents.get("folders", []):
+                    if item.get("name") == item_name:
+                        found = item
+                        break
+                if not found:
+                    for item in contents.get("files", []):
+                        if item.get("name") == item_name:
+                            found = item
+                            break
+                if found and ("folderType" not in found):
+                    is_folder = False
+            except Exception:
+                is_folder = None
+        
+        if is_folder is False:
+            if is_s3:
+                raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
+            else:
+                raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.")
+        elif is_folder is None and is_s3:
+            click.secho("Unable to verify whether the path is a folder. Proceeding with linking; " +
+                       "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
+                       fg='yellow', bold=True)
+        
+        if verbose:
+            print(f'\tLinking {path}...')
+        
+        self.link_folder(path, session_id)
 

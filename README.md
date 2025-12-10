@@ -1800,7 +1800,7 @@ The `cloudos link` command provides a unified interface for linking folders to i
 
 #### Link Folders to Interactive Analysis
 
-Link job-related folders or custom S3/Azure/File Explorer paths to your interactive analysis sessions for direct access to data without needing to copy files.
+Link job-related folders or custom S3 paths to your interactive analysis sessions for direct access to data without needing to copy files.
 
 **Two modes of operation:**
 
@@ -1808,7 +1808,7 @@ Link job-related folders or custom S3/Azure/File Explorer paths to your interact
    - By default, links results, workdir, and logs folders
    - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
 
-2. **Direct path linking** (PATH argument): Links a specific S3, Azure Blob, or File Explorer path
+2. **Direct path linking** (PATH argument): Links a specific S3 path
 
 **Basic usage:**
 
@@ -1829,7 +1829,7 @@ cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID>
 
 **Command options:**
 
-- `PATH`: S3, Azure Blob, or File Explorer path to link (positional argument, required if `--job-id` is not provided)
+- `PATH`: S3 path to link (positional argument, required if `--job-id` is not provided)
 - `--apikey` / `-k`: Your CloudOS API key (required)
 - `--cloudos-url` / `-c`: The CloudOS URL (default: https://cloudos.lifebit.ai)
 - `--workspace-id`: The specific CloudOS workspace ID (required)
@@ -1859,8 +1859,6 @@ cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --l
 # Link an S3 bucket folder
 cloudos link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
 
-# Link a File Explorer folder
-cloudos link "Analyses Results/HLA" --project-name my-project --session-id abc123 --profile my_profile
 ```
 
 **Error handling:**
@@ -1873,9 +1871,6 @@ The command provides clear error messages for common scenarios:
 
 > [!NOTE]
 > If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
-
-> [!NOTE]
-> Virtual folders in File Explorer (folders created in File Explorer that are not actual storage locations) cannot be linked.
 
 > [!NOTE]
 > Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
