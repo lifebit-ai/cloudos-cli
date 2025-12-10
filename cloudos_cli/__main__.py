@@ -19,7 +19,7 @@ from cloudos_cli.procurement import Images
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from rich.style import Style
 from cloudos_cli.utils.array_job import generate_datasets_for_project
-from cloudos_cli.utils.details import create_job_details
+from cloudos_cli.utils.details import create_job_details, create_job_list_table
 from cloudos_cli.link import Link
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.logging.logger import setup_logging, update_command_context_from_click
@@ -1353,9 +1353,14 @@ def job_details(ctx,
               default='joblist',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help='The desired output format. For json option --all-fields will be automatically set to True. Default=stdout.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--table-columns',
+              help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
+                    'Available columns: status,name,project,owner,pipeline,id,submit_time,end_time,run_time,commit,cost,resources,storage_type. ' +
+                    'Default: responsive (auto-selects columns based on terminal width)'),
+              default=None)
 @click.option('--all-fields',
               help=('Whether to collect all available fields from jobs or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -1416,6 +1421,7 @@ def list_jobs(ctx,
               workspace_id,
               output_basename,
               output_format,
+              table_columns,
               all_fields,
               last_n_jobs,
               page,
@@ -1434,11 +1440,17 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect workspace jobs from a CloudOS workspace in CSV or JSON format."""
+    """Collect and display workspace jobs from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
+    
+    # Pass table_columns directly to create_job_list_table for validation and processing
+    selected_columns = table_columns
+    # Only set outfile if not using stdout
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
+    
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -1455,17 +1467,39 @@ def list_jobs(ctx,
 
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
+    
+    # Validate page_size limit - must be done before API call
+    if page_size > 100:
+        click.secho('Error: Page size cannot exceed 100. Please use --page-size with a value <= 100', fg='red', err=True)
+        raise SystemExit(1)
 
-    my_jobs_r = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
-                                filter_status=filter_status,
-                                filter_job_name=filter_job_name,
-                                filter_project=filter_project,
-                                filter_workflow=filter_workflow,
-                                filter_job_id=filter_job_id,
-                                filter_only_mine=filter_only_mine,
-                                filter_owner=filter_owner,
-                                filter_queue=filter_queue,
-                                last=last)
+    result = cl.get_job_list(workspace_id, last_n_jobs, page, page_size, archived, verify_ssl,
+                             filter_status=filter_status,
+                             filter_job_name=filter_job_name,
+                             filter_project=filter_project,
+                             filter_workflow=filter_workflow,
+                             filter_job_id=filter_job_id,
+                             filter_only_mine=filter_only_mine,
+                             filter_owner=filter_owner,
+                             filter_queue=filter_queue,
+                             last=last)
+    
+    # Extract jobs and pagination metadata from result
+    my_jobs_r = result['jobs']
+    pagination_metadata = result['pagination_metadata']
+    
+    # Validate requested page exists
+    if pagination_metadata:
+        total_jobs = pagination_metadata.get('Pagination-Count', 0)
+        current_page_size = pagination_metadata.get('Pagination-Limit', page_size)
+        
+        if total_jobs > 0:
+            total_pages = (total_jobs + current_page_size - 1) // current_page_size
+            if page > total_pages:
+                click.secho(f'Error: Page {page} does not exist. There are only {total_pages} page(s) available with {total_jobs} total job(s). '
+                           f'Please use --page with a value between 1 and {total_pages}', fg='red', err=True)
+                raise SystemExit(1)
+    
     if len(my_jobs_r) == 0:
         # Check if any filtering options are being used
         filters_used = any([
@@ -1478,15 +1512,22 @@ def list_jobs(ctx,
             filter_owner,
             filter_queue
         ])
-        if filters_used:
-            print('A total of 0 jobs collected.')
-        elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('A total of 0 jobs collected. This is likely because your workspace ' +
-                  'has no jobs created yet.')
+        if output_format == 'stdout':
+            # For stdout, always show a user-friendly message
+            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns)
         else:
-            print('A total of 0 jobs collected. This is likely because the --page you requested ' +
-                  'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
-                  'using --page parameter.')
+            if filters_used:
+                print('A total of 0 jobs collected.')
+            elif ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
+                print('A total of 0 jobs collected. This is likely because your workspace ' +
+                      'has no jobs created yet.')
+            else:
+                print('A total of 0 jobs collected. This is likely because the --page you requested ' +
+                      'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
+                      'using --page parameter.')
+    elif output_format == 'stdout':
+        # Display as table
+        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         cl.save_job_list_to_csv(my_jobs, outfile)
@@ -1496,7 +1537,7 @@ def list_jobs(ctx,
         print(f'\tJob list collected with a total of {len(my_jobs_r)} jobs.')
         print(f'\tJob list saved to {outfile}')
     else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
+        raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
 @job.command('abort')
@@ -3331,10 +3372,9 @@ def renaming_item(ctx,
     NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
     if not source_path.strip("/").startswith("Data/"):
-        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file/folder in that dataset.")
+        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file or folder in that dataset.")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    # Initialize Datasets clients
     client = Datasets(
         cloudos_url=cloudos_url,
         apikey=apikey,
