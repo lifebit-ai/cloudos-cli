@@ -1519,7 +1519,7 @@ class Job(Cloudos):
 
     def get_branches(self, repository_identifier, owner, workflow_owner_id,
                      strategy='github', branch_name='', page=1, limit=100, verify=True):
-        """Get branches from a GitHub repository.
+        """Get branches from a GitHub repository with pagination support.
 
         Parameters
         ----------
@@ -1534,7 +1534,7 @@ class Job(Cloudos):
         page : int, optional
             Page number for pagination. Default is 1.
         limit : int, optional
-            Number of results per page. Default is 6.
+            Number of results per page. Default is 100.
         verify : [bool|string], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1543,7 +1543,8 @@ class Job(Cloudos):
         Returns
         -------
         dict
-            A dictionary containing the branches information from the API.
+            A dictionary containing all branches information from the API.
+            Structure: {"branches": [...], "total": <total_count>}
 
         Raises
         ------
@@ -1555,21 +1556,43 @@ class Job(Cloudos):
             "apikey": self.apikey
         }
 
-        params = {
-            "repositoryIdentifier": repository_identifier,
-            "owner": owner,
-            "workflowOwnerId": workflow_owner_id,
-            "branchName": branch_name,
-            "page": page,
-            "limit": limit,
-            "teamId": self.workspace_id
-        }
+        all_branches = []
+        current_page = 1
+        total = None
 
-        url = f"{self.cloudos_url}/api/v1/git/{strategy}/getBranches"
-        response = retry_requests_get(url, params=params, headers=headers, verify=verify)
+        while True:
+            params = {
+                "repositoryIdentifier": repository_identifier,
+                "owner": owner,
+                "workflowOwnerId": workflow_owner_id,
+                "branchName": branch_name,
+                "page": current_page,
+                "limit": limit,
+                "teamId": self.workspace_id
+            }
 
-        if response.status_code >= 400:
-            raise BadRequestException(response)
+            url = f"{self.cloudos_url}/api/v1/git/{strategy}/getBranches"
+            response = retry_requests_get(url, params=params, headers=headers, verify=verify)
 
-        return json.loads(response.content)
+            if response.status_code >= 400:
+                raise BadRequestException(response)
+
+            content = json.loads(response.content)
+            branches = content.get("branches", [])
+            
+            if total is None:
+                total = content.get("total", len(branches))
+            
+            if not branches:
+                break  # No more branches to fetch
+
+            all_branches.extend(branches)
+
+            # Check if we've fetched all branches
+            if len(all_branches) >= total:
+                break
+
+            current_page += 1
+
+        return {"branches": all_branches, "total": total or len(all_branches)}
 
