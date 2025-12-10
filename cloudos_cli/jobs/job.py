@@ -1142,8 +1142,11 @@ class Job(Cloudos):
         # sometimes revision is missing from the 'request-payload' API, make sure is present
         if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
             revision = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
-            # cloned_payload['revision']['revisionType'] = 'branch'
             cloned_payload['revision'] = revision
+            if 'digest' in cloned_payload['revision']:
+                cloned_payload['revision']['revisionType'] = 'digest'
+            elif 'sha' in cloned_payload['revision']:
+                cloned_payload['revision']['revisionType'] = 'commit'
             # Clear other revision types
             cloned_payload['revision'].pop('tag', None)
         if branch:
