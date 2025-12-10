@@ -4184,7 +4184,7 @@ def link_command(ctx,
             print(f'Linking path to interactive session {session_id}...\n')
             
             # Link path with validation
-            link_client.link_path_with_validation(path, session_id, project_name, verify_ssl, verbose)
+            link_client.link_path_with_validation(path, session_id, verify_ssl, project_name, verbose)
             
             print('\nLinking operation completed.')
             

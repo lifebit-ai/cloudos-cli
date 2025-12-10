@@ -434,7 +434,7 @@ class Link(Cloudos):
             else:
                 click.secho(f'\tFailed to link logs: {error_msg}', fg='red')
 
-    def link_path_with_validation(self, path: str, session_id: str, project_name: str = None, verify_ssl=None, verbose: bool = False):
+    def link_path_with_validation(self, path: str, session_id: str, verify_ssl, project_name: str = None, verbose: bool = False):
         """
         Link a path (S3 or File Explorer) to an interactive session with validation.
         
@@ -500,7 +500,7 @@ class Link(Cloudos):
                     apikey=self.apikey,
                     workspace_id=self.workspace_id,
                     project_name=project_name,
-                    verify=verify_ssl if verify_ssl is not None else self.verify,
+                    verify=verify_ssl,
                     cromwell_token=None
                 )
                 parts = path.strip("/").split("/")
