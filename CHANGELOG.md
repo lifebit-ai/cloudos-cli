@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.75.2 (2025-12-09)
+
+### Patch
+
+- Fix code revision when resuming jobs
+
 ## v2.75.1 (2025-12-05)
 
 ### Patch
