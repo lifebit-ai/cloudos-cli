@@ -1160,7 +1160,15 @@ class Job(Cloudos):
             if branch not in [b.get('name') for b in branches.get('branches', [])]:
                 raise ValueError(f"Branch '{branch}' not found in repository. Available branches: {[b.get('name') for b in branches.get('branches', [])]}")
             else:
-                cloned_payload['revision']['commit'] = [b.get('commit').get('sha') for b in branches.get('branches', []) if b.get('name') == branch][0]
+                # Find the matching branch and extract commit SHA safely
+                matching_branches = [b for b in branches.get('branches', []) if b.get('name') == branch]
+                if matching_branches:
+                    branch_data = matching_branches[0]
+                    commit = branch_data.get('commit')
+                    if commit and commit.get('sha'):
+                        cloned_payload['revision']['commit'] = commit.get('sha')
+                    else:
+                        raise ValueError(f"Branch '{branch}' exists but commit information is missing or invalid")
 
             cloned_payload['revision']['branch'] = branch
             # Clear other revision types when setting a branch
