@@ -1147,15 +1147,15 @@ class Job(Cloudos):
                 cloned_payload['revision']['revisionType'] = 'digest'
             elif 'sha' in cloned_payload['revision']:
                 cloned_payload['revision']['revisionType'] = 'commit'
-            # Clear other revision types
-            cloned_payload['revision'].pop('tag', None)
+
         if branch:
             workflow = self.get_field_from_jobs_endpoint(source_job_id, field="workflow", verify=verify)
             branches = self.get_branches(
                 repository_identifier=workflow["repository"]["repositoryId"],
                 owner=workflow["repository"]["owner"]["login"],
                 workflow_owner_id=workflow["owner"]["id"],
-                strategy=repository_platform
+                strategy=repository_platform,
+                verify=verify
             )
             if branch not in [b.get('name') for b in branches.get('branches', [])]:
                 raise ValueError(f"Branch '{branch}' not found in repository. Available branches: {[b.get('name') for b in branches.get('branches', [])]}")
@@ -1163,7 +1163,9 @@ class Job(Cloudos):
                 cloned_payload['revision']['commit'] = [b.get('commit').get('sha') for b in branches.get('branches', []) if b.get('name') == branch][0]
 
             cloned_payload['revision']['branch'] = branch
-        print("cloned_payload['revision']: ", cloned_payload['revision'])
+        # Clear other revision types
+        cloned_payload['revision'].pop('tag', None)
+
         # Override profile if provided
         if profile:
             cloned_payload['profile'] = profile
