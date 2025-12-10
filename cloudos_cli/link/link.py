@@ -500,7 +500,7 @@ class Link(Cloudos):
                     apikey=self.apikey,
                     workspace_id=self.workspace_id,
                     project_name=project_name,
-                    verify=verify_ssl or self.verify,
+                    verify=verify_ssl if verify_ssl is not None else self.verify,
                     cromwell_token=None
                 )
                 parts = path.strip("/").split("/")
