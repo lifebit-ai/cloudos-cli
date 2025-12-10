@@ -6,6 +6,12 @@
 
 - Adds new link command
 
+## v2.75.1 (2025-12-05)
+
+### Patch
+
+- Removes semi-colon ':' from error messages
+
 ## v2.75.0 (2025-12-03)
 
 ### Feat
