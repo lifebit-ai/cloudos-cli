@@ -1160,7 +1160,7 @@ class Job(Cloudos):
                 cloned_payload['revision']['commit'] = [b.get('commit').get('sha') for b in branches.get('branches', []) if b.get('name') == branch][0]
 
             cloned_payload['revision']['branch'] = branch
-
+        print("cloned_payload['revision']: ", cloned_payload['revision'])
         # Override profile if provided
         if profile:
             cloned_payload['profile'] = profile
