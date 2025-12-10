@@ -1513,7 +1513,7 @@ class Job(Cloudos):
         return {"message": f"'{mode}' deleted successfully"}
 
     def get_branches(self, repository_identifier, owner, workflow_owner_id,
-                     strategy='github', branch_name='', page=1, limit=6, verify=True):
+                     strategy='github', branch_name='', page=1, limit=100, verify=True):
         """Get branches from a GitHub repository.
 
         Parameters
