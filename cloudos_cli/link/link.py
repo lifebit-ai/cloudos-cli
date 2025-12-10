@@ -517,20 +517,43 @@ class Link(Cloudos):
                         if item.get("name") == item_name:
                             found = item
                             break
-                if found and ("folderType" not in found):
-                    is_folder = False
+                if found:
+                    if "folderType" not in found:
+                        # This is a file
+                        is_folder = "file"
+                    elif found.get("folderType") == "VirtualFolder":
+                        # This is a virtual folder (cannot be linked)
+                        is_folder = "virtual_folder"
+                else:
+                    # Item not found in File Explorer
+                    is_folder = "not_found"
             except Exception:
                 is_folder = None
         
-        if is_folder is False:
+        if is_folder == "file":
+            if is_s3:
+                raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
+            else:
+                raise ValueError("The path points to a file. Only folders can be linked. Please link the parent folder instead.")
+        elif is_folder == "virtual_folder":
+            raise ValueError("The path points to a virtual folder, which cannot be linked. Virtual folders exist only in File Explorer and don't have physical storage locations. Please link an S3 folder or a regular File Explorer folder instead.")
+        elif is_folder == "not_found":
+            raise ValueError(f"The specified path '{path}' was not found in File Explorer. Please verify the path exists and try again.")
+        elif is_folder is False:
+            # Fallback for any other false cases
             if is_s3:
                 raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
             else:
                 raise ValueError("Linking files or virtual folders is not supported. Link the parent folder instead.")
-        elif is_folder is None and is_s3:
-            click.secho("Unable to verify whether the path is a folder. Proceeding with linking; " +
-                       "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
-                       fg='yellow', bold=True)
+        elif is_folder is None:
+            if is_s3:
+                click.secho("Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
+                           "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
+                           fg='yellow', bold=True)
+            else:
+                click.secho("Unable to verify the File Explorer path. Proceeding with linking; " +
+                           "however, if the operation fails, please verify the path exists and is a folder.", 
+                           fg='yellow', bold=True)
         
         if verbose:
             print(f'\tLinking {path}...')
