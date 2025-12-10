@@ -5,7 +5,7 @@ import cloudos_cli.jobs.job as jb
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.queue.queue import Queue
-from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException
+from cloudos_cli.utils.errors import BadRequestException
 import json
 import time
 import sys
