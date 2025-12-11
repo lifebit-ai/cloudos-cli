@@ -4177,7 +4177,6 @@ def link_command(ctx,
             if logs:
                 link_client.link_job_logs(job_id, workspace_id, session_id, verify_ssl, verbose)
             
-            print('\nLinking operation completed.')
             
         else:
             # Direct path linking
