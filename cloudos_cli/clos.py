@@ -525,12 +525,18 @@ class Cloudos:
         storage_account_prefix = ''
         if scheme == 'az':
             storage_account_prefix = f'{workspace_id}.blob.core.windows.net/'
-        results = dict()
+        # Find the results directory - typically there should be only one
+        for item in contents_obj:
+            if item["isDir"] and item["name"] == "results":
+                return f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
+        
+        # Fallback: if no "results" directory found, return the first directory
         for item in contents_obj:
             if item["isDir"]:
-                filename = item["name"]
-                results[filename] = f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
-        return results
+                return f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
+        
+        # If no directories found, raise an error
+        raise ValueError("No result directories found for this job")
 
     def get_folder_items_deletion_status(self, folder_id, workspace_id, verify=True):
         """Get deletion status of items within a folder.
