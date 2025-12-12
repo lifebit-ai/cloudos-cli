@@ -1236,7 +1236,7 @@ def job_results(ctx,
                     print('\nDeletion cancelled.')
                     return
             if verbose:
-                print(f'\nDeleting {len(results)} result directories from CloudOS...')
+                print(f'\nDeleting result directories from CloudOS...')
             # Proceed with deletion
             job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                         mainfile=None, importsfile=None, verify=verify_ssl)
