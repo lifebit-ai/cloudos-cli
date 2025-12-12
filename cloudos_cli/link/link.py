@@ -320,14 +320,13 @@ class Link(Cloudos):
                 
             # Create a temporary Cloudos client for API calls
             cl = Cloudos(self.cloudos_url, self.apikey, None)
-            results_dict = cl.get_job_results(job_id, workspace_id, verify_ssl)
+            results_path = cl.get_job_results(job_id, workspace_id, verify_ssl)
             
-            if results_dict:
-                print(f'\tLinking {len(results_dict)} result directories...')
-                for name, path in results_dict.items():
-                    if verbose:
-                        print(f'\t\tLinking {name} ({path})...')
-                    self.link_folder(path, session_id)
+            if results_path:
+                print(f'\tLinking results directory...')
+                if verbose:
+                    print(f'\t\tResults: {results_path}')
+                self.link_folder(results_path, session_id)
             else:
                 click.secho('\tNo results found to link.', fg='yellow')
                 

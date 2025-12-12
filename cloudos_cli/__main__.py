@@ -1196,14 +1196,13 @@ def job_results(ctx,
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:
-        results = cl.get_job_results(job_id, workspace_id, verify_ssl)
-        for name, path in results.items():
-            print(f"{name}: {path}")
+        results_path = cl.get_job_results(job_id, workspace_id, verify_ssl)
+        print(f"results: {results_path}")
 
         # Link to interactive session if requested
         if link:
             if verbose:
-                print(f'\tLinking {len(results)} result directories to interactive session {session_id}...')
+                print(f'\tLinking results directory to interactive session {session_id}...')
 
             # Use Link class to perform the linking
             link_client = Link(
@@ -1215,10 +1214,10 @@ def job_results(ctx,
                 verify=verify_ssl
             )
 
-            for name, path in results.items():
-                if verbose:
-                    print(f'\t\tLinking {name} ({path})...')
-                link_client.link_folder(path, session_id)
+            if verbose:
+                print(f'\t\tLinking results ({results_path})...')
+            
+            link_client.link_folder(results_path, session_id)
 
         # Delete results directory if requested
         if delete:
