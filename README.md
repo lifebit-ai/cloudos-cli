@@ -1078,6 +1078,31 @@ cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbo
 > This command only works for jobs that were run with resumable mode enabled (using the `--resumable` flag). Jobs without resumable mode will not have a working directory to check.
 > If the working directory has been completely deleted, the command will report that the working directory was not found.
 
+#### Get Job Logs
+
+The following command allows you to get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
+
+Example:
+```bash
+cloudos job logs --profile my_profile --job-id "12345678910"
+```
+```console
+Executing logs...
+Logs URI: s3://path/to/location/of/logs
+
+Nextflow log: s3://path/to/location/of/logs/.nextflow.log
+
+Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
+
+Trace file: s3://path/to/location/of/logs/trace.txt
+```
+
+You can also link the logs directory to an interactive session using the `--link` flag. This will mount the entire logs directory, providing access to all log files in your interactive session:
+
+```bash
+cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id your_session_id
+```
+
 #### Get Job Costs
 
 You can retrieve detailed cost information for any job in your CloudOS workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.
