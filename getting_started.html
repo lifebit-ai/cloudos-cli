@@ -436,6 +436,11 @@
 <li><p><a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">Use multiple projects for files in <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option</span></a></p></li>
 </ul>
 </li>
+<li><p><a class="reference internal" href="#link"><span class="std std-ref">Link</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#link-folders-to-interactive-analysis"><span class="xref myst">Link Folders to Interactive Analysis</span></a></p></li>
+</ul>
+</li>
 <li><p><a class="reference internal" href="#datasets"><span class="std std-ref">Datasets</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#list-files"><span class="xref myst">List Files</span></a></p></li>
@@ -2068,6 +2073,87 @@ Files and folders can be removed in the <code class="docutils literal notranslat
 <blockquote>
 <div><p>[!NOTE]
 If a file was uploaded by the user, in order to be removed you must use  <code class="docutils literal notranslate"><span class="pre">--force</span></code> and that will permanently remove the file. If the file is “linked” (e.g a s3 folder or file), removing it using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">datasets</span> <span class="pre">rm</span></code> will not remove it from the the s3 bucket.</p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="link">
+<h3>Link<a class="headerlink" href="#link" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">link</span></code> command provides a unified interface for linking folders to interactive analysis sessions. This command consolidates functionality previously available through separate commands (<code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">results</span> <span class="pre">--link</span></code>, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">workdir</span> <span class="pre">--link</span></code>, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">logs</span> <span class="pre">--link</span></code>, and <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">datasets</span> <span class="pre">link</span></code>) into a single, intuitive interface.</p>
+<section id="link-folders-to-interactive-analysis">
+<h4>Link Folders to Interactive Analysis<a class="headerlink" href="#link-folders-to-interactive-analysis" title="Link to this heading">¶</a></h4>
+<p>Link job-related folders or custom S3 paths to your interactive analysis sessions for direct access to data without needing to copy files.</p>
+<p><strong>Two modes of operation:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Job-based linking</strong> (<code class="docutils literal notranslate"><span class="pre">--job-id</span></code>): Links folders from a completed or running job</p>
+<ul class="simple">
+<li><p>By default, links results, workdir, and logs folders</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">--results</span></code>, <code class="docutils literal notranslate"><span class="pre">--workdir</span></code>, or <code class="docutils literal notranslate"><span class="pre">--logs</span></code> flags to link only specific folders</p></li>
+</ul>
+</li>
+<li><p><strong>Direct path linking</strong> (PATH argument): Links a specific S3 path</p></li>
+</ol>
+<p><strong>Basic usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Link all job folders (results, workdir, logs) - default behavior</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>&lt;JOB_ID&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link only specific folders from a job</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>&lt;JOB_ID&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--results<span class="w"> </span>--profile<span class="w"> </span>my_profile
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>&lt;JOB_ID&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--workdir<span class="w"> </span>--logs<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link a specific S3 path</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>s3://bucket/folder<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link a File Explorer path (requires project name)</span>
+cloudos<span class="w"> </span>link<span class="w"> </span><span class="s2">&quot;Data/MyFolder&quot;</span><span class="w"> </span>--project-name<span class="w"> </span>my-project<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p><strong>Command options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PATH</span></code>: S3 path to link (positional argument, required if <code class="docutils literal notranslate"><span class="pre">--job-id</span></code> is not provided)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The specific CloudOS workspace ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--session-id</span></code>: The specific CloudOS interactive session ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-id</span></code>: The job ID in CloudOS (links results, workdir, and logs by default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--project-name</span></code>: CloudOS project name (required for File Explorer paths)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--results</span></code>: Link only results folder (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workdir</span></code>: Link only working directory (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--logs</span></code>: Link only logs folder (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Print detailed information messages</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from the config file</p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Link all folders from a completed job</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link only results from a job</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--results<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link workdir and logs (but not results)</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--workdir<span class="w"> </span>--logs<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link an S3 bucket folder</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>s3://my-bucket/analysis-results/2024<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p><strong>Error handling:</strong></p>
+<p>The command provides clear error messages for common scenarios:</p>
+<ul class="simple">
+<li><p>Job not completed (for results linking)</p></li>
+<li><p>Folders not available or deleted</p></li>
+<li><p>Job still initializing</p></li>
+<li><p>Invalid paths or permissions</p></li>
+</ul>
+<blockquote>
+<div><p>[!NOTE]
+If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the <code class="docutils literal notranslate"><span class="pre">--apikey</span></code> needs to be added.</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!NOTE]
+Azure Blob Storage paths (az://) are not supported for linking in Azure environments.</p>
 </div></blockquote>
 </section>
 </section>

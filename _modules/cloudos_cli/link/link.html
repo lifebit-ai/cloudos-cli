@@ -346,12 +346,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoBNotCompletedException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Datasets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_project</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">rich_click</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">click</span>
-
+        
 
 <div class="viewcode-block" id="Link">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link">[docs]</a>
@@ -645,6 +647,279 @@
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">check_interval</span><span class="p">)</span>
         
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timeout waiting for mount &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39; to complete after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Link.link_job_results">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_job_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">link_job_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Link job results to an interactive session.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_id : str</span>
+<span class="sd">            The job ID to link results from</span>
+<span class="sd">        workspace_id : str</span>
+<span class="sd">            The workspace ID</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            The interactive session ID</span>
+<span class="sd">        verify_ssl : Union[bool, str]</span>
+<span class="sd">            SSL verification setting</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to print verbose output</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Prints status messages to console</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Fetching job results...&#39;</span><span class="p">)</span>
+                
+            <span class="c1"># Create a temporary Cloudos client for API calls</span>
+            <span class="n">cl</span> <span class="o">=</span> <span class="n">Cloudos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">results_path</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_job_results</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">results_path</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking results directory...&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Results: </span><span class="si">{</span><span class="n">results_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No results found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="n">JoBNotCompletedException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cannot link results: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;Results are not available&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span> <span class="ow">or</span> <span class="s2">&quot;deleted&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;removed&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cannot link results: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Failed to link results: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Link.link_job_workdir">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_job_workdir">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">link_job_workdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Link job working directory to an interactive session.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_id : str</span>
+<span class="sd">            The job ID to link workdir from</span>
+<span class="sd">        workspace_id : str</span>
+<span class="sd">            The workspace ID</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            The interactive session ID</span>
+<span class="sd">        verify_ssl : Union[bool, str]</span>
+<span class="sd">            SSL verification setting</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to print verbose output</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Prints status messages to console</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Fetching job working directory...&#39;</span><span class="p">)</span>
+                
+            <span class="c1"># Create a temporary Cloudos client for API calls</span>
+            <span class="n">cl</span> <span class="o">=</span> <span class="n">Cloudos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">workdir_path</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_job_workdir</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">workdir_path</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking working directory...&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Workdir: </span><span class="si">{</span><span class="n">workdir_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">workdir_path</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">session_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No working directory found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;not yet available&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;initializing&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;not available&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;deleted&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;removed&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cannot link workdir: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Failed to link workdir: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Link.link_job_logs">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_job_logs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">link_job_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Link job logs to an interactive session.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_id : str</span>
+<span class="sd">            The job ID to link logs from</span>
+<span class="sd">        workspace_id : str</span>
+<span class="sd">            The workspace ID</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            The interactive session ID</span>
+<span class="sd">        verify_ssl : Union[bool, str]</span>
+<span class="sd">            SSL verification setting</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to print verbose output</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Prints status messages to console</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Fetching job logs...&#39;</span><span class="p">)</span>
+                
+            <span class="c1"># Create a temporary Cloudos client for API calls</span>
+            <span class="n">cl</span> <span class="o">=</span> <span class="n">Cloudos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">logs_dict</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_job_logs</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">logs_dict</span><span class="p">:</span>
+                <span class="c1"># Extract the parent logs directory from any log file path</span>
+                <span class="n">first_log_path</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">logs_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+                <span class="n">logs_dir</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">first_log_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking logs directory...&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Logs directory: </span><span class="si">{</span><span class="n">logs_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No logs found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;not yet available&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;initializing&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;not available&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;deleted&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;removed&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cannot link logs: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Failed to link logs: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Link.link_path_with_validation">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_path_with_validation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">link_path_with_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Link a path (S3 or File Explorer) to an interactive session with validation.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            The path to link</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            The interactive session ID</span>
+<span class="sd">        project_name : str, optional</span>
+<span class="sd">            The project name (required for File Explorer paths)</span>
+<span class="sd">        verify_ssl : Union[bool, str], optional</span>
+<span class="sd">            SSL verification setting</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            Whether to print verbose output</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Prints status messages to console</span>
+<span class="sd">            </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        click.UsageError</span>
+<span class="sd">            If Azure path is provided or validation fails</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If path validation fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="c1"># Check for Azure paths and provide informative error message</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;az://&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">UsageError</span><span class="p">(</span><span class="s2">&quot;Azure Blob Storage paths (az://) are not supported for linking. Please use S3 paths (s3://) or File Explorer paths instead.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate path requirements</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">project_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">UsageError</span><span class="p">(</span><span class="s2">&quot;When using File Explorer paths, &#39;--project-name&#39; must be provided.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Use the same validation logic as datasets link command</span>
+        <span class="n">is_s3</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">)</span>
+        <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="k">if</span> <span class="n">is_s3</span><span class="p">:</span>
+            <span class="c1"># S3 path validation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+                    <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">path_parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">path_parts</span><span class="p">:</span>
+                        <span class="n">last_part</span> <span class="o">=</span> <span class="n">path_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">last_part</span><span class="p">:</span>
+                            <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># File Explorer path validation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">datasets</span> <span class="o">=</span> <span class="n">Datasets</span><span class="p">(</span>
+                    <span class="n">cloudos_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+                    <span class="n">apikey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+                    <span class="n">workspace_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
+                    <span class="n">project_name</span><span class="o">=</span><span class="n">project_name</span><span class="p">,</span>
+                    <span class="n">verify</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">,</span>
+                    <span class="n">cromwell_token</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                <span class="n">parent_path</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">item_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">contents</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">parent_path</span><span class="p">)</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;folders&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">item_name</span><span class="p">:</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="n">item</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">item_name</span><span class="p">:</span>
+                            <span class="n">found</span> <span class="o">=</span> <span class="n">item</span>
+                            <span class="k">break</span>
+                <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;folderType&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">found</span><span class="p">:</span>
+                        <span class="c1"># This is a file</span>
+                        <span class="n">is_folder</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
+                    <span class="k">elif</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;folderType&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;VirtualFolder&quot;</span><span class="p">:</span>
+                        <span class="c1"># This is a virtual folder (cannot be linked)</span>
+                        <span class="n">is_folder</span> <span class="o">=</span> <span class="s2">&quot;virtual_folder&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Item not found in File Explorer</span>
+                    <span class="n">is_folder</span> <span class="o">=</span> <span class="s2">&quot;not_found&quot;</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">is_folder</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="n">is_folder</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_s3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The path points to a file. Only folders can be linked. Please link the parent folder instead.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_folder</span> <span class="o">==</span> <span class="s2">&quot;virtual_folder&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The path points to a virtual folder, which cannot be linked. Virtual folders exist only in File Explorer and don&#39;t have physical storage locations. Please link an S3 folder or a regular File Explorer folder instead.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_folder</span> <span class="o">==</span> <span class="s2">&quot;not_found&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The specified path &#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; was not found in File Explorer. Please verify the path exists and try again.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_s3</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Unable to verify whether the S3 path is a folder. Proceeding with linking; &quot;</span> <span class="o">+</span>
+                           <span class="s2">&quot;however, if the operation fails, please confirm that you are linking a folder rather than a file.&quot;</span><span class="p">,</span> 
+                           <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Unable to verify the File Explorer path. Proceeding with linking; &quot;</span> <span class="o">+</span>
+                           <span class="s2">&quot;however, if the operation fails, please verify the path exists and is a folder.&quot;</span><span class="p">,</span> 
+                           <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span></div>
 </div>
 
 

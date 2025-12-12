@@ -884,12 +884,18 @@
         <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;az&#39;</span><span class="p">:</span>
             <span class="n">storage_account_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s1">.blob.core.windows.net/&#39;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="c1"># Find the results directory - typically there should be only one</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents_obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;isDir&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;results&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">scheme</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}{</span><span class="n">results_container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Fallback: if no &quot;results&quot; directory found, return the first directory</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents_obj</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;isDir&quot;</span><span class="p">]:</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-                <span class="n">results</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">scheme</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}{</span><span class="n">results_container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">results</span></div>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">scheme</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">storage_account_prefix</span><span class="si">}{</span><span class="n">results_container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># If no directories found, raise an error</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No result directories found for this job&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Cloudos.get_folder_items_deletion_status">
