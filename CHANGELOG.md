@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.76.0 (2025-12-05)
+
+### Feat
+
+- Adds new link command
+
 ## v2.75.1 (2025-12-05)
 
 ### Patch

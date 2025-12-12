@@ -60,6 +60,8 @@ Python package for interacting with CloudOS
           - [Custom Script Path](#custom-script-path)
           - [Custom Script Project](#custom-script-project)
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
+    - [Link](#link)
+      - [Link Folders to Interactive Analysis](#link-folders-to-interactive-analysis)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -1856,6 +1858,89 @@ cloudos datasets rm <path> --profile my_profile
 > [!NOTE]
 > If a file was uploaded by the user, in order to be removed you must use  `--force` and that will permanently remove the file. If the file is "linked" (e.g a s3 folder or file), removing it using `cloudos datasets rm` will not remove it from the the s3 bucket.
  
+---
+
+### Link
+
+The `cloudos link` command provides a unified interface for linking folders to interactive analysis sessions. This command consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
+
+#### Link Folders to Interactive Analysis
+
+Link job-related folders or custom S3 paths to your interactive analysis sessions for direct access to data without needing to copy files.
+
+**Two modes of operation:**
+
+1. **Job-based linking** (`--job-id`): Links folders from a completed or running job
+   - By default, links results, workdir, and logs folders
+   - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
+
+2. **Direct path linking** (PATH argument): Links a specific S3 path
+
+**Basic usage:**
+
+```bash
+# Link all job folders (results, workdir, logs) - default behavior
+cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
+
+# Link only specific folders from a job
+cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
+cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
+
+# Link a specific S3 path
+cloudos link s3://bucket/folder --session-id <SESSION_ID> --profile my_profile
+
+# Link a File Explorer path (requires project name)
+cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+```
+
+**Command options:**
+
+- `PATH`: S3 path to link (positional argument, required if `--job-id` is not provided)
+- `--apikey` / `-k`: Your CloudOS API key (required)
+- `--cloudos-url` / `-c`: The CloudOS URL (default: https://cloudos.lifebit.ai)
+- `--workspace-id`: The specific CloudOS workspace ID (required)
+- `--session-id`: The specific CloudOS interactive session ID (required)
+- `--job-id`: The job ID in CloudOS (links results, workdir, and logs by default)
+- `--project-name`: CloudOS project name (required for File Explorer paths)
+- `--results`: Link only results folder (only works with `--job-id`)
+- `--workdir`: Link only working directory (only works with `--job-id`)
+- `--logs`: Link only logs folder (only works with `--job-id`)
+- `--verbose`: Print detailed information messages
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+**Examples:**
+
+```bash
+# Link all folders from a completed job
+cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --profile my_profile
+
+# Link only results from a job
+cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --results --profile my_profile
+
+# Link workdir and logs (but not results)
+cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --logs --profile my_profile
+
+# Link an S3 bucket folder
+cloudos link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
+
+```
+
+**Error handling:**
+
+The command provides clear error messages for common scenarios:
+- Job not completed (for results linking)
+- Folders not available or deleted
+- Job still initializing
+- Invalid paths or permissions
+
+> [!NOTE]
+> If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
+
+> [!NOTE]
+> Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
+
 ---
 
 ### Procurement
