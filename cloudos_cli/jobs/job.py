@@ -1024,7 +1024,7 @@ class Job(Cloudos):
                   job_name=None,
                   nextflow_version=None,
                   branch=None,
-                  repository_platform=None,
+                  repository_platform='github',
                   profile=None,
                   do_not_save_logs=None,
                   use_fusion=None,
@@ -1171,6 +1171,7 @@ class Job(Cloudos):
                         raise ValueError(f"Branch '{branch}' exists but commit information is missing or invalid")
 
             cloned_payload['revision']['branch'] = branch
+            cloned_payload['revision']['revisionType'] = 'branch'
             # Clear other revision types when setting a branch
             cloned_payload['revision'].pop('tag', None)
 
