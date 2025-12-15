@@ -187,8 +187,8 @@ def test_job_results():
             json=dict(notNone=1) if provider == "aws" else {}
         )
     clos = Cloudos(CLOUD_OS_URL, "", None)
-    results = clos.get_job_results(JOB, WS_ID, True)
-    assert results["results"] == 's3://bucketname/path/to/results'
+    results_path = clos.get_job_results(JOB, WS_ID, True)
+    assert results_path == 's3://bucketname/path/to/results'
 
 
 @responses.activate
