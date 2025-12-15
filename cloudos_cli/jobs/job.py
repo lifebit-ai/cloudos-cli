@@ -1537,6 +1537,8 @@ class Job(Cloudos):
             The owner of the repository (e.g., 'lifebit-ai').
         workflow_owner_id : str
             The workflow owner ID in CloudOS.
+        strategy : str, optional
+            The repository strategy/platform (default is 'github').
         branch_name : str, optional
             Filter branches by name. Default is '' (empty string to get all branches).
         page : int, optional
