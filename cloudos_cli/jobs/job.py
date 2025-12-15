@@ -1145,7 +1145,7 @@ class Job(Cloudos):
             cloned_payload['revision'] = revision
             if 'digest' in cloned_payload['revision']:
                 cloned_payload['revision']['revisionType'] = 'digest'
-            elif 'sha' in cloned_payload['revision']:
+            elif 'commit' in cloned_payload['revision']:
                 cloned_payload['revision']['revisionType'] = 'commit'
 
         if branch:
