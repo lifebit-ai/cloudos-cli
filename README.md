@@ -47,6 +47,7 @@ Python package for interacting with CloudOS
       - [Get Job Costs](#get-job-costs)
       - [Get Job Related Analyses](#get-job-related-analyses)
       - [Delete Job Results](#delete-job-results)
+      - [Archive Jobs](#archive-jobs)
     - [Bash Jobs](#bash-jobs)
       - [Send Array Job](#send-array-job)
       - [Submit a Bash Array Job](#submit-a-bash-array-job)
@@ -1487,6 +1488,95 @@ Selected job does not have 'Results' information.
 **Bulk Deletion**
 
 For bulk deletion of job results and working directories across multiple jobs in a project, see the [delete_project_jobs.sh utility script](docs/utils/delete_project_jobs.md) in the `utils` folder. This script allows you to efficiently delete results and/or working directories for all jobs in a project.
+
+#### Archive Jobs
+
+CloudOS allows you to archive completed jobs to organize and manage your analysis history.
+
+> [!NOTE]
+> Archiving jobs does not delete any data or results. It simply adds metadata to mark jobs as archived for organizational purposes.
+
+**Archive a Single Job**
+
+To archive a single job, use the `job archive` command with the job ID:
+
+```bash
+cloudos job archive --profile my_profile --job-ids 69413101b07d5f5bb46891b4
+```
+
+The expected output will confirm successful archiving:
+
+```console
+Archiving jobs...
+Job '69413101b07d5f5bb46891b4' archived successfully.
+```
+
+**Archive Multiple Jobs**
+
+You can archive multiple jobs simultaneously by providing a comma-separated list of job IDs:
+
+```bash
+cloudos job archive --profile my_profile --job-ids "job1,job2,job3"
+```
+
+This will archive all valid job IDs in a single operation:
+
+```console
+Archiving jobs...
+3 jobs archived successfully: job1, job2, job3
+```
+
+**Verbose Output**
+
+For detailed information about the archiving process, use the `--verbose` flag:
+
+```bash
+cloudos job archive --profile my_profile --job-ids 69413101b07d5f5bb46891b4 --verbose
+```
+
+This provides additional details about the operation:
+
+```console
+Archiving jobs...
+	...Preparing objects
+	The following Cloudos object was created:
+	Cloudos(cloudos_url='https://cloudos.lifebit.ai', apikey='***', cromwell_token=None)
+
+	Archiving jobs in the following workspace: workspace_123
+	Job 69413101b07d5f5bb46891b4 found with status: completed
+Job '69413101b07d5f5bb46891b4' archived successfully.
+```
+
+**Error Handling**
+
+The archive command handles various scenarios gracefully:
+
+- **Invalid Job IDs**: Jobs that don't exist are skipped with a warning message
+- **Mixed Valid/Invalid**: Valid jobs are archived, invalid ones are reported
+- **Empty Job List**: Providing empty job IDs results in a clear error message
+
+Example with mixed valid and invalid job IDs:
+
+```bash
+cloudos job archive --profile my_profile --job-ids "valid_job,invalid_job"
+```
+
+```console
+Archiving jobs...
+Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found
+Job 'valid_job' archived successfully.
+```
+
+**Command Options**
+
+- `--job-ids`: One or more job IDs to archive (comma-separated for multiple)
+- `--verbose`: Display detailed information about the archiving process
+- `--profile`: Use a specific configuration profile
+- `--workspace-id`: Specify the workspace ID (if not using profiles)
+- `--apikey`: Your CloudOS API key (if not using profiles)
+
+> [!TIP]
+> Use the `cloudos job list` command to identify jobs you want to archive. You can filter by status, project, or other criteria to find specific jobs for archiving.
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
