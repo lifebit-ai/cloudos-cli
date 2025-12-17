@@ -34,16 +34,14 @@ Python package for interacting with CloudOS
       - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
     - [Nextflow Jobs](#nextflow-jobs)
       - [Submit a Job](#submit-a-job)
-      - [Get Job Logs](#get-job-logs)
-      - [Get Job Results](#get-job-results)
-      - [Clone or Resume job](#clone-or-resume-job)
-      - [Query working directory of job](#query-working-directory-of-job)
-      - [Abort single or multiple jobs from CloudOS](#abort-single-or-multiple-jobs-from-cloudos)
-      - [Abort Jobs](#abort-jobs)
       - [Check Job Status](#check-job-status)
+      - [List Jobs](#list-jobs)
+      - [Get Job Results](#get-job-results)
+      - [Clone or Resume Job](#clone-or-resume-job)
+      - [Abort Jobs](#abort-jobs)
       - [Get Job Details](#get-job-details)
       - [Get Job Workdir](#get-job-workdir)
-      - [List Jobs](#list-jobs)
+      - [Get Job Logs](#get-job-logs)
       - [Get Job Costs](#get-job-costs)
       - [Get Job Related Analyses](#get-job-related-analyses)
       - [Delete Job Results](#delete-job-results)
@@ -593,224 +591,6 @@ Please note that HPC execution does not support the following parameters and all
 - `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 
-#### Get Job Logs
-
-The following command allows you to get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
-
-Example:
-```bash
-cloudos job logs --profile my_profile --job-id "12345678910"
-```
-```console
-Executing logs...
-Logs URI: s3://path/to/location/of/logs
-
-Nextflow log: s3://path/to/location/of/logs/.nextflow.log
-
-Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
-
-Trace file: s3://path/to/location/of/logs/trace.txt
-```
-
-You can also link the logs directory to an interactive session using the `--link` flag. This will mount the entire logs directory, providing access to all log files in your interactive session:
-
-```bash
-cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id your_session_id
-```
-
-#### Get Job Results
-
-The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
-
-Example:
-```bash
-cloudos job results --profile my_profile --job-id "12345678910"
-```
-```console
-Executing results...
-results: s3://path/to/location/of/results/results/
-```
-
-You can also link all result directories to an interactive session using the `--link` flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:
-
-```bash
-cloudos job results --profile my_profile --job-id "12345678910" --link --session-id your_session_id
-```
-
-**Check Results Deletion Status**
-
-You can check the deletion status of a job's results folder using the `--status` flag. This is useful for monitoring the deletion lifecycle of analysis results.
-
-```bash
-cloudos job results --status --profile my_profile --job-id "12345678910"
-```
-
-The command will display the current status of the results folder. Possible statuses include:
-- **available**: Results are available and accessible
-- **scheduled for deletion**: Results are scheduled to be deleted
-- **deleting**: Results are currently being deleted
-- **deleted**: Results have been deleted
-- **failed to delete**: Deletion process failed
-
-Example output for available results:
-```console
-The results of job 1234567890 are in status: available
-```
-
-For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:
-```console
-The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion
-Status changed at: 2025-11-11T14:43:44.416Z
-User: Leila Mansouri (leila.mansouri@lifebit.ai)
-```
-
-Use the `--verbose` flag to see detailed information including the results folder name, folder ID, creation and update timestamps:
-```bash
-cloudos job results --status --profile my_profile --job-id "12345678910" --verbose
-```
-
-> [!NOTE]
-> If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.
-
-
-#### Clone or Resume job
-
-#### Query working directory of job
-
-To get the working directory of a job submitted to CloudOS:
-
-```shell
-cloudos job workdir \
-    --apikey $MY_API_KEY \
-    --cloudos-url $CLOUDOS \
-    --job-id 62c83a1191fe06013b7ef355
-```
-
-Or with a defined profile:
-
-```shell
-cloudos job workdir \
-    --profile profile-name \
-    --job-id 62c83a1191fe06013b7ef355
-```
-
-The output should be something similar to:
-
-```console
-CloudOS job functionality: run, check and abort jobs in CloudOS.
-
-Finding working directory path...
-Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
-```
-
-#### Abort single or multiple jobs from CloudOS
-
-The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
-The `resume` command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
-These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
-
-> [!NOTE]
-> Only job initially run with `--resumable` can be resumed.
-
-
-
-Cloning basic usage:
-
-Aborting jobs...
-        Job 680a3cf80e56949775c02f16 aborted successfully.
-```
-
-
-#### Clone/resume a job with optional parameter overrides
-
-The `clone` and `resume` commands allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
-
-Basic usage:
-```console
-cloudos job clone/resume \
-    --profile MY_PROFILE
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
-```
-
-
-Cloning with parameter overrides:
-
-Clone/resume with parameter overrides:
-```console
-cloudos job clone/resume \
-    --profile MY_PROFILE
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --job-queue "high-priority-queue" \
-    --cost-limit 50.0 \
-    --instance-type "c5.2xlarge" \
-    --job-name "cloned_analysis_v2" \
-    --nextflow-version "24.04.4" \
-    --git-branch "dev" \
-    --nextflow-profile "production" \
-    --do-not-save-logs true \
-    --accelerate-file-staging true \
-    --workflow-name "updated-workflow" \
-    -p "input=s3://new-bucket/input.csv" \
-    -p "output_dir=s3://new-bucket/results"
-```
-
-Resuming a job without parameter overrides
-```console
-cloudos job resume \
-    --profile MY_PROFILE
-    --job-id JOB_ID
-```
-
-Resuming with parameter overrides:
-```console
-cloudos job resume \
-    --profile MY_PROFILE
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --job-queue "high-priority-queue" \
-    --cost-limit 50.0 \
-    --instance-type "c5.2xlarge" \
-    --job-name "cloned_analysis_v2" \
-    --nextflow-version "24.04.4" \
-    --git-branch "dev" \
-    --nextflow-profile "production" \
-    --do-not-save-logs true \
-    --accelerate-file-staging true \
-    --workflow-name "updated-workflow" \
-    -p "input=s3://new-bucket/input.csv" \
-    -p "output_dir=s3://new-bucket/results"
-```
-
-Available override options:
-- `--job-queue`: Specify a different job queue
-- `--cost-limit`: Set a new cost limit (use -1 for no limit)
-- `--instance-type`: Change the master instance type
-- `--job-name`: Assign a custom name to the cloned/resumed job
-- `--nextflow-version`: Use a different Nextflow version
-- `--git-branch`: Switch to a different git branch
-- `--nextflow-profile`: Change the Nextflow profile
-- `--do-not-save-logs`: Enable/disable log saving
-- `--accelerate-file-staging`: Enable/disable fusion filesystem
-- `--workflow-name`: Use a different workflow
-- `-p, --parameter`: Override or add parameters (can be used multiple times)
-
-> [!NOTE]
-> Parameters can be overridden or new ones can be added using `-p` option
-
-
-#### Abort Jobs
-
-Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
-
-Example:
-```bash
-cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
-```
-
-```console
-Aborting jobs...
-        Job 680a3cf80e56949775c02f16 aborted successfully.
-```
-
 #### Check Job Status
 
 To check the status of a submitted job, use the following command:
@@ -827,147 +607,6 @@ Executing status...
 
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.
 ```
-
-#### Get Job Details
-
-Details of a job, including cost, status, and timestamps, can be retrieved with:
-
-```bash
-cloudos job details --profile my_profile --job-id 62c83a1191fe06013b7ef355
-```
-```bash
-cloudos job details \
-    --profile job-details \
-    --job-id 68bf2178b4ae9f283ea8a0bf
-```
-
-The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:
-
-```console
-Executing details...
-                                                    Job Details
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Field                    ┃ Value                                                                                 ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ Status                   │ completed                                                                             │
-│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │
-│ Project                  │ DB-PR-testing                                                                         │
-│ Owner                    │ Name Surname                                                                          │
-│ Pipeline                 │ MutSign                                                                               │
-│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │
-│ Submit time              │ 2025-09-08 18:34:26                                                                   │
-│ End time                 │ 2025-09-08 18:38:26                                                                   │
-│ Run time                 │ 4m 0s                                                                                 │
-│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │
-│ Cost                     │ $0.2515                                                                               │
-│ Master Instance          │ c5.xlarge                                                                             │
-│ Storage                  │ 500 GB                                                                                │
-│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │
-│ Job Queue Name           │ v41                                                                                   │
-│ Task Resources           │ 1 CPUs, 4 GB RAM'                                                                 │
-│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │
-│ Nextflow Version         │ 22.10.8                                                                               │
-│ Execution Platform       │ Batch AWS                                                                             │
-│ Accelerated File Staging │ False                                                                                 │
-│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │
-│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │
-│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │
-│                          │ 000665B01_filtered.vcf.gz                                                             │
-│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │
-│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │
-│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │
-│                          │ ation.vcf.gz                                                                          │
-│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │
-│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │
-│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │
-│                          │ veman.csv                                                                             │
-│                          │ --sample_name=W0000664B01                                                             │
-│ Profile                  │ None                                                                                  │
-└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-To change this behaviour and save the details into a local CSV or JSON, the parameter `--output-format` needs to be set as `--output-format=json` or `--output-format=csv`.
-
-By default, all details are saved in a file with the basename as `{job_id}_details`, for example `68bf2178b4ae9f283ea8a0bf_details.json` or `68bf2178b4ae9f283ea8a0bf_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
-
-The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nexflow configuration file, example:
-
-```console
-params {
-    parameter_one = value_one
-    parameter_two = value_two
-    parameter_three = value_three
-}
-```
-
-This file can later be used when running a job with `cloudos job run --job-config job_details.config ...`.
-
-> [!NOTE]
-> Job details can only be retrieved for a single user, cannot see other user's job details.
-
-#### Get Job Workdir
-
-To get the working directory of a job submitted to CloudOS:
-
-```shell
-cloudos job workdir \
-    --profile profile-name \
-    --job-id 62c83a1191fe06013b7ef355
-```
-
-The output should be something similar to:
-
-```console
-CloudOS job functionality: run, check and abort jobs in CloudOS.
-
-Finding working directory path...
-Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
-```
-
-You can also link the working directory to an interactive session using the `--link` flag. This requires specifying a session ID either through the `--session-id` option or from a configured profile:
-
-```shell
-cloudos job workdir \
-    --profile profile-name \
-    --job-id 62c83a1191fe06013b7ef355 \
-    --link --session-id your_session_id
-```
-
-**Check Working Directory Deletion Status**
-
-You can check the deletion status of a job's working directory using the `--status` flag. This is useful for monitoring the deletion lifecycle of intermediate job files.
-
-```bash
-cloudos job workdir --status --profile my_profile --job-id "12345678910"
-```
-
-The command will display the current status of the working directory folder. Possible statuses include:
-- **available**: Working directory is available and accessible
-- **scheduled for deletion**: Working directory is scheduled to be deleted
-- **deleting**: Working directory is currently being deleted
-- **deleted**: Working directory has been deleted
-- **failed to delete**: Deletion process failed
-
-Example output for available working directory:
-```console
-The working directory of job 6912036aa6ed001148c96018 is in status: available
-```
-
-For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:
-```console
-The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion
-Status changed at: 2025-11-11T14:43:44.416Z
-User: Leila Mansouri (leila.mansouri@lifebit.ai)
-```
-
-Use the `--verbose` flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:
-```bash
-cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbose
-```
-
-> [!NOTE]
-> This command only works for jobs that were run with resumable mode enabled (using the `--resumable` flag). Jobs without resumable mode will not have a working directory to check.
-> If the working directory has been completely deleted, the command will report that the working directory was not found.
 
 #### List Jobs
 
@@ -1156,6 +795,313 @@ cloudos job list --profile my_profile --last-n-jobs all --filter-workflow rnatoy
 > - Job name filtering is case insensitive and supports partial matches
 > - The `--last` flag can be used with `--filter-workflow` when multiple workflows have the same name
 > - When filters are applied, pagination information reflects the filtered results
+
+#### Get Job Results
+
+The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
+
+Example:
+```bash
+cloudos job results --profile my_profile --job-id "12345678910"
+```
+```console
+Executing results...
+results: s3://path/to/location/of/results/results/
+```
+
+You can also link all result directories to an interactive session using the `--link` flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:
+
+```bash
+cloudos job results --profile my_profile --job-id "12345678910" --link --session-id your_session_id
+```
+
+**Check Results Deletion Status**
+
+You can check the deletion status of a job's results folder using the `--status` flag. This is useful for monitoring the deletion lifecycle of analysis results.
+
+```bash
+cloudos job results --status --profile my_profile --job-id "12345678910"
+```
+
+The command will display the current status of the results folder. Possible statuses include:
+- **available**: Results are available and accessible
+- **scheduled for deletion**: Results are scheduled to be deleted
+- **deleting**: Results are currently being deleted
+- **deleted**: Results have been deleted
+- **failed to delete**: Deletion process failed
+
+Example output for available results:
+```console
+The results of job 1234567890 are in status: available
+```
+
+For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:
+```console
+The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion
+Status changed at: 2025-11-11T14:43:44.416Z
+User: Leila Mansouri (leila.mansouri@lifebit.ai)
+```
+
+Use the `--verbose` flag to see detailed information including the results folder name, folder ID, creation and update timestamps:
+```bash
+cloudos job results --status --profile my_profile --job-id "12345678910" --verbose
+```
+
+> [!NOTE]
+> If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.
+
+#### Clone or Resume Job
+
+The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
+The `resume` command allows you to create a new job (with the ability to override specific parameters) without re-running every step but only the ones failed/where changes are applied.
+These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
+
+> [!NOTE]
+> Only jobs initially run with `--resumable` can be resumed.
+
+**Basic Usage:**
+
+Clone a job:
+```bash
+cloudos job clone \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+Resume a job:
+```bash
+cloudos job resume \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+**With Parameter Overrides:**
+
+Clone with parameter overrides:
+```bash
+cloudos job clone \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "cloned_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    --do-not-save-logs \
+    --accelerate-file-staging \
+    --workflow-name "updated-workflow" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+Resume with parameter overrides:
+```bash
+cloudos job resume \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "resumed_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+**Available Override Options:**
+- `--job-queue`: Specify a different job queue
+- `--cost-limit`: Set a new cost limit (use -1 for no limit)
+- `--instance-type`: Change the master instance type
+- `--job-name`: Assign a custom name to the cloned/resumed job
+- `--nextflow-version`: Use a different Nextflow version
+- `--git-branch`: Switch to a different git branch
+- `--nextflow-profile`: Change the Nextflow profile
+- `--do-not-save-logs`: Enable/disable log saving
+- `--accelerate-file-staging`: Enable/disable fusion filesystem
+- `--workflow-name`: Use a different workflow
+- `-p, --parameter`: Override or add parameters (can be used multiple times)
+
+> [!NOTE]
+> Parameters can be overridden or new ones can be added using `-p` option
+
+#### Abort Jobs
+
+Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
+
+Example:
+```bash
+cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
+```
+
+```console
+Aborting jobs...
+        Job 680a3cf80e56949775c02f16 aborted successfully.
+```
+
+#### Get Job Details
+
+Details of a job, including cost, status, and timestamps, can be retrieved with:
+
+```bash
+cloudos job details --profile my_profile --job-id 62c83a1191fe06013b7ef355
+```
+
+The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:
+
+```console
+Executing details...
+                                                    Job Details
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Field                    ┃ Value                                                                                 ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Status                   │ completed                                                                             │
+│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │
+│ Project                  │ DB-PR-testing                                                                         │
+│ Owner                    │ Name Surname                                                                          │
+│ Pipeline                 │ MutSign                                                                               │
+│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │
+│ Submit time              │ 2025-09-08 18:34:26                                                                   │
+│ End time                 │ 2025-09-08 18:38:26                                                                   │
+│ Run time                 │ 4m 0s                                                                                 │
+│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │
+│ Cost                     │ $0.2515                                                                               │
+│ Master Instance          │ c5.xlarge                                                                             │
+│ Storage                  │ 500 GB                                                                                │
+│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │
+│ Job Queue Name           │ v41                                                                                   │
+│ Task Resources           │ 1 CPUs, 4 GB RAM'                                                                 │
+│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │
+│ Nextflow Version         │ 22.10.8                                                                               │
+│ Execution Platform       │ Batch AWS                                                                             │
+│ Accelerated File Staging │ False                                                                                 │
+│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │
+│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │
+│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │
+│                          │ 000665B01_filtered.vcf.gz                                                             │
+│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │
+│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │
+│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │
+│                          │ ation.vcf.gz                                                                          │
+│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │
+│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │
+│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │
+│                          │ veman.csv                                                                             │
+│                          │ --sample_name=W0000664B01                                                             │
+│ Profile                  │ None                                                                                  │
+└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+To change this behaviour and save the details into a local CSV or JSON, the parameter `--output-format` needs to be set as `--output-format=json` or `--output-format=csv`.
+
+By default, all details are saved in a file with the basename as `{job_id}_details`, for example `68bf2178b4ae9f283ea8a0bf_details.json` or `68bf2178b4ae9f283ea8a0bf_details.config.`. This can be changed with the parameter `--output-basename=new_filename`.
+
+The `details` subcommand, can also take `--parameters` as an argument flag, which will create a new file `*.config` that holds all parameters as a Nextflow configuration file, example:
+
+```console
+params {
+    parameter_one = value_one
+    parameter_two = value_two
+    parameter_three = value_three
+}
+```
+
+This file can later be used when running a job with `cloudos job run --job-config job_details.config ...`.
+
+> [!NOTE]
+> Job details can only be retrieved for a single user, cannot see other user's job details.
+
+#### Get Job Workdir
+
+To get the working directory of a job submitted to CloudOS:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355
+```
+
+The output should be something similar to:
+
+```console
+CloudOS job functionality: run, check and abort jobs in CloudOS.
+
+Finding working directory path...
+Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
+```
+
+You can also link the working directory to an interactive session using the `--link` flag. This requires specifying a session ID either through the `--session-id` option or from a configured profile:
+
+```shell
+cloudos job workdir \
+    --profile profile-name \
+    --job-id 62c83a1191fe06013b7ef355 \
+    --link --session-id your_session_id
+```
+
+**Check Working Directory Deletion Status**
+
+You can check the deletion status of a job's working directory using the `--status` flag. This is useful for monitoring the deletion lifecycle of intermediate job files.
+
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910"
+```
+
+The command will display the current status of the working directory folder. Possible statuses include:
+- **available**: Working directory is available and accessible
+- **scheduled for deletion**: Working directory is scheduled to be deleted
+- **deleting**: Working directory is currently being deleted
+- **deleted**: Working directory has been deleted
+- **failed to delete**: Deletion process failed
+
+Example output for available working directory:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: available
+```
+
+For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:
+```console
+The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion
+Status changed at: 2025-11-11T14:43:44.416Z
+User: Leila Mansouri (leila.mansouri@lifebit.ai)
+```
+
+Use the `--verbose` flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:
+```bash
+cloudos job workdir --status --profile my_profile --job-id "12345678910" --verbose
+```
+
+> [!NOTE]
+> This command only works for jobs that were run with resumable mode enabled (using the `--resumable` flag). Jobs without resumable mode will not have a working directory to check.
+> If the working directory has been completely deleted, the command will report that the working directory was not found.
+
+#### Get Job Logs
+
+The following command allows you to get the path to "Nextflow logs", "Nextflow standard output", and "trace" files. It can be used only on your user's jobs, with any status.
+
+Example:
+```bash
+cloudos job logs --profile my_profile --job-id "12345678910"
+```
+```console
+Executing logs...
+Logs URI: s3://path/to/location/of/logs
+
+Nextflow log: s3://path/to/location/of/logs/.nextflow.log
+
+Nextflow standard output: s3://path/to/location/of/logs/stdout.txt
+
+Trace file: s3://path/to/location/of/logs/trace.txt
+```
+
+You can also link the logs directory to an interactive session using the `--link` flag. This will mount the entire logs directory, providing access to all log files in your interactive session:
+
+```bash
+cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id your_session_id
+```
 
 #### Get Job Costs
 
