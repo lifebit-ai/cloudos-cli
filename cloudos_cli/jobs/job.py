@@ -1142,14 +1142,14 @@ class Job(Cloudos):
         if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
             revision = self.get_field_from_jobs_endpoint(source_job_id, field="revision", verify=verify)
             cloned_payload['revision'] = revision
-            # Ensure revisionType is present; if missing, infer from available keys
+            # Ensure revisionType is present; if missing, infer from available non-empty values
             # Note: The API should provide revisionType, but we handle missing cases
             if 'revisionType' not in cloned_payload['revision']:
-                if 'digest' in cloned_payload['revision']:
+                if cloned_payload['revision'].get('digest'):
                     cloned_payload['revision']['revisionType'] = 'digest'
-                elif 'branch' in cloned_payload['revision']:
+                elif cloned_payload['revision'].get('branch'):
                     cloned_payload['revision']['revisionType'] = 'branch'
-                elif 'commit' in cloned_payload['revision']:
+                elif cloned_payload['revision'].get('commit'):
                     cloned_payload['revision']['revisionType'] = 'commit'
 
         if branch:
