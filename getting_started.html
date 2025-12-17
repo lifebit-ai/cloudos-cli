@@ -399,16 +399,14 @@
 <li><p><a class="reference internal" href="#nextflow-jobs"><span class="xref myst">Nextflow Jobs</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#submit-a-job"><span class="xref myst">Submit a Job</span></a></p></li>
-<li><p><a class="reference internal" href="#get-job-logs"><span class="xref myst">Get Job Logs</span></a></p></li>
-<li><p><a class="reference internal" href="#get-job-results"><span class="xref myst">Get Job Results</span></a></p></li>
-<li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume job</span></a></p></li>
-<li><p><a class="reference internal" href="#query-working-directory-of-job"><span class="xref myst">Query working directory of job</span></a></p></li>
-<li><p><a class="reference internal" href="#abort-single-or-multiple-jobs-from-cloudos"><span class="xref myst">Abort single or multiple jobs from CloudOS</span></a></p></li>
-<li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p></li>
 <li><p><a class="reference internal" href="#check-job-status"><span class="xref myst">Check Job Status</span></a></p></li>
+<li><p><a class="reference internal" href="#list-jobs"><span class="xref myst">List Jobs</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-results"><span class="xref myst">Get Job Results</span></a></p></li>
+<li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume Job</span></a></p></li>
+<li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-details"><span class="xref myst">Get Job Details</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-workdir"><span class="xref myst">Get Job Workdir</span></a></p></li>
-<li><p><a class="reference internal" href="#list-jobs"><span class="xref myst">List Jobs</span></a></p></li>
+<li><p><a class="reference internal" href="#get-job-logs"><span class="xref myst">Get Job Logs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-costs"><span class="xref myst">Get Job Costs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-related-analyses"><span class="xref myst">Get Job Related Analyses</span></a></p></li>
 <li><p><a class="reference internal" href="#delete-job-results"><span class="xref myst">Delete Job Results</span></a></p></li>
@@ -909,200 +907,6 @@ You can specify the AWS batch queue to use from the ones available in your works
 <li><p><code class="docutils literal notranslate"><span class="pre">--wdl-mainfile</span></code> | <code class="docutils literal notranslate"><span class="pre">--wdl-importsfile</span></code> | <code class="docutils literal notranslate"><span class="pre">--cromwell-token</span></code></p></li>
 </ul>
 </section>
-<section id="get-job-logs">
-<h4>Get Job Logs<a class="headerlink" href="#get-job-logs" title="Link to this heading">¶</a></h4>
-<p>The following command allows you to get the path to “Nextflow logs”, “Nextflow standard output”, and “trace” files. It can be used only on your user’s jobs, with any status.</p>
-<p>Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
-</pre></div>
-</div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing logs...</span>
-<span class="go">Logs URI: s3://path/to/location/of/logs</span>
-
-<span class="go">Nextflow log: s3://path/to/location/of/logs/.nextflow.log</span>
-
-<span class="go">Nextflow standard output: s3://path/to/location/of/logs/stdout.txt</span>
-
-<span class="go">Trace file: s3://path/to/location/of/logs/trace.txt</span>
-</pre></div>
-</div>
-<p>You can also link the logs directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount the entire logs directory, providing access to all log files in your interactive session:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
-</pre></div>
-</div>
-</section>
-<section id="get-job-results">
-<h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
-<p>The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
-<p>Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
-</pre></div>
-</div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
-<span class="go">results: s3://path/to/location/of/results/results/</span>
-</pre></div>
-</div>
-<p>You can also link all result directories to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
-</pre></div>
-</div>
-<p><strong>Check Results Deletion Status</strong></p>
-<p>You can check the deletion status of a job’s results folder using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of analysis results.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
-</pre></div>
-</div>
-<p>The command will display the current status of the results folder. Possible statuses include:</p>
-<ul class="simple">
-<li><p><strong>available</strong>: Results are available and accessible</p></li>
-<li><p><strong>scheduled for deletion</strong>: Results are scheduled to be deleted</p></li>
-<li><p><strong>deleting</strong>: Results are currently being deleted</p></li>
-<li><p><strong>deleted</strong>: Results have been deleted</p></li>
-<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
-</ul>
-<p>Example output for available results:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 1234567890 are in status: available</span>
-</pre></div>
-</div>
-<p>For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion</span>
-<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
-<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
-</pre></div>
-</div>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the results folder name, folder ID, creation and update timestamps:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
-</pre></div>
-</div>
-<blockquote>
-<div><p>[!NOTE]
-If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.</p>
-</div></blockquote>
-</section>
-<section id="clone-or-resume-job">
-<h4>Clone or Resume job<a class="headerlink" href="#clone-or-resume-job" title="Link to this heading">¶</a></h4>
-</section>
-<section id="query-working-directory-of-job">
-<h4>Query working directory of job<a class="headerlink" href="#query-working-directory-of-job" title="Link to this heading">¶</a></h4>
-<p>To get the working directory of a job submitted to CloudOS:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--apikey<span class="w"> </span><span class="nv">$MY_API_KEY</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--cloudos-url<span class="w"> </span><span class="nv">$CLOUDOS</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
-</pre></div>
-</div>
-<p>Or with a defined profile:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
-</pre></div>
-</div>
-<p>The output should be something similar to:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
-
-<span class="go">Finding working directory path...</span>
-<span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
-</pre></div>
-</div>
-</section>
-<section id="abort-single-or-multiple-jobs-from-cloudos">
-<h4>Abort single or multiple jobs from CloudOS<a class="headerlink" href="#abort-single-or-multiple-jobs-from-cloudos" title="Link to this heading">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">clone</span></code> command allows you to create a new job based on an existing job’s configuration, with the ability to override specific parameters.
-The <code class="docutils literal notranslate"><span class="pre">resume</span></code> command allow you to create a new job (with the ability to override specific parameters) withour re-running every step but only the ones failed/where changes are applied.
-These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.</p>
-<blockquote>
-<div><p>[!NOTE]
-Only job initially run with <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> can be resumed.</p>
-</div></blockquote>
-<p>Cloning basic usage:</p>
-<p>Aborting jobs…
-Job 680a3cf80e56949775c02f16 aborted successfully.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-
-#### Clone/resume a job with optional parameter overrides
-
-The `clone` and `resume` commands allows you to create a new job based on an existing job&#39;s configuration, with the ability to override specific parameters. This is useful for re-running jobs with slight modifications without having to specify all parameters from scratch.
-
-Basic usage:
-```console
-cloudos job clone/resume \
-    --profile MY_PROFILE
-    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;
-</pre></div>
-</div>
-<p>Cloning with parameter overrides:</p>
-<p>Clone/resume with parameter overrides:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job clone/resume \</span>
-<span class="go">    --profile MY_PROFILE</span>
-<span class="go">    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot; \</span>
-<span class="go">    --job-queue &quot;high-priority-queue&quot; \</span>
-<span class="go">    --cost-limit 50.0 \</span>
-<span class="go">    --instance-type &quot;c5.2xlarge&quot; \</span>
-<span class="go">    --job-name &quot;cloned_analysis_v2&quot; \</span>
-<span class="go">    --nextflow-version &quot;24.04.4&quot; \</span>
-<span class="go">    --git-branch &quot;dev&quot; \</span>
-<span class="go">    --nextflow-profile &quot;production&quot; \</span>
-<span class="go">    --do-not-save-logs true \</span>
-<span class="go">    --accelerate-file-staging true \</span>
-<span class="go">    --workflow-name &quot;updated-workflow&quot; \</span>
-<span class="go">    -p &quot;input=s3://new-bucket/input.csv&quot; \</span>
-<span class="go">    -p &quot;output_dir=s3://new-bucket/results&quot;</span>
-</pre></div>
-</div>
-<p>Resuming a job without parameter overrides</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job resume \</span>
-<span class="go">    --profile MY_PROFILE</span>
-<span class="go">    --job-id JOB_ID</span>
-</pre></div>
-</div>
-<p>Resuming with parameter overrides:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos job resume \</span>
-<span class="go">    --profile MY_PROFILE</span>
-<span class="go">    --job-id &quot;60a7b8c9d0e1f2g3h4i5j6k7&quot; \</span>
-<span class="go">    --job-queue &quot;high-priority-queue&quot; \</span>
-<span class="go">    --cost-limit 50.0 \</span>
-<span class="go">    --instance-type &quot;c5.2xlarge&quot; \</span>
-<span class="go">    --job-name &quot;cloned_analysis_v2&quot; \</span>
-<span class="go">    --nextflow-version &quot;24.04.4&quot; \</span>
-<span class="go">    --git-branch &quot;dev&quot; \</span>
-<span class="go">    --nextflow-profile &quot;production&quot; \</span>
-<span class="go">    --do-not-save-logs true \</span>
-<span class="go">    --accelerate-file-staging true \</span>
-<span class="go">    --workflow-name &quot;updated-workflow&quot; \</span>
-<span class="go">    -p &quot;input=s3://new-bucket/input.csv&quot; \</span>
-<span class="go">    -p &quot;output_dir=s3://new-bucket/results&quot;</span>
-</pre></div>
-</div>
-<p>Available override options:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--job-queue</span></code>: Specify a different job queue</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Set a new cost limit (use -1 for no limit)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--instance-type</span></code>: Change the master instance type</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--job-name</span></code>: Assign a custom name to the cloned/resumed job</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code>: Use a different Nextflow version</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--git-branch</span></code>: Switch to a different git branch</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-profile</span></code>: Change the Nextflow profile</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--do-not-save-logs</span></code>: Enable/disable log saving</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--accelerate-file-staging</span></code>: Enable/disable fusion filesystem</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code>: Use a different workflow</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-p,</span> <span class="pre">--parameter</span></code>: Override or add parameters (can be used multiple times)</p></li>
-</ul>
-<blockquote>
-<div><p>[!NOTE]
-Parameters can be overridden or new ones can be added using <code class="docutils literal notranslate"><span class="pre">-p</span></code> option</p>
-</div></blockquote>
-</section>
-<section id="abort-jobs">
-<h4>Abort Jobs<a class="headerlink" href="#abort-jobs" title="Link to this heading">¶</a></h4>
-<p>Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
-<p>Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
-</pre></div>
-</div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
-<span class="go">        Job 680a3cf80e56949775c02f16 aborted successfully.</span>
-</pre></div>
-</div>
-</section>
 <section id="check-job-status">
 <h4>Check Job Status<a class="headerlink" href="#check-job-status" title="Link to this heading">¶</a></h4>
 <p>To check the status of a submitted job, use the following command:</p>
@@ -1116,131 +920,6 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <span class="go">	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or repeat the command you just used.</span>
 </pre></div>
 </div>
-</section>
-<section id="get-job-details">
-<h4>Get Job Details<a class="headerlink" href="#get-job-details" title="Link to this heading">¶</a></h4>
-<p>Details of a job, including cost, status, and timestamps, can be retrieved with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--profile<span class="w"> </span>job-details<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>68bf2178b4ae9f283ea8a0bf
-</pre></div>
-</div>
-<p>The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing details...</span>
-<span class="go">                                                    Job Details</span>
-<span class="go">┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
-<span class="go">┃ Field                    ┃ Value                                                                                 ┃</span>
-<span class="go">┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
-<span class="go">│ Status                   │ completed                                                                             │</span>
-<span class="go">│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │</span>
-<span class="go">│ Project                  │ DB-PR-testing                                                                         │</span>
-<span class="go">│ Owner                    │ Name Surname                                                                          │</span>
-<span class="go">│ Pipeline                 │ MutSign                                                                               │</span>
-<span class="go">│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │</span>
-<span class="go">│ Submit time              │ 2025-09-08 18:34:26                                                                   │</span>
-<span class="go">│ End time                 │ 2025-09-08 18:38:26                                                                   │</span>
-<span class="go">│ Run time                 │ 4m 0s                                                                                 │</span>
-<span class="go">│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │</span>
-<span class="go">│ Cost                     │ $0.2515                                                                               │</span>
-<span class="go">│ Master Instance          │ c5.xlarge                                                                             │</span>
-<span class="go">│ Storage                  │ 500 GB                                                                                │</span>
-<span class="go">│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │</span>
-<span class="go">│ Job Queue Name           │ v41                                                                                   │</span>
-<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM&#39;                                                                 │</span>
-<span class="go">│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │</span>
-<span class="go">│ Nextflow Version         │ 22.10.8                                                                               │</span>
-<span class="go">│ Execution Platform       │ Batch AWS                                                                             │</span>
-<span class="go">│ Accelerated File Staging │ False                                                                                 │</span>
-<span class="go">│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │</span>
-<span class="go">│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │</span>
-<span class="go">│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │</span>
-<span class="go">│                          │ 000665B01_filtered.vcf.gz                                                             │</span>
-<span class="go">│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │</span>
-<span class="go">│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │</span>
-<span class="go">│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │</span>
-<span class="go">│                          │ ation.vcf.gz                                                                          │</span>
-<span class="go">│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │</span>
-<span class="go">│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │</span>
-<span class="go">│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │</span>
-<span class="go">│                          │ veman.csv                                                                             │</span>
-<span class="go">│                          │ --sample_name=W0000664B01                                                             │</span>
-<span class="go">│ Profile                  │ None                                                                                  │</span>
-<span class="go">└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘</span>
-</pre></div>
-</div>
-<p>To change this behaviour and save the details into a local CSV or JSON, the parameter <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> needs to be set as <code class="docutils literal notranslate"><span class="pre">--output-format=json</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format=csv</span></code>.</p>
-<p>By default, all details are saved in a file with the basename as <code class="docutils literal notranslate"><span class="pre">{job_id}_details</span></code>, for example <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.json</span></code> or <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.config.</span></code>. This can be changed with the parameter <code class="docutils literal notranslate"><span class="pre">--output-basename=new_filename</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">details</span></code> subcommand, can also take <code class="docutils literal notranslate"><span class="pre">--parameters</span></code> as an argument flag, which will create a new file <code class="docutils literal notranslate"><span class="pre">*.config</span></code> that holds all parameters as a Nexflow configuration file, example:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">params {</span>
-<span class="go">    parameter_one = value_one</span>
-<span class="go">    parameter_two = value_two</span>
-<span class="go">    parameter_three = value_three</span>
-<span class="go">}</span>
-</pre></div>
-</div>
-<p>This file can later be used when running a job with <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span> <span class="pre">--job-config</span> <span class="pre">job_details.config</span> <span class="pre">...</span></code>.</p>
-<blockquote>
-<div><p>[!NOTE]
-Job details can only be retrieved for a single user, cannot see other user’s job details.</p>
-</div></blockquote>
-</section>
-<section id="get-job-workdir">
-<h4>Get Job Workdir<a class="headerlink" href="#get-job-workdir" title="Link to this heading">¶</a></h4>
-<p>To get the working directory of a job submitted to CloudOS:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
-</pre></div>
-</div>
-<p>The output should be something similar to:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
-
-<span class="go">Finding working directory path...</span>
-<span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
-</pre></div>
-</div>
-<p>You can also link the working directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This requires specifying a session ID either through the <code class="docutils literal notranslate"><span class="pre">--session-id</span></code> option or from a configured profile:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
-</pre></div>
-</div>
-<p><strong>Check Working Directory Deletion Status</strong></p>
-<p>You can check the deletion status of a job’s working directory using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of intermediate job files.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
-</pre></div>
-</div>
-<p>The command will display the current status of the working directory folder. Possible statuses include:</p>
-<ul class="simple">
-<li><p><strong>available</strong>: Working directory is available and accessible</p></li>
-<li><p><strong>scheduled for deletion</strong>: Working directory is scheduled to be deleted</p></li>
-<li><p><strong>deleting</strong>: Working directory is currently being deleted</p></li>
-<li><p><strong>deleted</strong>: Working directory has been deleted</p></li>
-<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
-</ul>
-<p>Example output for available working directory:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: available</span>
-</pre></div>
-</div>
-<p>For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion</span>
-<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
-<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
-</pre></div>
-</div>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
-</pre></div>
-</div>
-<blockquote>
-<div><p>[!NOTE]
-This command only works for jobs that were run with resumable mode enabled (using the <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> flag). Jobs without resumable mode will not have a working directory to check.
-If the working directory has been completely deleted, the command will report that the working directory was not found.</p>
-</div></blockquote>
 </section>
 <section id="list-jobs">
 <h4>List Jobs<a class="headerlink" href="#list-jobs" title="Link to this heading">¶</a></h4>
@@ -1400,6 +1079,282 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 <li><p>When filters are applied, pagination information reflects the filtered results</p></li>
 </ul>
 </div></blockquote>
+</section>
+<section id="get-job-results">
+<h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
+<p>The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
+<span class="go">results: s3://path/to/location/of/results/results/</span>
+</pre></div>
+</div>
+<p>You can also link all result directories to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+</pre></div>
+</div>
+<p><strong>Check Results Deletion Status</strong></p>
+<p>You can check the deletion status of a job’s results folder using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of analysis results.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<p>The command will display the current status of the results folder. Possible statuses include:</p>
+<ul class="simple">
+<li><p><strong>available</strong>: Results are available and accessible</p></li>
+<li><p><strong>scheduled for deletion</strong>: Results are scheduled to be deleted</p></li>
+<li><p><strong>deleting</strong>: Results are currently being deleted</p></li>
+<li><p><strong>deleted</strong>: Results have been deleted</p></li>
+<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
+</ul>
+<p>Example output for available results:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 1234567890 are in status: available</span>
+</pre></div>
+</div>
+<p>For results in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The results of job 6912036aa6ed001148c96018 are in status: scheduled for deletion</span>
+<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
+<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the results folder name, folder ID, creation and update timestamps:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]
+If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.</p>
+</div></blockquote>
+</section>
+<section id="clone-or-resume-job">
+<h4>Clone or Resume Job<a class="headerlink" href="#clone-or-resume-job" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">clone</span></code> command allows you to create a new job based on an existing job’s configuration, with the ability to override specific parameters.
+The <code class="docutils literal notranslate"><span class="pre">resume</span></code> command allows you to create a new job (with the ability to override specific parameters) without re-running every step but only the ones failed/where changes are applied.
+These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.</p>
+<blockquote>
+<div><p>[!NOTE]
+Only jobs initially run with <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> can be resumed.</p>
+</div></blockquote>
+<p><strong>Basic Usage:</strong></p>
+<p>Clone a job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>clone<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span>
+</pre></div>
+</div>
+<p>Resume a job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span>
+</pre></div>
+</div>
+<p><strong>With Parameter Overrides:</strong></p>
+<p>Clone with parameter overrides:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>clone<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">&quot;high-priority-queue&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">&quot;c5.2xlarge&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">&quot;cloned_analysis_v2&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">&quot;24.04.4&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do-not-save-logs<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--accelerate-file-staging<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--workflow-name<span class="w"> </span><span class="s2">&quot;updated-workflow&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;input=s3://new-bucket/input.csv&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;output_dir=s3://new-bucket/results&quot;</span>
+</pre></div>
+</div>
+<p>Resume with parameter overrides:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">&quot;high-priority-queue&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">&quot;c5.2xlarge&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">&quot;resumed_analysis_v2&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">&quot;24.04.4&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;input=s3://new-bucket/input.csv&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;output_dir=s3://new-bucket/results&quot;</span>
+</pre></div>
+</div>
+<p><strong>Available Override Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-queue</span></code>: Specify a different job queue</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Set a new cost limit (use -1 for no limit)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance-type</span></code>: Change the master instance type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-name</span></code>: Assign a custom name to the cloned/resumed job</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code>: Use a different Nextflow version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--git-branch</span></code>: Switch to a different git branch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-profile</span></code>: Change the Nextflow profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--do-not-save-logs</span></code>: Enable/disable log saving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--accelerate-file-staging</span></code>: Enable/disable fusion filesystem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code>: Use a different workflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-p,</span> <span class="pre">--parameter</span></code>: Override or add parameters (can be used multiple times)</p></li>
+</ul>
+<blockquote>
+<div><p>[!NOTE]
+Parameters can be overridden or new ones can be added using <code class="docutils literal notranslate"><span class="pre">-p</span></code> option</p>
+</div></blockquote>
+</section>
+<section id="abort-jobs">
+<h4>Abort Jobs<a class="headerlink" href="#abort-jobs" title="Link to this heading">¶</a></h4>
+<p>Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
+<span class="go">        Job 680a3cf80e56949775c02f16 aborted successfully.</span>
+</pre></div>
+</div>
+</section>
+<section id="get-job-details">
+<h4>Get Job Details<a class="headerlink" href="#get-job-details" title="Link to this heading">¶</a></h4>
+<p>Details of a job, including cost, status, and timestamps, can be retrieved with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The expected output should be something similar to when using the defaults and the details are displayed in the standard output console:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing details...</span>
+<span class="go">                                                    Job Details</span>
+<span class="go">┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
+<span class="go">┃ Field                    ┃ Value                                                                                 ┃</span>
+<span class="go">┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
+<span class="go">│ Status                   │ completed                                                                             │</span>
+<span class="go">│ Name                     │ mutSign_vcf_prep_genome_chart_non_resumable                                           │</span>
+<span class="go">│ Project                  │ DB-PR-testing                                                                         │</span>
+<span class="go">│ Owner                    │ Name Surname                                                                          │</span>
+<span class="go">│ Pipeline                 │ MutSign                                                                               │</span>
+<span class="go">│ ID                       │ 68bf2178b4ae9f283ea8a0bf                                                              │</span>
+<span class="go">│ Submit time              │ 2025-09-08 18:34:26                                                                   │</span>
+<span class="go">│ End time                 │ 2025-09-08 18:38:26                                                                   │</span>
+<span class="go">│ Run time                 │ 4m 0s                                                                                 │</span>
+<span class="go">│ Commit                   │ 11fea740366b92b2858349b764879792272f2996                                              │</span>
+<span class="go">│ Cost                     │ $0.2515                                                                               │</span>
+<span class="go">│ Master Instance          │ c5.xlarge                                                                             │</span>
+<span class="go">│ Storage                  │ 500 GB                                                                                │</span>
+<span class="go">│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │</span>
+<span class="go">│ Job Queue Name           │ v41                                                                                   │</span>
+<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM&#39;                                                                 │</span>
+<span class="go">│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │</span>
+<span class="go">│ Nextflow Version         │ 22.10.8                                                                               │</span>
+<span class="go">│ Execution Platform       │ Batch AWS                                                                             │</span>
+<span class="go">│ Accelerated File Staging │ False                                                                                 │</span>
+<span class="go">│ Parameters               │ --snv_indel=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d │</span>
+<span class="go">│                          │ 3e9bd954e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7 │</span>
+<span class="go">│                          │ /jobs/68810fda9b301f037d38c4be/results/results/W0000664B01_W0000665B01/W0000664B01_W0 │</span>
+<span class="go">│                          │ 000665B01_filtered.vcf.gz                                                             │</span>
+<span class="go">│                          │ --sv=lifebit-user-data-f60fc49a-9081-417e-a4fc-03c52de4c820/deploit/teams/5c6d3e9bd95 │</span>
+<span class="go">│                          │ 4e800b23f8c62/users/669a9dfe474e319e71685421/projects/66d864817afbdfa1d4515d56/jobs/6 │</span>
+<span class="go">│                          │ 8763aac9e7fe38ec6e9236d/results/results/manta/W0000665B01-W0000664B01/somaticSV_annot │</span>
+<span class="go">│                          │ ation.vcf.gz                                                                          │</span>
+<span class="go">│                          │ --cnv=lifebit-user-data-106c12d2-cf8f-446c-b77e-661d697c833c/deploit/teams/5c6d3e9bd9 │</span>
+<span class="go">│                          │ 54e800b23f8c62/users/6329e3bd3c0e00014641eeea/projects/655cc29778391a7e1901a5b7/jobs/ │</span>
+<span class="go">│                          │ 687f5b383e05673d74aab1b9/results/W0000664B01_vs_W0000665B01/W0000664B01.copynumber.ca │</span>
+<span class="go">│                          │ veman.csv                                                                             │</span>
+<span class="go">│                          │ --sample_name=W0000664B01                                                             │</span>
+<span class="go">│ Profile                  │ None                                                                                  │</span>
+<span class="go">└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────┘</span>
+</pre></div>
+</div>
+<p>To change this behaviour and save the details into a local CSV or JSON, the parameter <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> needs to be set as <code class="docutils literal notranslate"><span class="pre">--output-format=json</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format=csv</span></code>.</p>
+<p>By default, all details are saved in a file with the basename as <code class="docutils literal notranslate"><span class="pre">{job_id}_details</span></code>, for example <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.json</span></code> or <code class="docutils literal notranslate"><span class="pre">68bf2178b4ae9f283ea8a0bf_details.config.</span></code>. This can be changed with the parameter <code class="docutils literal notranslate"><span class="pre">--output-basename=new_filename</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">details</span></code> subcommand, can also take <code class="docutils literal notranslate"><span class="pre">--parameters</span></code> as an argument flag, which will create a new file <code class="docutils literal notranslate"><span class="pre">*.config</span></code> that holds all parameters as a Nextflow configuration file, example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">params {</span>
+<span class="go">    parameter_one = value_one</span>
+<span class="go">    parameter_two = value_two</span>
+<span class="go">    parameter_three = value_three</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>This file can later be used when running a job with <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span> <span class="pre">--job-config</span> <span class="pre">job_details.config</span> <span class="pre">...</span></code>.</p>
+<blockquote>
+<div><p>[!NOTE]
+Job details can only be retrieved for a single user, cannot see other user’s job details.</p>
+</div></blockquote>
+</section>
+<section id="get-job-workdir">
+<h4>Get Job Workdir<a class="headerlink" href="#get-job-workdir" title="Link to this heading">¶</a></h4>
+<p>To get the working directory of a job submitted to CloudOS:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
+</pre></div>
+</div>
+<p>The output should be something similar to:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
+
+<span class="go">Finding working directory path...</span>
+<span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
+</pre></div>
+</div>
+<p>You can also link the working directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This requires specifying a session ID either through the <code class="docutils literal notranslate"><span class="pre">--session-id</span></code> option or from a configured profile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+</pre></div>
+</div>
+<p><strong>Check Working Directory Deletion Status</strong></p>
+<p>You can check the deletion status of a job’s working directory using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of intermediate job files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<p>The command will display the current status of the working directory folder. Possible statuses include:</p>
+<ul class="simple">
+<li><p><strong>available</strong>: Working directory is available and accessible</p></li>
+<li><p><strong>scheduled for deletion</strong>: Working directory is scheduled to be deleted</p></li>
+<li><p><strong>deleting</strong>: Working directory is currently being deleted</p></li>
+<li><p><strong>deleted</strong>: Working directory has been deleted</p></li>
+<li><p><strong>failed to delete</strong>: Deletion process failed</p></li>
+</ul>
+<p>Example output for available working directory:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: available</span>
+</pre></div>
+</div>
+<p>For working directories in any state other than available, the output includes additional information about when the status changed and who initiated the change:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">The working directory of job 6912036aa6ed001148c96018 is in status: scheduled for deletion</span>
+<span class="go">Status changed at: 2025-11-11T14:43:44.416Z</span>
+<span class="go">User: Leila Mansouri (leila.mansouri@lifebit.ai)</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+</pre></div>
+</div>
+<blockquote>
+<div><p>[!NOTE]
+This command only works for jobs that were run with resumable mode enabled (using the <code class="docutils literal notranslate"><span class="pre">--resumable</span></code> flag). Jobs without resumable mode will not have a working directory to check.
+If the working directory has been completely deleted, the command will report that the working directory was not found.</p>
+</div></blockquote>
+</section>
+<section id="get-job-logs">
+<h4>Get Job Logs<a class="headerlink" href="#get-job-logs" title="Link to this heading">¶</a></h4>
+<p>The following command allows you to get the path to “Nextflow logs”, “Nextflow standard output”, and “trace” files. It can be used only on your user’s jobs, with any status.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing logs...</span>
+<span class="go">Logs URI: s3://path/to/location/of/logs</span>
+
+<span class="go">Nextflow log: s3://path/to/location/of/logs/.nextflow.log</span>
+
+<span class="go">Nextflow standard output: s3://path/to/location/of/logs/stdout.txt</span>
+
+<span class="go">Trace file: s3://path/to/location/of/logs/trace.txt</span>
+</pre></div>
+</div>
+<p>You can also link the logs directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount the entire logs directory, providing access to all log files in your interactive session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+</pre></div>
+</div>
 </section>
 <section id="get-job-costs">
 <h4>Get Job Costs<a class="headerlink" href="#get-job-costs" title="Link to this heading">¶</a></h4>
