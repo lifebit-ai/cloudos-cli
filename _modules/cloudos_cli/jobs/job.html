@@ -1398,6 +1398,7 @@
                   <span class="n">job_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">nextflow_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">repository_platform</span><span class="o">=</span><span class="s1">&#39;github&#39;</span><span class="p">,</span>
                   <span class="n">profile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">do_not_save_logs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">use_fusion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1425,6 +1426,8 @@
 <span class="sd">            Nextflow version override.</span>
 <span class="sd">        branch : str, optional</span>
 <span class="sd">            Git branch override.</span>
+<span class="sd">        repository_platform : str, optional</span>
+<span class="sd">            Repository platform override.</span>
 <span class="sd">        profile : str, optional</span>
 <span class="sd">            Nextflow profile override.</span>
 <span class="sd">        do_not_save_logs : bool, optional</span>
@@ -1461,6 +1464,7 @@
         <span class="c1"># remove unwanted fields</span>
         <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
         <span class="k">del</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;resourceId&#39;</span><span class="p">]</span>
+
 
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;resume&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1510,14 +1514,37 @@
         <span class="c1"># Override branch if provided</span>
         <span class="c1"># sometimes revision is missing from the &#39;request-payload&#39; API, make sure is present</span>
         <span class="k">if</span> <span class="s1">&#39;revision&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloned_payload</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;revision&#39;</span><span class="p">):</span>
-            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
-            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;digest&#39;</span>
+            <span class="n">revision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revision</span>
+            <span class="c1"># Ensure revisionType is present; if missing or empty, infer from available non-empty values</span>
+            <span class="c1"># Note: The API should provide revisionType, but we handle missing cases</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;revisionType&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;digest&#39;</span><span class="p">):</span>
+                    <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;digest&#39;</span>
+                <span class="k">elif</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">):</span>
+                    <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tag&#39;</span>
+                <span class="k">elif</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;branch&#39;</span><span class="p">):</span>
+                    <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;branch&#39;</span>
+                <span class="k">elif</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;commit&#39;</span><span class="p">):</span>
+                    <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;commit&#39;</span>
+
         <span class="k">if</span> <span class="n">branch</span><span class="p">:</span>
-            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;branch&#39;</span>
+            <span class="n">workflow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+            <span class="n">branches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_branches</span><span class="p">(</span>
+                <span class="n">repository_identifier</span><span class="o">=</span><span class="n">workflow</span><span class="p">[</span><span class="s2">&quot;repository&quot;</span><span class="p">][</span><span class="s2">&quot;repositoryId&quot;</span><span class="p">],</span>
+                <span class="n">owner</span><span class="o">=</span><span class="n">workflow</span><span class="p">[</span><span class="s2">&quot;repository&quot;</span><span class="p">][</span><span class="s2">&quot;owner&quot;</span><span class="p">][</span><span class="s2">&quot;login&quot;</span><span class="p">],</span>
+                <span class="n">workflow_owner_id</span><span class="o">=</span><span class="n">workflow</span><span class="p">[</span><span class="s2">&quot;owner&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                <span class="n">strategy</span><span class="o">=</span><span class="n">repository_platform</span><span class="p">,</span>
+                <span class="n">verify</span><span class="o">=</span><span class="n">verify</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">branch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">branches</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;branches&#39;</span><span class="p">,</span> <span class="p">[])]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Branch &#39;</span><span class="si">{</span><span class="n">branch</span><span class="si">}</span><span class="s2">&#39; not found in repository. Available branches: </span><span class="si">{</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">branches</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;branches&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">[])]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
             <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">branch</span>
-            <span class="c1"># Clear other revision types</span>
-            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">][</span><span class="s1">&#39;revisionType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;branch&#39;</span>
+            <span class="c1"># Clear other revision types when setting a branch</span>
             <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">&#39;revision&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="c1"># Override profile if provided</span>
         <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
@@ -1608,6 +1635,7 @@
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
         <span class="n">clean_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">cloned_payload</span><span class="p">)</span>
+
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                 <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">clean_payload</span><span class="p">),</span>
                                 <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
@@ -1880,7 +1908,92 @@
         <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&#39; deleted successfully&quot;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Job.get_branches">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.get_branches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_branches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository_identifier</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">workflow_owner_id</span><span class="p">,</span>
+                     <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;github&#39;</span><span class="p">,</span> <span class="n">branch_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get branches from a GitHub repository with pagination support.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        repository_identifier : str</span>
+<span class="sd">            The GitHub repository identifier (repository ID).</span>
+<span class="sd">        owner : str</span>
+<span class="sd">            The owner of the repository (e.g., &#39;lifebit-ai&#39;).</span>
+<span class="sd">        workflow_owner_id : str</span>
+<span class="sd">            The workflow owner ID in CloudOS.</span>
+<span class="sd">        strategy : str, optional</span>
+<span class="sd">            The repository strategy/platform (default is &#39;github&#39;).</span>
+<span class="sd">        branch_name : str, optional</span>
+<span class="sd">            Filter branches by name. Default is &#39;&#39; (empty string to get all branches).</span>
+<span class="sd">        page : int, optional</span>
+<span class="sd">            Page number for pagination. Default is 1.</span>
+<span class="sd">        limit : int, optional</span>
+<span class="sd">            Number of results per page. Default is 100.</span>
+<span class="sd">        verify : [bool|string], optional</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file. Default is True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary containing all branches information from the API.</span>
+<span class="sd">            Structure: {&quot;branches&quot;: [...], &quot;total&quot;: &lt;total_count&gt;}</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        BadRequestException</span>
+<span class="sd">            If the request fails with a status code indicating an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+
+        <span class="n">all_branches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_page</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;repositoryIdentifier&quot;</span><span class="p">:</span> <span class="n">repository_identifier</span><span class="p">,</span>
+                <span class="s2">&quot;owner&quot;</span><span class="p">:</span> <span class="n">owner</span><span class="p">,</span>
+                <span class="s2">&quot;workflowOwnerId&quot;</span><span class="p">:</span> <span class="n">workflow_owner_id</span><span class="p">,</span>
+                <span class="s2">&quot;branchName&quot;</span><span class="p">:</span> <span class="n">branch_name</span><span class="p">,</span>
+                <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="n">current_page</span><span class="p">,</span>
+                <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="n">limit</span><span class="p">,</span>
+                <span class="s2">&quot;teamId&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span>
+            <span class="p">}</span>
+
+            <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/git/</span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">/getBranches&quot;</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+            <span class="n">content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">branches</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;branches&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+            <span class="k">if</span> <span class="n">total</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">branches</span><span class="p">:</span>
+                <span class="k">break</span>  <span class="c1"># No more branches to fetch</span>
+
+            <span class="n">all_branches</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">branches</span><span class="p">)</span>
+
+            <span class="c1"># Check if we&#39;ve fetched all branches (only if total is provided)</span>
+            <span class="k">if</span> <span class="n">total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_branches</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">total</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">current_page</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;branches&quot;</span><span class="p">:</span> <span class="n">all_branches</span><span class="p">,</span> <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="n">total</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_branches</span><span class="p">)}</span></div>
 </div>
+
 
 </pre></div>
         </article>

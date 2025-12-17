@@ -1782,6 +1782,17 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-repository-platform">
+<span class="sig-name descname"><span class="pre">--repository-platform</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;repository_platform&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-repository-platform" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the repository platform of the workflow. Default=github.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Options<span class="colon">:</span></dt>
+<dd class="field-odd"><p>github | gitlab | bitbucketServer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-job-name">
 <span class="sig-name descname"><span class="pre">--job-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-job-name" title="Link to this definition">¶</a></dt>
 <dd><p>The name of the job. If not set, will take the name of the cloned job.</p>
@@ -1929,85 +1940,96 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-11">
-<span class="sig-name descname"><span class="pre">--job-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-11" title="Link to this definition">¶</a></dt>
-<dd><p>The name of the job. If not set, will take the name of the cloned job.</p>
+<span class="sig-name descname"><span class="pre">--repository-platform</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;repository_platform&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-11" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the repository platform of the workflow. Default=github.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Options<span class="colon">:</span></dt>
+<dd class="field-odd"><p>github | gitlab | bitbucketServer</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-12">
-<span class="sig-name descname"><span class="pre">--do-not-save-logs</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-12" title="Link to this definition">¶</a></dt>
-<dd><p>Avoids process log saving. If you select this option, your job process logs will not be stored.</p>
+<span class="sig-name descname"><span class="pre">--job-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-12" title="Link to this definition">¶</a></dt>
+<dd><p>The name of the job. If not set, will take the name of the cloned job.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-13">
-<span class="sig-name descname"><span class="pre">--job-queue</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_queue&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-13" title="Link to this definition">¶</a></dt>
-<dd><p>Name of the job queue to use with a batch job. In Azure workspaces, this option is ignored.</p>
+<span class="sig-name descname"><span class="pre">--do-not-save-logs</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-13" title="Link to this definition">¶</a></dt>
+<dd><p>Avoids process log saving. If you select this option, your job process logs will not be stored.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-14">
-<span class="sig-name descname"><span class="pre">--instance-type</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;instance_type&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-14" title="Link to this definition">¶</a></dt>
-<dd><p>The type of compute instance to use as master node. Default=c5.xlarge(aws)|Standard_D4as_v4(azure).</p>
+<span class="sig-name descname"><span class="pre">--job-queue</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_queue&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-14" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the job queue to use with a batch job. In Azure workspaces, this option is ignored.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-15">
-<span class="sig-name descname"><span class="pre">--cost-limit</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cost_limit&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-15" title="Link to this definition">¶</a></dt>
-<dd><p>Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).</p>
+<span class="sig-name descname"><span class="pre">--instance-type</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;instance_type&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-15" title="Link to this definition">¶</a></dt>
+<dd><p>The type of compute instance to use as master node. Default=c5.xlarge(aws)|Standard_D4as_v4(azure).</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-16">
-<span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-16" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS job id of the job to be cloned.</p>
+<span class="sig-name descname"><span class="pre">--cost-limit</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cost_limit&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-16" title="Link to this definition">¶</a></dt>
+<dd><p>Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-17">
-<span class="sig-name descname"><span class="pre">--accelerate-file-staging</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-17" title="Link to this definition">¶</a></dt>
-<dd><p>Enables AWS S3 mountpoint for quicker file staging.</p>
+<span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-17" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The CloudOS job id of the job to be cloned.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-18">
-<span class="sig-name descname"><span class="pre">--accelerate-saving-results</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-18" title="Link to this definition">¶</a></dt>
-<dd><p>Enables saving results directly to cloud storage bypassing the master node.</p>
+<span class="sig-name descname"><span class="pre">--accelerate-file-staging</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-18" title="Link to this definition">¶</a></dt>
+<dd><p>Enables AWS S3 mountpoint for quicker file staging.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-19">
-<span class="sig-name descname"><span class="pre">--resumable</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-19" title="Link to this definition">¶</a></dt>
-<dd><p>Whether to make the job able to be resumed or not.</p>
+<span class="sig-name descname"><span class="pre">--accelerate-saving-results</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-19" title="Link to this definition">¶</a></dt>
+<dd><p>Enables saving results directly to cloud storage bypassing the master node.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-20">
-<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-20" title="Link to this definition">¶</a></dt>
-<dd><p>Whether to print information messages or not.</p>
+<span class="sig-name descname"><span class="pre">--resumable</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-20" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to make the job able to be resumed or not.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-21">
-<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-21" title="Link to this definition">¶</a></dt>
-<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-21" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-22">
-<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
-<dd><p>Path to your SSL certificate file.</p>
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-22" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-23">
-<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-23" title="Link to this definition">¶</a></dt>
-<dd><p>Show detailed error information and tracebacks</p>
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-23" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-24">
-<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-24" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-24" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-25">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-25" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
 </dd></dl>
 
