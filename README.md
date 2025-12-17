@@ -851,99 +851,6 @@ cloudos job results --status --profile my_profile --job-id "12345678910" --verbo
 > If results have been completely deleted, the command will report that the results folder was not found, which may indicate that results have been deleted or scheduled for deletion.
 
 
-#### Clone or Resume Job
-
-The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
-The `resume` command allows you to create a new job (with the ability to override specific parameters) without re-running every step but only the ones failed/where changes are applied.
-These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
-
-> [!NOTE]
-> Only jobs initially run with `--resumable` can be resumed.
-
-**Basic Usage:**
-
-Clone a job:
-```bash
-cloudos job clone \
-    --profile my_profile \
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
-```
-
-Resume a job:
-```bash
-cloudos job resume \
-    --profile my_profile \
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
-```
-
-**With Parameter Overrides:**
-
-Clone with parameter overrides:
-```bash
-cloudos job clone \
-    --profile my_profile \
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --job-queue "high-priority-queue" \
-    --cost-limit 50.0 \
-    --instance-type "c5.2xlarge" \
-    --job-name "cloned_analysis_v2" \
-    --nextflow-version "24.04.4" \
-    --git-branch "dev" \
-    --nextflow-profile "production" \
-    --do-not-save-logs \
-    --accelerate-file-staging \
-    --workflow-name "updated-workflow" \
-    -p "input=s3://new-bucket/input.csv" \
-    -p "output_dir=s3://new-bucket/results"
-```
-
-Resume with parameter overrides:
-```bash
-cloudos job resume \
-    --profile my_profile \
-    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
-    --job-queue "high-priority-queue" \
-    --cost-limit 50.0 \
-    --instance-type "c5.2xlarge" \
-    --job-name "resumed_analysis_v2" \
-    --nextflow-version "24.04.4" \
-    --git-branch "dev" \
-    --nextflow-profile "production" \
-    -p "input=s3://new-bucket/input.csv" \
-    -p "output_dir=s3://new-bucket/results"
-```
-
-**Available Override Options:**
-- `--job-queue`: Specify a different job queue
-- `--cost-limit`: Set a new cost limit (use -1 for no limit)
-- `--instance-type`: Change the master instance type
-- `--job-name`: Assign a custom name to the cloned/resumed job
-- `--nextflow-version`: Use a different Nextflow version
-- `--git-branch`: Switch to a different git branch
-- `--nextflow-profile`: Change the Nextflow profile
-- `--do-not-save-logs`: Enable/disable log saving
-- `--accelerate-file-staging`: Enable/disable fusion filesystem
-- `--workflow-name`: Use a different workflow
-- `-p, --parameter`: Override or add parameters (can be used multiple times)
-
-> [!NOTE]
-> Parameters can be overridden or new ones can be added using `-p` option
-
-
-#### Abort Jobs
-
-Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
-
-Example:
-```bash
-cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
-```
-
-```console
-Aborting jobs...
-        Job 680a3cf80e56949775c02f16 aborted successfully.
-```
-
 #### Get Job Details
 
 Details of a job, including cost, status, and timestamps, can be retrieved with:
@@ -1103,6 +1010,98 @@ You can also link the logs directory to an interactive session using the `--link
 
 ```bash
 cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id your_session_id
+```
+
+#### Clone or Resume Job
+
+The `clone` command allows you to create a new job based on an existing job's configuration, with the ability to override specific parameters.
+The `resume` command allows you to create a new job (with the ability to override specific parameters) without re-running every step but only the ones failed/where changes are applied.
+These commands are particularly useful for re-running jobs with slight modifications without having to specify all parameters or starting again from scratch.
+
+> [!NOTE]
+> Only jobs initially run with `--resumable` can be resumed.
+
+**Basic Usage:**
+
+Clone a job:
+```bash
+cloudos job clone \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+Resume a job:
+```bash
+cloudos job resume \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7"
+```
+
+**With Parameter Overrides:**
+
+Clone with parameter overrides:
+```bash
+cloudos job clone \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "cloned_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    --do-not-save-logs \
+    --accelerate-file-staging \
+    --workflow-name "updated-workflow" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+Resume with parameter overrides:
+```bash
+cloudos job resume \
+    --profile my_profile \
+    --job-id "60a7b8c9d0e1f2g3h4i5j6k7" \
+    --job-queue "high-priority-queue" \
+    --cost-limit 50.0 \
+    --instance-type "c5.2xlarge" \
+    --job-name "resumed_analysis_v2" \
+    --nextflow-version "24.04.4" \
+    --git-branch "dev" \
+    --nextflow-profile "production" \
+    -p "input=s3://new-bucket/input.csv" \
+    -p "output_dir=s3://new-bucket/results"
+```
+
+**Available Override Options:**
+- `--job-queue`: Specify a different job queue
+- `--cost-limit`: Set a new cost limit (use -1 for no limit)
+- `--instance-type`: Change the master instance type
+- `--job-name`: Assign a custom name to the cloned/resumed job
+- `--nextflow-version`: Use a different Nextflow version
+- `--git-branch`: Switch to a different git branch
+- `--nextflow-profile`: Change the Nextflow profile
+- `--do-not-save-logs`: Enable/disable log saving
+- `--accelerate-file-staging`: Enable/disable fusion filesystem
+- `--workflow-name`: Use a different workflow
+- `-p, --parameter`: Override or add parameters (can be used multiple times)
+
+> [!NOTE]
+> Parameters can be overridden or new ones can be added using `-p` option
+
+#### Abort Jobs
+
+Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
+
+Example:
+```bash
+cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
+```
+
+```console
+Aborting jobs...
+        Job 680a3cf80e56949775c02f16 aborted successfully.
 ```
 
 #### Get Job Costs
