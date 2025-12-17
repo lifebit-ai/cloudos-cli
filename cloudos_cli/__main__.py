@@ -1712,6 +1712,90 @@ def related(ctx,
     related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
 
+@job.command('archive')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-ids',
+              help=('One or more job ids to archive. If more than ' +
+                    'one is provided, they must be provided as ' +
+                    'a comma separated list of ids. E.g. id1,id2,id3'),
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def archive_jobs(ctx,
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 job_ids,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    """Archive specified jobs in a CloudOS workspace."""
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print('Archiving jobs...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tArchiving jobs in the following workspace: ' +
+              f'{workspace_id}')
+    
+    # check if the user provided an empty job list
+    jobs = job_ids.replace(' ', '')
+    if not jobs:
+        raise ValueError('No job IDs provided. Please specify at least one job ID to archive.')
+    jobs_list = jobs.split(',')
+    
+    # Validate that all job IDs exist and are accessible
+    valid_jobs = []
+    for job in jobs_list:
+        try:
+            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
+            valid_jobs.append(job)
+            if verbose:
+                j_status_content = json.loads(j_status.content)
+                print(f'\tJob {job} found with status: {j_status_content["status"]}')
+        except Exception as e:
+            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
+    
+    if not valid_jobs:
+        raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')
+    
+    try:
+        cl.archive_jobs(valid_jobs, workspace_id, verify_ssl)
+        if len(valid_jobs) == 1:
+            click.secho(f"Job '{valid_jobs[0]}' archived successfully.", fg='green', bold=True)
+        else:
+            click.secho(f"{len(valid_jobs)} jobs archived successfully: {', '.join(valid_jobs)}", fg='green', bold=True)
+    except Exception as e:
+        raise ValueError(f"Failed to archive jobs: {str(e)}")
+
+
 @click.command(help='Clone or resume a job with modified parameters')
 @click.option('-k',
               '--apikey',

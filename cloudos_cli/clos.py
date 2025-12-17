@@ -1871,6 +1871,54 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
+    def archive_jobs(self, job_ids, workspace_id, verify=True):
+        """Archive one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to archive.
+        workspace_id : string
+            The CloudOS workspace id.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        
+        # Create the payload with current timestamp in ISO format
+        current_time = datetime.now().isoformat() + "Z"
+        payload = {
+            "jobIds": job_ids,
+            "update": {
+                "archived": {
+                    "status": True,
+                    "archivalTimestamp": current_time
+                }
+            }
+        }
+        
+        r = retry_requests_put(
+            f"{cloudos_url}/api/v1/jobs?teamId={workspace_id}",
+            headers=headers,
+            data=json.dumps(payload),
+            verify=verify
+        )
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return r
+
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):
         """Retrieve the project ID from its name.
 
