@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.76.1 (2025-12-10)
+
+### Heal
+
+- improves docs
+
 ## v2.76.0 (2025-12-05)
 
 ### Feat
