@@ -1137,7 +1137,6 @@ class Job(Cloudos):
             nextflow_version not in ['22.11.1-edge', 'latest']:
             print("Azure workspace only uses Nextflow version 22.11.1-edge, option '--nextflow-version' is ignored.\n")
 
-
         # Override branch if provided
         # sometimes revision is missing from the 'request-payload' API, make sure is present
         if 'revision' not in cloned_payload or not cloned_payload.get('revision'):
