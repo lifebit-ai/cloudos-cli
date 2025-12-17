@@ -1596,15 +1596,15 @@ class Job(Cloudos):
             branches = content.get("branches", [])
 
             if total is None:
-                total = content.get("total", len(branches))
+                total = content.get("total")
 
             if not branches:
                 break  # No more branches to fetch
 
             all_branches.extend(branches)
 
-            # Check if we've fetched all branches
-            if len(all_branches) >= total:
+            # Check if we've fetched all branches (only if total is provided)
+            if total is not None and len(all_branches) >= total:
                 break
 
             current_page += 1
