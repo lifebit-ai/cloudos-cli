@@ -11,11 +11,18 @@ def test_job_archive_successful_flow():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock the job status check to succeed 
+        # Mock checking if job is archived (should return empty for unarchived job)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/valid_job_123?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job_123",
             status_code=200,
-            json={"status": "completed", "id": "valid_job_123"}
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        
+        # Mock checking if job exists in unarchived list (should return the job)
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job_123",
+            status_code=200,
+            json={"jobs": [{"_id": "valid_job_123", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         # Mock the archive API call to succeed
@@ -45,10 +52,18 @@ def test_job_archive_multiple_jobs_successful_flow():
     with requests_mock.Mocker() as m:
         # Mock job status checks for multiple jobs
         for job_id in ['job1', 'job2', 'job3']:
+            # Mock checking if job is archived (should return empty for unarchived jobs)
             m.get(
-                f"https://cloudos.lifebit.ai/api/v1/jobs/{job_id}?teamId=workspace_123",
+                f"https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id={job_id}",
                 status_code=200,
-                json={"status": "completed", "id": job_id}
+                json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+            )
+            
+            # Mock checking if job exists in unarchived list (should return the job)
+            m.get(
+                f"https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id={job_id}",
+                status_code=200,
+                json={"jobs": [{"_id": job_id, "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
             )
         
         # Mock the archive API call to succeed

@@ -1963,6 +1963,83 @@ class Cloudos:
         """
         return self._update_job_archive_status(job_ids, workspace_id, False, verify)
 
+    def check_jobs_archive_status(self, job_ids, workspace_id, target_archived_state, verify=True, verbose=False):
+        """Check the archive status of multiple jobs and separate them into actionable and already-processed lists.
+
+        Parameters
+        ----------
+        job_ids : list
+            List of job IDs to check.
+        workspace_id : str
+            The CloudOS workspace id.
+        target_archived_state : bool
+            True if checking for archiving operation, False if checking for unarchiving operation.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Default is True.
+        verbose : bool, optional
+            Whether to print detailed information. Default is False.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'valid_jobs' (list of jobs that need action) and 'already_processed' 
+            (list of jobs already in target state), and 'job_details' (dict with job info for verbose output).
+        """
+        valid_jobs = []
+        already_processed = []
+        job_details = {}
+        
+        for job_id in job_ids:
+            try:
+                # Check if job exists in archived list
+                archived_jobs = self.get_job_list(workspace_id, archived=True, filter_job_id=job_id, page_size=1)
+                is_archived = len(archived_jobs.get('jobs', [])) > 0
+                
+                if not is_archived:
+                    # Check if job exists in unarchived list to verify it's a valid job
+                    unarchived_jobs = self.get_job_list(workspace_id, archived=False, filter_job_id=job_id, page_size=1)
+                    if len(unarchived_jobs.get('jobs', [])) == 0:
+                        # Job doesn't exist in either list
+                        raise Exception("Job not found")
+                
+                if target_archived_state:
+                    # Archiving operation: we want jobs that are NOT archived
+                    if is_archived:
+                        already_processed.append(job_id)
+                        if verbose:
+                            print(f'\tJob {job_id} is already archived')
+                    else:
+                        valid_jobs.append(job_id)
+                        if verbose:
+                            # Get job details for verbose output (we already have unarchived_jobs from above)
+                            if unarchived_jobs.get('jobs'):
+                                job_data = unarchived_jobs['jobs'][0]
+                                job_details[job_id] = job_data
+                                print(f'\tJob {job_id} found with status: {job_data["status"]} (not archived)')
+                else:
+                    # Unarchiving operation: we want jobs that ARE archived
+                    if is_archived:
+                        valid_jobs.append(job_id)
+                        if verbose:
+                            # Get job details for verbose output (we already have archived_jobs from above)
+                            if archived_jobs.get('jobs'):
+                                job_data = archived_jobs['jobs'][0]
+                                job_details[job_id] = job_data
+                                print(f'\tJob {job_id} found with status: {job_data["status"]} (archived)')
+                    else:
+                        already_processed.append(job_id)
+                        if verbose:
+                            print(f'\tJob {job_id} is already unarchived')
+            except Exception as e:
+                # Job not found or other error - this will be handled by the CLI layer
+                raise Exception(f"Failed to get status for job {job_id}, please make sure it exists in the workspace: {e}")
+        
+        return {
+            'valid_jobs': valid_jobs,
+            'already_processed': already_processed,
+            'job_details': job_details
+        }
+
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):
         """Retrieve the project ID from its name.
 

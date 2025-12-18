@@ -1771,27 +1771,14 @@ def archive_jobs(ctx,
         raise ValueError('No job IDs provided. Please specify at least one job ID to archive.')
     jobs_list = jobs.split(',')
     
-    # Validate job IDs and check archive status
-    valid_jobs = []
-    already_archived = []
-    for job in jobs_list:
-        try:
-            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
-            j_status_content = json.loads(j_status.content)
-            
-            # Check if job is already archived
-            is_archived = j_status_content.get('archived', {}).get('status', False)
-            
-            if is_archived:
-                already_archived.append(job)
-                if verbose:
-                    print(f'\tJob {job} is already archived')
-            else:
-                valid_jobs.append(job)
-                if verbose:
-                    print(f'\tJob {job} found with status: {j_status_content["status"]} (not archived)')
-        except Exception as e:
-            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
+    # Check archive status for all jobs
+    try:
+        status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=True, verify=verify_ssl, verbose=verbose)
+        valid_jobs = status_check['valid_jobs']
+        already_archived = status_check['already_processed']
+    except Exception as e:
+        click.secho(str(e), fg='yellow', bold=True)
+        return
     
     if not valid_jobs and not already_archived:
         raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')
@@ -1881,27 +1868,14 @@ def unarchive_jobs(ctx,
         raise ValueError('No job IDs provided. Please specify at least one job ID to unarchive.')
     jobs_list = jobs.split(',')
     
-    # Validate job IDs and check archive status
-    valid_jobs = []
-    already_unarchived = []
-    for job in jobs_list:
-        try:
-            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
-            j_status_content = json.loads(j_status.content)
-            
-            # Check if job is archived (if not archived, it's already unarchived)
-            is_archived = j_status_content.get('archived', {}).get('status', False)
-            
-            if not is_archived:
-                already_unarchived.append(job)
-                if verbose:
-                    print(f'\tJob {job} is already unarchived')
-            else:
-                valid_jobs.append(job)
-                if verbose:
-                    print(f'\tJob {job} found with status: {j_status_content["status"]} (archived)')
-        except Exception as e:
-            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
+    # Check archive status for all jobs
+    try:
+        status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=False, verify=verify_ssl, verbose=verbose)
+        valid_jobs = status_check['valid_jobs']
+        already_unarchived = status_check['already_processed']
+    except Exception as e:
+        click.secho(str(e), fg='yellow', bold=True)
+        return
     
     if not valid_jobs and not already_unarchived:
         raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')

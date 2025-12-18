@@ -11,15 +11,11 @@ def test_archive_already_archived_job():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock job status - job is already archived
+        # Mock checking if job is archived (should return the job since it's archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/already_archived_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=already_archived_job",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "already_archived_job",
-                "archived": {"status": True, "archivalTimestamp": "2025-12-18T10:00:00.000Z"}
-            }
+            json={"jobs": [{"_id": "already_archived_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         result = runner.invoke(run_cloudos_cli, [
