@@ -1443,6 +1443,9 @@ CloudOS allows you to archive completed jobs to organize and manage your analysi
 > [!NOTE]
 > Archiving jobs does not delete any data or results. It simply adds metadata to mark jobs as archived for organizational purposes.
 
+> [!IMPORTANT]
+> **Admin Permissions Required**: Only workspace administrators can archive jobs belonging to other users. Regular users can only archive their own jobs.
+
 **Archive a Single Job**
 
 To archive a single job, use the `job archive` command with the job ID:
@@ -1531,6 +1534,9 @@ CloudOS allows you to restore archived jobs back to their active state. Unarchiv
 
 > [!NOTE]
 > Unarchiving jobs does not modify any data or results. It simply removes the archived metadata flag, making jobs appear as regular (non-archived) jobs again.
+
+> [!IMPORTANT]
+> **Admin Permissions Required**: Only workspace administrators can unarchive jobs belonging to other users. Regular users can only unarchive their own jobs.
 
 **Unarchive a Single Job**
 
