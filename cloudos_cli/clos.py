@@ -1871,15 +1871,17 @@ class Cloudos:
             raise BadRequestException(r)
         return r
 
-    def archive_jobs(self, job_ids, workspace_id, verify=True):
-        """Archive one or more jobs.
+    def _update_job_archive_status(self, job_ids, workspace_id, archive_status, verify=True):
+        """Update the archive status of one or more jobs.
 
         Parameters
         ----------
         job_ids : list
-            The CloudOS job ids of the jobs to archive.
+            The CloudOS job ids of the jobs to update.
         workspace_id : string
             The CloudOS workspace id.
+        archive_status : bool
+            True to archive jobs, False to unarchive jobs.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1903,7 +1905,7 @@ class Cloudos:
             "jobIds": job_ids,
             "update": {
                 "archived": {
-                    "status": True,
+                    "status": archive_status,
                     "archivalTimestamp": current_time
                 }
             }
@@ -1918,6 +1920,48 @@ class Cloudos:
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
+
+    def archive_jobs(self, job_ids, workspace_id, verify=True):
+        """Archive one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to archive.
+        workspace_id : string
+            The CloudOS workspace id.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        return self._update_job_archive_status(job_ids, workspace_id, True, verify)
+
+    def unarchive_jobs(self, job_ids, workspace_id, verify=True):
+        """Unarchive one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to unarchive.
+        workspace_id : string
+            The CloudOS workspace id.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        return self._update_job_archive_status(job_ids, workspace_id, False, verify)
 
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):
         """Retrieve the project ID from its name.

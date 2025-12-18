@@ -46,6 +46,7 @@ Python package for interacting with CloudOS
       - [Get Job Related Analyses](#get-job-related-analyses)
       - [Delete Job Results](#delete-job-results)
       - [Archive Jobs](#archive-jobs)
+      - [Unarchive Jobs](#unarchive-jobs)
     - [Bash Jobs](#bash-jobs)
       - [Send Array Job](#send-array-job)
       - [Submit a Bash Array Job](#submit-a-bash-array-job)
@@ -1523,6 +1524,103 @@ Job 'valid_job' archived successfully.
 
 > [!TIP]
 > Use the `cloudos job list` command to identify jobs you want to archive. You can filter by status, project, or other criteria to find specific jobs for archiving.
+
+#### Unarchive Jobs
+
+CloudOS allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.
+
+> [!NOTE]
+> Unarchiving jobs does not modify any data or results. It simply removes the archived metadata flag, making jobs appear as regular (non-archived) jobs again.
+
+**Unarchive a Single Job**
+
+To unarchive a single archived job, use the `job unarchive` command with the job ID:
+
+```bash
+cloudos job unarchive --profile my_profile --job-ids 6929d62fe63b3cba2b32261a
+```
+
+The expected output will confirm successful unarchiving:
+
+```console
+Unarchiving jobs...
+Job '6929d62fe63b3cba2b32261a' unarchived successfully.
+```
+
+**Unarchive Multiple Jobs**
+
+You can unarchive multiple jobs simultaneously by providing a comma-separated list of job IDs:
+
+```bash
+cloudos job unarchive --profile my_profile --job-ids "job1,job2,job3"
+```
+
+This will unarchive all valid job IDs in a single operation:
+
+```console
+Unarchiving jobs...
+3 jobs unarchived successfully: job1, job2, job3
+```
+
+**Verbose Output**
+
+For detailed information about the unarchiving process, use the `--verbose` flag:
+
+```bash
+cloudos job unarchive --profile my_profile --job-ids 6929d62fe63b3cba2b32261a --verbose
+```
+
+This provides additional details about the operation:
+
+```console
+Unarchiving jobs...
+	...Preparing objects
+	The following Cloudos object was created:
+	Cloudos(cloudos_url='https://cloudos.lifebit.ai', apikey='***', cromwell_token=None)
+
+	Unarchiving jobs in the following workspace: workspace_123
+	Job 6929d62fe63b3cba2b32261a found with status: completed
+Job '6929d62fe63b3cba2b32261a' unarchived successfully.
+```
+
+**Error Handling**
+
+The unarchive command handles various scenarios gracefully:
+
+- **Invalid Job IDs**: Jobs that don't exist are skipped with a warning message
+- **Mixed Valid/Invalid**: Valid jobs are unarchived, invalid ones are reported
+- **Empty Job List**: Providing empty job IDs results in a clear error message
+
+Example with mixed valid and invalid job IDs:
+
+```bash
+cloudos job unarchive --profile my_profile --job-ids "valid_job,invalid_job"
+```
+
+```console
+Unarchiving jobs...
+Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found
+Job 'valid_job' unarchived successfully.
+```
+
+**Command Options**
+
+- `--job-ids`: One or more job IDs to unarchive (comma-separated for multiple)
+- `--verbose`: Display detailed information about the unarchiving process
+- `--profile`: Use a specific configuration profile
+- `--workspace-id`: Specify the workspace ID (if not using profiles)
+- `--apikey`: Your CloudOS API key (if not using profiles)
+
+**Managing Job Lifecycle**
+
+Use the archive and unarchive commands together to manage your job organization:
+
+1. **Archive completed jobs** to keep your workspace organized
+2. **Unarchive when needed** to access or review historical analyses
+3. **Combine with filtering** using `cloudos job list` to manage jobs in bulk
+
+> [!TIP]
+> Archived jobs remain fully accessible - archiving is purely for organizational purposes. Use `cloudos job list` with appropriate filters to view and manage both archived and active jobs.
 
 ### Bash Jobs
 Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.

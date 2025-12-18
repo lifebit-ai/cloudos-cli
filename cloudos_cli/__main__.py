@@ -1771,29 +1771,165 @@ def archive_jobs(ctx,
         raise ValueError('No job IDs provided. Please specify at least one job ID to archive.')
     jobs_list = jobs.split(',')
     
-    # Validate that all job IDs exist and are accessible
+    # Validate job IDs and check archive status
     valid_jobs = []
+    already_archived = []
     for job in jobs_list:
         try:
             j_status = cl.get_job_status(job, workspace_id, verify_ssl)
-            valid_jobs.append(job)
-            if verbose:
-                j_status_content = json.loads(j_status.content)
-                print(f'\tJob {job} found with status: {j_status_content["status"]}')
+            j_status_content = json.loads(j_status.content)
+            
+            # Check if job is already archived
+            is_archived = j_status_content.get('archived', {}).get('status', False)
+            
+            if is_archived:
+                already_archived.append(job)
+                if verbose:
+                    print(f'\tJob {job} is already archived')
+            else:
+                valid_jobs.append(job)
+                if verbose:
+                    print(f'\tJob {job} found with status: {j_status_content["status"]} (not archived)')
         except Exception as e:
             click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
     
-    if not valid_jobs:
+    if not valid_jobs and not already_archived:
         raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')
+    
+    if not valid_jobs:
+        if len(already_archived) == 1:
+            click.secho(f"Job '{already_archived[0]}' is already archived. No action needed.", fg='cyan', bold=True)
+        else:
+            click.secho(f"All {len(already_archived)} jobs are already archived. No action needed.", fg='cyan', bold=True)
+        return
     
     try:
         cl.archive_jobs(valid_jobs, workspace_id, verify_ssl)
+        success_msg = []
         if len(valid_jobs) == 1:
-            click.secho(f"Job '{valid_jobs[0]}' archived successfully.", fg='green', bold=True)
+            success_msg.append(f"Job '{valid_jobs[0]}' archived successfully.")
         else:
-            click.secho(f"{len(valid_jobs)} jobs archived successfully: {', '.join(valid_jobs)}", fg='green', bold=True)
+            success_msg.append(f"{len(valid_jobs)} jobs archived successfully: {', '.join(valid_jobs)}")
+        
+        if already_archived:
+            if len(already_archived) == 1:
+                success_msg.append(f"Job '{already_archived[0]}' was already archived.")
+            else:
+                success_msg.append(f"{len(already_archived)} jobs were already archived: {', '.join(already_archived)}")
+        
+        click.secho(' '.join(success_msg), fg='green', bold=True)
     except Exception as e:
         raise ValueError(f"Failed to archive jobs: {str(e)}")
+
+
+@job.command('unarchive')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-ids',
+              help=('One or more job ids to unarchive. If more than ' +
+                    'one is provided, they must be provided as ' +
+                    'a comma separated list of ids. E.g. id1,id2,id3'),
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def unarchive_jobs(ctx,
+                   apikey,
+                   cloudos_url,
+                   workspace_id,
+                   job_ids,
+                   verbose,
+                   disable_ssl_verification,
+                   ssl_cert,
+                   profile):
+    """Unarchive specified jobs in a CloudOS workspace."""
+    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print('Unarchiving jobs...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print('\tUnarchiving jobs in the following workspace: ' +
+              f'{workspace_id}')
+    
+    # check if the user provided an empty job list
+    jobs = job_ids.replace(' ', '')
+    if not jobs:
+        raise ValueError('No job IDs provided. Please specify at least one job ID to unarchive.')
+    jobs_list = jobs.split(',')
+    
+    # Validate job IDs and check archive status
+    valid_jobs = []
+    already_unarchived = []
+    for job in jobs_list:
+        try:
+            j_status = cl.get_job_status(job, workspace_id, verify_ssl)
+            j_status_content = json.loads(j_status.content)
+            
+            # Check if job is archived (if not archived, it's already unarchived)
+            is_archived = j_status_content.get('archived', {}).get('status', False)
+            
+            if not is_archived:
+                already_unarchived.append(job)
+                if verbose:
+                    print(f'\tJob {job} is already unarchived')
+            else:
+                valid_jobs.append(job)
+                if verbose:
+                    print(f'\tJob {job} found with status: {j_status_content["status"]} (archived)')
+        except Exception as e:
+            click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
+    
+    if not valid_jobs and not already_unarchived:
+        raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')
+    
+    if not valid_jobs:
+        if len(already_unarchived) == 1:
+            click.secho(f"Job '{already_unarchived[0]}' is already unarchived. No action needed.", fg='cyan', bold=True)
+        else:
+            click.secho(f"All {len(already_unarchived)} jobs are already unarchived. No action needed.", fg='cyan', bold=True)
+        return
+    
+    try:
+        cl.unarchive_jobs(valid_jobs, workspace_id, verify_ssl)
+        success_msg = []
+        if len(valid_jobs) == 1:
+            success_msg.append(f"Job '{valid_jobs[0]}' unarchived successfully.")
+        else:
+            success_msg.append(f"{len(valid_jobs)} jobs unarchived successfully: {', '.join(valid_jobs)}")
+        
+        if already_unarchived:
+            if len(already_unarchived) == 1:
+                success_msg.append(f"Job '{already_unarchived[0]}' was already unarchived.")
+            else:
+                success_msg.append(f"{len(already_unarchived)} jobs were already unarchived: {', '.join(already_unarchived)}")
+        
+        click.secho(' '.join(success_msg), fg='green', bold=True)
+    except Exception as e:
+        raise ValueError(f"Failed to unarchive jobs: {str(e)}")
 
 
 @click.command(help='Clone or resume a job with modified parameters')
