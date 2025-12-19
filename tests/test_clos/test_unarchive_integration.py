@@ -116,11 +116,11 @@ def test_job_unarchive_verbose_output():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock the job status check to succeed 
+        # Mock checking if job is archived (should return the job since it's archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/archived_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=archived_job",
             status_code=200,
-            json={"status": "completed", "id": "archived_job", "archived": {"status": True}}
+            json={"jobs": [{"_id": "archived_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         # Mock the unarchive API call to succeed
