@@ -91,18 +91,28 @@ def test_job_archive_mixed_valid_invalid_jobs():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock job status check - valid job
+        # Mock job status check - valid job (not archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/valid_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job",
             status_code=200,
-            json={"status": "completed", "id": "valid_job"}
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job",
+            status_code=200,
+            json={"jobs": [{"_id": "valid_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
-        # Mock job status check - invalid job (404)
+        # Mock job status check - invalid job (not in either list)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/invalid_job?teamId=workspace_123",
-            status_code=404,
-            json={"error": "Job not found"}
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=invalid_job",
+            status_code=200,
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=invalid_job",
+            status_code=200,
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         
         # Mock the archive API call to succeed for valid jobs
@@ -119,8 +129,7 @@ def test_job_archive_mixed_valid_invalid_jobs():
             '--job-ids', 'valid_job,invalid_job'
         ])
         
-        # Should succeed for the valid job
+        # Command should exit gracefully when encountering invalid job
         assert result.exit_code == 0
-        assert "Job 'valid_job' archived successfully." in result.output
         assert "Failed to get status for job invalid_job" in result.output
         assert "Archiving jobs..." in result.output

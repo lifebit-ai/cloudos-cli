@@ -62,11 +62,16 @@ def test_job_archive_invalid_job_ids():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock the job status check to fail (job doesn't exist) - using correct endpoint
+        # Mock the job status check to fail (job doesn't exist in either list)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/invalid_job?teamId=test_workspace",
-            status_code=404,
-            json={"error": "Job not found"}
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=test_workspace&archived.status=true&page=1&limit=1&id=invalid_job",
+            status_code=200,
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=test_workspace&archived.status=false&page=1&limit=1&id=invalid_job",
+            status_code=200,
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         
         result = runner.invoke(run_cloudos_cli, [
@@ -76,8 +81,7 @@ def test_job_archive_invalid_job_ids():
             '--job-ids', 'invalid_job'
         ])
         
-        # The command should handle the error gracefully
-        assert result.exit_code != 0
-        # The error is raised as an exception, so check the exception string
-        assert ('No valid job IDs found' in str(result.exception) or 
-                'Failed to get status for job invalid_job' in result.output)
+        # The command should handle the error gracefully with exit code 0
+        assert result.exit_code == 0
+        # Error message should be present in output
+        assert 'Failed to get status for job invalid_job' in result.output

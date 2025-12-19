@@ -38,15 +38,18 @@ def test_unarchive_already_unarchived_job():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock job status - job is not archived (already unarchived)
+        # Mock checking if job is archived (should return empty for unarchived job)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/not_archived_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=not_archived_job",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "not_archived_job"
-                # No archived field means not archived
-            }
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        
+        # Mock checking if job exists in unarchived list (should return the job)
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=not_archived_job",
+            status_code=200,
+            json={"jobs": [{"_id": "not_archived_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         result = runner.invoke(run_cloudos_cli, [
@@ -71,23 +74,20 @@ def test_archive_mixed_status_jobs():
     with requests_mock.Mocker() as m:
         # Mock job status - one archived, one not archived
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/already_archived?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=already_archived",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "already_archived",
-                "archived": {"status": True, "archivalTimestamp": "2025-12-18T10:00:00.000Z"}
-            }
+            json={"jobs": [{"_id": "already_archived", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/not_archived?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=not_archived",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "not_archived"
-                # No archived field means not archived
-            }
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=not_archived",
+            status_code=200,
+            json={"jobs": [{"_id": "not_archived", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         # Mock the archive API call for the unarchived job
@@ -117,22 +117,20 @@ def test_unarchive_mixed_status_jobs():
     with requests_mock.Mocker() as m:
         # Mock job status - one archived, one not archived
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/archived_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=archived_job",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "archived_job",
-                "archived": {"status": True, "archivalTimestamp": "2025-12-18T10:00:00.000Z"}
-            }
+            json={"jobs": [{"_id": "archived_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/not_archived?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=not_archived",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "not_archived"
-            }
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=not_archived",
+            status_code=200,
+            json={"jobs": [{"_id": "not_archived", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         # Mock the unarchive API call for the archived job
@@ -160,15 +158,11 @@ def test_archive_verbose_already_archived():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock job status - job is already archived
+        # Mock checking if job is archived (should return the job since it's archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/already_archived?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=already_archived",
             status_code=200,
-            json={
-                "status": "completed", 
-                "id": "already_archived",
-                "archived": {"status": True, "archivalTimestamp": "2025-12-18T10:00:00.000Z"}
-            }
+            json={"jobs": [{"_id": "already_archived", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         result = runner.invoke(run_cloudos_cli, [

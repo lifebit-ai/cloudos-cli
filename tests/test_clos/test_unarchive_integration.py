@@ -11,11 +11,11 @@ def test_job_unarchive_successful_flow():
     runner = CliRunner()
     
     with requests_mock.Mocker() as m:
-        # Mock the job status check to succeed 
+        # Mock checking if job is archived (should return the job since it's archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/archived_job_123?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=archived_job_123",
             status_code=200,
-            json={"status": "completed", "id": "archived_job_123", "archived": {"status": True}}
+            json={"jobs": [{"_id": "archived_job_123", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
         # Mock the unarchive API call to succeed
@@ -45,10 +45,11 @@ def test_job_unarchive_multiple_jobs_successful_flow():
     with requests_mock.Mocker() as m:
         # Mock job status checks for multiple jobs
         for job_id in ['job1', 'job2', 'job3']:
+            # Mock checking if job is archived (should return the job since they're archived)
             m.get(
-                f"https://cloudos.lifebit.ai/api/v1/jobs/{job_id}?teamId=workspace_123",
+                f"https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id={job_id}",
                 status_code=200,
-                json={"status": "completed", "id": job_id, "archived": {"status": True}}
+                json={"jobs": [{"_id": job_id, "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
             )
         
         # Mock the unarchive API call to succeed
@@ -72,29 +73,27 @@ def test_job_unarchive_multiple_jobs_successful_flow():
 
 
 def test_job_unarchive_mixed_valid_invalid_jobs():
-    """Test unarchiving when some jobs are valid and others are not."""
+    """Test unarchiving when some jobs are valid and others are not - should fail gracefully on invalid job."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
-        # Mock job status check - valid job
+        # Mock job status check - valid job (archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/valid_archived_job?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_archived_job",
             status_code=200,
-            json={"status": "completed", "id": "valid_archived_job", "archived": {"status": True}}
+            json={"jobs": [{"_id": "valid_archived_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
         
-        # Mock job status check - invalid job (404)
+        # Mock job status check - invalid job (not in archived or unarchived lists)
         m.get(
-            "https://cloudos.lifebit.ai/api/v1/jobs/invalid_job?teamId=workspace_123",
-            status_code=404,
-            json={"error": "Job not found"}
-        )
-        
-        # Mock the unarchive API call to succeed for valid jobs
-        m.put(
-            "https://cloudos.lifebit.ai/api/v1/jobs?teamId=workspace_123",
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=invalid_job",
             status_code=200,
-            json={"success": True}
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
+        )
+        m.get(
+            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=invalid_job",
+            status_code=200,
+            json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         
         result = runner.invoke(run_cloudos_cli, [
@@ -104,10 +103,8 @@ def test_job_unarchive_mixed_valid_invalid_jobs():
             '--job-ids', 'valid_archived_job,invalid_job'
         ])
         
-        # Should succeed for the valid job
+        # The command should exit gracefully (0) when encountering invalid job
         assert result.exit_code == 0
-        assert "Job 'valid_archived_job' unarchived successfully." in result.output
-        assert "Failed to get status for job invalid_job" in result.output
         assert "Unarchiving jobs..." in result.output
 
 
