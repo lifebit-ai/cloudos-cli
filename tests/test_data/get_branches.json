@@ -1,0 +1,29 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "commit": {
+        "sha": "7c2067cb3af50cde06524b6f78a112e0801a0080",
+        "url": "https://api.github.com/repos/lifebit-ai/nf-core-deepvariant/commits/7c2067cb3af50cde06524b6f78a112e0801a0080"
+      },
+      "protected": false
+    },
+    {
+      "name": "develop",
+      "commit": {
+        "sha": "abc123def456789012345678901234567890abcd",
+        "url": "https://api.github.com/repos/lifebit-ai/nf-core-deepvariant/commits/abc123def456789012345678901234567890abcd"
+      },
+      "protected": false
+    },
+    {
+      "name": "prod",
+      "commit": {
+        "sha": "9876543210fedcba9876543210fedcba98765432",
+        "url": "https://api.github.com/repos/lifebit-ai/nf-core-deepvariant/commits/9876543210fedcba9876543210fedcba98765432"
+      },
+      "protected": true
+    }
+  ],
+  "total": 3
+}

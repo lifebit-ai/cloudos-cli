@@ -1939,6 +1939,9 @@ def unarchive_jobs(ctx,
               help=('The branch to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
                     'of the default branch.'))
+@click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
+              help='Name of the repository platform of the workflow. Default=github.',
+              default='github')
 @click.option('--job-name',
               help='The name of the job. If not set, will take the name of the cloned job.')
 @click.option('--do-not-save-logs',
@@ -1989,6 +1992,7 @@ def clone_resume(ctx,
                  nextflow_profile,
                  nextflow_version,
                  git_branch,
+                 repository_platform,
                  job_name,
                  do_not_save_logs,
                  job_queue,
@@ -2002,9 +2006,7 @@ def clone_resume(ctx,
                  disable_ssl_verification,
                  ssl_cert,
                  profile):
-    print("apikey:", apikey)
-    print("cloudos_url:", cloudos_url)
-    print("workspace_id:", workspace_id)
+
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     if ctx.info_name == "clone":
         mode, action = "clone", "cloning"
@@ -2027,6 +2029,7 @@ def clone_resume(ctx,
         print(f'\t{action.capitalize()} job {job_id} in workspace: {workspace_id}')
 
     try:
+
         # Clone/resume the job with provided overrides
         cloned_resumed_job_id = job_obj.clone_or_resume_job(
             source_job_id=job_id,
@@ -2036,6 +2039,7 @@ def clone_resume(ctx,
             job_name=job_name,
             nextflow_version=nextflow_version,
             branch=git_branch,
+            repository_platform=repository_platform,
             profile=nextflow_profile,
             do_not_save_logs=do_not_save_logs,
             use_fusion=accelerate_file_staging,
@@ -2047,6 +2051,7 @@ def clone_resume(ctx,
             verify=verify_ssl,
             mode=mode
         )
+
         if verbose:
             print(f'\t{mode.capitalize()}d job ID: {cloned_resumed_job_id}')
 

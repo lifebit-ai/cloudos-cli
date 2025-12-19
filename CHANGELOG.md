@@ -7,6 +7,12 @@
 - Adds job archive
 - Adds job unarchive
 
+## v2.76.2 (2025-12-17)
+
+### Patch
+
+- Fix code revision when resuming jobs
+
 ## v2.76.1 (2025-12-10)
 
 ### Heal
