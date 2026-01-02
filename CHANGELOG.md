@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.76.3 (2026-01-02)
+
+### Patch
+
+- Add `--project-name` as required for `datasets` subcommands `ls` and `link`
+
 ## v2.76.2 (2025-12-17)
 
 ### Patch
