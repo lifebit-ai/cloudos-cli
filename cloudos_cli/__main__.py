@@ -3054,7 +3054,7 @@ def run_bash_array_job(ctx,
               default='datasets_ls',
               required=False)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id'])
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def list_files(ctx,
                apikey,
                cloudos_url,
