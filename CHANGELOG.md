@@ -4,7 +4,7 @@
 
 ### Patch
 
-- Add `--project-name` as required for `datasets` subcommands `ls` and `link`
+- Add `--project-name` as required for `datasets` subcommands `ls`
 
 ## v2.76.2 (2025-12-17)
 
