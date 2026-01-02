@@ -3035,7 +3035,8 @@ def run_bash_array_job(ctx,
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--project-name',
-              help='The name of a CloudOS project.')
+              help='The name of a CloudOS project.',
+              required=True)
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
@@ -3053,7 +3054,7 @@ def run_bash_array_job(ctx,
               default='datasets_ls',
               required=False)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id'])
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def list_files(ctx,
                apikey,
                cloudos_url,
@@ -3727,14 +3728,14 @@ def rm_item(ctx,
               default=CLOUDOS_URL)
 @click.option('--project-name',
               help='The name of a CloudOS project.',
-              required=False)
+              required=True)
 @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
 @click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id'])
+@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id', 'project_name'])
 def link(ctx,
          path,
          apikey,
@@ -3751,10 +3752,6 @@ def link(ctx,
     PATH [path]: the full path to the S3 folder to link or relative to File Explorer.
     E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
     """
-    if not path.startswith("s3://") and project_name is None:
-        # for non-s3 paths we need the project, for S3 we don't
-        raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     link_p = Link(
