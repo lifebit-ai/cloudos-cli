@@ -203,20 +203,35 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     owner = str(j_details_h.get("user", {}).get("name", "None") + " " + j_details_h.get("user", {}).get("surname", "None"))
     pipeline = str(j_details_h.get("workflow", {}).get("name", "None"))
     # calculate the run time
-    start_dt = datetime.fromisoformat(str(j_details_h["startTime"]).replace('Z', '+00:00'))
-    end_dt = datetime.fromisoformat(str(j_details_h["endTime"]).replace('Z', '+00:00'))
-    duration = end_dt - start_dt
-    # Format duration as hours:minutes:seconds
-    total_seconds = int(duration.total_seconds())
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    seconds = total_seconds % 60
-    if hours > 0:
-        run_time = f"{hours}h {minutes}m {seconds}s"
-    elif minutes > 0:
-        run_time = f"{minutes}m {seconds}s"
+    start_time_raw = j_details_h.get("startTime")
+    end_time_raw = j_details_h.get("endTime")
+    
+    if start_time_raw and end_time_raw:
+        try:
+            start_dt = datetime.fromisoformat(str(start_time_raw).replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(str(end_time_raw).replace('Z', '+00:00'))
+            duration = end_dt - start_dt
+            # Format duration as hours:minutes:seconds
+            total_seconds = int(duration.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            if hours > 0:
+                run_time = f"{hours}h {minutes}m {seconds}s"
+            elif minutes > 0:
+                run_time = f"{minutes}m {seconds}s"
+            else:
+                run_time = f"{seconds}s"
+            submit_time = str(start_dt.strftime('%Y-%m-%d %H:%M:%S'))
+            end_time = str(end_dt.strftime('%Y-%m-%d %H:%M:%S'))
+        except (ValueError, TypeError):
+            run_time = "N/A"
+            submit_time = "N/A"
+            end_time = "N/A"
     else:
-        run_time = f"{seconds}s"
+        run_time = "N/A"
+        submit_time = "N/A" if not start_time_raw else str(datetime.fromisoformat(str(start_time_raw).replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S'))
+        end_time = "N/A" if not end_time_raw else str(datetime.fromisoformat(str(end_time_raw).replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S'))
     # determine cost
     cost = j_details_h.get("computeCostSpent", None)
     if cost is not None:
@@ -242,8 +257,8 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         "Owner": owner,
         "Pipeline": pipeline,
         "ID": str(job_id),
-        "Submit time": str(start_dt.strftime('%Y-%m-%d %H:%M:%S')),
-        "End time": str(end_dt.strftime('%Y-%m-%d %H:%M:%S')),
+        "Submit time": submit_time,
+        "End time": end_time,
         "Run time": str(run_time),
         "Commit": str(revision),
         "Cost": cost_display,
