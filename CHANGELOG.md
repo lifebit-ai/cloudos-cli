@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.76.4 (2025-01-05)
+
+### Patch
+
+- Fix `job details` for failed jobs that has no start and end time properties
+
 ## v2.76.2 (2025-12-17)
 
 ### Patch
