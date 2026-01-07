@@ -1567,6 +1567,9 @@ def list_jobs(ctx,
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--force',
+              help='Force abort the job even if it is not in a running or initializing state.',
+              is_flag=True)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
 def abort_jobs(ctx,
@@ -1577,7 +1580,8 @@ def abort_jobs(ctx,
                verbose,
                disable_ssl_verification,
                ssl_cert,
-               profile):
+               profile,
+               force):
     """Abort all specified jobs from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
@@ -1605,11 +1609,11 @@ def abort_jobs(ctx,
             continue
         j_status_content = json.loads(j_status.content)
         # check if job id is valid & is in working state (initial, running)
-        if j_status_content['status'] not in ABORT_JOB_STATES:
+        if j_status_content['status'] not in ABORT_JOB_STATES and not force:
             click.secho(f"Job {job} is not in a state that can be aborted and is ignored. " +
                   f"Current status: {j_status_content['status']}", fg='yellow', bold=True)
         else:
-            cl.abort_job(job, workspace_id, verify_ssl)
+            cl.abort_job(job, workspace_id, verify_ssl, force)
             click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
 
 
