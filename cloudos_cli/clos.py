@@ -1918,7 +1918,17 @@ class Cloudos:
             verify=verify
         )
         if r.status_code >= 400:
-            raise BadRequestException(r)
+            # Raise specific exceptions based on HTTP status code
+            if r.status_code == 401:
+                raise NotAuthorisedException()
+            elif r.status_code == 403:
+                raise JobAccessDeniedException(
+                    job_id=', '.join(job_ids),
+                    current_user_name="authenticated user"
+                )
+            else:
+                # For 400, 404, 409, 5xx, etc.
+                raise BadRequestException(r)
         return r
 
     def archive_jobs(self, job_ids, workspace_id, verify=True):

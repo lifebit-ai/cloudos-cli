@@ -1827,29 +1827,8 @@ def archive_unarchive_jobs(ctx,
                 success_msg.append(f"{len(already_processed)} jobs were already {action_past}: {', '.join(already_processed)}")
         
         click.secho(' '.join(success_msg), fg='green', bold=True)
-    except BadRequestException as e:
-        # Handle specific HTTP error codes
-        status_code = e.rv.status_code
-        if status_code == 400:
-            raise ValueError(f"Invalid request when {action}ing jobs: {str(e)}")
-        elif status_code == 401:
-            raise ValueError(f"Unauthorized: Your API key may be invalid or expired.")
-        elif status_code == 403:
-            raise ValueError(f"Permission denied: You may not have permission to {action} these jobs.")
-        elif status_code == 404:
-            raise ValueError(f"Resource not found when {action}ing jobs: {str(e)}")
-        elif status_code == 409:
-            raise ValueError(f"Conflict: Jobs may already be in the requested state.")
-        elif status_code >= 500:
-            raise ValueError(f"Server error (status {status_code}): Please try again later.")
-        else:
-            raise ValueError(f"Failed to {action} jobs (status {status_code}): {str(e)}")
-    except ValueError as e:
-        # Re-raise ValueError as-is
-        raise
     except Exception as e:
-        # Catch any other unexpected errors
-        raise ValueError(f"Failed to {action} jobs: An unexpected error occurred: {str(e)}")
+        raise ValueError(f"Failed to {action} jobs: {str(e)}")
 
 
 @click.command(help='Clone or resume a job with modified parameters')
