@@ -1993,11 +1993,10 @@ class Cloudos:
         -------
         dict
             Dictionary with 'valid_jobs' (list of jobs that need action) and 'already_processed' 
-            (list of jobs already in target state), and 'job_details' (dict with job info for verbose output).
+            (list of jobs already in target state).
         """
         valid_jobs = []
         already_processed = []
-        job_details = {}
         
         for job_id in job_ids:
             try:
@@ -2021,20 +2020,18 @@ class Cloudos:
                     else:
                         valid_jobs.append(job_id)
                         if verbose:
-                            # Get job details for verbose output (we already have unarchived_jobs from above)
+                            # Get job details for verbose output
                             if unarchived_jobs.get('jobs'):
                                 job_data = unarchived_jobs['jobs'][0]
-                                job_details[job_id] = job_data
                                 print(f'\tJob {job_id} found with status: {job_data["status"]} (not archived)')
                 else:
                     # Unarchiving operation: we want jobs that ARE archived
                     if is_archived:
                         valid_jobs.append(job_id)
                         if verbose:
-                            # Get job details for verbose output (we already have archived_jobs from above)
+                            # Get job details for verbose output
                             if archived_jobs.get('jobs'):
                                 job_data = archived_jobs['jobs'][0]
-                                job_details[job_id] = job_data
                                 print(f'\tJob {job_id} found with status: {job_data["status"]} (archived)')
                     else:
                         already_processed.append(job_id)
@@ -2046,8 +2043,7 @@ class Cloudos:
         
         return {
             'valid_jobs': valid_jobs,
-            'already_processed': already_processed,
-            'job_details': job_details
+            'already_processed': already_processed
         }
 
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):
