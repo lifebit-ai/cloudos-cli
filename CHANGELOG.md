@@ -6,6 +6,12 @@
 
 - Fix `job details` for failed jobs that has no start and end time properties
 
+## v2.76.3 (2026-01-02)
+
+### Patch
+
+- Add `--project-name` as required for `datasets` subcommands `ls`
+
 ## v2.76.2 (2025-12-17)
 
 ### Patch
