@@ -644,7 +644,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
-        cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN  " --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
+        cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
   #   delete_results:
   #   needs: job_run_and_status
   #   runs-on: ubuntu-latest
