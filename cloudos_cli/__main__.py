@@ -3166,7 +3166,8 @@ def run_bash_array_job(ctx,
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--project-name',
-              help='The name of a CloudOS project.')
+              help='The name of a CloudOS project.',
+              required=True)
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.option('--details',
               help=('When selected, it prints the details of the listed files. ' +
@@ -3184,7 +3185,7 @@ def run_bash_array_job(ctx,
               default='datasets_ls',
               required=False)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id'])
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
 def list_files(ctx,
                apikey,
                cloudos_url,
