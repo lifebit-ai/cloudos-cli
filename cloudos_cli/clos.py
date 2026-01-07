@@ -2024,7 +2024,8 @@ class Cloudos:
                             # Get job details for verbose output
                             if unarchived_jobs.get('jobs'):
                                 job_data = unarchived_jobs['jobs'][0]
-                                print(f'\tJob {job_id} found with status: {job_data["status"]} (not archived)')
+                                status = job_data.get('status', 'unknown')
+                                print(f'\tJob {job_id} found with status: {status} (not archived)')
                 else:
                     # Unarchiving operation: we want jobs that ARE archived
                     if is_archived:
@@ -2033,7 +2034,8 @@ class Cloudos:
                             # Get job details for verbose output
                             if archived_jobs.get('jobs'):
                                 job_data = archived_jobs['jobs'][0]
-                                print(f'\tJob {job_id} found with status: {job_data["status"]} (archived)')
+                                status = job_data.get('status', 'unknown')
+                                print(f'\tJob {job_id} found with status: {status} (archived)')
                     else:
                         already_processed.append(job_id)
                         if verbose:
