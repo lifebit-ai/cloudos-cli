@@ -11,7 +11,7 @@ from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedExcepti
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # GLOBAL VARS
@@ -1899,8 +1899,8 @@ class Cloudos:
             "apikey": apikey
         }
         
-        # Create the payload with current timestamp in ISO format
-        current_time = datetime.now().isoformat() + "Z"
+        # Create the payload with current timestamp in ISO format (UTC)
+        current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         payload = {
             "jobIds": job_ids,
             "update": {
