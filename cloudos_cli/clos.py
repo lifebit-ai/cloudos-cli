@@ -1974,7 +1974,7 @@ class Cloudos:
         return self._update_job_archive_status(job_ids, workspace_id, False, verify)
 
     def check_jobs_archive_status(self, job_ids, workspace_id, target_archived_state, verify=True, verbose=False):
-        """Check the archive status of multiple jobs and separate them into actionable and already-processed lists.
+        """Check the archive status of multiple jobs and separate them into actionable, already-processed, and invalid lists.
 
         Parameters
         ----------
@@ -1992,21 +1992,22 @@ class Cloudos:
         Returns
         -------
         dict
-            Dictionary with 'valid_jobs' (list of jobs that need action) and 'already_processed' 
-            (list of jobs already in target state).
+            Dictionary with 'valid_jobs' (list of jobs that need action), 'already_processed' 
+            (list of jobs already in target state), and 'invalid_jobs' (dict mapping job IDs to error messages).
         """
         valid_jobs = []
         already_processed = []
+        invalid_jobs = {}
         
         for job_id in job_ids:
             try:
                 # Check if job exists in archived list
-                archived_jobs = self.get_job_list(workspace_id, archived=True, filter_job_id=job_id, page_size=1)
+                archived_jobs = self.get_job_list(workspace_id, archived=True, filter_job_id=job_id, page_size=1, verify=verify)
                 is_archived = len(archived_jobs.get('jobs', [])) > 0
                 
                 if not is_archived:
                     # Check if job exists in unarchived list to verify it's a valid job
-                    unarchived_jobs = self.get_job_list(workspace_id, archived=False, filter_job_id=job_id, page_size=1)
+                    unarchived_jobs = self.get_job_list(workspace_id, archived=False, filter_job_id=job_id, page_size=1, verify=verify)
                     if len(unarchived_jobs.get('jobs', [])) == 0:
                         # Job doesn't exist in either list
                         raise Exception("Job not found")
@@ -2038,12 +2039,13 @@ class Cloudos:
                         if verbose:
                             print(f'\tJob {job_id} is already unarchived')
             except Exception as e:
-                # Job not found or other error - this will be handled by the CLI layer
-                raise Exception(f"Failed to get status for job {job_id}, please make sure it exists in the workspace: {e}")
+                # Job not found or other error - collect and continue processing
+                invalid_jobs[job_id] = str(e)
         
         return {
             'valid_jobs': valid_jobs,
-            'already_processed': already_processed
+            'already_processed': already_processed,
+            'invalid_jobs': invalid_jobs
         }
 
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):

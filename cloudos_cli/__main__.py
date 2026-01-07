@@ -1776,7 +1776,7 @@ def archive_unarchive_jobs(ctx,
     jobs = job_ids.replace(' ', '')
     if not jobs:
         raise ValueError(f'No job IDs provided. Please specify at least one job ID to {action}.')
-    jobs_list = jobs.split(',')
+    jobs_list = [job for job in jobs.split(',') if job]  # Filter out empty strings
     
     # Check for duplicate job IDs
     duplicates = [job_id for job_id in set(jobs_list) if jobs_list.count(job_id) > 1]
@@ -1789,16 +1789,19 @@ def archive_unarchive_jobs(ctx,
             print(f'\tDuplicate job IDs removed. Processing {len(jobs_list)} unique job(s).')
     
     # Check archive status for all jobs
-    try:
-        status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=target_archived_state, verify=verify_ssl, verbose=verbose)
-        valid_jobs = status_check['valid_jobs']
-        already_processed = status_check['already_processed']
-    except Exception as e:
-        click.secho(str(e), fg='yellow', bold=True)
-        return
+    status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=target_archived_state, verify=verify_ssl, verbose=verbose)
+    valid_jobs = status_check['valid_jobs']
+    already_processed = status_check['already_processed']
+    invalid_jobs = status_check['invalid_jobs']
+    
+    # Report invalid jobs (but continue processing valid ones)
+    for job_id, error_msg in invalid_jobs.items():
+        click.secho(f"Failed to get status for job {job_id}, please make sure it exists in the workspace: {error_msg}", fg='yellow', bold=True)
     
     if not valid_jobs and not already_processed:
-        raise ValueError('No valid job IDs found. Please check that the job IDs exist and are accessible.')
+        # All jobs were invalid - exit gracefully
+        click.secho('No valid job IDs found. Please check that the job IDs exist and are accessible.', fg='yellow', bold=True)
+        return
     
     if not valid_jobs:
         if len(already_processed) == 1:

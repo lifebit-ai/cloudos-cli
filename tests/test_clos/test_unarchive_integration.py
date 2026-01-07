@@ -96,6 +96,13 @@ def test_job_unarchive_mixed_valid_invalid_jobs():
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         
+        # Mock the unarchive API call to succeed for valid jobs
+        m.put(
+            "https://cloudos.lifebit.ai/api/v1/jobs?teamId=workspace_123",
+            status_code=200,
+            json={"success": True}
+        )
+        
         result = runner.invoke(run_cloudos_cli, [
             'job', 'unarchive',
             '--apikey', 'test_key',
@@ -106,6 +113,8 @@ def test_job_unarchive_mixed_valid_invalid_jobs():
         # The command should exit gracefully (0) when encountering invalid job
         assert result.exit_code == 0
         assert "Unarchiving jobs..." in result.output
+        assert "Failed to get status for job invalid_job" in result.output
+        assert "valid_archived_job" in result.output
 
 
 def test_job_unarchive_verbose_output():
