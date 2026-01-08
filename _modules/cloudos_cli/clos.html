@@ -351,7 +351,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_get</span><span class="p">,</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_put</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.last_wf</span><span class="w"> </span><span class="kn">import</span> <span class="n">youngest_workflow_id_by_name</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 
 
 <span class="c1"># GLOBAL VARS</span>
@@ -2289,6 +2289,194 @@
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">r</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_job_archive_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">archive_status</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the archive status of one or more jobs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_ids : list</span>
+<span class="sd">            The CloudOS job ids of the jobs to update.</span>
+<span class="sd">        workspace_id : string</span>
+<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">        archive_status : bool</span>
+<span class="sd">            True to archive jobs, False to unarchive jobs.</span>
+<span class="sd">        verify: [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r : requests.models.Response</span>
+<span class="sd">            The server response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cloudos_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span>
+        <span class="n">apikey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="n">apikey</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Create the payload with current timestamp in ISO format (UTC)</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;jobIds&quot;</span><span class="p">:</span> <span class="n">job_ids</span><span class="p">,</span>
+            <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;archived&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">archive_status</span><span class="p">,</span>
+                    <span class="s2">&quot;archivalTimestamp&quot;</span><span class="p">:</span> <span class="n">current_time</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/jobs?teamId=</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+            <span class="n">verify</span><span class="o">=</span><span class="n">verify</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="c1"># Raise specific exceptions based on HTTP status code</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">NotAuthorisedException</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">JobAccessDeniedException</span><span class="p">(</span>
+                    <span class="n">job_id</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">job_ids</span><span class="p">),</span>
+                    <span class="n">current_user_name</span><span class="o">=</span><span class="s2">&quot;authenticated user&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># For 400, 404, 409, 5xx, etc.</span>
+                <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+<div class="viewcode-block" id="Cloudos.archive_jobs">
+<a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.archive_jobs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">archive_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Archive one or more jobs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_ids : list</span>
+<span class="sd">            The CloudOS job ids of the jobs to archive.</span>
+<span class="sd">        workspace_id : string</span>
+<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">        verify: [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r : requests.models.Response</span>
+<span class="sd">            The server response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_job_archive_status</span><span class="p">(</span><span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Cloudos.unarchive_jobs">
+<a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.unarchive_jobs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unarchive_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unarchive one or more jobs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_ids : list</span>
+<span class="sd">            The CloudOS job ids of the jobs to unarchive.</span>
+<span class="sd">        workspace_id : string</span>
+<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">        verify: [bool|string]</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r : requests.models.Response</span>
+<span class="sd">            The server response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_job_archive_status</span><span class="p">(</span><span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Cloudos.check_jobs_archive_status">
+<a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.check_jobs_archive_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_jobs_archive_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_ids</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">target_archived_state</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the archive status of multiple jobs and separate them into actionable, already-processed, and invalid lists.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        job_ids : list</span>
+<span class="sd">            List of job IDs to check.</span>
+<span class="sd">        workspace_id : str</span>
+<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">        target_archived_state : bool</span>
+<span class="sd">            True if checking for archiving operation, False if checking for unarchiving operation.</span>
+<span class="sd">        verify : [bool | str], optional</span>
+<span class="sd">            Whether to use SSL verification or not. Default is True.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Whether to print detailed information. Default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary with &#39;valid_jobs&#39; (list of jobs that need action), &#39;already_processed&#39; </span>
+<span class="sd">            (list of jobs already in target state), and &#39;invalid_jobs&#39; (dict mapping job IDs to error messages).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_jobs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">already_processed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">invalid_jobs</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">for</span> <span class="n">job_id</span> <span class="ow">in</span> <span class="n">job_ids</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Check if job exists in archived list</span>
+                <span class="n">archived_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">archived</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">filter_job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+                <span class="n">is_archived</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">archived_jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_archived</span><span class="p">:</span>
+                    <span class="c1"># Check if job exists in unarchived list to verify it&#39;s a valid job</span>
+                    <span class="n">unarchived_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">archived</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unarchived_jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># Job doesn&#39;t exist in either list</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Job not found&quot;</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">target_archived_state</span><span class="p">:</span>
+                    <span class="c1"># Archiving operation: we want jobs that are NOT archived</span>
+                    <span class="k">if</span> <span class="n">is_archived</span><span class="p">:</span>
+                        <span class="n">already_processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s1"> is already archived&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">valid_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="c1"># Get job details for verbose output</span>
+                            <span class="k">if</span> <span class="n">unarchived_jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">):</span>
+                                <span class="n">job_data</span> <span class="o">=</span> <span class="n">unarchived_jobs</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                                <span class="n">status</span> <span class="o">=</span> <span class="n">job_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s1"> found with status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s1"> (not archived)&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Unarchiving operation: we want jobs that ARE archived</span>
+                    <span class="k">if</span> <span class="n">is_archived</span><span class="p">:</span>
+                        <span class="n">valid_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="c1"># Get job details for verbose output</span>
+                            <span class="k">if</span> <span class="n">archived_jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">):</span>
+                                <span class="n">job_data</span> <span class="o">=</span> <span class="n">archived_jobs</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                                <span class="n">status</span> <span class="o">=</span> <span class="n">job_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s1"> found with status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s1"> (archived)&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">already_processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Job </span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s1"> is already unarchived&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># Job not found or other error - collect and continue processing</span>
+                <span class="n">invalid_jobs</span><span class="p">[</span><span class="n">job_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;valid_jobs&#39;</span><span class="p">:</span> <span class="n">valid_jobs</span><span class="p">,</span>
+            <span class="s1">&#39;already_processed&#39;</span><span class="p">:</span> <span class="n">already_processed</span><span class="p">,</span>
+            <span class="s1">&#39;invalid_jobs&#39;</span><span class="p">:</span> <span class="n">invalid_jobs</span>
+        <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="Cloudos.get_project_id_from_name">

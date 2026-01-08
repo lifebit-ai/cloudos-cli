@@ -410,6 +410,8 @@
 <li><p><a class="reference internal" href="#get-job-costs"><span class="xref myst">Get Job Costs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-related-analyses"><span class="xref myst">Get Job Related Analyses</span></a></p></li>
 <li><p><a class="reference internal" href="#delete-job-results"><span class="xref myst">Delete Job Results</span></a></p></li>
+<li><p><a class="reference internal" href="#archive-jobs"><span class="xref myst">Archive Jobs</span></a></p></li>
+<li><p><a class="reference internal" href="#unarchive-jobs"><span class="xref myst">Unarchive Jobs</span></a></p></li>
 </ul>
 </li>
 <li><p><a class="reference internal" href="#bash-jobs"><span class="xref myst">Bash Jobs</span></a></p>
@@ -1656,6 +1658,165 @@ The <code class="docutils literal notranslate"><span class="pre">--delete</span>
 </div></blockquote>
 <p><strong>Bulk Deletion</strong></p>
 <p>For bulk deletion of job results and working directories across multiple jobs in a project, see the <a class="reference internal" href="#docs/utils/delete_project_jobs.md"><span class="xref myst">delete_project_jobs.sh utility script</span></a> in the <code class="docutils literal notranslate"><span class="pre">utils</span></code> folder. This script allows you to efficiently delete results and/or working directories for all jobs in a project.</p>
+</section>
+<section id="archive-jobs">
+<h4>Archive Jobs<a class="headerlink" href="#archive-jobs" title="Link to this heading">¶</a></h4>
+<p>CloudOS allows you to archive completed jobs to organize and manage your analysis history.</p>
+<blockquote>
+<div><p>[!NOTE]
+Archiving jobs does not delete any data or results. It simply adds metadata to mark jobs as archived for organizational purposes.</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!IMPORTANT]
+<strong>Admin Permissions Required</strong>: Only workspace administrators can archive jobs belonging to other users. Regular users can only archive their own jobs.</p>
+</div></blockquote>
+<p><strong>Archive a Single Job</strong></p>
+<p>To archive a single job, use the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">archive</span></code> command with the job ID:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span>69413101b07d5f5bb46891b4
+</pre></div>
+</div>
+<p>The expected output will confirm successful archiving:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
+<span class="go">Job &#39;69413101b07d5f5bb46891b4&#39; archived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Archive Multiple Jobs</strong></p>
+<p>You can archive multiple jobs simultaneously by providing a comma-separated list of job IDs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;job1,job2,job3&quot;</span>
+</pre></div>
+</div>
+<p>This will archive all valid job IDs in a single operation:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
+<span class="go">3 jobs archived successfully: job1, job2, job3</span>
+</pre></div>
+</div>
+<p><strong>Verbose Output</strong></p>
+<p>For detailed information about the archiving process, use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span>69413101b07d5f5bb46891b4<span class="w"> </span>--verbose
+</pre></div>
+</div>
+<p>This provides additional details about the operation:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
+<span class="go">	...Preparing objects</span>
+<span class="go">	The following Cloudos object was created:</span>
+<span class="go">	Cloudos(cloudos_url=&#39;https://cloudos.lifebit.ai&#39;, apikey=&#39;***&#39;, cromwell_token=None)</span>
+
+<span class="go">	Archiving jobs in the following workspace: workspace_123</span>
+<span class="go">	Job 69413101b07d5f5bb46891b4 found with status: completed</span>
+<span class="go">Job &#39;69413101b07d5f5bb46891b4&#39; archived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Error Handling</strong></p>
+<p>The archive command handles various scenarios gracefully:</p>
+<ul class="simple">
+<li><p><strong>Invalid Job IDs</strong>: Jobs that don’t exist are skipped with a warning message</p></li>
+<li><p><strong>Mixed Valid/Invalid</strong>: Valid jobs are archived, invalid ones are reported</p></li>
+<li><p><strong>Empty Job List</strong>: Providing empty job IDs results in a clear error message</p></li>
+</ul>
+<p>Example with mixed valid and invalid job IDs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;valid_job,invalid_job&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
+<span class="go">Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found</span>
+<span class="go">Job &#39;valid_job&#39; archived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Command Options</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-ids</span></code>: One or more job IDs to archive (comma-separated for multiple)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Display detailed information about the archiving process</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Use a specific configuration profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: Specify the workspace ID (if not using profiles)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (if not using profiles)</p></li>
+</ul>
+<blockquote>
+<div><p>[!TIP]
+Use the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">list</span></code> command to identify jobs you want to archive. You can filter by status, project, or other criteria to find specific jobs for archiving.</p>
+</div></blockquote>
+</section>
+<section id="unarchive-jobs">
+<h4>Unarchive Jobs<a class="headerlink" href="#unarchive-jobs" title="Link to this heading">¶</a></h4>
+<p>CloudOS allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.</p>
+<blockquote>
+<div><p>[!NOTE]
+Unarchiving jobs does not modify any data or results. It simply removes the archived metadata flag, making jobs appear as regular (non-archived) jobs again.</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!IMPORTANT]
+<strong>Admin Permissions Required</strong>: Only workspace administrators can unarchive jobs belonging to other users. Regular users can only unarchive their own jobs.</p>
+</div></blockquote>
+<p><strong>Unarchive a Single Job</strong></p>
+<p>To unarchive a single archived job, use the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">unarchive</span></code> command with the job ID:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span>6929d62fe63b3cba2b32261a
+</pre></div>
+</div>
+<p>The expected output will confirm successful unarchiving:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
+<span class="go">Job &#39;6929d62fe63b3cba2b32261a&#39; unarchived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Unarchive Multiple Jobs</strong></p>
+<p>You can unarchive multiple jobs simultaneously by providing a comma-separated list of job IDs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;job1,job2,job3&quot;</span>
+</pre></div>
+</div>
+<p>This will unarchive all valid job IDs in a single operation:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
+<span class="go">3 jobs unarchived successfully: job1, job2, job3</span>
+</pre></div>
+</div>
+<p><strong>Verbose Output</strong></p>
+<p>For detailed information about the unarchiving process, use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span>6929d62fe63b3cba2b32261a<span class="w"> </span>--verbose
+</pre></div>
+</div>
+<p>This provides additional details about the operation:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
+<span class="go">	...Preparing objects</span>
+<span class="go">	The following Cloudos object was created:</span>
+<span class="go">	Cloudos(cloudos_url=&#39;https://cloudos.lifebit.ai&#39;, apikey=&#39;***&#39;, cromwell_token=None)</span>
+
+<span class="go">	Unarchiving jobs in the following workspace: workspace_123</span>
+<span class="go">	Job 6929d62fe63b3cba2b32261a found with status: completed</span>
+<span class="go">Job &#39;6929d62fe63b3cba2b32261a&#39; unarchived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Error Handling</strong></p>
+<p>The unarchive command handles various scenarios gracefully:</p>
+<ul class="simple">
+<li><p><strong>Invalid Job IDs</strong>: Jobs that don’t exist are skipped with a warning message</p></li>
+<li><p><strong>Mixed Valid/Invalid</strong>: Valid jobs are unarchived, invalid ones are reported</p></li>
+<li><p><strong>Empty Job List</strong>: Providing empty job IDs results in a clear error message</p></li>
+</ul>
+<p>Example with mixed valid and invalid job IDs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;valid_job,invalid_job&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
+<span class="go">Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found</span>
+<span class="go">Job &#39;valid_job&#39; unarchived successfully.</span>
+</pre></div>
+</div>
+<p><strong>Command Options</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-ids</span></code>: One or more job IDs to unarchive (comma-separated for multiple)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Display detailed information about the unarchiving process</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Use a specific configuration profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: Specify the workspace ID (if not using profiles)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (if not using profiles)</p></li>
+</ul>
+<p><strong>Managing Job Lifecycle</strong></p>
+<p>Use the archive and unarchive commands together to manage your job organization:</p>
+<ol class="arabic simple">
+<li><p><strong>Archive completed jobs</strong> to keep your workspace organized</p></li>
+<li><p><strong>Unarchive when needed</strong> to access or review historical analyses</p></li>
+<li><p><strong>Combine with filtering</strong> using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">list</span></code> to manage jobs in bulk</p></li>
+</ol>
+<blockquote>
+<div><p>[!TIP]
+Archived jobs remain fully accessible - archiving is purely for organizational purposes. Use <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">list</span></code> with appropriate filters to view and manage both archived and active jobs.</p>
+</div></blockquote>
 </section>
 </section>
 <section id="bash-jobs">

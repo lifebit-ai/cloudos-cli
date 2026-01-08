@@ -1720,6 +1720,132 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 </section>
+<section id="cloudos-job-archive-unarchive-jobs">
+<h4>archive-unarchive-jobs<a class="headerlink" href="#cloudos-job-archive-unarchive-jobs" title="Link to this heading">¶</a></h4>
+<p>Archive specified jobs in a CloudOS workspace.</p>
+<p class="rubric">Usage</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive-unarchive-jobs<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-k">
+<span id="cmdoption-cloudos-job-archive-unarchive-jobs-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-k" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> Your CloudOS API key</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-c">
+<span id="cmdoption-cloudos-job-archive-unarchive-jobs-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-c" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-workspace-id">
+<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-workspace-id" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-job-ids">
+<span class="sig-name descname"><span class="pre">--job-ids</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_ids&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-job-ids" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> One or more job ids to archive/unarchive. If more than one is provided, they must be provided as a comma separated list of ids. E.g. id1,id2,id3</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-verbose">
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-disable-ssl-verification">
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-disable-ssl-verification" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-ssl-cert">
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-ssl-cert" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-profile">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-profile" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+</section>
+<section id="cloudos-job-archive-unarchive-jobs">
+<h4>archive-unarchive-jobs<a class="headerlink" href="#cloudos-job-archive-unarchive-jobs" title="Link to this heading">¶</a></h4>
+<p>Unarchive specified jobs in a CloudOS workspace.</p>
+<p class="rubric">Usage</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive-unarchive-jobs<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-0">
+<span id="cmdoption-cloudos-job-archive-unarchive-jobs-1"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-0" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> Your CloudOS API key</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-2">
+<span id="cmdoption-cloudos-job-archive-unarchive-jobs-3"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-2" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-4">
+<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-4" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-5">
+<span class="sig-name descname"><span class="pre">--job-ids</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_ids&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-5" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> One or more job ids to archive/unarchive. If more than one is provided, they must be provided as a comma separated list of ids. E.g. id1,id2,id3</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-6">
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-6" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-7">
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-7" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-8">
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-8" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-9">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-9" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-10">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-10" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+</section>
 <section id="cloudos-job-clone-resume">
 <h4>clone-resume<a class="headerlink" href="#cloudos-job-clone-resume" title="Link to this heading">¶</a></h4>
 <p>Clone a job with modified parameters</p>
@@ -3952,6 +4078,8 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </li>
 <li><a class="reference internal" href="#cloudos-job">job</a><ul>
 <li><a class="reference internal" href="#cloudos-job-abort">abort</a></li>
+<li><a class="reference internal" href="#cloudos-job-archive-unarchive-jobs">archive-unarchive-jobs</a></li>
+<li><a class="reference internal" href="#cloudos-job-archive-unarchive-jobs">archive-unarchive-jobs</a></li>
 <li><a class="reference internal" href="#cloudos-job-clone-resume">clone-resume</a></li>
 <li><a class="reference internal" href="#cloudos-job-clone-resume">clone-resume</a></li>
 <li><a class="reference internal" href="#cloudos-job-cost">cost</a></li>

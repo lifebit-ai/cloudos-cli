@@ -403,6 +403,53 @@ the SSL certificate file.</p></li>
 <span class="sig-name descname"><span class="pre">apikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.link.link.Link.apikey" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.archive_jobs">
+<span class="sig-name descname"><span class="pre">archive_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.archive_jobs" title="Link to this definition">¶</a></dt>
+<dd><p>Archive one or more jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to archive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.check_jobs_archive_status">
+<span class="sig-name descname"><span class="pre">check_jobs_archive_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_archived_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.check_jobs_archive_status" title="Link to this definition">¶</a></dt>
+<dd><p>Check the archive status of multiple jobs and separate them into actionable, already-processed, and invalid lists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_ids</strong> (<em>list</em>) – List of job IDs to check.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>target_archived_state</strong> (<em>bool</em>) – True if checking for archiving operation, False if checking for unarchiving operation.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Default is True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print detailed information. Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with ‘valid_jobs’ (list of jobs that need action), ‘already_processed’
+(list of jobs already in target state), and ‘invalid_jobs’ (dict mapping job IDs to error messages).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.cloudos_url">
 <span class="sig-name descname"><span class="pre">cloudos_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.link.link.Link.cloudos_url" title="Link to this definition">¶</a></dt>
@@ -1260,6 +1307,29 @@ the SSL certificate file.</p></li>
 <span class="sig-name descname"><span class="pre">save_job_list_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_jobs_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'my_jobs.csv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.save_job_list_to_csv" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.unarchive_jobs">
+<span class="sig-name descname"><span class="pre">unarchive_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.unarchive_jobs" title="Link to this definition">¶</a></dt>
+<dd><p>Unarchive one or more jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to unarchive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – The server response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.models.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.verify">
 <span class="sig-name descname"><span class="pre">verify</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#cloudos_cli.link.link.Link.verify" title="Link to this definition">¶</a></dt>
@@ -1416,6 +1486,8 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link"><code class="docutils literal notranslate"><span class="pre">Link</span></code></a><ul>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.abort_job"><code class="docutils literal notranslate"><span class="pre">Link.abort_job()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.apikey"><code class="docutils literal notranslate"><span class="pre">Link.apikey</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.archive_jobs"><code class="docutils literal notranslate"><span class="pre">Link.archive_jobs()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.check_jobs_archive_status"><code class="docutils literal notranslate"><span class="pre">Link.check_jobs_archive_status()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.cloudos_url"><code class="docutils literal notranslate"><span class="pre">Link.cloudos_url</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.create_project"><code class="docutils literal notranslate"><span class="pre">Link.create_project()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.cromwell_switch"><code class="docutils literal notranslate"><span class="pre">Link.cromwell_switch()</span></code></a></li>
@@ -1454,6 +1526,7 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.reorder_job_list"><code class="docutils literal notranslate"><span class="pre">Link.reorder_job_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.resolve_user_id"><code class="docutils literal notranslate"><span class="pre">Link.resolve_user_id()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.save_job_list_to_csv"><code class="docutils literal notranslate"><span class="pre">Link.save_job_list_to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.unarchive_jobs"><code class="docutils literal notranslate"><span class="pre">Link.unarchive_jobs()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.verify"><code class="docutils literal notranslate"><span class="pre">Link.verify</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.wait_for_mount_completion"><code class="docutils literal notranslate"><span class="pre">Link.wait_for_mount_completion()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.wait_job_completion"><code class="docutils literal notranslate"><span class="pre">Link.wait_job_completion()</span></code></a></li>
