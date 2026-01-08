@@ -1829,7 +1829,7 @@ def archive_unarchive_jobs(ctx,
             else:
                 success_msg.append(f"{len(already_processed)} jobs were already {action_past}: {', '.join(already_processed)}")
         
-        click.secho(' '.join(success_msg), fg='green', bold=True)
+        click.secho('\n'.join(success_msg), fg='green', bold=True)
     except Exception as e:
         raise ValueError(f"Failed to {action} jobs: {str(e)}")
 
