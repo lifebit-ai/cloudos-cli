@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.77.0 (2025-12-18)
+
+### Feat
+
+- Adds job archive
+- Adds job unarchive
+
 ## v2.76.4 (2025-01-05)
 
 ### Patch

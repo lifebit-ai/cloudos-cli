@@ -10,6 +10,7 @@ import json
 import time
 import sys
 import traceback
+import copy
 from ._version import __version__
 from cloudos_cli.configure.configure import ConfigurationProfile
 from rich.console import Console
@@ -1712,6 +1713,127 @@ def related(ctx,
     related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
 
+@click.command()
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=True)
+@click.option('--job-ids',
+              help=('One or more job ids to archive/unarchive. If more than ' +
+                    'one is provided, they must be provided as ' +
+                    'a comma separated list of ids. E.g. id1,id2,id3'),
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def archive_unarchive_jobs(ctx,
+                           apikey,
+                           cloudos_url,
+                           workspace_id,
+                           job_ids,
+                           verbose,
+                           disable_ssl_verification,
+                           ssl_cert,
+                           profile):
+    """Archive or unarchive specified jobs in a CloudOS workspace."""
+    # Determine operation based on the command name used
+    target_archived_state = ctx.info_name == "archive"
+    action = "archive" if target_archived_state else "unarchive"
+    action_past = "archived" if target_archived_state else "unarchived"
+    action_ing = "archiving" if target_archived_state else "unarchiving"
+    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    print(f'{action_ing.capitalize()} jobs...')
+    
+    if verbose:
+        print('\t...Preparing objects')
+    
+    cl = Cloudos(cloudos_url, apikey, None)
+    
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\t{action_ing.capitalize()} jobs in the following workspace: {workspace_id}')
+    
+    # check if the user provided an empty job list
+    jobs = job_ids.replace(' ', '')
+    if not jobs:
+        raise ValueError(f'No job IDs provided. Please specify at least one job ID to {action}.')
+    jobs_list = [job for job in jobs.split(',') if job]  # Filter out empty strings
+    
+    # Check for duplicate job IDs
+    duplicates = [job_id for job_id in set(jobs_list) if jobs_list.count(job_id) > 1]
+    if duplicates:
+        dup_str = ', '.join(duplicates)
+        click.secho(f'Warning: Duplicate job IDs detected and will be processed only once: {dup_str}', fg='yellow', bold=True)
+        # Remove duplicates while preserving order
+        jobs_list = list(dict.fromkeys(jobs_list))
+        if verbose:
+            print(f'\tDuplicate job IDs removed. Processing {len(jobs_list)} unique job(s).')
+    
+    # Check archive status for all jobs
+    status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=target_archived_state, verify=verify_ssl, verbose=verbose)
+    valid_jobs = status_check['valid_jobs']
+    already_processed = status_check['already_processed']
+    invalid_jobs = status_check['invalid_jobs']
+    
+    # Report invalid jobs (but continue processing valid ones)
+    for job_id, error_msg in invalid_jobs.items():
+        click.secho(f"Failed to get status for job {job_id}, please make sure it exists in the workspace: {error_msg}", fg='yellow', bold=True)
+    
+    if not valid_jobs and not already_processed:
+        # All jobs were invalid - exit gracefully
+        click.secho('No valid job IDs found. Please check that the job IDs exist and are accessible.', fg='yellow', bold=True)
+        return
+    
+    if not valid_jobs:
+        if len(already_processed) == 1:
+            click.secho(f"Job '{already_processed[0]}' is already {action_past}. No action needed.", fg='cyan', bold=True)
+        else:
+            click.secho(f"All {len(already_processed)} jobs are already {action_past}. No action needed.", fg='cyan', bold=True)
+        return
+    
+    try:
+        # Call the appropriate action method
+        if target_archived_state:
+            cl.archive_jobs(valid_jobs, workspace_id, verify_ssl)
+        else:
+            cl.unarchive_jobs(valid_jobs, workspace_id, verify_ssl)
+        
+        success_msg = []
+        if len(valid_jobs) == 1:
+            success_msg.append(f"Job '{valid_jobs[0]}' {action_past} successfully.")
+        else:
+            success_msg.append(f"{len(valid_jobs)} jobs {action_past} successfully: {', '.join(valid_jobs)}")
+        
+        if already_processed:
+            if len(already_processed) == 1:
+                success_msg.append(f"Job '{already_processed[0]}' was already {action_past}.")
+            else:
+                success_msg.append(f"{len(already_processed)} jobs were already {action_past}: {', '.join(already_processed)}")
+        
+        click.secho('\n'.join(success_msg), fg='green', bold=True)
+    except Exception as e:
+        raise ValueError(f"Failed to {action} jobs: {str(e)}")
+
+
 @click.command(help='Clone or resume a job with modified parameters')
 @click.option('-k',
               '--apikey',
@@ -1869,12 +1991,21 @@ def clone_resume(ctx,
         raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}'. {str(e)}")
 
 
+# Register archive_unarchive_jobs with both command names using aliases (same pattern as clone/resume)
+archive_unarchive_jobs.help = 'Archive specified jobs in a CloudOS workspace.'
+job.add_command(archive_unarchive_jobs, "archive")
+
+# Create a copy with different help text for unarchive
+archive_unarchive_jobs_copy = copy.deepcopy(archive_unarchive_jobs)
+archive_unarchive_jobs_copy.help = 'Unarchive specified jobs in a CloudOS workspace.'
+job.add_command(archive_unarchive_jobs_copy, "unarchive")
+
+
 # Apply the best Click solution: Set specific help text for each command registration
 clone_resume.help = 'Clone a job with modified parameters'
 job.add_command(clone_resume, "clone")
 
 # Create a copy with different help text for resume
-import copy
 clone_resume_copy = copy.deepcopy(clone_resume)
 clone_resume_copy.help = 'Resume a job with modified parameters'
 job.add_command(clone_resume_copy, "resume")
