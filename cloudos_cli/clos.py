@@ -11,7 +11,7 @@ from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedExcepti
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # GLOBAL VARS
@@ -1873,6 +1873,185 @@ class Cloudos:
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r
+
+    def _update_job_archive_status(self, job_ids, workspace_id, archive_status, verify=True):
+        """Update the archive status of one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to update.
+        workspace_id : string
+            The CloudOS workspace id.
+        archive_status : bool
+            True to archive jobs, False to unarchive jobs.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        cloudos_url = self.cloudos_url
+        apikey = self.apikey
+        headers = {
+            "Content-type": "application/json",
+            "apikey": apikey
+        }
+        
+        # Create the payload with current timestamp in ISO format (UTC)
+        current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        payload = {
+            "jobIds": job_ids,
+            "update": {
+                "archived": {
+                    "status": archive_status,
+                    "archivalTimestamp": current_time
+                }
+            }
+        }
+        
+        r = retry_requests_put(
+            f"{cloudos_url}/api/v1/jobs?teamId={workspace_id}",
+            headers=headers,
+            data=json.dumps(payload),
+            verify=verify
+        )
+        if r.status_code >= 400:
+            # Raise specific exceptions based on HTTP status code
+            if r.status_code == 401:
+                raise NotAuthorisedException()
+            elif r.status_code == 403:
+                raise JobAccessDeniedException(
+                    job_id=', '.join(job_ids),
+                    current_user_name="authenticated user"
+                )
+            else:
+                # For 400, 404, 409, 5xx, etc.
+                raise BadRequestException(r)
+        return r
+
+    def archive_jobs(self, job_ids, workspace_id, verify=True):
+        """Archive one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to archive.
+        workspace_id : string
+            The CloudOS workspace id.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        return self._update_job_archive_status(job_ids, workspace_id, True, verify)
+
+    def unarchive_jobs(self, job_ids, workspace_id, verify=True):
+        """Unarchive one or more jobs.
+
+        Parameters
+        ----------
+        job_ids : list
+            The CloudOS job ids of the jobs to unarchive.
+        workspace_id : string
+            The CloudOS workspace id.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        r : requests.models.Response
+            The server response
+        """
+        return self._update_job_archive_status(job_ids, workspace_id, False, verify)
+
+    def check_jobs_archive_status(self, job_ids, workspace_id, target_archived_state, verify=True, verbose=False):
+        """Check the archive status of multiple jobs and separate them into actionable, already-processed, and invalid lists.
+
+        Parameters
+        ----------
+        job_ids : list
+            List of job IDs to check.
+        workspace_id : str
+            The CloudOS workspace id.
+        target_archived_state : bool
+            True if checking for archiving operation, False if checking for unarchiving operation.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Default is True.
+        verbose : bool, optional
+            Whether to print detailed information. Default is False.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'valid_jobs' (list of jobs that need action), 'already_processed' 
+            (list of jobs already in target state), and 'invalid_jobs' (dict mapping job IDs to error messages).
+        """
+        valid_jobs = []
+        already_processed = []
+        invalid_jobs = {}
+        
+        for job_id in job_ids:
+            try:
+                # Check if job exists in archived list
+                archived_jobs = self.get_job_list(workspace_id, archived=True, filter_job_id=job_id, page_size=1, verify=verify)
+                is_archived = len(archived_jobs.get('jobs', [])) > 0
+                
+                if not is_archived:
+                    # Check if job exists in unarchived list to verify it's a valid job
+                    unarchived_jobs = self.get_job_list(workspace_id, archived=False, filter_job_id=job_id, page_size=1, verify=verify)
+                    if len(unarchived_jobs.get('jobs', [])) == 0:
+                        # Job doesn't exist in either list
+                        raise Exception("Job not found")
+                
+                if target_archived_state:
+                    # Archiving operation: we want jobs that are NOT archived
+                    if is_archived:
+                        already_processed.append(job_id)
+                        if verbose:
+                            print(f'\tJob {job_id} is already archived')
+                    else:
+                        valid_jobs.append(job_id)
+                        if verbose:
+                            # Get job details for verbose output
+                            if unarchived_jobs.get('jobs'):
+                                job_data = unarchived_jobs['jobs'][0]
+                                status = job_data.get('status', 'unknown')
+                                print(f'\tJob {job_id} found with status: {status} (not archived)')
+                else:
+                    # Unarchiving operation: we want jobs that ARE archived
+                    if is_archived:
+                        valid_jobs.append(job_id)
+                        if verbose:
+                            # Get job details for verbose output
+                            if archived_jobs.get('jobs'):
+                                job_data = archived_jobs['jobs'][0]
+                                status = job_data.get('status', 'unknown')
+                                print(f'\tJob {job_id} found with status: {status} (archived)')
+                    else:
+                        already_processed.append(job_id)
+                        if verbose:
+                            print(f'\tJob {job_id} is already unarchived')
+            except Exception as e:
+                # Job not found or other error - collect and continue processing
+                invalid_jobs[job_id] = str(e)
+        
+        return {
+            'valid_jobs': valid_jobs,
+            'already_processed': already_processed,
+            'invalid_jobs': invalid_jobs
+        }
 
     def get_project_id_from_name(self, workspace_id, project_name, verify=True):
         """Retrieve the project ID from its name.
