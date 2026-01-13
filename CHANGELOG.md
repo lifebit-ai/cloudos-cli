@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.78.0 (2026-01-13)
+
+### Feat
+
+- Adds force abort
+
 ## v2.77.0 (2025-12-18)
 
 ### Feat

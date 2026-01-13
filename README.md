@@ -934,7 +934,8 @@ cloudos job resume \
 
 Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
 
-Example:
+##### Basic Usage
+
 ```bash
 cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
 ```
@@ -943,6 +944,29 @@ cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16"
 Aborting jobs...
         Job 680a3cf80e56949775c02f16 aborted successfully.
 ```
+
+##### Force Abort
+
+The `--force` flag allows you to abort jobs faster. When using this flag, be aware that some data might be lost.
+
+```bash
+cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16" --force
+```
+
+```console
+Aborting jobs...
+Warning: Using --force to abort job 680a3cf80e56949775c02f16. Some data might be lost.
+Job 680a3cf80e56949775c02f16 aborted successfully.
+```
+
+##### Additional Options
+
+- `--workspace-id`: The CloudOS workspace ID (can be set in profile)
+- `--apikey`: Your CloudOS API key (can be set in profile)
+- `--cloudos-url`: The CloudOS URL (default: https://cloudos.lifebit.ai)
+- `--verbose`: Print detailed information messages
+- `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
+- `--ssl-cert`: Path to your SSL certificate file
 
 #### Get Job Details
 
