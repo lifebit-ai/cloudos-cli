@@ -1608,14 +1608,31 @@ def abort_jobs(ctx,
         except Exception as e:
             click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
+        
         j_status_content = json.loads(j_status.content)
-        # check if job id is valid & is in working state (initial, running)
-        if j_status_content['status'] not in ABORT_JOB_STATES and not force:
+        job_status = j_status_content['status']
+        
+        # Check if job is in a state that normally allows abortion
+        is_abortable = job_status in ABORT_JOB_STATES
+        
+        # Issue warning if job is in initializing state and not using force
+        if job_status == 'initializing' and not force:
+            click.secho(f"Warning: Job {job} is in initializing state. Aborting will interrupt its initialization.", fg='yellow', bold=True)
+        
+        # Issue warning if using --force flag
+        if force:
+            click.secho(f"Warning: Using --force to abort job {job}. Some data might be lost.", fg='yellow', bold=True)
+        
+        # Check if job can be aborted
+        if not is_abortable:
             click.secho(f"Job {job} is not in a state that can be aborted and is ignored. " +
-                  f"Current status: {j_status_content['status']}", fg='yellow', bold=True)
+                  f"Current status: {job_status}", fg='yellow', bold=True)
         else:
-            cl.abort_job(job, workspace_id, verify_ssl, force)
-            click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
+            try:
+                cl.abort_job(job, workspace_id, verify_ssl, force)
+                click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
+            except Exception as e:
+                click.secho(f"Failed to abort job {job}. Error: {e}", fg='red', bold=True)
 
 
 @job.command('cost')
