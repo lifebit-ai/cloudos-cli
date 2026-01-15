@@ -1617,7 +1617,7 @@ def abort_jobs(ctx,
         
         # Issue warning if job is in initializing state and not using force
         if job_status == 'initializing' and not force:
-            click.secho(f"Warning: Job {job} is in initializing state. Aborting will interrupt its initialization.", fg='yellow', bold=True)
+            click.secho(f"Warning: Job {job} is in initializing state.", fg='yellow', bold=True)
         
         # Issue warning if using --force flag on an abortable job
         if force and is_abortable:
