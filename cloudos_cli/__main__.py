@@ -1602,6 +1602,10 @@ def abort_jobs(ctx,
         raise ValueError('No job IDs provided. Please specify at least one job ID to abort.')
     jobs = jobs.split(',')
 
+    # Issue warning if using --force flag
+    if force:
+        click.secho(f"Warning: Using --force to abort jobs. Some data might be lost.", fg='yellow', bold=True)
+
     for job in jobs:
         try:
             j_status = cl.get_job_status(job, workspace_id, verify_ssl)
@@ -1618,10 +1622,6 @@ def abort_jobs(ctx,
         # Issue warning if job is in initializing state and not using force
         if job_status == 'initializing' and not force:
             click.secho(f"Warning: Job {job} is in initializing state.", fg='yellow', bold=True)
-        
-        # Issue warning if using --force flag on an abortable job
-        if force and is_abortable:
-            click.secho(f"Warning: Using --force to abort job {job}. Some data might be lost.", fg='yellow', bold=True)
         
         # Check if job can be aborted
         if not is_abortable:
