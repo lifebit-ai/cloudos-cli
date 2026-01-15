@@ -947,7 +947,7 @@ Aborting jobs...
 
 ##### Force Abort
 
-The `--force` flag allows you to abort jobs faster. When using this flag, be aware that some data might be lost.
+The `--force` flag allows you to abort jobs faster as it kills the running infrastructure. When using this flag, be aware that some data might be lost (could eb results or logs, based on whatthe run is performing at the moment of the forced abort).
 
 ```bash
 cloudos job abort --profile my_profile --job-ids "680a3cf80e56949775c02f16" --force
