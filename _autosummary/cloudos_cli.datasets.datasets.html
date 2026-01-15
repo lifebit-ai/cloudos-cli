@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cloudos_cli.import_wf" href="cloudos_cli.import_wf.html"><link rel="prev" title="cloudos_cli.datasets" href="cloudos_cli.datasets.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>cloudos_cli.datasets.datasets - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -359,7 +359,7 @@
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cloudos_cli.datasets.datasets.</span></span><span class="sig-name descname"><span class="pre">Datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id=&lt;property</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.datasets.datasets.</span></span><span class="sig-name descname"><span class="pre">Datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;property</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cloudos</span></code></a></p>
 <p>Class for file explorer.</p>
 <dl class="field-list simple">
@@ -379,7 +379,7 @@ the SSL certificate file.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.abort_job">
-<span class="sig-name descname"><span class="pre">abort_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.abort_job" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">abort_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.abort_job" title="Link to this definition">¶</a></dt>
 <dd><p>Abort a job.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -388,6 +388,7 @@ the SSL certificate file.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – Whether to force abort the job. Default is False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -401,7 +402,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.apikey">
-<span class="sig-name descname"><span class="pre">apikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.apikey" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">apikey</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.apikey" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -453,7 +454,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.cloudos_url">
-<span class="sig-name descname"><span class="pre">cloudos_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.cloudos_url" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cloudos_url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.cloudos_url" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -535,7 +536,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.cromwell_token">
-<span class="sig-name descname"><span class="pre">cromwell_token</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.cromwell_token" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cromwell_token</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.cromwell_token" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1200,7 +1201,7 @@ If None, lists all top-level datasets in the project.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.process_job_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_job_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_job_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a job list from a self.get_job_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1221,7 +1222,7 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.process_project_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_project_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_project_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a server response from a self.get_project_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1242,7 +1243,7 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.process_workflow_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_workflow_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.process_workflow_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a server response from a self.get_workflow_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1263,12 +1264,12 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.project_id">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">project_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.project_id" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">project_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.project_id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.project_name">
-<span class="sig-name descname"><span class="pre">project_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.project_name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">project_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.project_name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1368,7 +1369,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.verify">
-<span class="sig-name descname"><span class="pre">verify</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.verify" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.verify" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1431,7 +1432,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.workspace_id">
-<span class="sig-name descname"><span class="pre">workspace_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.workspace_id" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">workspace_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.workspace_id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1562,8 +1563,8 @@ the SSL certificate file.</p></li>
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=8d563738"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>

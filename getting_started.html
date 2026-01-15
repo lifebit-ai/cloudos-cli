@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="CLI Reference" href="cli.html"><link rel="prev" title="Welcome to CloudOS CLI’s documentation!" href="index.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Getting Started - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -1207,7 +1207,8 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <section id="abort-jobs">
 <h4>Abort Jobs<a class="headerlink" href="#abort-jobs" title="Link to this heading">¶</a></h4>
 <p>Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
-<p>Example:</p>
+<section id="basic-usage">
+<h5>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h5>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
 </pre></div>
 </div>
@@ -1215,6 +1216,30 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <span class="go">        Job 680a3cf80e56949775c02f16 aborted successfully.</span>
 </pre></div>
 </div>
+</section>
+<section id="force-abort">
+<h5>Force Abort<a class="headerlink" href="#force-abort" title="Link to this heading">¶</a></h5>
+<p>The <code class="docutils literal notranslate"><span class="pre">--force</span></code> flag allows you to abort jobs faster as it removes the running infrastructure. When using this flag, be aware that some data might be lost (it could be results or logs, based on what the job is performing at the moment of the forced abort).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span><span class="w"> </span>--force
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
+<span class="go">Warning: Using --force to abort job 680a3cf80e56949775c02f16. Some data might be lost.</span>
+<span class="go">Job 680a3cf80e56949775c02f16 aborted successfully.</span>
+</pre></div>
+</div>
+</section>
+<section id="additional-options">
+<h5>Additional Options<a class="headerlink" href="#additional-options" title="Link to this heading">¶</a></h5>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The CloudOS workspace ID (can be set in profile)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (can be set in profile)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code>: The CloudOS URL (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Print detailed information messages</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification (not recommended)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
+</ul>
+</section>
 </section>
 <section id="get-job-details">
 <h4>Get Job Details<a class="headerlink" href="#get-job-details" title="Link to this heading">¶</a></h4>
@@ -2651,8 +2676,8 @@ following command.</p>
     </aside>
   </div>
 </div><script src="_static/documentation_options.js?v=8d563738"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>

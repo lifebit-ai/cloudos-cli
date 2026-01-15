@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cloudos_cli.procurement" href="cloudos_cli.procurement.html"><link rel="prev" title="cloudos_cli.logging" href="cloudos_cli.logging.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>cloudos_cli.logging.logger - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -374,7 +374,7 @@
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.CommandContextFilter">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">CommandContextFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#CommandContextFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.CommandContextFilter" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">CommandContextFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#CommandContextFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.CommandContextFilter" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Filter</span></code></p>
 <p>Injects record.command and record.params everywhere.</p>
 <dl class="py method">
@@ -399,7 +399,7 @@ If deemed appropriate, the record may be modified in-place.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.LogFormatter">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">LogFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#LogFormatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">LogFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#LogFormatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Formatter</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.LogFormatter.converter">
@@ -414,12 +414,12 @@ When ‘seconds’ is not passed in, convert the current time instead.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.LogFormatter.default_msec_format">
-<span class="sig-name descname"><span class="pre">default_msec_format</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'%s,%03d'</span></em><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter.default_msec_format" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">default_msec_format</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'%s,%03d'</span></span><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter.default_msec_format" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.LogFormatter.default_time_format">
-<span class="sig-name descname"><span class="pre">default_time_format</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'%Y-%m-%d</span> <span class="pre">%H:%M:%S'</span></em><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter.default_time_format" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">default_time_format</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'%Y-%m-%d</span> <span class="pre">%H:%M:%S'</span></span><a class="headerlink" href="#cloudos_cli.logging.logger.LogFormatter.default_time_format" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -596,8 +596,8 @@ set the ‘converter’ attribute in the Formatter class.</p>
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=8d563738"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>

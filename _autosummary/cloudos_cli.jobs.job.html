@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cloudos_cli.link" href="cloudos_cli.link.html"><link rel="prev" title="cloudos_cli.jobs" href="cloudos_cli.jobs.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>cloudos_cli.jobs.job - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -359,7 +359,7 @@
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">Job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mainfile=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importsfile=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_platform='github'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id=&lt;property</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_id=&lt;property</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">Job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mainfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importsfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'github'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;property</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;property</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cloudos</span></code></a></p>
 <p>Class to store and operate jobs.</p>
 <dl class="field-list simple">
@@ -387,7 +387,7 @@ as different importsFiles could be loaded for a single pipeline.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.abort_job">
-<span class="sig-name descname"><span class="pre">abort_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.abort_job" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">abort_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.abort_job" title="Link to this definition">¶</a></dt>
 <dd><p>Abort a job.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -396,6 +396,7 @@ as different importsFiles could be loaded for a single pipeline.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – Whether to force abort the job. Default is False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -409,7 +410,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.apikey">
-<span class="sig-name descname"><span class="pre">apikey</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.apikey" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">apikey</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.apikey" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -498,7 +499,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.cloudos_url">
-<span class="sig-name descname"><span class="pre">cloudos_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.cloudos_url" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cloudos_url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.cloudos_url" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -619,7 +620,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.cromwell_token">
-<span class="sig-name descname"><span class="pre">cromwell_token</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.cromwell_token" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cromwell_token</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.cromwell_token" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1336,7 +1337,7 @@ the SSL certificate file. Default is True.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.importsfile">
-<span class="sig-name descname"><span class="pre">importsfile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.importsfile" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">importsfile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.importsfile" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1366,17 +1367,17 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.last">
-<span class="sig-name descname"><span class="pre">last</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.last" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">last</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.last" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.mainfile">
-<span class="sig-name descname"><span class="pre">mainfile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.mainfile" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mainfile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.mainfile" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.process_job_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_job_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_job_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a job list from a self.get_job_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1397,7 +1398,7 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.process_project_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_project_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_project_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a server response from a self.get_project_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1418,7 +1419,7 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.process_workflow_list">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_workflow_list" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.process_workflow_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process a server response from a self.get_workflow_list call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1439,12 +1440,12 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.project_id">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">project_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.project_id" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">project_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.project_id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.project_name">
-<span class="sig-name descname"><span class="pre">project_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.project_name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">project_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.project_name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1469,7 +1470,7 @@ only the selected columns or the full DataFrame.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.repository_platform">
-<span class="sig-name descname"><span class="pre">repository_platform</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'github'</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.repository_platform" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">repository_platform</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'github'</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.repository_platform" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1631,7 +1632,7 @@ and array files, to be used in job execution.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.split_array_file_params">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">split_array_file_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_file_header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.split_array_file_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.split_array_file_params" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">split_array_file_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_file_header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.split_array_file_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.split_array_file_params" title="Link to this definition">¶</a></dt>
 <dd><p>Splits and processes array parameters for a given workflow type and array file header.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1710,7 +1711,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.verify">
-<span class="sig-name descname"><span class="pre">verify</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.verify" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.verify" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1746,7 +1747,7 @@ the SSL certificate file.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.workflow_id">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">workflow_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workflow_id" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">workflow_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workflow_id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1778,12 +1779,12 @@ the SSL certificate file.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.workflow_name">
-<span class="sig-name descname"><span class="pre">workflow_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workflow_name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">workflow_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workflow_name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.workspace_id">
-<span class="sig-name descname"><span class="pre">workspace_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workspace_id" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">workspace_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workspace_id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1924,8 +1925,8 @@ the SSL certificate file.</p></li>
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=8d563738"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>
