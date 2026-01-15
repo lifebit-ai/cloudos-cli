@@ -1842,7 +1842,7 @@ class Cloudos:
             raise BadRequestException(r)
         return json.loads(r.content)
 
-    def abort_job(self, job, workspace_id, verify=True):
+    def abort_job(self, job, workspace_id, verify=True, force=False):
         """Abort a job.
 
         Parameters
@@ -1853,6 +1853,8 @@ class Cloudos:
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
+        force : bool
+            Whether to force abort the job. Default is False.
 
         Returns
         -------
@@ -1865,7 +1867,8 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        r = retry_requests_put("{}/api/v2/jobs/{}/abort?teamId={}".format(cloudos_url, job, workspace_id),
+        force_abort = "true" if force else "false"
+        r = retry_requests_put("{}/api/v2/jobs/{}/abort?forceAbort={}&teamId={}".format(cloudos_url, job, force_abort, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
