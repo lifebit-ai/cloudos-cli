@@ -162,10 +162,11 @@ class Datasets(Cloudos):
         else:
             # Let the user define the value.
             self._project_id = v
-            # Update tracker if present
-            if self.api_docs_tracker and v:
-                self.api_docs_tracker.project_id = v
-                self.api_docs_tracker.project_name = self.project_name
+            # Update tracker if present (use getattr to avoid AttributeError during initialization)
+            tracker = getattr(self, 'api_docs_tracker', None)
+            if tracker and v:
+                tracker.project_id = v
+                tracker.project_name = self.project_name
 
     def fetch_project_id(self,
                          workspace_id,
@@ -189,9 +190,11 @@ class Datasets(Cloudos):
         project_id : string
             The CloudOS project id for a given project name.
         """
-        if self.api_docs_tracker:
+        # Use getattr to avoid AttributeError if called during initialization
+        tracker = getattr(self, 'api_docs_tracker', None)
+        if tracker:
             url = f"{self.cloudos_url}/api/v2/projects?teamId={workspace_id}&search={project_name}"
-            self.api_docs_tracker.track(
+            tracker.track(
                 method="GET",
                 url=url,
                 purpose="Resolve project name to project ID",
@@ -200,9 +203,9 @@ class Datasets(Cloudos):
         
         project_id = self.get_project_id_from_name(workspace_id, project_name, verify=verify)
         
-        if self.api_docs_tracker:
-            self.api_docs_tracker.project_id = project_id
-            self.api_docs_tracker.project_name = project_name
+        if tracker:
+            tracker.project_id = project_id
+            tracker.project_name = project_name
         
         return project_id
 
