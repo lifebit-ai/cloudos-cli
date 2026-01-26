@@ -3,7 +3,6 @@ import responses
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.datasets.datasets import APICallTracker
 from tests.functions_for_pytest import load_json_file
-from responses import matchers
 
 # Constants
 APIKEY = 'vnoiweur89u2ongs'
@@ -73,7 +72,7 @@ def test_api_call_tracker_captures_calls():
     )
 
     # Execute the listing
-    result = datasets.list_folder_content(FOLDER_PATH)
+    datasets.list_folder_content(FOLDER_PATH)
 
     # Assertions on tracker
     assert len(tracker.calls) > 0, "Tracker should have captured API calls"
@@ -135,7 +134,7 @@ def test_api_documentation_generation():
     )
 
     # Execute the listing (just top level)
-    result = datasets.list_folder_content(None)
+    datasets.list_folder_content(None)
 
     # Generate documentation
     docs = tracker.get_documentation()
@@ -153,7 +152,6 @@ def test_api_documentation_generation():
     assert "curl -X GET" in docs
     assert CLOUDOS_URL in docs
     assert "<YOUR_APIKEY>" in docs, "API key should be masked in documentation"
-    
     # Should have at least datasets listing (project resolution may or may not be present)
     assert "List all top-level datasets" in docs
 
@@ -199,7 +197,7 @@ def test_api_docs_with_ssl_disabled():
     )
 
     # Execute the listing
-    result = datasets.list_folder_content(None)
+    datasets.list_folder_content(None)
 
     # Generate documentation
     docs = tracker.get_documentation()
@@ -252,7 +250,7 @@ def test_api_docs_with_ssl_cert():
     )
 
     # Execute the listing
-    result = datasets.list_folder_content(None)
+    datasets.list_folder_content(None)
 
     # Generate documentation
     docs = tracker.get_documentation()

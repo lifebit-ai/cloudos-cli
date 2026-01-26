@@ -3226,13 +3226,9 @@ def list_files(ctx,
     """Lists the dataset information within the CloudOS platform.
 
     Examples:
-
         cloudos datasets ls --project-name my-project
-
         cloudos datasets ls --project-name my-project --path Data
-
         cloudos datasets ls --project-name my-project --path Data/results --details
-        
         cloudos datasets ls --project-name my-project --api-docs
     """
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -3288,7 +3284,7 @@ def list_files(ctx,
                     type_ = "file (user uploaded)"
                 else:
                     type_ = "file (virtual copy)"
-                    
+
             user = item.get("user", {})
             if isinstance(user, dict):
                 name = user.get("name", "").strip()
@@ -3398,7 +3394,7 @@ def list_files(ctx,
                         console.print(f"[blue underline]{item['name']}[/]")
                     else:
                         console.print(item['name'])
-        
+
         # Display API documentation if requested
         if api_docs and tracker:
             click.echo(tracker.get_documentation())
