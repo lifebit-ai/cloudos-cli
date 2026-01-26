@@ -3,11 +3,111 @@ This is the main class for file explorer (datasets).
 """
 
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Optional, List, Dict, Any
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put, retry_requests_post, retry_requests_delete
 import json
+
+
+class APICallTracker:
+    """Tracks API calls for documentation purposes."""
+    
+    def __init__(self, cloudos_url: str, workspace_id: str, verify: Union[bool, str]):
+        self.calls: List[Dict[str, Any]] = []
+        self.cloudos_url = cloudos_url
+        self.workspace_id = workspace_id
+        self.verify = verify
+        self.project_id: Optional[str] = None
+        self.project_name: Optional[str] = None
+    
+    def track(self, method: str, url: str, purpose: str, extraction_hint: str = ""):
+        """Track an API call.
+        
+        Parameters
+        ----------
+        method : str
+            HTTP method (GET, POST, PUT, DELETE)
+        url : str
+            Full URL of the API endpoint
+        purpose : str
+            Human-readable description of what this call does
+        extraction_hint : str, optional
+            Instructions on how to extract data from the response for next calls
+        """
+        self.calls.append({
+            'method': method,
+            'url': url,
+            'purpose': purpose,
+            'extraction_hint': extraction_hint
+        })
+    
+    def get_documentation(self) -> str:
+        """Generate curl-based API documentation.
+        
+        Returns
+        -------
+        str
+            Formatted API documentation
+        """
+        if not self.calls:
+            return "No API calls were made."
+        
+        # Build requirements section
+        doc_lines = []
+        doc_lines.append("\n" + "="*80)
+        doc_lines.append("Platform API Instructions")
+        doc_lines.append("="*80)
+        doc_lines.append("\n### Requirements")
+        doc_lines.append(f"workspace-id = {self.workspace_id}")
+        if self.project_name:
+            doc_lines.append(f"project-name = {self.project_name}")
+        doc_lines.append("apikey = <YOUR_APIKEY>")
+        
+        # SSL verification note
+        if isinstance(self.verify, str):
+            doc_lines.append(f"ssl-cert = {self.verify}")
+        elif self.verify is False:
+            doc_lines.append("ssl-verification = disabled")
+        
+        # Build endpoints section
+        doc_lines.append("\n### Used Endpoints")
+        for i, call in enumerate(self.calls, 1):
+            doc_lines.append(f"\n{i}. {call['purpose']}")
+            
+            # Build curl command
+            curl_parts = ["curl -X", call['method']]
+            
+            # Add SSL flag if needed
+            if isinstance(self.verify, str):
+                curl_parts.append(f"--cacert {self.verify}")
+            elif self.verify is False:
+                curl_parts.append("-k")
+            
+            # Add headers
+            curl_parts.append('-H "Content-type: application/json"')
+            curl_parts.append('-H "apikey: <YOUR_APIKEY>"')
+            
+            # Add URL
+            curl_parts.append(f'"{call["url"]}"')
+            
+            doc_lines.append("   " + " ".join(curl_parts))
+        
+        # Build usage instructions section
+        doc_lines.append("\n### How to Use Them")
+        doc_lines.append("\nExecute the curl commands in sequence:")
+        
+        for i, call in enumerate(self.calls, 1):
+            if call['extraction_hint']:
+                doc_lines.append(f"\n{i}. {call['purpose']}")
+                doc_lines.append(f"   {call['extraction_hint']}")
+        
+        if len(self.calls) == 1 and not self.calls[0]['extraction_hint']:
+            doc_lines.append("\nExecute the curl command above. The response will contain the list of datasets.")
+        
+        doc_lines.append("\n" + "="*80 + "\n")
+        
+        return "\n".join(doc_lines)
 
 
 @dataclass
@@ -30,11 +130,22 @@ class Datasets(Cloudos):
         the SSL certificate file.
     project_id : string
         The CloudOS project id for a given project name.
+    api_docs_tracker : APICallTracker, optional
+        Tracker for API calls when generating documentation.
     """
     workspace_id: str
     project_name: str
     verify: Union[bool, str] = True
     project_id: str = None
+    api_docs_tracker: Optional[APICallTracker] = None
+
+    def __post_init__(self):
+        """Post-initialization to set up tracker with project details."""
+        # Ensure tracker has project_name and project_id if it exists
+        if self.api_docs_tracker:
+            self.api_docs_tracker.project_name = self.project_name
+            if self.project_id:
+                self.api_docs_tracker.project_id = self.project_id
 
     @property
     def project_id(self) -> str:
@@ -51,6 +162,10 @@ class Datasets(Cloudos):
         else:
             # Let the user define the value.
             self._project_id = v
+            # Update tracker if present
+            if self.api_docs_tracker and v:
+                self.api_docs_tracker.project_id = v
+                self.api_docs_tracker.project_name = self.project_name
 
     def fetch_project_id(self,
                          workspace_id,
@@ -74,7 +189,22 @@ class Datasets(Cloudos):
         project_id : string
             The CloudOS project id for a given project name.
         """
-        return self.get_project_id_from_name(workspace_id, project_name, verify=verify)
+        if self.api_docs_tracker:
+            url = f"{self.cloudos_url}/api/v2/projects?teamId={workspace_id}&search={project_name}"
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose="Resolve project name to project ID",
+                extraction_hint=f"Extract the '_id' field from the project object where 'name' equals '{project_name}' in the response. Use: jq '.projects[] | select(.name==\"{project_name}\") | ._id'"
+            )
+        
+        project_id = self.get_project_id_from_name(workspace_id, project_name, verify=verify)
+        
+        if self.api_docs_tracker:
+            self.api_docs_tracker.project_id = project_id
+            self.api_docs_tracker.project_name = project_name
+        
+        return project_id
 
     def list_project_content(self):
         """
@@ -91,14 +221,23 @@ class Datasets(Cloudos):
         project_id
             The specific project id
         """
+        url = "{}/api/v2/datasets?projectId={}&teamId={}".format(self.cloudos_url,
+                                                                  self.project_id,
+                                                                  self.workspace_id)
+        
+        if self.api_docs_tracker:
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose="List all top-level datasets in the project",
+                extraction_hint="The response contains a 'datasets' array with all top-level datasets. Each dataset has '_id', 'name', and other metadata fields. To navigate deeper, extract the '_id' of the desired dataset."
+            )
+        
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        r = retry_requests_get("{}/api/v2/datasets?projectId={}&teamId={}".format(self.cloudos_url,
-                                                                                  self.project_id,
-                                                                                  self.workspace_id),
-                               headers=headers, verify=self.verify)
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         raw = r.json()
@@ -142,10 +281,20 @@ class Datasets(Cloudos):
                 folder_id = folder['_id']
         if not folder_id:
             raise ValueError(f"Folder '{folder_name}' not found in project '{self.project_name}'.")
-        r = retry_requests_get("{}/api/v1/datasets/{}/items?teamId={}".format(self.cloudos_url,
-                                                                              folder_id,
-                                                                              self.workspace_id),
-                               headers=headers, verify=self.verify)
+        
+        url = "{}/api/v1/datasets/{}/items?teamId={}".format(self.cloudos_url,
+                                                              folder_id,
+                                                              self.workspace_id)
+        
+        if self.api_docs_tracker:
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose=f"List contents of dataset '{folder_name}' (dataset_id: {folder_id})",
+                extraction_hint="The response contains 'folders' and 'files' arrays. Folders have '_id', 'name', 'folderType' fields. Files have metadata like 'name', 'sizeInBytes', 'updatedAt'. For deeper navigation, use the folder's '_id' or inspect 'folderType' to determine the next API call."
+            )
+        
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r.json()
@@ -172,11 +321,20 @@ class Datasets(Cloudos):
             "apikey": self.apikey
         }
 
-        r = retry_requests_get("{}/api/v1/data-access/s3/bucket-contents?bucket={}&path={}&teamId={}".format(self.cloudos_url,
-                                                                                                             s3_bucket_name,
-                                                                                                             s3_relative_path,
-                                                                                                             self.workspace_id),
-                               headers=headers, verify=self.verify)
+        url = "{}/api/v1/data-access/s3/bucket-contents?bucket={}&path={}&teamId={}".format(self.cloudos_url,
+                                                                                             s3_bucket_name,
+                                                                                             s3_relative_path,
+                                                                                             self.workspace_id)
+        
+        if self.api_docs_tracker:
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose=f"List S3 folder contents (bucket: {s3_bucket_name}, path: {s3_relative_path})",
+                extraction_hint="The response contains a 'contents' array with objects having 'name', 'path', 'isDir', and 'size' fields. Items where 'isDir' is true are folders; use their 'path' for further navigation."
+            )
+        
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         raw = r.json()
@@ -216,10 +374,19 @@ class Datasets(Cloudos):
             "apikey": self.apikey
         }
 
-        r = retry_requests_get("{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
-                                                                                     folder_id,
-                                                                                     self.workspace_id),
-                               headers=headers, verify=self.verify)
+        url = "{}/api/v1/folders/virtual/{}/items?teamId={}".format(self.cloudos_url,
+                                                                     folder_id,
+                                                                     self.workspace_id)
+        
+        if self.api_docs_tracker:
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose=f"List virtual folder contents (folder_id: {folder_id})",
+                extraction_hint="The response contains 'folders' and 'files' arrays similar to dataset contents. Use folder '_id' and 'folderType' to navigate deeper into the structure."
+            )
+        
+        r = retry_requests_get(url, headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return r.json()
@@ -236,6 +403,14 @@ class Datasets(Cloudos):
         url = f"{self.cloudos_url}/api/v1/data-access/azure/container-contents"
         url += f"?containerName={container_name}&storageAccountName={storage_account_name}"
         url += f"&path={path}&teamId={self.workspace_id}"
+
+        if self.api_docs_tracker:
+            self.api_docs_tracker.track(
+                method="GET",
+                url=url,
+                purpose=f"List Azure Blob container contents (container: {container_name}, account: {storage_account_name}, path: {path})",
+                extraction_hint="The response contains a 'contents' array with objects having 'name', 'path', 'isDir', 'size', and 'lastModified' fields. Items where 'isDir' is true are folders."
+            )
 
         r = retry_requests_get(url, headers=headers, verify=self.verify)
         if r.status_code >= 400:
