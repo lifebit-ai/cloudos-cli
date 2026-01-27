@@ -224,7 +224,7 @@ class Datasets(Cloudos):
             self.api_docs_tracker.track(
                 method="GET",
                 url=url,
-                purpose="List all top-level datasets in the project",
+                purpose=f"List all top-level datasets in the project '{self.project_name}' (project_id: '{self.project_id}'.",
                 extraction_hint="The response contains a 'datasets' array with all top-level datasets. Each dataset has '_id', 'name', and other metadata fields. To navigate deeper, extract the '_id' of the desired dataset."
             )
 
