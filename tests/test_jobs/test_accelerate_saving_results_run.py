@@ -5,14 +5,14 @@ in the job run command of CloudOS CLI.
 """
 import pytest
 from click.testing import CliRunner
-from cloudos_cli.__main__ import run
+from cloudos_cli.jobs.cli import run
 
 
 def test_run_accelerate_saving_results_flag_is_boolean():
     """
     Test that --accelerate-saving-results is properly defined as a boolean flag
     """
-    from cloudos_cli.__main__ import run as run_command
+    from cloudos_cli.jobs.cli import run as run_command
 
     # Get the accelerate-saving-results option from the command
     accelerate_saving_results_option = None
@@ -43,7 +43,7 @@ def test_run_accelerate_saving_results_flag_definition():
     """
     Test that the flag has the correct help text definition
     """
-    from cloudos_cli.__main__ import run as run_command
+    from cloudos_cli.jobs.cli import run as run_command
 
     # Get the accelerate-saving-results option from the command
     accelerate_saving_results_option = None

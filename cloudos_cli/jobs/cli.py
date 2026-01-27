@@ -230,12 +230,15 @@ def run(ctx,
         ssl_cert,
         profile):
     """Run a CloudOS workflow."""
-    # Import here to avoid circular dependency and get constants
-    from cloudos_cli.__main__ import (
-        AWS_NEXTFLOW_VERSIONS, AZURE_NEXTFLOW_VERSIONS, HPC_NEXTFLOW_VERSIONS,
-        AWS_NEXTFLOW_LATEST, AZURE_NEXTFLOW_LATEST, HPC_NEXTFLOW_LATEST,
-        JOB_COMPLETED
-    )
+    # Import constants from __main__
+    from cloudos_cli import __main__
+    AWS_NEXTFLOW_VERSIONS = __main__.AWS_NEXTFLOW_VERSIONS
+    AZURE_NEXTFLOW_VERSIONS = __main__.AZURE_NEXTFLOW_VERSIONS
+    HPC_NEXTFLOW_VERSIONS = __main__.HPC_NEXTFLOW_VERSIONS
+    AWS_NEXTFLOW_LATEST = __main__.AWS_NEXTFLOW_LATEST
+    AZURE_NEXTFLOW_LATEST = __main__.AZURE_NEXTFLOW_LATEST
+    HPC_NEXTFLOW_LATEST = __main__.HPC_NEXTFLOW_LATEST
+    JOB_COMPLETED = __main__.JOB_COMPLETED
     
     # apikey, cloudos_url, workspace_id, project_name, and workflow_name are now automatically resolved by the decorator
     print('Executing run...')
