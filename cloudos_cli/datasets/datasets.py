@@ -128,8 +128,8 @@ class Datasets(Cloudos):
     workspace_id: str
     project_name: str
     verify: Union[bool, str] = True
-    project_id: str = None
     api_docs_tracker: Optional[APICallTracker] = None
+    project_id: str = None
 
     def __post_init__(self):
         """Post-initialization to set up tracker with project details."""
