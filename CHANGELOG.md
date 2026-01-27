@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.79.0 (2026-01-26)
+
+### Feat
+
+- Adds `--api-docs` flag to `cloudos datasets ls` command to document API usage
+
 ## v2.78.0 (2026-01-13)
 
 ### Feat

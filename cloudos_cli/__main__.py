@@ -3195,6 +3195,9 @@ def run_bash_array_job(ctx,
                     'Details contains "Type", "Owner", "Size", "Last Updated", ' +
                     '"Virtual Name", "Storage Path".'),
               is_flag=True)
+@click.option('--api-docs',
+              help='Display the CloudOS API endpoints called by this command with curl examples.',
+              is_flag=True)
 @click.option('--output-format',
               help=('The desired display for the output, either directly in standard output or saved as file. ' +
                     'Default=stdout.'),
@@ -3217,21 +3220,40 @@ def list_files(ctx,
                profile,
                path,
                details,
+               api_docs,
                output_format,
                output_basename):
-    """List contents of a path within a CloudOS workspace dataset."""
+    """Lists the dataset information within the CloudOS platform.
+
+    Examples:
+        cloudos datasets ls --project-name my-project
+        cloudos datasets ls --project-name my-project --path Data
+        cloudos datasets ls --project-name my-project --path Data/results --details
+        cloudos datasets ls --project-name my-project --api-docs
+    """
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
-    datasets = Datasets(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        project_name=project_name,
-        verify=verify_ssl,
-        cromwell_token=None
-    )
+    # Initialize API call tracker if --api-docs is enabled
+    from cloudos_cli.datasets.datasets import APICallTracker
+    tracker = None
+    if api_docs:
+        tracker = APICallTracker(
+            cloudos_url=cloudos_url,
+            workspace_id=workspace_id,
+            verify=verify_ssl
+        )
 
     try:
+        datasets = Datasets(
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            workspace_id=workspace_id,
+            project_name=project_name,
+            verify=verify_ssl,
+            cromwell_token=None,
+            api_docs_tracker=tracker
+        )
+
         result = datasets.list_folder_content(path)
         contents = result.get("contents") or result.get("datasets", [])
 
@@ -3262,7 +3284,7 @@ def list_files(ctx,
                     type_ = "file (user uploaded)"
                 else:
                     type_ = "file (virtual copy)"
-                    
+
             user = item.get("user", {})
             if isinstance(user, dict):
                 name = user.get("name", "").strip()
@@ -3372,6 +3394,10 @@ def list_files(ctx,
                         console.print(f"[blue underline]{item['name']}[/]")
                     else:
                         console.print(item['name'])
+
+        # Display API documentation if requested
+        if api_docs and tracker:
+            click.echo(tracker.get_documentation())
 
     except Exception as e:
         raise ValueError(f"Failed to list files for project '{project_name}'. {str(e)}")
