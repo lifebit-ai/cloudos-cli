@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.78.1 (2026-01-28)
+
+### Patch
+
+- Refactor `__main__.py` and move comamnds to separate files
+
 ## v2.78.0 (2026-01-13)
 
 ### Feat
