@@ -2,11 +2,12 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
-from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.array_job import generate_datasets_for_project
+from cloudos_cli.queue.queue import Queue
 import sys
+import json
 
 
 @click.group()
@@ -147,6 +148,9 @@ def run_bash_job(ctx,
                  profile):
     """Run a bash job in CloudOS."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
+
+    from cloudos_cli import __main__
+    JOB_COMPLETED = __main__.JOB_COMPLETED
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -410,6 +414,10 @@ def run_bash_array_job(ctx,
                        custom_script_path,
                        custom_script_project):
     """Run a bash array job in CloudOS."""
+
+    from cloudos_cli import __main__
+    JOB_COMPLETED = __main__.JOB_COMPLETED
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):
