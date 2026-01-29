@@ -645,6 +645,72 @@ jobs:
       run: |
         cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
         cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
+  job_run_and_abort:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run job, wait for running status, then abort
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_URL: "https://cloudos.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        WORKFLOW: "GH-rnatoy"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
+        JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
+        PR_NUMBER: ${{ github.event.number }}
+        INSTANCE_TYPE: "m4.xlarge"
+      run: |
+        # Step 1: Run job (without --wait-completion so it doesn't wait until completion)
+        JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "Job ID: $JOB_ID"
+
+        # Step 2: Poll status until it reaches "running"
+        MAX_ATTEMPTS=60
+        SLEEP_TIME=10
+        attempt=0
+
+        while [ $attempt -lt $MAX_ATTEMPTS ]; do
+          echo "Checking job status (attempt $((attempt+1))/$MAX_ATTEMPTS)..."
+          STATUS=$(cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID 2>&1 | grep -i "Your current job status is" | head -1 || echo "unknown")
+          echo "Current status: $STATUS"
+
+          if echo "$STATUS" | grep -qi "running"; then
+            echo "Job is now running!"
+            break
+          elif echo "$STATUS" | grep -qi "completed\|failed\|aborted"; then
+            echo "Job finished before we could abort it (status: $STATUS)"
+            exit 0
+          fi
+
+          attempt=$((attempt+1))
+          sleep $SLEEP_TIME
+        done
+
+        if [ $attempt -eq $MAX_ATTEMPTS ]; then
+          echo "Job did not reach running status within timeout"
+          exit 1
+        fi
+
+        # Step 3: Abort the running job
+        echo "Aborting job $JOB_ID..."
+        cloudos job abort --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
+        echo "Job abort command executed successfully!"
   #   delete_results:
   #   needs: job_run_and_status
   #   runs-on: ubuntu-latest
@@ -669,3 +735,8 @@ jobs:
   #         CLOUDOS_URL: "https://cloudos.lifebit.ai"
   #       run: |
   #         cloudos job results --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
+# - job abort
+# - job resume
+# - link
+# - configure
+# - workdir --delete
