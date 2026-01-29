@@ -57,6 +57,7 @@ jobs:
       run: |
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
   job_list_filtering:
+    needs: job_run_and_status
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -78,10 +79,11 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
+        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         # Test filtering by status, project  and workflow name
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-status completed --filter-project cloudos-cli-tests  --filter-workflow GH-rnatoy --last --last-n-jobs 10
         # Test filtering job id
-        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id 68af3e26628f9dd83dae1c05 
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id $JOB_ID 
         # Test filtering job name
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-name "cloudos-cli-CI-test" --last-n-jobs 10
         # Test filtering by only mine
@@ -89,6 +91,7 @@ jobs:
         # Test filtering by queue
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "job_queue_nextflow" --last-n-jobs 10
   job_details:
+    needs: job_run_and_status
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -110,9 +113,10 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68b9aaab76724fd335457ed3"
+        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         cloudos job details --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   job_workdir:
+    needs: job_run_and_status
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -134,9 +138,10 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68e8b0f503db9b2833b5959f"
+        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   job_related_analyses:
+    needs: job_run_and_status
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -158,7 +163,7 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        JOB_ID="68b9aaab76724fd335457ed3"
+        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         cloudos job related --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab:
     runs-on: ubuntu-latest
@@ -445,6 +450,8 @@ jobs:
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/new_renamed_folder test_rename
   bash_job:
     runs-on: ubuntu-latest
+    outputs:
+      job_id: ${{ steps.get-bash-job-id.outputs.job_id }}
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -460,7 +467,7 @@ jobs:
       run: |
         pip install -e .
     - name: Run tests
-      id: run-bash-job
+      id: get-bash-job-id
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
@@ -483,8 +490,11 @@ jobs:
           --workflow-name plink2 \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
-          --wait-completion
+          --wait-completion 2>&1 | tee bash_job_out.txt
+        JOB_ID=$(grep -e "Your assigned job id is:" bash_job_out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
   bash_job_clone:
+    needs: bash_job
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -508,9 +518,9 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job_cloned"
-        JOB_ID: "68d51f6b5eb22f6f2f445539"
         INSTANCE_TYPE: "m4.xlarge"
       run: |
+        JOB_ID="${{ needs.bash_job.outputs.job_id }}"
         cloudos job clone \
           --job-id "$JOB_ID" \
           --job-name "$JOB_NAME_BASE" \
@@ -521,6 +531,8 @@ jobs:
           --cloudos-url "$CLOUDOS_URL"
   bash_array_job_run_and_multiple_projects:
     runs-on: ubuntu-latest
+    outputs:
+      job_id: ${{ steps.get-bash-array-job-id.outputs.job_id }}
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -536,7 +548,7 @@ jobs:
       run: |
         pip install -e .
     - name: Run tests
-      id: run-bash-array-job
+      id: get-bash-array-job-id
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
@@ -563,8 +575,11 @@ jobs:
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
           --parameter --file=ci-testing/Data/bash_array/input.csv \
-          --wait-completion
+          --wait-completion 2>&1 | tee bash_array_job_out.txt
+        JOB_ID=$(grep -e "Your assigned job id is:" bash_array_job_out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
   bash_array_clone:
+    needs: bash_array_job_run_and_multiple_projects
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -588,9 +603,9 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job_cloned"
-        JOB_ID: "68d51f7b41b37cb06dea2a11"
         INSTANCE_TYPE: "m4.xlarge"
       run: |
+        JOB_ID="${{ needs.bash_array_job_run_and_multiple_projects.outputs.job_id }}"
         cloudos job clone \
           --job-id "$JOB_ID" \
           --job-name "$JOB_NAME_BASE" \
@@ -650,6 +665,7 @@ jobs:
         cloudos datasets mkdir --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
         cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
   archive_unarchive_job:
+    needs: job_run_and_status
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -672,8 +688,9 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
-        cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids 694545c801722f7aa3c626c4
+        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
+        cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
+        cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
   configure_profile:
     runs-on: ubuntu-latest
     strategy:
