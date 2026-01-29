@@ -816,7 +816,7 @@ jobs:
         cloudos job abort --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
         echo "Job abort command executed successfully!"
   delete_workdir:
-    needs: job_run_and_status
+    needs: [job_workdir, job_resume]
     runs-on: ubuntu-latest
     strategy:
       matrix:
