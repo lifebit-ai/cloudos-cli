@@ -817,7 +817,6 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_URL: "https://cloudos.lifebit.ai"
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
