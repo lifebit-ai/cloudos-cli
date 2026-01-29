@@ -272,7 +272,7 @@ jobs:
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         echo "Resuming job $JOB_ID..."
-        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-id $JOB_ID --instance-type $INSTANCE_TYPE --wait-completion
+        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-id $JOB_ID --instance-type $INSTANCE_TYPE
         echo "Job resumed successfully!"
   logs_results_aws:
     needs: job_run_and_status
