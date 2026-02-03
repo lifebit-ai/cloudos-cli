@@ -283,6 +283,7 @@ jobs:
         echo "Resuming job $JOB_ID_TO_RESUME..."
         cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-name "$JOB_NAME_BASE" --job-id $JOB_ID_TO_RESUME --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Job successfully resumed. New job ID:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
         echo "Job resumed successfully!"
   logs_results_aws:
     needs: job_run_and_status
