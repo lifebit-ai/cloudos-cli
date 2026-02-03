@@ -252,6 +252,8 @@ jobs:
         cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   job_resume:
     needs: job_run_and_status
+    outputs:
+      job_id: ${{ steps.get-resumed-job-id.outputs.job_id }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -274,10 +276,11 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         INSTANCE_TYPE: "m4.xlarge"
+        JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         echo "Resuming job $JOB_ID..."
-        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-id $JOB_ID --instance-type $INSTANCE_TYPE
+        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-name "$JOB_NAME_BASE" --job-id $JOB_ID --instance-type $INSTANCE_TYPE
         echo "Job resumed successfully!"
   logs_results_aws:
     needs: job_run_and_status
