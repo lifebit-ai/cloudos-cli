@@ -270,13 +270,14 @@ jobs:
       run: |
         pip install -e .
     - name: Resume completed job
+      id: get-resumed-job-id
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         INSTANCE_TYPE: "m4.xlarge"
-        JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
+        JOB_NAME_BASE: "cloudos-cli-CI-test-resume"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
         echo "Resuming job $JOB_ID..."
