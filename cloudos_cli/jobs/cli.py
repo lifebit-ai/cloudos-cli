@@ -1739,6 +1739,20 @@ def archive_unarchive_jobs(ctx,
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)
+@click.option('--wait-completion',
+              help=('Whether to wait to job completion and report final ' +
+                    'job status.'),
+              is_flag=True)
+@click.option('--wait-time',
+              help=('Max time to wait (in seconds) to job completion. ' +
+                    'Default=3600.'),
+              default=3600)
+@click.option('--request-interval',
+              help=('Time interval to request (in seconds) the job status. ' +
+                    'For large jobs is important to use a high number to ' +
+                    'make fewer requests so that is not considered spamming by the API. ' +
+                    'Default=30.'),
+              default=30)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1772,6 +1786,9 @@ def clone_resume(ctx,
                  accelerate_file_staging,
                  accelerate_saving_results,
                  resumable,
+                 wait_completion,
+                 wait_time,
+                 request_interval,
                  verbose,
                  disable_ssl_verification,
                  ssl_cert,
@@ -1831,6 +1848,34 @@ def clone_resume(ctx,
         raise ValueError(f"Failed to {mode} job. Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to {mode} job. Failed to {action} job '{job_id}'. {str(e)}")
+
+    j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{job_id}'
+    if wait_completion:
+        print('\tPlease, wait until job completion (max wait time of ' +
+              f'{wait_time} seconds).\n')
+        j_status = job_obj.wait_job_completion(job_id=job_id,
+                                               workspace_id=workspace_id,
+                                               wait_time=wait_time,
+                                               request_interval=request_interval,
+                                               verbose=verbose,
+                                               verify=verify_ssl)
+        j_name = j_status['name']
+        j_final_s = j_status['status']
+        if j_final_s == JOB_COMPLETED:
+            print(f'\nJob status for job "{j_name}" (ID: {job_id}): {j_final_s}')
+            sys.exit(0)
+        else:
+            print(f'\nJob status for job "{j_name}" (ID: {job_id}): {j_final_s}')
+            sys.exit(1)
+    else:
+        j_status = job_obj.get_job_status(job_id, workspace_id, verify_ssl)
+        j_status_h = json.loads(j_status.content)["status"]
+        print(f'\tYour current job status is: {j_status_h}')
+        print('\tTo further check your job status you can either go to ' +
+              f'{j_url} or use the following command:\n' +
+              '\tcloudos job status \\\n' +
+              f'\t\t--profile my_profile \\\n' +
+              f'\t\t--job-id {job_id}\n')
 
 
 # Register archive_unarchive_jobs with both command names using aliases (same pattern as clone/resume)

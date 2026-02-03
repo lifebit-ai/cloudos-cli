@@ -279,9 +279,10 @@ jobs:
         INSTANCE_TYPE: "m4.xlarge"
         JOB_NAME_BASE: "cloudos-cli-CI-test-resume"
       run: |
-        JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
-        echo "Resuming job $JOB_ID..."
-        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-name "$JOB_NAME_BASE" --job-id $JOB_ID --instance-type $INSTANCE_TYPE
+        JOB_ID_TO_RESUME="${{ needs.job_run_and_status.outputs.job_id }}"
+        echo "Resuming job $JOB_ID_TO_RESUME..."
+        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-name "$JOB_NAME_BASE" --job-id $JOB_ID_TO_RESUME --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        JOB_ID=$(grep -e "Job successfully resumed. New job ID:" out.txt | rev | cut -f1 -d " " | rev)
         echo "Job resumed successfully!"
   logs_results_aws:
     needs: job_run_and_status
@@ -842,4 +843,4 @@ jobs:
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
         run: |
-          cloudos job workdir --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status.outputs.job_id }}
+          cloudos job workdir --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume.outputs.job_id }}
