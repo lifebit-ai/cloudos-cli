@@ -9,7 +9,10 @@ from cloudos_cli.queue.queue import Queue
 import sys
 import json
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from cloudos_cli import __main__
 
+
+JOB_COMPLETED = __main__.JOB_COMPLETED
 
 @click.group(cls=pass_debug_to_subcommands())
 def bash():
@@ -149,10 +152,6 @@ def run_bash_job(ctx,
                  profile):
     """Run a bash job in CloudOS."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
-
-    from cloudos_cli import __main__
-    JOB_COMPLETED = __main__.JOB_COMPLETED
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if instance_type == 'NONE_SELECTED':
@@ -415,10 +414,6 @@ def run_bash_array_job(ctx,
                        custom_script_path,
                        custom_script_project):
     """Run a bash array job in CloudOS."""
-
-    from cloudos_cli import __main__
-    JOB_COMPLETED = __main__.JOB_COMPLETED
-
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):

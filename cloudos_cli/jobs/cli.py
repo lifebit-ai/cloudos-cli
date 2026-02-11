@@ -17,20 +17,18 @@ from cloudos_cli.queue.queue import Queue
 import sys
 from rich.console import Console
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from cloudos_cli import __main__
 
 
-# Import global constants from __main__ (will be available when imported)
-# These need to be imported for backward compatibility
-JOB_COMPLETED = 'completed'
-REQUEST_INTERVAL_CROMWELL = 30
-ABORT_JOB_STATES = ['running', 'initializing']
-AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
-AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
-HPC_NEXTFLOW_VERSIONS = ['22.10.8']
-AWS_NEXTFLOW_LATEST = '24.04.4'
-AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
-HPC_NEXTFLOW_LATEST = '22.10.8'
-
+# Import constants from __main__
+JOB_COMPLETED = __main__.JOB_COMPLETED
+REQUEST_INTERVAL_CROMWELL = __main__.REQUEST_INTERVAL_CROMWELL
+AWS_NEXTFLOW_VERSIONS = __main__.AWS_NEXTFLOW_VERSIONS
+AZURE_NEXTFLOW_VERSIONS = __main__.AZURE_NEXTFLOW_VERSIONS
+HPC_NEXTFLOW_VERSIONS = __main__.HPC_NEXTFLOW_VERSIONS
+AWS_NEXTFLOW_LATEST = __main__.AWS_NEXTFLOW_LATEST
+AZURE_NEXTFLOW_LATEST = __main__.AZURE_NEXTFLOW_LATEST
+HPC_NEXTFLOW_LATEST = __main__.HPC_NEXTFLOW_LATEST
 
 # Create the job group
 @click.group(cls=pass_debug_to_subcommands())
@@ -233,17 +231,7 @@ def run(ctx,
         disable_ssl_verification,
         ssl_cert,
         profile):
-    """Run a CloudOS workflow."""
-    # Import constants from __main__
-    from cloudos_cli import __main__
-    AWS_NEXTFLOW_VERSIONS = __main__.AWS_NEXTFLOW_VERSIONS
-    AZURE_NEXTFLOW_VERSIONS = __main__.AZURE_NEXTFLOW_VERSIONS
-    HPC_NEXTFLOW_VERSIONS = __main__.HPC_NEXTFLOW_VERSIONS
-    AWS_NEXTFLOW_LATEST = __main__.AWS_NEXTFLOW_LATEST
-    AZURE_NEXTFLOW_LATEST = __main__.AZURE_NEXTFLOW_LATEST
-    HPC_NEXTFLOW_LATEST = __main__.HPC_NEXTFLOW_LATEST
-    JOB_COMPLETED = __main__.JOB_COMPLETED
-    
+    """Run a CloudOS workflow."""    
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if do_not_save_logs:
         save_logs = False
