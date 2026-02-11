@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-            python-version: ["3.9", "3.11", "3.15"]
+            python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.11", "3.15" ]
+        python-version: [ "3.9", "3.11", "3.13" ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.11", "3.15" ]
+        python-version: [ "3.9", "3.11", "3.13" ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -219,7 +219,7 @@ jobs:
       job_id: ${{ steps.get-job-id.outputs.job_id }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -257,7 +257,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -290,7 +290,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.11", "3.15" ]
+        python-version: [ "3.9", "3.11", "3.13" ]
         feature: ["logs", "results"]
     steps:
       - uses: actions/checkout@v3
@@ -315,7 +315,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -338,7 +338,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -361,7 +361,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -384,7 +384,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -408,7 +408,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -433,7 +433,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -460,7 +460,7 @@ jobs:
       job_id: ${{ steps.get-bash-job-id.outputs.job_id }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -504,7 +504,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -541,7 +541,7 @@ jobs:
       job_id: ${{ steps.get-bash-array-job-id.outputs.job_id }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -589,7 +589,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -624,7 +624,7 @@ jobs:
           runs-on: ubuntu-latest
           strategy:
             matrix:
-              python-version: ["3.9", "3.11", "3.15"]
+              python-version: ["3.9", "3.11", "3.13"]
           steps:
           - uses: actions/checkout@v3
           - name: Set up Python ${{ matrix.python-version }}
@@ -649,7 +649,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -675,7 +675,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -701,7 +701,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -759,7 +759,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.15"]
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -826,7 +826,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.11", "3.15" ]
+        python-version: [ "3.9", "3.11", "3.13" ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
