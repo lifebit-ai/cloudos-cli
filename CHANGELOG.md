@@ -4,7 +4,8 @@
 
 ### Patch
 
-- Refactor `__main__.py` and move comamnds to separate files
+- Refactor `__main__.py` to move commands into separate files for better organization
+- Improve CI/CD pipeline to test additional functionalities and use dynamically generated job IDs from tests instead of predefined values
 
 ## v2.78.0 (2026-01-13)
 
