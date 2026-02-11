@@ -8,9 +8,10 @@ from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.queue.queue import Queue
 import sys
 import json
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 def bash():
     """CloudOS bash-specific job functionality."""
     print(bash.__doc__ + '\n')

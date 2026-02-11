@@ -11,9 +11,10 @@ from cloudos_cli.logging.logger import update_command_context_from_click
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 @click.pass_context
 def datasets(ctx):
     """CloudOS datasets functionality."""

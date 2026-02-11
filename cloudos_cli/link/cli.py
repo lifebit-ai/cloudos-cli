@@ -3,6 +3,7 @@ from cloudos_cli.link.link import Link
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 @click.command()

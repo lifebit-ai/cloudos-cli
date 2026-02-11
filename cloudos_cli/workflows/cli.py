@@ -6,10 +6,11 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 # Create the workflow group
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 def workflow():
     """CloudOS workflow functionality: list and import workflows."""
     print(workflow.__doc__ + '\n')

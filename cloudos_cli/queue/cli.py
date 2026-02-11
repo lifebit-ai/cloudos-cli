@@ -5,10 +5,11 @@ import json
 from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 # Create the queue group
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 def queue():
     """CloudOS job queue functionality."""
     print(queue.__doc__ + '\n')

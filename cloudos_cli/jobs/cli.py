@@ -16,6 +16,7 @@ import time
 from cloudos_cli.queue.queue import Queue
 import sys
 from rich.console import Console
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 # Import global constants from __main__ (will be available when imported)
@@ -32,7 +33,7 @@ HPC_NEXTFLOW_LATEST = '22.10.8'
 
 
 # Create the job group
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 def job():
     """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
     print(job.__doc__ + '\n')

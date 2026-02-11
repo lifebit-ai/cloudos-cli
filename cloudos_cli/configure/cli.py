@@ -3,10 +3,11 @@
 import rich_click as click
 from cloudos_cli.configure.configure import ConfigurationProfile
 from cloudos_cli.logging.logger import update_command_context_from_click
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 # Create the configure group
-@click.group(invoke_without_command=True)
+@click.group(cls=pass_debug_to_subcommands(), invoke_without_command=True)
 @click.option('--profile', help='Profile to use from the config file', default='default')
 @click.option('--make-default',
               is_flag=True,

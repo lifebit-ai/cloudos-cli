@@ -7,12 +7,14 @@ import sys
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+
 
 # Constants
 REQUEST_INTERVAL_CROMWELL = 5
 
 
-@click.group()
+@click.group(cls=pass_debug_to_subcommands())
 def cromwell():
     """CloudOS Cromwell server functionality."""
     print(cromwell.__doc__ + '\n')
