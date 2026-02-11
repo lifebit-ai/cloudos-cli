@@ -805,7 +805,7 @@ jobs:
             break
           elif echo "$STATUS" | grep -qi "completed\|failed\|aborted"; then
             echo "Job finished before we could abort it (status: $STATUS)"
-            exit 0
+            exit 1
           fi
 
           attempt=$((attempt+1))
