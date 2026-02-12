@@ -287,11 +287,15 @@ class TestCostViewer:
     @mock.patch('cloudos_cli.cost.cost.retry_requests_get')
     def test_error_handling_400(self, mock_get):
         """Test error handling for 400 Bad Request"""
-        # Mock a 400 response
+        # Mock a 400 response that behaves like the real BadRequestException
         mock_response = MagicMock()
         mock_response.status_code = 400
-        mock_get.return_value = mock_response
-        mock_get.side_effect = BadRequestException(mock_response)
+        mock_response.reason = "Bad Request"
+        mock_response.json.return_value = {"error": "Bad Request"}
+        
+        # Create a BadRequestException that matches what the real code would produce
+        exception = BadRequestException(mock_response)
+        mock_get.side_effect = exception
         
         with pytest.raises(ValueError) as excinfo:
             self.cost_viewer.display_costs(JOB_ID, WORKSPACE_ID, "stdout")
