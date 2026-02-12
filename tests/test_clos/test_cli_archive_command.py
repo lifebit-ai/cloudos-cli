@@ -34,7 +34,7 @@ def test_job_archive_help():
 def test_job_archive_command_structure(job_ids, expected_count):
     """Test that the archive command has the expected structure and validates job IDs."""
     runner = CliRunner()
-    
+
     # Test that the command fails when missing required parameters
     result = runner.invoke(run_cloudos_cli, ['job', 'archive'])
     assert result.exit_code != 0
@@ -44,7 +44,7 @@ def test_job_archive_command_structure(job_ids, expected_count):
 def test_job_archive_empty_job_ids():
     """Test that empty job IDs raise appropriate error."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker():
         result = runner.invoke(run_cloudos_cli, [
             'job', 'archive',
@@ -60,7 +60,7 @@ def test_job_archive_empty_job_ids():
 def test_job_archive_invalid_job_ids():
     """Test archiving with invalid job IDs (jobs that don't exist)."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock the job status check to fail (job doesn't exist in either list)
         m.get(

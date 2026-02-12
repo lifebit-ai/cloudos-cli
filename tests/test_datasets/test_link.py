@@ -132,7 +132,7 @@ def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     """Test successful S3 folder linking and mounting."""
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
-    
+
     # Mock the GET request for checking fuse filesystem status
     status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
     mock_response = {
@@ -176,7 +176,7 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
     """Test successful File Explorer folder linking and mounting."""
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
-    
+
     # Mock the GET request for checking fuse filesystem status
     status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
     mock_response = {
@@ -227,7 +227,7 @@ def test_get_fuse_filesystems_status_success(link_instance_test_response):
         ]
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
-    
+
     result = link_instance_test_response.get_fuse_filesystems_status("sessionABC")
     assert len(result) == 1
     assert result[0]["mountName"] == "test-mount"

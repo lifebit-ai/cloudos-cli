@@ -29,7 +29,7 @@ def test_create_project_correct_response():
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    
+
     # mock POST method with the .json
     responses.add(
             responses.POST,
@@ -38,13 +38,13 @@ def test_create_project_correct_response():
             headers=header,
             match=[matchers.json_params_matcher(expected_data)],
             status=200)
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # get mock response
     project_id = clos.create_project(WORKSPACE_ID, PROJECT_NAME)
-    
+
     # check the response
     assert isinstance(project_id, str)
     assert project_id == '64a7b1c2f8d9e1a2b3c4d5e6'
@@ -62,7 +62,7 @@ def test_create_project_bad_request():
     error_json = json.dumps(error_message)
     search_str = f"teamId={WORKSPACE_ID}"
     expected_data = {"name": PROJECT_NAME}
-    
+
     # mock POST method with error response
     responses.add(
             responses.POST,
@@ -70,10 +70,10 @@ def test_create_project_bad_request():
             body=error_json,
             match=[matchers.json_params_matcher(expected_data)],
             status=400)
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # test that BadRequestException is raised
     with pytest.raises(BadRequestException):
         clos.create_project(WORKSPACE_ID, PROJECT_NAME)
@@ -87,7 +87,7 @@ def test_create_project_unauthorized():
     """
     search_str = f"teamId={WORKSPACE_ID}"
     expected_data = {"name": PROJECT_NAME}
-    
+
     # mock POST method with 401 response
     responses.add(
             responses.POST,
@@ -95,10 +95,10 @@ def test_create_project_unauthorized():
             body="Unauthorized",
             match=[matchers.json_params_matcher(expected_data)],
             status=401)
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # test that ValueError is raised for unauthorized access
     with pytest.raises(ValueError, match="It seems your API key is not authorised"):
         clos.create_project(WORKSPACE_ID, PROJECT_NAME)
@@ -113,7 +113,7 @@ def test_create_project_with_ssl_verification():
     create_json = load_json_file(OUTPUT)
     search_str = f"teamId={WORKSPACE_ID}"
     expected_data = {"name": PROJECT_NAME}
-    
+
     # mock POST method with the .json
     responses.add(
             responses.POST,
@@ -121,13 +121,13 @@ def test_create_project_with_ssl_verification():
             body=create_json,
             match=[matchers.json_params_matcher(expected_data)],
             status=200)
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # get mock response with SSL verification disabled
     project_id = clos.create_project(WORKSPACE_ID, PROJECT_NAME, verify=False)
-    
+
     # check the response
     assert isinstance(project_id, str)
     assert project_id == '64a7b1c2f8d9e1a2b3c4d5e6'

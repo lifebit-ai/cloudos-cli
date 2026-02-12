@@ -205,7 +205,7 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     # calculate the run time
     start_time_raw = j_details_h.get("startTime")
     end_time_raw = j_details_h.get("endTime")
-    
+
     if start_time_raw and end_time_raw:
         try:
             start_dt = datetime.fromisoformat(str(start_time_raw).replace('Z', '+00:00'))
@@ -390,7 +390,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         terminal_width = os.get_terminal_size().columns
     except OSError:
         terminal_width = 80  # Default fallback
-    
+
     # Define column priority groups for small terminals
     priority_columns = {
         'essential': ['status', 'name', 'pipeline', 'id'],  # ~40 chars minimum
@@ -398,7 +398,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         'useful': [ 'submit_time', 'end_time', 'commit'],  # +50 chars
         'extended': [ 'resources', 'storage_type']  # +30 chars
     }
-    
+
     # Define all available columns with their configurations
     all_columns = {
         'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
@@ -442,7 +442,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
                            f"Valid columns are: {', '.join(valid_columns)}")
         columns_to_show = selected_columns  # Preserve user-specified order
-    
+
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
         # Still show pagination info even when no jobs
@@ -456,10 +456,10 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
             console.print(f"[cyan]Jobs on this page:[/cyan] {len(jobs)}")
         return
-    
+
     # Create table
     table = Table(title="Job List")
-    
+
     # Add columns to table
     for col_key in columns_to_show:
         col_config = all_columns[col_key]
@@ -471,7 +471,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             min_width=col_config.get("min_width"),
             max_width=col_config.get("max_width")
         )
-    
+
     # Process each job
     for job in jobs:
         # Status with colored and bold ANSI symbols
@@ -635,9 +635,9 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         # Add row to table with only selected columns
         row_values = [column_values[col] for col in columns_to_show]
         table.add_row(*row_values)
-    
+
     console.print(table)
-    
+
     # Display pagination info at the bottom
     if pagination_metadata:
         total_jobs = pagination_metadata.get('Pagination-Count', 0)

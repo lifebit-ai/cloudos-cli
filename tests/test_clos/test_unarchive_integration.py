@@ -9,7 +9,7 @@ import requests_mock
 def test_job_unarchive_successful_flow():
     """Test a successful job unarchiving flow end-to-end."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return the job since it's archived)
         m.get(
@@ -41,7 +41,7 @@ def test_job_unarchive_successful_flow():
 def test_job_unarchive_multiple_jobs_successful_flow():
     """Test successful unarchiving of multiple jobs."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock job status checks for multiple jobs
         for job_id in ['job1', 'job2', 'job3']:
@@ -120,7 +120,7 @@ def test_job_unarchive_mixed_valid_invalid_jobs():
 def test_job_unarchive_verbose_output():
     """Test unarchiving with verbose output."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return the job since it's archived)
         m.get(

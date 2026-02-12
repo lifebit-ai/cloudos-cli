@@ -67,23 +67,23 @@ def link(ctx,
                  profile):
     """
     Link folders to an interactive analysis session.
-    
+
     This command is used to link folders
     to an active interactive analysis session for direct access to data.
-    
+
     PATH: Optional path to link (S3). 
           Required if --job-id is not provided.
-    
+
     Two modes of operation:
-    
+
     1. Job-based linking (--job-id): Links job-related folders.
        By default, links results, workdir, and logs folders.
        Use --results, --workdir, or --logs flags to link only specific folders.
-    
+
     2. Direct path linking (PATH argument): Links a specific S3 path.
-    
+
     Examples:
-    
+
         # Link all job folders (results, workdir, logs)
         cloudos link --job-id 12345 --session-id abc123
         
@@ -95,26 +95,26 @@ def link(ctx,
         
     """
     print('CloudOS link functionality: link s3 folders to interactive analysis sessions.\n')
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
+
     # Validate input parameters
     if not job_id and not path:
         raise click.UsageError("Either --job-id or PATH argument must be provided.")
-    
+
     if job_id and path:
         raise click.UsageError("Cannot use both --job-id and PATH argument. Please provide only one.")
-    
+
     # Validate folder-specific flags only work with --job-id
     if (results or workdir or logs) and not job_id:
         raise click.UsageError("--results, --workdir, and --logs flags can only be used with --job-id.")
-    
+
     # If no specific folders are selected with job-id, link all by default
     if job_id and not (results or workdir or logs):
         results = True
         workdir = True
         logs = True
-    
+
     if verbose:
         print('Using the following parameters:')
         print(f'\tCloudOS url: {cloudos_url}')
@@ -127,7 +127,7 @@ def link(ctx,
             print(f'\tLink logs: {logs}')
         else:
             print(f'\tPath: {path}')
-    
+
     # Initialize Link client
     link_client = Link(
         cloudos_url=cloudos_url,
@@ -137,7 +137,7 @@ def link(ctx,
         project_name=project_name,
         verify=verify_ssl
     )
-    
+
     try:
         if job_id:
             # Job-based linking

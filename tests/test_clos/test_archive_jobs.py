@@ -38,7 +38,7 @@ class TestArchiveJobs:
             timestamp = request_data["update"]["archived"]["archivalTimestamp"]
             assert isinstance(timestamp, str)
             assert timestamp.endswith("Z")
-    
+
     def test_archive_jobs_bad_request_response(self):
         """Test archive jobs with bad request response."""
         cloudos_url = "https://cloudos.lifebit.ai"
@@ -57,7 +57,7 @@ class TestArchiveJobs:
             cl = Cloudos(cloudos_url, apikey, None)
             with pytest.raises(BadRequestException):
                 cl.archive_jobs(job_ids, workspace_id)
-    
+
     def test_archive_jobs_with_ssl_verification(self):
         """Test archive jobs with SSL verification disabled."""
         cloudos_url = "https://cloudos.lifebit.ai"
@@ -76,7 +76,7 @@ class TestArchiveJobs:
             response = cl.archive_jobs(job_ids, workspace_id, verify=False)
             
             assert response.status_code == 200
-    
+
     def test_archive_jobs_single_job(self):
         """Test archiving a single job."""
         cloudos_url = "https://cloudos.lifebit.ai"
@@ -98,7 +98,7 @@ class TestArchiveJobs:
             request_data = json.loads(m.last_request.text)
             assert len(request_data["jobIds"]) == 1
             assert request_data["jobIds"][0] == job_ids[0]
-    
+
     def test_archive_jobs_multiple_jobs(self):
         """Test archiving multiple jobs."""
         cloudos_url = "https://cloudos.lifebit.ai"

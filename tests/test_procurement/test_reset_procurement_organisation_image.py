@@ -75,7 +75,7 @@ def test_reset_procurement_organisation_image():
 @responses.activate
 def test_reset_procurement_organisation_image_different_types():
     """Test resetting different image types"""
-    
+
     image_types = [
         "RegularInteractiveSessions",
         "SparkInteractiveSessions", 
@@ -83,7 +83,7 @@ def test_reset_procurement_organisation_image_different_types():
         "JupyterInteractiveSessions",
         "NextflowBatchComputeEnvironment"
     ]
-    
+
     for image_type in image_types:
         mock_response = {
             "id": f"config-{image_type.lower()}",
@@ -139,9 +139,9 @@ def test_reset_procurement_organisation_image_different_types():
 @responses.activate
 def test_reset_procurement_organisation_image_different_regions():
     """Test resetting image configuration for different AWS regions"""
-    
+
     aws_regions = ["eu-west-1", "eu-west-2", "us-east-1", "us-west-2"]
-    
+
     for region in aws_regions:
         mock_response = {
             "id": f"config-{region}",

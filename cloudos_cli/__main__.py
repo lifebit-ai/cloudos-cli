@@ -32,7 +32,7 @@ sys.excepthook = custom_exception_handler
 
 
 @click.group(cls=pass_debug_to_subcommands())
-@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks', 
+@click.option('--debug', is_flag=True, help='Show detailed error information and tracebacks',
               is_eager=True, expose_value=False, callback=setup_debug)
 @click.version_option(__version__)
 @click.pass_context
@@ -44,10 +44,10 @@ def run_cloudos_cli(ctx):
     if ctx.invoked_subcommand not in ['datasets']:
         print(run_cloudos_cli.__doc__ + '\n')
         print('Version: ' + __version__ + '\n')
-    
+
     # Load shared configuration (handles missing profiles and fields gracefully)
     shared_config = get_shared_config()
-    
+
     # Automatically build default_map from registered commands
     ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
 

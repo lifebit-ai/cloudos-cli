@@ -497,7 +497,7 @@ def job_status(ctx,
                profile):
     """Get the status of a CloudOS job."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
-    
+
     print('Executing status...')
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if verbose:
@@ -1256,13 +1256,13 @@ def list_jobs(ctx,
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
+
     # Pass table_columns directly to create_job_list_table for validation and processing
     selected_columns = table_columns
     # Only set outfile if not using stdout
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
-    
+
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -1279,7 +1279,7 @@ def list_jobs(ctx,
 
     if not isinstance(page_size, int) or page_size < 1:
         raise ValueError('Please, use a positive integer (>= 1) for the --page-size parameter')
-    
+
     # Validate page_size limit - must be done before API call
     if page_size > 100:
         click.secho('Error: Page size cannot exceed 100. Please use --page-size with a value <= 100', fg='red', err=True)
@@ -1295,11 +1295,11 @@ def list_jobs(ctx,
                              filter_owner=filter_owner,
                              filter_queue=filter_queue,
                              last=last)
-    
+
     # Extract jobs and pagination metadata from result
     my_jobs_r = result['jobs']
     pagination_metadata = result['pagination_metadata']
-    
+
     # Validate requested page exists
     if pagination_metadata:
         total_jobs = pagination_metadata.get('Pagination-Count', 0)
@@ -1311,7 +1311,7 @@ def list_jobs(ctx,
                 click.secho(f'Error: Page {page} does not exist. There are only {total_pages} page(s) available with {total_jobs} total job(s). '
                            f'Please use --page with a value between 1 and {total_pages}', fg='red', err=True)
                 raise SystemExit(1)
-    
+
     if len(my_jobs_r) == 0:
         # Check if any filtering options are being used
         filters_used = any([
@@ -1591,26 +1591,26 @@ def archive_unarchive_jobs(ctx,
     action = "archive" if target_archived_state else "unarchive"
     action_past = "archived" if target_archived_state else "unarchived"
     action_ing = "archiving" if target_archived_state else "unarchiving"
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print(f'{action_ing.capitalize()} jobs...')
-    
+
     if verbose:
         print('\t...Preparing objects')
-    
+
     cl = Cloudos(cloudos_url, apikey, None)
-    
+
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\t{action_ing.capitalize()} jobs in the following workspace: {workspace_id}')
-    
+
     # check if the user provided an empty job list
     jobs = job_ids.replace(' ', '')
     if not jobs:
         raise ValueError(f'No job IDs provided. Please specify at least one job ID to {action}.')
     jobs_list = [job for job in jobs.split(',') if job]  # Filter out empty strings
-    
+
     # Check for duplicate job IDs
     duplicates = [job_id for job_id in set(jobs_list) if jobs_list.count(job_id) > 1]
     if duplicates:
@@ -1620,29 +1620,29 @@ def archive_unarchive_jobs(ctx,
         jobs_list = list(dict.fromkeys(jobs_list))
         if verbose:
             print(f'\tDuplicate job IDs removed. Processing {len(jobs_list)} unique job(s).')
-    
+
     # Check archive status for all jobs
     status_check = cl.check_jobs_archive_status(jobs_list, workspace_id, target_archived_state=target_archived_state, verify=verify_ssl, verbose=verbose)
     valid_jobs = status_check['valid_jobs']
     already_processed = status_check['already_processed']
     invalid_jobs = status_check['invalid_jobs']
-    
+
     # Report invalid jobs (but continue processing valid ones)
     for job_id, error_msg in invalid_jobs.items():
         click.secho(f"Failed to get status for job {job_id}, please make sure it exists in the workspace: {error_msg}", fg='yellow', bold=True)
-    
+
     if not valid_jobs and not already_processed:
         # All jobs were invalid - exit gracefully
         click.secho('No valid job IDs found. Please check that the job IDs exist and are accessible.', fg='yellow', bold=True)
         return
-    
+
     if not valid_jobs:
         if len(already_processed) == 1:
             click.secho(f"Job '{already_processed[0]}' is already {action_past}. No action needed.", fg='cyan', bold=True)
         else:
             click.secho(f"All {len(already_processed)} jobs are already {action_past}. No action needed.", fg='cyan', bold=True)
         return
-    
+
     try:
         # Call the appropriate action method
         if target_archived_state:

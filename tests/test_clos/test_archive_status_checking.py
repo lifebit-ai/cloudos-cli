@@ -9,7 +9,7 @@ import requests_mock
 def test_archive_already_archived_job():
     """Test archiving a job that is already archived."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return the job since it's archived)
         m.get(
@@ -36,7 +36,7 @@ def test_archive_already_archived_job():
 def test_unarchive_already_unarchived_job():
     """Test unarchiving a job that is already unarchived."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return empty for unarchived job)
         m.get(
@@ -70,7 +70,7 @@ def test_unarchive_already_unarchived_job():
 def test_archive_mixed_status_jobs():
     """Test archiving a mix of archived and unarchived jobs."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock job status - one archived, one not archived
         m.get(
@@ -113,7 +113,7 @@ def test_archive_mixed_status_jobs():
 def test_unarchive_mixed_status_jobs():
     """Test unarchiving a mix of archived and unarchived jobs."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock job status - one archived, one not archived
         m.get(
@@ -156,7 +156,7 @@ def test_unarchive_mixed_status_jobs():
 def test_archive_verbose_already_archived():
     """Test archiving with verbose output for already archived job."""
     runner = CliRunner()
-    
+
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return the job since it's archived)
         m.get(

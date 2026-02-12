@@ -33,12 +33,12 @@ def test_get_job_workdir_aws_correct_response():
             "s3Prefix": "jobs/logs/path"
         }
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -47,7 +47,7 @@ def test_get_job_workdir_aws_correct_response():
         headers=header,
         status=200
     )
-    
+
     # Mock cloud detection requests (for AWS, we don't need the azure endpoint)
     responses.add(
         responses.GET,
@@ -55,13 +55,13 @@ def test_get_job_workdir_aws_correct_response():
         json=None,
         status=404
     )
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # get workdir path
     workdir_path = clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
-    
+
     # check the response (workdir path should replace /logs with /work)
     expected_path = "s3://my-bucket/jobs/work/path"
     assert workdir_path == expected_path
@@ -85,12 +85,12 @@ def test_get_job_workdir_azure_correct_response():
             "blobPrefix": "jobs/logs/path"
         }
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -99,7 +99,7 @@ def test_get_job_workdir_azure_correct_response():
         headers=header,
         status=200
     )
-    
+
     # Mock Azure cloud detection request
     responses.add(
         responses.GET,
@@ -107,13 +107,13 @@ def test_get_job_workdir_azure_correct_response():
         json={"storage": {"storageAccount": "testaccount"}},
         status=200
     )
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # get workdir path
     workdir_path = clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
-    
+
     # check the response (workdir path should replace /logs with /work)
     expected_path = f"az://testaccount.blob.core.windows.net/my-container/jobs/work/path"
     assert workdir_path == expected_path
@@ -132,12 +132,12 @@ def test_get_job_workdir_workspace_mismatch():
         "resumeWorkDir": WORKDIR_ID,
         "status": "completed"
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -146,14 +146,14 @@ def test_get_job_workdir_workspace_mismatch():
         headers=header,
         status=200
     )
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # Test that it raises ValueError for workspace mismatch
     with pytest.raises(ValueError) as error:
         clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
-    
+
     assert "Workspace provided or configured is different from workspace where the job was executed" in str(error.value)
 
 
@@ -166,12 +166,12 @@ def test_get_job_workdir_job_not_found():
     # prepare error message
     error_message = {"statusCode": 404, "code": "NotFound",
                      "message": "Job not found.", "time": "2022-11-23_17:31:07"}
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # mock GET method with error response
     responses.add(
         responses.GET,
@@ -180,7 +180,7 @@ def test_get_job_workdir_job_not_found():
         headers=header,
         status=404
     )
-    
+
     # Test that it raises BadRequestException
     with pytest.raises(BadRequestException):
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
@@ -197,7 +197,7 @@ def test_get_job_workdir_unauthorized():
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # mock GET method with 401 response
     responses.add(
         responses.GET,
@@ -206,7 +206,7 @@ def test_get_job_workdir_unauthorized():
         headers=header,
         status=401
     )
-    
+
     # Test that it raises NotAuthorisedException
     with pytest.raises(NotAuthorisedException):
         clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
@@ -226,18 +226,18 @@ def test_get_job_workdir_unsupported_cloud():
         "resumeWorkDir": WORKDIR_ID,
         "status": "completed"
     }
-    
+
     # Mock folder details response with unsupported folderType
     folder_response = [{
         "folderType": "UnsupportedFolder",
         "someOtherField": "value"
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -246,7 +246,7 @@ def test_get_job_workdir_unsupported_cloud():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for folder details
     responses.add(
         responses.GET,
@@ -255,12 +255,12 @@ def test_get_job_workdir_unsupported_cloud():
         headers=header,
         status=200
     )
-    
+
     # start cloudOS service
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
-    
+
     # Test that it raises ValueError for unsupported cloud provider
     with pytest.raises(ValueError) as error:
         clos.get_job_workdir(JOB_ID, WORKSPACE_ID)
-    
+
     assert "Unsupported cloud provider" in str(error.value)

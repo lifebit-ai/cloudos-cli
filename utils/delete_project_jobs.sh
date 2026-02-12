@@ -117,7 +117,7 @@ if [[ -n "$FILTER_STATUS" ]]; then
             break
         fi
     done
-    
+
     if [[ "$STATUS_VALID" == false ]]; then
         echo -e "${RED}Error: Invalid status '$FILTER_STATUS'. Valid statuses are: $(IFS=','; echo "${VALID_STATUSES[*]}")${NC}"
         exit 1
