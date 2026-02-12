@@ -323,7 +323,7 @@ class Link(Cloudos):
             results_path = cl.get_job_results(job_id, workspace_id, verify_ssl)
             
             if results_path:
-                print(f'\tLinking results directory...')
+                print('\tLinking results directory...')
                 if verbose:
                     print(f'\t\tResults: {results_path}')
                 self.link_folder(results_path, session_id)
@@ -370,7 +370,7 @@ class Link(Cloudos):
             workdir_path = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
             
             if workdir_path:
-                print(f'\tLinking working directory...')
+                print('\tLinking working directory...')
                 if verbose:
                     print(f'\t\tWorkdir: {workdir_path}')
                 self.link_folder(workdir_path.strip(), session_id)
@@ -419,7 +419,7 @@ class Link(Cloudos):
                 first_log_path = next(iter(logs_dict.values()))
                 logs_dir = '/'.join(first_log_path.split('/')[:-1])
                 
-                print(f'\tLinking logs directory...')
+                print('\tLinking logs directory...')
                 if verbose:
                     print(f'\t\tLogs directory: {logs_dir}')
                 self.link_folder(logs_dir, session_id)
@@ -549,7 +549,7 @@ class Link(Cloudos):
                            fg='yellow', bold=True)
         
         if verbose:
-            print(f'\tLinking {path}...')
+            print('\tLinking {path}...')
         
         self.link_folder(path, session_id)
 

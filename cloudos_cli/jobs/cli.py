@@ -454,7 +454,7 @@ def run(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              f'\t\t--profile my_profile \\\n' +
+              '\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -642,7 +642,7 @@ def job_workdir(ctx,
             
             # Display detailed information if verbose
             if verbose:
-                console.print(f'\n[bold]Additional information:[/bold]')
+                console.print('\n[bold]Additional information:[/bold]')
                 console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
                 console.print(f'  [cyan]Working directory folder name:[/cyan] {deletion_status["workdir_folder_name"]}')
                 console.print(f'  [cyan]Working directory folder ID:[/cyan] {deletion_status["workdir_folder_id"]}')
@@ -970,7 +970,7 @@ def job_results(ctx,
             
             # Display detailed information if verbose
             if verbose:
-                console.print(f'\n[bold]Additional information:[/bold]')
+                console.print('\n[bold]Additional information:[/bold]')
                 console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
                 console.print(f'  [cyan]Results folder name:[/cyan] {deletion_status["results_folder_name"]}')
                 console.print(f'  [cyan]Results folder ID:[/cyan] {deletion_status["results_folder_id"]}')
@@ -1049,7 +1049,7 @@ def job_results(ctx,
                     print('\nDeletion cancelled.')
                     return
             if verbose:
-                print(f'\nDeleting result directories from CloudOS...')
+                print('\nDeleting result directories from CloudOS...')
             # Proceed with deletion
             job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                         mainfile=None, importsfile=None, verify=verify_ssl)
@@ -1865,7 +1865,7 @@ def clone_resume(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              f'\t\t--profile my_profile \\\n' +
+              '\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {cloned_resumed_job_id}\n')
 
 

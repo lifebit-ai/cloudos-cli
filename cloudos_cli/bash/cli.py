@@ -231,7 +231,7 @@ def run_bash_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              f'\t\t--profile my_profile \\\n' +
+              '\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')
 
 
@@ -562,5 +562,5 @@ def run_bash_array_job(ctx,
         print('\tTo further check your job status you can either go to ' +
               f'{j_url} or use the following command:\n' +
               '\tcloudos job status \\\n' +
-              f'\t\t--profile my_profile \\\n' +
+              '\t\t--profile my_profile \\\n' +
               f'\t\t--job-id {j_id}\n')

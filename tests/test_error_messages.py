@@ -19,7 +19,7 @@ class TestJobErrorMessages(unittest.TestCase):
     def test_invalid_parameters_error_message(self):
         """Test that invalid parameter error uses period instead of colon"""
         with self.assertRaises(ValueError) as context:
-            raise ValueError(f'The provided parameters "test_param" are not valid. ')
+            raise ValueError('The provided parameters "test_param" are not valid. ')
 
         self.assertIn("not valid.", str(context.exception))
         self.assertNotIn("not valid:", str(context.exception))
