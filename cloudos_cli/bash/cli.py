@@ -6,13 +6,11 @@ from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.array_job import generate_datasets_for_project
 from cloudos_cli.queue.queue import Queue
+from cloudos_cli.constants import JOB_COMPLETED
 import sys
 import json
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
-from cloudos_cli import __main__
 
-
-JOB_COMPLETED = __main__.JOB_COMPLETED
 
 @click.group(cls=pass_debug_to_subcommands())
 def bash():

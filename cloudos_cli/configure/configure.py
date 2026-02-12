@@ -3,6 +3,7 @@ from pathlib import Path
 import configparser
 import click
 from cloudos_cli.logging.logger import update_command_context_from_click
+from cloudos_cli.constants import CLOUDOS_URL, INIT_PROFILE
 
 
 class ConfigurationProfile:
@@ -591,11 +592,6 @@ class ConfigurationProfile:
 
         return resolved_params
 
-
-# Not part of the class, but related to configuration
-# Global constants for CloudOS CLI
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
 
 # Define all standard configuration keys with their default empty values
 # This is the single source of truth for configuration fields

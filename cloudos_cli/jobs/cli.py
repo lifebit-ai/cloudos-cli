@@ -10,6 +10,17 @@ from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.related_analyses.related_analyses import related_analyses
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.link import Link
+from cloudos_cli.constants import (
+    JOB_COMPLETED,
+    REQUEST_INTERVAL_CROMWELL,
+    AWS_NEXTFLOW_VERSIONS,
+    AZURE_NEXTFLOW_VERSIONS,
+    HPC_NEXTFLOW_VERSIONS,
+    AWS_NEXTFLOW_LATEST,
+    AZURE_NEXTFLOW_LATEST,
+    HPC_NEXTFLOW_LATEST,
+    ABORT_JOB_STATES
+)
 import json
 import copy
 import time
@@ -17,19 +28,9 @@ from cloudos_cli.queue.queue import Queue
 import sys
 from rich.console import Console
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
-from cloudos_cli import __main__
 
 
-# Import constants from __main__
-JOB_COMPLETED = __main__.JOB_COMPLETED
-REQUEST_INTERVAL_CROMWELL = __main__.REQUEST_INTERVAL_CROMWELL
-AWS_NEXTFLOW_VERSIONS = __main__.AWS_NEXTFLOW_VERSIONS
-AZURE_NEXTFLOW_VERSIONS = __main__.AZURE_NEXTFLOW_VERSIONS
-HPC_NEXTFLOW_VERSIONS = __main__.HPC_NEXTFLOW_VERSIONS
-AWS_NEXTFLOW_LATEST = __main__.AWS_NEXTFLOW_LATEST
-AZURE_NEXTFLOW_LATEST = __main__.AZURE_NEXTFLOW_LATEST
-HPC_NEXTFLOW_LATEST = __main__.HPC_NEXTFLOW_LATEST
-ABORT_JOB_STATES = __main__.ABORT_JOB_STATES
+
 
 # Create the job group
 @click.group(cls=pass_debug_to_subcommands())

@@ -12,13 +12,7 @@ from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, 
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
 from datetime import datetime, timezone
-
-
-# GLOBAL VARS
-JOB_COMPLETED = 'completed'
-JOB_FAILED = 'failed'
-JOB_ABORTED = 'aborted'
-
+from cloudos_cli.constants import JOB_COMPLETED, JOB_FAILED, JOB_ABORTED
 
 @dataclass
 class Cloudos:

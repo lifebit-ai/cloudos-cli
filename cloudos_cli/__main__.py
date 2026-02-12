@@ -27,17 +27,6 @@ from cloudos_cli.configure.cli import configure
 from cloudos_cli.link.cli import link
 
 
-# GLOBAL CONSTANTS - Keep these for backward compatibility
-JOB_COMPLETED = 'completed'
-REQUEST_INTERVAL_CROMWELL = 30
-AWS_NEXTFLOW_VERSIONS = ['22.10.8', '24.04.4']
-AZURE_NEXTFLOW_VERSIONS = ['22.11.1-edge']
-HPC_NEXTFLOW_VERSIONS = ['22.10.8']
-AWS_NEXTFLOW_LATEST = '24.04.4'
-AZURE_NEXTFLOW_LATEST = '22.11.1-edge'
-HPC_NEXTFLOW_LATEST = '22.10.8'
-ABORT_JOB_STATES = ['running', 'initializing']
-
 # Install the custom exception handler
 sys.excepthook = custom_exception_handler
 
