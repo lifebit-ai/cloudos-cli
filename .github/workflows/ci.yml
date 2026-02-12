@@ -89,7 +89,7 @@ jobs:
         # Test filtering by only mine
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-only-mine --last-n-jobs 10
         # Test filtering by queue
-        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "job_queue_nextflow" --last-n-jobs 10
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "cost_saving_standard_nextflow" --last-n-jobs 10
   job_details:
     needs: job_run_and_status
     runs-on: ubuntu-latest
