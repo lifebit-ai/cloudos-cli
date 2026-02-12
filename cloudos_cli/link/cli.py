@@ -86,13 +86,13 @@ def link(ctx,
 
         # Link all job folders (results, workdir, logs)
         cloudos link --job-id 12345 --session-id abc123
-        
+
         # Link only results from a job
         cloudos link --job-id 12345 --session-id abc123 --results
-        
+
         # Link a specific S3 path
         cloudos link s3://bucket/folder --session-id abc123
-        
+
     """
     print('CloudOS link functionality: link s3 folders to interactive analysis sessions.\n')
 
@@ -142,29 +142,29 @@ def link(ctx,
         if job_id:
             # Job-based linking
             print(f'Linking folders from job {job_id} to interactive session {session_id}...\n')
-            
+
             # Link results
             if results:
                 link_client.link_job_results(job_id, workspace_id, session_id, verify_ssl, verbose)
-            
+
             # Link workdir
             if workdir:
                 link_client.link_job_workdir(job_id, workspace_id, session_id, verify_ssl, verbose)
-            
+
             # Link logs
             if logs:
                 link_client.link_job_logs(job_id, workspace_id, session_id, verify_ssl, verbose)
-            
-            
+
+
         else:
             # Direct path linking
             print(f'Linking path to interactive session {session_id}...\n')
-            
+
             # Link path with validation
             link_client.link_path_with_validation(path, session_id, verify_ssl, project_name, verbose)
-            
+
             print('\nLinking operation completed.')
-            
+
     except BadRequestException as e:
         raise ValueError(f"Request failed: {str(e)}")
     except Exception as e:

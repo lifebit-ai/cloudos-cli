@@ -20,13 +20,13 @@ class BadRequestException(Exception):
         except (ValueError, AttributeError):
             # Response is not JSON or doesn't have expected structure
             pass
-        
+
         # Prioritize message from response, fallback to reason
         if error_message:
             msg = "Server returned status {}. Message: {}".format(rv.status_code, error_message)
         else:
             msg = "Server returned status {}. Reason: {}".format(rv.status_code, rv.reason)
-        
+
         super(BadRequestException, self).__init__(msg)
         self.rv = rv
 

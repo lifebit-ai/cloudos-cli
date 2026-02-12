@@ -451,7 +451,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             current_page = pagination_metadata.get('Pagination-Page', 1)
             page_size = pagination_metadata.get('Pagination-Limit', 10)
             total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
-            
+
             console.print(f"\n[cyan]Total jobs matching filter:[/cyan] {total_jobs}")
             console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
             console.print(f"[cyan]Jobs on this page:[/cyan] {len(jobs)}")
@@ -485,13 +485,13 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             "N/A": "[bold bright_black]?[/bold bright_black]"            # Grey question mark
         }
         status = status_symbol_map.get(status_raw.lower(), status_raw)
-        
+
         # Name
         name = str(job.get("name", "N/A"))
-        
+
         # Project
         project = str(job.get("project", {}).get("name", "N/A"))
-        
+
         # Owner (compact format for small terminals)
         user_info = job.get("user", {})
         name_part = user_info.get('name', '')
@@ -512,7 +512,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                 owner = name_part or surname_part
             else:
                 owner = "N/A"
-        
+
         # Pipeline
         pipeline = str(job.get("workflow", {}).get("name", "N/A"))
         # Only show the first line if pipeline name contains newlines
@@ -520,12 +520,12 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         # Truncate to 25 chars with ellipsis if longer
         if len(pipeline) > 25:
             pipeline = pipeline[:22] + "..."
-        
+
         # ID with hyperlink
         job_id = str(job.get("_id", "N/A"))
         job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
         job_id_with_link = f"[link={job_url}]{job_id}[/link]"
-        
+
         # Submit time (compact format for small terminals)
         created_at = job.get("createdAt")
         if created_at:
@@ -541,7 +541,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                 submit_time = "N/A"
         else:
             submit_time = "N/A"
-        
+
         # End time (compact format for small terminals)
         end_time_raw = job.get("endTime")
         if end_time_raw:
@@ -557,7 +557,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                 end_time = "N/A"
         else:
             end_time = "N/A"
-        
+
         # Run time (calculate from startTime and endTime)
         start_time_raw = job.get("startTime")
         if start_time_raw and end_time_raw:
@@ -579,7 +579,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                 run_time = "N/A"
         else:
             run_time = "N/A"
-        
+
         # Commit
         revision = job.get("revision", {})
         if job.get("jobType") == "dockerAWS":
@@ -589,7 +589,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         # Truncate commit to 7 characters if it's longer
         if commit != "N/A" and len(commit) > 7:
             commit = commit[:7]
-        
+
         # Cost
         cost_raw = job.get("computeCostSpent") or job.get("realInstancesExecutionCost")
         if cost_raw is not None:
@@ -599,13 +599,13 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                 cost = "N/A"
         else:
             cost = "N/A"
-        
+
         # Resources (instance type only)
         master_instance = job.get("masterInstance", {})
         used_instance = master_instance.get("usedInstance", {})
         instance_type = used_instance.get("type", "N/A")
         resources = instance_type if instance_type else "N/A"
-        
+
         # Storage type
         storage_mode = job.get("storageMode", "N/A")
         if storage_mode == "regular":
@@ -614,7 +614,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             storage_type = "Lustre"
         else:
             storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
-        
+
         # Map column keys to their values
         column_values = {
             'status': status,
@@ -631,7 +631,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             'resources': resources,
             'storage_type': storage_type
         }
-        
+
         # Add row to table with only selected columns
         row_values = [column_values[col] for col in columns_to_show]
         table.add_row(*row_values)
@@ -644,5 +644,5 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         current_page = pagination_metadata.get('Pagination-Page', 1)
         page_size = pagination_metadata.get('Pagination-Limit', 10)
         total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
-        
+
         console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")

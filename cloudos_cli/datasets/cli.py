@@ -119,7 +119,7 @@ def list_files(ctx,
                     type_ = "file (user uploaded)"
                 else:
                     type_ = "file (virtual copy)"
-                    
+
             user = item.get("user", {})
             if isinstance(user, dict):
                 name = user.get("name", "").strip()

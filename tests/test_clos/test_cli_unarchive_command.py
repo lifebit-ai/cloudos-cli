@@ -73,14 +73,14 @@ def test_job_unarchive_invalid_job_ids():
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
-        
+
         result = runner.invoke(run_cloudos_cli, [
             'job', 'unarchive',
             '--apikey', 'test_key',
             '--workspace-id', 'test_workspace',
             '--job-ids', 'invalid_job'
         ])
-        
+
         # The command should handle the error gracefully with exit code 0
         assert result.exit_code == 0
         # Error message should be present in output

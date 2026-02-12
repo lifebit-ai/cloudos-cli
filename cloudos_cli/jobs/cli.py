@@ -586,7 +586,7 @@ def job_workdir(ctx,
     # Handle --status flag
     if status:
         console = Console()
-        
+
         if verbose:
             console.print('[bold cyan]Checking deletion status of job working directory...[/bold cyan]')
             console.print('\t[dim]...Preparing objects[/dim]')
@@ -594,21 +594,21 @@ def job_workdir(ctx,
             console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
             console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
             console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
-        
+
         # Use Cloudos object to access the deletion status method
         cl = Cloudos(cloudos_url, apikey, None)
-        
+
         if verbose:
             console.print('\t[dim]The following Cloudos object was created:[/dim]')
             console.print('\t' + str(cl) + '\n')
-        
+
         try:
             deletion_status = cl.get_workdir_deletion_status(
                 job_id=job_id,
                 workspace_id=workspace_id,
                 verify=verify_ssl
             )
-            
+
             # Convert API status to user-friendly terminology with color
             status_config = {
                 "ready": ("available", "green"),
@@ -617,20 +617,20 @@ def job_workdir(ctx,
                 "deleted": ("deleted", "red"),
                 "failedToDelete": ("failed to delete", "red")
             }
-            
+
             # Get the status of the workdir folder itself and convert it
             api_status = deletion_status.get("status", "unknown")
             folder_status, status_color = status_config.get(api_status, (api_status, "white"))
             folder_info = deletion_status.get("items", {})
-            
+
             # Display results in a clear, styled format with human-readable sentence
             console.print(f'The working directory of job [cyan]{deletion_status["job_id"]}[/cyan] is in status: [bold {status_color}]{folder_status}[/bold {status_color}]')
-            
+
             # For non-available statuses, always show update time and user info
             if folder_status != "available":
                 if folder_info.get("updatedAt"):
                     console.print(f'[magenta]Status changed at:[/magenta] {folder_info.get("updatedAt")}')
-                
+
                 # Show user information - prefer deletedBy over user field
                 user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
                 if user_info:
@@ -639,14 +639,14 @@ def job_workdir(ctx,
                     if user_name or user_email:
                         user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
                         console.print(f'[blue]User:[/blue] {user_display}')
-            
+
             # Display detailed information if verbose
             if verbose:
                 console.print('\n[bold]Additional information:[/bold]')
                 console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
                 console.print(f'  [cyan]Working directory folder name:[/cyan] {deletion_status["workdir_folder_name"]}')
                 console.print(f'  [cyan]Working directory folder ID:[/cyan] {deletion_status["workdir_folder_id"]}')
-                
+
                 # Show folder metadata if available
                 if folder_info.get("createdAt"):
                     console.print(f'  [cyan]Created at:[/cyan] {folder_info.get("createdAt")}')
@@ -654,12 +654,12 @@ def job_workdir(ctx,
                     console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
                 if folder_info.get("folderType"):
                     console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
-        
+
         except ValueError as e:
             raise click.ClickException(str(e))
         except Exception as e:
             raise click.ClickException(f"Failed to retrieve deletion status: {str(e)}")
-        
+
         return
 
     # Validate link flag requirements AFTER loading profile
@@ -683,12 +683,12 @@ def job_workdir(ctx,
     try:
         workdir = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
         print(f"Working directory for job {job_id}: {workdir}")
-        
+
         # Link to interactive session if requested
         if link:
             if verbose:
                 print(f'\tLinking working directory to interactive session {session_id}...')
-            
+
             # Use Link class to perform the linking
             link_client = Link(
                 cloudos_url=cloudos_url,
@@ -698,9 +698,9 @@ def job_workdir(ctx,
                 project_name=None,  # Not needed for S3 paths
                 verify=verify_ssl
             )
-            
+
             link_client.link_folder(workdir.strip(), session_id)
-            
+
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
@@ -812,7 +812,7 @@ def job_logs(ctx,
         logs = cl.get_job_logs(job_id, workspace_id, verify_ssl)
         for name, path in logs.items():
             print(f"{name}: {path}")
-        
+
         # Link to interactive session if requested
         if link:
             if logs:
@@ -822,11 +822,11 @@ def job_logs(ctx,
                 # Remove the filename to get the logs directory
                 # e.g., "s3://bucket/path/to/logs/filename.txt" -> "s3://bucket/path/to/logs"
                 logs_dir = '/'.join(first_log_path.split('/')[:-1])
-                
+
                 if verbose:
                     print(f'\tLinking logs directory to interactive session {session_id}...')
                     print(f'\t\tLogs directory: {logs_dir}')
-                
+
                 # Use Link class to perform the linking
                 link_client = Link(
                     cloudos_url=cloudos_url,
@@ -836,12 +836,12 @@ def job_logs(ctx,
                     project_name=None,  # Not needed for S3 paths
                     verify=verify_ssl
                 )
-                
+
                 link_client.link_folder(logs_dir, session_id)
             else:
                 if verbose:
                     print('\tNo logs found to link.')
-            
+
     except BadRequestException as e:
         raise ValueError(f"Job '{job_id}' not found or not accessible. {str(e)}")
     except Exception as e:
@@ -914,7 +914,7 @@ def job_results(ctx,
     # Handle --status flag
     if status:
         console = Console()
-        
+
         if verbose:
             console.print('[bold cyan]Checking deletion status of job results...[/bold cyan]')
             console.print('\t[dim]...Preparing objects[/dim]')
@@ -922,21 +922,21 @@ def job_results(ctx,
             console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
             console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
             console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
-        
+
         # Use Cloudos object to access the deletion status method
         cl = Cloudos(cloudos_url, apikey, None)
-        
+
         if verbose:
             console.print('\t[dim]The following Cloudos object was created:[/dim]')
             console.print('\t' + str(cl) + '\n')
-        
+
         try:
             deletion_status = cl.get_results_deletion_status(
                 job_id=job_id,
                 workspace_id=workspace_id,
                 verify=verify_ssl
             )
-            
+
             # Convert API status to user-friendly terminology with color
             status_config = {
                 "ready": ("available", "green"),
@@ -945,20 +945,20 @@ def job_results(ctx,
                 "deleted": ("deleted", "red"),
                 "failedToDelete": ("failed to delete", "red")
             }
-            
+
             # Get the status of the results folder itself and convert it
             api_status = deletion_status.get("status", "unknown")
             folder_status, status_color = status_config.get(api_status, (api_status, "white"))
             folder_info = deletion_status.get("items", {})
-            
+
             # Display results in a clear, styled format with human-readable sentence
             console.print(f'The results of job [cyan]{deletion_status["job_id"]}[/cyan] are in status: [bold {status_color}]{folder_status}[/bold {status_color}]')
-            
+
             # For non-available statuses, always show update time and user info
             if folder_status != "available":
                 if folder_info.get("updatedAt"):
                     console.print(f'[magenta]Status changed at:[/magenta] {folder_info.get("updatedAt")}')
-                
+
                 # Show user information - prefer deletedBy over user field
                 user_info = folder_info.get("deletedBy") or folder_info.get("user", {})
                 if user_info:
@@ -967,14 +967,14 @@ def job_results(ctx,
                     if user_name or user_email:
                         user_display = f'{user_name} ({user_email})' if user_name and user_email else (user_name or user_email)
                         console.print(f'[blue]User:[/blue] {user_display}')
-            
+
             # Display detailed information if verbose
             if verbose:
                 console.print('\n[bold]Additional information:[/bold]')
                 console.print(f'  [cyan]Job name:[/cyan] {deletion_status["job_name"]}')
                 console.print(f'  [cyan]Results folder name:[/cyan] {deletion_status["results_folder_name"]}')
                 console.print(f'  [cyan]Results folder ID:[/cyan] {deletion_status["results_folder_id"]}')
-                
+
                 # Show folder metadata if available
                 if folder_info.get("createdAt"):
                     console.print(f'  [cyan]Created at:[/cyan] {folder_info.get("createdAt")}')
@@ -982,12 +982,12 @@ def job_results(ctx,
                     console.print(f'  [cyan]Updated at:[/cyan] {folder_info.get("updatedAt")}')
                 if folder_info.get("folderType"):
                     console.print(f'  [cyan]Folder type:[/cyan] {folder_info.get("folderType")}')
-        
+
         except ValueError as e:
             raise click.ClickException(str(e))
         except Exception as e:
             raise click.ClickException(f"Failed to retrieve deletion status: {str(e)}")
-        
+
         return
 
     # Validate link flag requirements AFTER loading profile
@@ -1029,7 +1029,7 @@ def job_results(ctx,
 
             if verbose:
                 print(f'\t\tLinking results ({results_path})...')
-            
+
             link_client.link_folder(results_path, session_id)
 
         # Delete results directory if requested
@@ -1304,7 +1304,7 @@ def list_jobs(ctx,
     if pagination_metadata:
         total_jobs = pagination_metadata.get('Pagination-Count', 0)
         current_page_size = pagination_metadata.get('Pagination-Limit', page_size)
-        
+
         if total_jobs > 0:
             total_pages = (total_jobs + current_page_size - 1) // current_page_size
             if page > total_pages:
@@ -1424,17 +1424,17 @@ def abort_jobs(ctx,
         except Exception as e:
             click.secho(f"Failed to get status for job {job}, please make sure it exists in the workspace: {e}", fg='yellow', bold=True)
             continue
-        
+
         j_status_content = json.loads(j_status.content)
         job_status = j_status_content['status']
-        
+
         # Check if job is in a state that normally allows abortion
         is_abortable = job_status in ABORT_JOB_STATES
-        
+
         # Issue warning if job is in initializing state and not using force
         if job_status == 'initializing' and not force:
             click.secho(f"Warning: Job {job} is in initializing state.", fg='yellow', bold=True)
-        
+
         # Check if job can be aborted
         if not is_abortable:
             click.secho(f"Job {job} is not in a state that can be aborted and is ignored. " +
@@ -1649,19 +1649,19 @@ def archive_unarchive_jobs(ctx,
             cl.archive_jobs(valid_jobs, workspace_id, verify_ssl)
         else:
             cl.unarchive_jobs(valid_jobs, workspace_id, verify_ssl)
-        
+
         success_msg = []
         if len(valid_jobs) == 1:
             success_msg.append(f"Job '{valid_jobs[0]}' {action_past} successfully.")
         else:
             success_msg.append(f"{len(valid_jobs)} jobs {action_past} successfully: {', '.join(valid_jobs)}")
-        
+
         if already_processed:
             if len(already_processed) == 1:
                 success_msg.append(f"Job '{already_processed[0]}' was already {action_past}.")
             else:
                 success_msg.append(f"{len(already_processed)} jobs were already {action_past}: {', '.join(already_processed)}")
-        
+
         click.secho('\n'.join(success_msg), fg='green', bold=True)
     except Exception as e:
         raise ValueError(f"Failed to {action} jobs: {str(e)}")

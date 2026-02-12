@@ -25,7 +25,7 @@ class TestUnarchiveJobs:
             assert response.status_code == 200
             assert m.called
             assert m.call_count == 1
-            
+
             # Verify the request payload
             request = m.request_history[0]
             import json
@@ -79,7 +79,7 @@ class TestUnarchiveJobs:
             response = cl.unarchive_jobs(job_ids, "test_workspace")
 
             assert response.status_code == 200
-            
+
             # Verify the request payload
             request = m.request_history[0]
             import json
@@ -102,7 +102,7 @@ class TestUnarchiveJobs:
             response = cl.unarchive_jobs(job_ids, "test_workspace")
 
             assert response.status_code == 200
-            
+
             # Verify the request payload
             request = m.request_history[0]
             import json

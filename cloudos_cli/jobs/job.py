@@ -924,7 +924,7 @@ class Job(Cloudos):
 
     def get_job_request_payload(self, job_id, verify=True):
         """Get the original request payload for a job.
-        
+
         Parameters
         ----------
         job_id : str
@@ -933,7 +933,7 @@ class Job(Cloudos):
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
             the SSL certificate file.
-            
+
         Returns
         -------
         dict
@@ -953,7 +953,7 @@ class Job(Cloudos):
 
     def update_parameter_value(self, parameters, param_name, new_value):
         """Update a parameter value in the parameters list.
-        
+
         Parameters
         ----------
         parameters : list
@@ -962,7 +962,7 @@ class Job(Cloudos):
             Name of the parameter to update.
         new_value : str
             New value for the parameter.
-            
+
         Returns
         -------
         bool
@@ -1035,7 +1035,7 @@ class Job(Cloudos):
                   verify=True,
                   mode=None):
         """Clone or resume an existing job with optional parameter overrides.
-        
+
         Parameters
         ----------
         source_job_id : str
