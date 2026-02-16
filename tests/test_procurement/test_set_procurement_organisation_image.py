@@ -78,7 +78,7 @@ def test_set_procurement_organisation_image():
 @responses.activate
 def test_set_procurement_organisation_image_different_types():
     """Test setting different image types"""
-    
+
     image_types = [
         "RegularInteractiveSessions",
         "SparkInteractiveSessions", 
@@ -86,7 +86,7 @@ def test_set_procurement_organisation_image_different_types():
         "JupyterInteractiveSessions",
         "NextflowBatchComputeEnvironment"
     ]
-    
+
     for image_type in image_types:
         mock_response = {
             "id": f"config-{image_type.lower()}",
@@ -144,7 +144,7 @@ def test_set_procurement_organisation_image_different_types():
 @responses.activate 
 def test_set_procurement_organisation_image_without_image_name():
     """Test setting image configuration without providing image_name parameter"""
-    
+
     mock_response = {
         "id": "68667809e13a844401d10f6c",
         "organisationId": ORGANISATION_ID,

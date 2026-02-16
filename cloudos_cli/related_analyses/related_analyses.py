@@ -94,7 +94,7 @@ def save_as_json(data, filename):
 
 def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.ai"):
     """Display related analyses in a formatted table with pagination.
-    
+
     Parameters
     ----------
     data : dict
@@ -178,7 +178,7 @@ def save_as_stdout(data, j_workdir_parent, cloudos_url="https://cloudos.lifebit.
 
     # Display with pagination
     show_error = None  # Track error messages to display
-    
+
     while True:
         start = current_page * limit
         end = start + limit

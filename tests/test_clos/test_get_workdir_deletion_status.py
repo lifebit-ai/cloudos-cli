@@ -28,7 +28,7 @@ def test_get_workdir_deletion_status_ready():
             "folderId": WORKDIR_FOLDER_ID,
         }
     }
-    
+
     # Mock folder details response with ready status
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -44,12 +44,12 @@ def test_get_workdir_deletion_status_ready():
             "email": "test@example.com"
         }
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -58,7 +58,7 @@ def test_get_workdir_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for folder details with status filters
     responses.add(
         responses.GET,
@@ -67,11 +67,11 @@ def test_get_workdir_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job"
@@ -102,7 +102,7 @@ def test_get_workdir_deletion_status_scheduled_for_deletion():
             }
         }
     }
-    
+
     # Mock folder details response with scheduledForDeletion status
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -118,12 +118,12 @@ def test_get_workdir_deletion_status_scheduled_for_deletion():
             "email": "test@example.com"
         }
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -132,7 +132,7 @@ def test_get_workdir_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for folder details
     responses.add(
         responses.GET,
@@ -141,11 +141,11 @@ def test_get_workdir_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job_scheduled"
@@ -177,7 +177,7 @@ def test_get_workdir_deletion_status_deleting():
             }
         }
     }
-    
+
     # Mock folder details response with deleting status
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -187,12 +187,12 @@ def test_get_workdir_deletion_status_deleting():
         "createdAt": "2024-11-10T15:24:20.528Z",
         "updatedAt": "2024-11-12T14:00:00.000Z"
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -201,7 +201,7 @@ def test_get_workdir_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/folders/",
@@ -209,11 +209,11 @@ def test_get_workdir_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "deleting"
@@ -241,7 +241,7 @@ def test_get_workdir_deletion_status_deleted():
             }
         }
     }
-    
+
     # Mock folder details response with deleted status
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -251,12 +251,12 @@ def test_get_workdir_deletion_status_deleted():
         "createdAt": "2024-11-10T15:24:20.528Z",
         "updatedAt": "2024-11-12T15:00:00.000Z"
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -265,7 +265,7 @@ def test_get_workdir_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/folders/",
@@ -273,11 +273,11 @@ def test_get_workdir_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "deleted"
@@ -305,7 +305,7 @@ def test_get_workdir_deletion_status_failed_to_delete():
             }
         }
     }
-    
+
     # Mock folder details response with failedToDelete status
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -315,12 +315,12 @@ def test_get_workdir_deletion_status_failed_to_delete():
         "createdAt": "2024-11-10T15:24:20.528Z",
         "updatedAt": "2024-11-12T16:00:00.000Z"
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -329,7 +329,7 @@ def test_get_workdir_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/folders/",
@@ -337,11 +337,11 @@ def test_get_workdir_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "failedToDelete"
@@ -361,7 +361,7 @@ def test_get_workdir_deletion_status_legacy_resume_workdir():
         "status": "completed",
         "resumeWorkDir": WORKDIR_FOLDER_ID
     }
-    
+
     # Mock folder details response
     folder_response = [{
         "_id": WORKDIR_FOLDER_ID,
@@ -371,12 +371,12 @@ def test_get_workdir_deletion_status_legacy_resume_workdir():
         "createdAt": "2024-11-10T15:24:20.528Z",
         "updatedAt": "2024-11-10T15:24:20.528Z"
     }]
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -385,7 +385,7 @@ def test_get_workdir_deletion_status_legacy_resume_workdir():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/folders/",
@@ -393,11 +393,11 @@ def test_get_workdir_deletion_status_legacy_resume_workdir():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_workdir_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job_legacy"

@@ -34,7 +34,7 @@ def test_get_results_deletion_status_ready():
             "folderId": RESULTS_FOLDER_ID
         }
     }
-    
+
     # Mock project content response (list of folders including Analysis Results)
     project_content_response = {
         "folders": [
@@ -49,7 +49,7 @@ def test_get_results_deletion_status_ready():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response with job results folder
     datasets_response = {
         "folders": [
@@ -70,12 +70,12 @@ def test_get_results_deletion_status_ready():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET method for job details
     responses.add(
         responses.GET,
@@ -84,7 +84,7 @@ def test_get_results_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -93,7 +93,7 @@ def test_get_results_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for project content
     responses.add(
         responses.GET,
@@ -102,7 +102,7 @@ def test_get_results_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for datasets items (Analysis Results folder contents)
     responses.add(
         responses.GET,
@@ -111,11 +111,11 @@ def test_get_results_deletion_status_ready():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job_results"
@@ -150,7 +150,7 @@ def test_get_results_deletion_status_scheduled_for_deletion():
             }
         }
     }
-    
+
     # Mock project content response
     project_content_response = {
         "folders": [
@@ -161,7 +161,7 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response with scheduledForDeletion status
     datasets_response = {
         "folders": [
@@ -182,12 +182,12 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -196,7 +196,7 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -205,7 +205,7 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
@@ -213,7 +213,7 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{ANALYSIS_RESULTS_FOLDER_ID}/items",
@@ -221,11 +221,11 @@ def test_get_results_deletion_status_scheduled_for_deletion():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job_scheduled"
@@ -261,7 +261,7 @@ def test_get_results_deletion_status_deleting():
             }
         }
     }
-    
+
     # Mock project content response
     project_content_response = {
         "folders": [
@@ -272,7 +272,7 @@ def test_get_results_deletion_status_deleting():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response with deleting status
     datasets_response = {
         "folders": [
@@ -287,12 +287,12 @@ def test_get_results_deletion_status_deleting():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -301,7 +301,7 @@ def test_get_results_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -310,7 +310,7 @@ def test_get_results_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
@@ -318,7 +318,7 @@ def test_get_results_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{ANALYSIS_RESULTS_FOLDER_ID}/items",
@@ -326,11 +326,11 @@ def test_get_results_deletion_status_deleting():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "deleting"
@@ -362,7 +362,7 @@ def test_get_results_deletion_status_deleted():
             }
         }
     }
-    
+
     # Mock project content response
     project_content_response = {
         "folders": [
@@ -373,7 +373,7 @@ def test_get_results_deletion_status_deleted():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response with deleted status
     datasets_response = {
         "folders": [
@@ -388,12 +388,12 @@ def test_get_results_deletion_status_deleted():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -402,7 +402,7 @@ def test_get_results_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -411,7 +411,7 @@ def test_get_results_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
@@ -419,7 +419,7 @@ def test_get_results_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{ANALYSIS_RESULTS_FOLDER_ID}/items",
@@ -427,11 +427,11 @@ def test_get_results_deletion_status_deleted():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "deleted"
@@ -463,7 +463,7 @@ def test_get_results_deletion_status_failed_to_delete():
             }
         }
     }
-    
+
     # Mock project content response
     project_content_response = {
         "folders": [
@@ -474,7 +474,7 @@ def test_get_results_deletion_status_failed_to_delete():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response with failedToDelete status
     datasets_response = {
         "folders": [
@@ -489,12 +489,12 @@ def test_get_results_deletion_status_failed_to_delete():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -503,7 +503,7 @@ def test_get_results_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -512,7 +512,7 @@ def test_get_results_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
@@ -520,7 +520,7 @@ def test_get_results_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{ANALYSIS_RESULTS_FOLDER_ID}/items",
@@ -528,11 +528,11 @@ def test_get_results_deletion_status_failed_to_delete():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["status"] == "failedToDelete"
@@ -558,7 +558,7 @@ def test_get_results_deletion_status_alternative_folder_name():
             "folderId": RESULTS_FOLDER_ID
         }
     }
-    
+
     # Mock project content response with alternative folder name
     project_content_response = {
         "folders": [
@@ -569,7 +569,7 @@ def test_get_results_deletion_status_alternative_folder_name():
         ],
         "files": []
     }
-    
+
     # Mock datasets API response
     datasets_response = {
         "folders": [
@@ -584,12 +584,12 @@ def test_get_results_deletion_status_alternative_folder_name():
         ],
         "files": []
     }
-    
+
     header = {
         "Content-type": "application/json",
         "apikey": APIKEY
     }
-    
+
     # Mock GET methods
     responses.add(
         responses.GET,
@@ -598,7 +598,7 @@ def test_get_results_deletion_status_alternative_folder_name():
         headers=header,
         status=200
     )
-    
+
     # Mock GET method for projects API (used by Datasets class)
     responses.add(
         responses.GET,
@@ -607,7 +607,7 @@ def test_get_results_deletion_status_alternative_folder_name():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v2/datasets?projectId={PROJECT_ID}&teamId={WORKSPACE_ID}",
@@ -615,7 +615,7 @@ def test_get_results_deletion_status_alternative_folder_name():
         headers=header,
         status=200
     )
-    
+
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/datasets/{ANALYSIS_RESULTS_FOLDER_ID}/items",
@@ -623,11 +623,11 @@ def test_get_results_deletion_status_alternative_folder_name():
         headers=header,
         status=200
     )
-    
+
     # Create Cloudos instance and call method
     clos = Cloudos(apikey=APIKEY, cromwell_token=None, cloudos_url=CLOUDOS_URL)
     result = clos.get_results_deletion_status(JOB_ID, WORKSPACE_ID)
-    
+
     # Assertions
     assert result["job_id"] == JOB_ID
     assert result["job_name"] == "test_job_alt"

@@ -444,7 +444,7 @@ def test_resume_job_get_payload_error():
     # Load test data for initialization
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
-    
+
     headers = {
         "Content-type": "application/json",
         "apikey": APIKEY
@@ -661,7 +661,7 @@ def test_get_resume_work_dir_error():
     # Load test data for initialization
     projects_data = load_json_file(PROJECTS_INPUT)
     workflows_data = load_json_file(WORKFLOWS_INPUT)
-    
+
     headers = {
         "Content-type": "application/json",
         "apikey": APIKEY

@@ -13,7 +13,7 @@ from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
 import json
 import time
 import rich_click as click
-        
+
 
 @dataclass
 class Link(Cloudos):
@@ -64,14 +64,14 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         # Block Azure Blob Storage URLs as they are not supported by the API
         if folder.startswith('az://'):
             raise ValueError(
                 "Azure Blob Storage paths (az://) are not supported for linking. "
                 "Azure environments do not support linking folders to Interactive Analysis sessions. "
             )
-        
+
         # determine if is file explorer or s3
         if folder.startswith('s3://'):
             data = self.parse_s3_path(folder)
@@ -80,7 +80,7 @@ class Link(Cloudos):
             data = self.parse_file_explorer_path(folder)
             type_folder = "File Explorer"
         r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
-        
+
         if r.status_code == 403:
             raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
         elif r.status_code == 401:
@@ -103,11 +103,11 @@ class Link(Cloudos):
             else:
                 full_path = folder
                 mount_name = data['dataItem']['name']
-            
+
             try:
                 # Wait for mount completion and check final status
                 final_status = self.wait_for_mount_completion(session_id, mount_name)
-                
+
                 if final_status["status"] == "mounted":
                     click.secho(f"Successfully mounted {type_folder} folder: {full_path}", fg='green', bold=True)
                 elif final_status["status"] == "failed":
@@ -116,7 +116,7 @@ class Link(Cloudos):
                     click.secho(f"  Error: {error_msg}", fg='red')
                 else:
                     click.secho(f"Mount status: {final_status['status']} for {type_folder} folder: {full_path}", fg='yellow', bold=True)
-                    
+
             except ValueError as e:
                 click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
                 click.secho(f"  The linking request was submitted, but verification failed.", fg='yellow')
@@ -234,16 +234,16 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         r = retry_requests_get(url, headers=headers, verify=self.verify)
-        
+
         if r.status_code == 401:
             raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
         elif r.status_code == 404:
             raise ValueError(f"Interactive session {session_id} not found")
         elif r.status_code != 200:
             raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
-        
+
         response_data = json.loads(r.content)
         return response_data.get("fuseFileSystems", [])
 
@@ -273,29 +273,29 @@ class Link(Cloudos):
             If the mount is not found or timeout is reached.
         """
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             filesystems = self.get_fuse_filesystems_status(session_id)
-            
+
             # Find the mount by name
             target_mount = None
             for fs in filesystems:
                 if fs.get("mountName") == mount_name:
                     target_mount = fs
                     break
-            
+
             if target_mount and target_mount.get("status") in ["mounted", "failed"]:
                 return target_mount
             # If mount not found or still in progress, continue waiting
-            
+
             time.sleep(check_interval)
-        
+
         raise ValueError(f"Timeout waiting for mount '{mount_name}' to complete after {timeout} seconds")
 
     def link_job_results(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
         """
         Link job results to an interactive session.
-        
+
         Parameters
         ----------
         job_id : str
@@ -308,7 +308,7 @@ class Link(Cloudos):
             SSL verification setting
         verbose : bool
             Whether to print verbose output
-            
+
         Returns
         -------
         None
@@ -317,19 +317,19 @@ class Link(Cloudos):
         try:
             if verbose:
                 print('\tFetching job results...')
-                
+
             # Create a temporary Cloudos client for API calls
             cl = Cloudos(self.cloudos_url, self.apikey, None)
             results_path = cl.get_job_results(job_id, workspace_id, verify_ssl)
-            
+
             if results_path:
-                print(f'\tLinking results directory...')
+                print('\tLinking results directory...')
                 if verbose:
                     print(f'\t\tResults: {results_path}')
                 self.link_folder(results_path, session_id)
             else:
                 click.secho('\tNo results found to link.', fg='yellow')
-                
+
         except JoBNotCompletedException as e:
             click.secho(f'\tCannot link results: {str(e)}', fg='red')
         except Exception as e:
@@ -342,7 +342,7 @@ class Link(Cloudos):
     def link_job_workdir(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
         """
         Link job working directory to an interactive session.
-        
+
         Parameters
         ----------
         job_id : str
@@ -355,7 +355,7 @@ class Link(Cloudos):
             SSL verification setting
         verbose : bool
             Whether to print verbose output
-            
+
         Returns
         -------
         None
@@ -364,19 +364,19 @@ class Link(Cloudos):
         try:
             if verbose:
                 print('\tFetching job working directory...')
-                
+
             # Create a temporary Cloudos client for API calls
             cl = Cloudos(self.cloudos_url, self.apikey, None)
             workdir_path = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
-            
+
             if workdir_path:
-                print(f'\tLinking working directory...')
+                print('\tLinking working directory...')
                 if verbose:
                     print(f'\t\tWorkdir: {workdir_path}')
                 self.link_folder(workdir_path.strip(), session_id)
             else:
                 click.secho('\tNo working directory found to link.', fg='yellow')
-                
+
         except Exception as e:
             error_msg = str(e)
             if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower() or "not available" in error_msg.lower() or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
@@ -387,7 +387,7 @@ class Link(Cloudos):
     def link_job_logs(self, job_id: str, workspace_id: str, session_id: str, verify_ssl, verbose: bool = False):
         """
         Link job logs to an interactive session.
-        
+
         Parameters
         ----------
         job_id : str
@@ -400,7 +400,7 @@ class Link(Cloudos):
             SSL verification setting
         verbose : bool
             Whether to print verbose output
-            
+
         Returns
         -------
         None
@@ -409,23 +409,23 @@ class Link(Cloudos):
         try:
             if verbose:
                 print('\tFetching job logs...')
-                
+
             # Create a temporary Cloudos client for API calls
             cl = Cloudos(self.cloudos_url, self.apikey, None)
             logs_dict = cl.get_job_logs(job_id, workspace_id, verify_ssl)
-            
+
             if logs_dict:
                 # Extract the parent logs directory from any log file path
                 first_log_path = next(iter(logs_dict.values()))
                 logs_dir = '/'.join(first_log_path.split('/')[:-1])
-                
-                print(f'\tLinking logs directory...')
+
+                print('\tLinking logs directory...')
                 if verbose:
                     print(f'\t\tLogs directory: {logs_dir}')
                 self.link_folder(logs_dir, session_id)
             else:
                 click.secho('\tNo logs found to link.', fg='yellow')
-                
+
         except Exception as e:
             error_msg = str(e)
             if "not yet available" in error_msg.lower() or "initializing" in error_msg.lower() or "not available" in error_msg.lower() or "deleted" in error_msg.lower() or "removed" in error_msg.lower():
@@ -436,7 +436,7 @@ class Link(Cloudos):
     def link_path_with_validation(self, path: str, session_id: str, verify_ssl, project_name: str = None, verbose: bool = False):
         """
         Link a path (S3 or File Explorer) to an interactive session with validation.
-        
+
         Parameters
         ----------
         path : str
@@ -449,12 +449,12 @@ class Link(Cloudos):
             SSL verification setting
         verbose : bool
             Whether to print verbose output
-            
+
         Returns
         -------
         None
             Prints status messages to console
-            
+
         Raises
         ------
         click.UsageError
@@ -465,15 +465,15 @@ class Link(Cloudos):
         # Check for Azure paths and provide informative error message
         if path.startswith("az://"):
             raise click.UsageError("Azure Blob Storage paths (az://) are not supported for linking. Please use S3 paths (s3://) or File Explorer paths instead.")
-        
+
         # Validate path requirements
         if not path.startswith("s3://") and not project_name:
             raise click.UsageError("When using File Explorer paths, '--project-name' must be provided.")
-        
+
         # Use the same validation logic as datasets link command
         is_s3 = path.startswith("s3://")
         is_folder = True
-        
+
         if is_s3:
             # S3 path validation
             try:
@@ -528,7 +528,7 @@ class Link(Cloudos):
                     is_folder = "not_found"
             except Exception:
                 is_folder = None
-        
+
         if is_folder == "file":
             if is_s3:
                 raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
@@ -547,9 +547,9 @@ class Link(Cloudos):
                 click.secho("Unable to verify the File Explorer path. Proceeding with linking; " +
                            "however, if the operation fails, please verify the path exists and is a folder.", 
                            fg='yellow', bold=True)
-        
+
         if verbose:
-            print(f'\tLinking {path}...')
-        
+            print('\tLinking {path}...')
+
         self.link_folder(path, session_id)
 

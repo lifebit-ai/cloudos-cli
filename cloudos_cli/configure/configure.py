@@ -3,6 +3,7 @@ from pathlib import Path
 import configparser
 import click
 from cloudos_cli.logging.logger import update_command_context_from_click
+from cloudos_cli.constants import CLOUDOS_URL, INIT_PROFILE
 
 
 class ConfigurationProfile:
@@ -257,7 +258,7 @@ class ConfigurationProfile:
             config[profile_name]['default'] = str(default_profile)
         if session_id is not None:
             config[profile_name]['session_id'] = session_id
-        
+
 
         with open(self.config_file, 'w') as conf_file:
             config.write(conf_file)
@@ -361,10 +362,10 @@ class ConfigurationProfile:
 
     def load_profile(self, profile_name):
         """Load a profile from the config and credentials files dynamically.
-        
+
         This method now returns ALL parameters from the profile, not just predefined ones.
         This makes it extensible - you can add new parameters to profiles without modifying this method.
-        
+
         Parameters:
         ----------
         profile_name : str
@@ -374,12 +375,12 @@ class ConfigurationProfile:
         dict
             A dictionary containing all profile parameters. Returns all keys from both
             credentials and config files for the specified profile.
-            
+
         Examples
         --------
         # If you add accelerate_saving_results to your profile config:
         config[profile_name]['accelerate_saving_results'] = 'true'
-        
+
         # It will automatically be included in the returned dictionary:
         profile_data = load_profile('myprofile')
         # profile_data will contain 'accelerate_saving_results': 'true'
@@ -399,19 +400,19 @@ class ConfigurationProfile:
 
         # Dynamically load all parameters from the profile
         profile_data = {}
-        
+
         # Load all items from credentials file
         if credentials.has_section(profile_name):
             for key, value in credentials[profile_name].items():
                 profile_data[key] = value
-        
+
         # Load all items from config file
         if config.has_section(profile_name):
             for key, value in config[profile_name].items():
                 # Skip the 'default' flag as it's not a user parameter
                 if key != 'default':
                     profile_data[key] = value
-        
+
         return profile_data
 
     def check_if_profile_exists(self, profile_name):
@@ -480,7 +481,7 @@ class ConfigurationProfile:
     def load_profile_and_validate_data(self, ctx, init_profile, cloudos_url_default, profile, required_dict, **cli_params):
         """
         Load profile data and validate required parameters dynamically.
-        
+
         This method now accepts any parameters via **cli_params, making it extensible.
         You can add new parameters to profiles (like accelerate_saving_results) without
         modifying this method.
@@ -500,7 +501,7 @@ class ConfigurationProfile:
         **cli_params : dict
             All CLI parameters passed as keyword arguments. Any parameter can be passed here
             and will be resolved from the profile if available.
-            
+
             Examples: apikey, cloudos_url, workspace_id, project_name, workflow_name, 
                      execution_platform, repository_platform, session_id, procurement_id,
                      accelerate_saving_results, etc.
@@ -509,7 +510,7 @@ class ConfigurationProfile:
         -------
         dict
             A dictionary containing all loaded and validated parameters.
-            
+
         Examples
         --------
         # Add a new parameter to profile without changing this method:
@@ -524,7 +525,7 @@ class ConfigurationProfile:
         if profile != init_profile:
             # Load profile data
             profile_data = self.load_profile(profile_name=profile)
-            
+
             # Dynamically process all parameters passed in cli_params
             for param_name, cli_value in cli_params.items():
                 profile_value = profile_data.get(param_name, "")
@@ -539,7 +540,7 @@ class ConfigurationProfile:
                     required=is_required, 
                     missing_required_params=missing
                 )
-                
+
                 # Convert empty strings to None for optional parameters
                 # This prevents issues with functions that expect None for unset values
                 if resolved_value == "" and not is_required:
@@ -591,11 +592,6 @@ class ConfigurationProfile:
 
         return resolved_params
 
-
-# Not part of the class, but related to configuration
-# Global constants for CloudOS CLI
-CLOUDOS_URL = 'https://cloudos.lifebit.ai'
-INIT_PROFILE = 'initialisingProfile'
 
 # Define all standard configuration keys with their default empty values
 # This is the single source of truth for configuration fields

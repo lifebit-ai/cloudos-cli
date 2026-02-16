@@ -22,17 +22,17 @@ def test_delete_job_results_success_204(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=204,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -41,9 +41,9 @@ def test_delete_job_results_success_204(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     result = job.delete_job_results(JOB_ID, MODE)
-    
+
     assert result["message"] == "Results deleted successfully"
     assert result["status"] == "deleted"
 
@@ -57,10 +57,10 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
@@ -68,7 +68,7 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
         json={"message": f"Job with ID '{JOB_ID}' not found"},
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -77,10 +77,10 @@ def test_delete_job_results_not_found_404(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     assert JOB_ID in str(exc_info.value)
     assert "not found" in str(exc_info.value).lower()
 
@@ -94,17 +94,17 @@ def test_delete_job_results_unauthorized_401(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=401,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -113,10 +113,10 @@ def test_delete_job_results_unauthorized_401(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     assert "Unauthorized" in str(exc_info.value)
     assert "API key" in str(exc_info.value)
 
@@ -130,17 +130,17 @@ def test_delete_job_results_forbidden_403(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=403,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -149,10 +149,10 @@ def test_delete_job_results_forbidden_403(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     assert "Forbidden" in str(exc_info.value)
     assert "permission" in str(exc_info.value)
 
@@ -166,17 +166,17 @@ def test_delete_job_results_conflict_409(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=409,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -185,10 +185,10 @@ def test_delete_job_results_conflict_409(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     assert "Conflict" in str(exc_info.value)
 
 
@@ -201,17 +201,17 @@ def test_delete_job_results_bad_request_400(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=400,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -220,10 +220,10 @@ def test_delete_job_results_bad_request_400(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     with pytest.raises(ValueError) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     assert "Operation not permitted" in str(exc_info.value)
     assert "Your workspace does not have the option to delete results folders enabled. Please consult with the organisation owner to enable this feature." in str(exc_info.value)
 
@@ -237,17 +237,17 @@ def test_delete_job_results_server_error_500(mock_workflow_id, mock_project_id):
     """
     mock_project_id.return_value = "test_project_id"
     mock_workflow_id.return_value = "test_workflow_id"
-    
+
     url = f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/data"
     params = {"properties[]": MODE, "teamId": WORKSPACE_ID}
-    
+
     responses.add(
         responses.DELETE,
         url=url,
         status=500,
         match=[matchers.query_param_matcher(params)]
     )
-    
+
     job = Job(
         apikey=APIKEY,
         cloudos_url=CLOUDOS_URL,
@@ -256,10 +256,10 @@ def test_delete_job_results_server_error_500(mock_workflow_id, mock_project_id):
         project_name="test_project",
         workflow_name="test_workflow"
     )
-    
+
     # The retry mechanism will exhaust retries on 500 errors
     with pytest.raises(Exception) as exc_info:
         job.delete_job_results(JOB_ID, MODE)
-    
+
     # Should raise either RetryError or the underlying ValueError after retries
     assert "Max retries exceeded" in str(exc_info.value) or "Internal server error" in str(exc_info.value)

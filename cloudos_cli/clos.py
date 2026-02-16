@@ -12,13 +12,7 @@ from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, 
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
 from datetime import datetime, timezone
-
-
-# GLOBAL VARS
-JOB_COMPLETED = 'completed'
-JOB_FAILED = 'failed'
-JOB_ABORTED = 'aborted'
-
+from cloudos_cli.constants import JOB_COMPLETED, JOB_FAILED, JOB_ABORTED
 
 @dataclass
 class Cloudos:
@@ -220,7 +214,7 @@ class Cloudos:
 
         if "resumeWorkDir" not in r_json:
             raise ValueError("Working directories are not available. This may be because the analysis was run without resumable mode enabled, or because intermediate results have since been removed.")
-        
+
         # Check if intermediate results have been deleted
         # When intermediate results are deleted, resumeWorkDir becomes None but workDirectory still exists with folderId
         resume_workdir_id = r_json.get("resumeWorkDir")
@@ -234,7 +228,7 @@ class Cloudos:
                     folder_id = work_directory["folderId"]
                     folder_response = self.get_folder_deletion_status(folder_id, workspace_id, verify)
                     folder_data = json.loads(folder_response.content)
-                    
+
                     # If the API returns the folder, get its status
                     if folder_data and len(folder_data) > 0:
                         api_status = folder_data[0].get("status")
@@ -242,12 +236,12 @@ class Cloudos:
                         # If the folder is not returned, check if deletedBy exists in workDirectory
                         if "deletedBy" in work_directory:
                             api_status = "scheduledForDeletion"  # Assume scheduled for deletion
-                        
+
                 except Exception:
                     # If we can't get the status, check if deletedBy exists
                     if "deletedBy" in work_directory:
                         api_status = "scheduledForDeletion"  # Assume scheduled for deletion
-                
+
                 # Build contextually appropriate error message based on status
                 # Only raise error for non-ready statuses (ready means it's available, so no error)
                 if api_status == "deleting":
@@ -269,7 +263,7 @@ class Cloudos:
                 # If status is "ready", set resume_workdir_id so we can retrieve the workdir path
                 elif api_status == "ready":
                     resume_workdir_id = folder_id
-        
+
         # If resumeWorkDir exists, use the folders API to get the shared working directory
         if resume_workdir_id:
             try:
@@ -286,7 +280,7 @@ class Cloudos:
                 if len(workdir_bucket_o) > 1:
                     raise ValueError(f"Request returned more than one result for folder id {resume_workdir_id}")
                 workdir_bucket_info = workdir_bucket_o[0]
-                
+
                 if workdir_bucket_info["folderType"] == "S3Folder":
                     bucket_name = workdir_bucket_info["s3BucketName"]
                     bucket_path = workdir_bucket_info["s3Prefix"]
@@ -298,13 +292,13 @@ class Cloudos:
                     workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
                 else:
                     raise ValueError("Unsupported cloud provider")
-                
+
                 return workdir_path
             except Exception as e:
                 # If folders API fails, fall back to logs-based approach
                 print(f"Warning: Could not get shared workdir from folders API: {e}")
                 pass
-        
+
         # Check if logs field exists for fallback approach
         if "logs" in r_json:
             # Get workdir information from logs object using the same pattern as get_job_logs
@@ -314,10 +308,10 @@ class Cloudos:
             prefix_name = cloud_storage["prefix"]
             logs_bucket = logs_obj[container_name]
             logs_path = logs_obj[prefix_name]
-            
+
             # Construct workdir path by replacing '/logs' with '/work' in the logs path
             workdir_path_suffix = logs_path.replace('/logs', '/work')
-            
+
             if cloud_name == "aws":
                 workdir_path = f"s3://{logs_bucket}/{workdir_path_suffix}"
             elif cloud_name == "azure":
@@ -328,7 +322,7 @@ class Cloudos:
                 workdir_path = f"{storage_account_prefix}/{logs_bucket}/{workdir_path_suffix}"
             else:
                 raise ValueError("Unsupported cloud provider")
-            
+
             return workdir_path
         else:
             # Fallback to original folder-based approach for backward compatibility
@@ -365,7 +359,7 @@ class Cloudos:
                 workdir_path = f"{storage_account}/{container_name}/{blob_prefix}"
             else:
                 raise ValueError("Unsupported cloud provider")
-            
+
             return workdir_path
 
     def _handle_job_access_denied(self, job_id, workspace_id, verify=True):
@@ -386,7 +380,7 @@ class Cloudos:
             result = self.get_job_list(workspace_id, last_n_jobs='all', verify=verify)
             jobs = result['jobs']  # Extract jobs list from the dictionary
             job_owner_name = None
-            
+
             for job in jobs:
                 if job.get('_id') == job_id:
                     user_info = job.get('user', {})
@@ -394,7 +388,7 @@ class Cloudos:
                     if not job_owner_name:
                         job_owner_name = user_info.get('email', 'Unknown')
                     break
-            
+
             raise JobAccessDeniedException(job_id, job_owner_name, current_user_name)
         except JobAccessDeniedException:
             # Re-raise the specific exception
@@ -415,7 +409,7 @@ class Cloudos:
         }
         r = self.get_job_status(j_id, workspace_id, verify)
         r_json = r.json()
-        
+
         job_workspace = r_json["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
@@ -467,20 +461,20 @@ class Cloudos:
         job_workspace = req_obj["team"]
         if job_workspace != workspace_id:
             raise ValueError("Workspace provided or configured is different from workspace where the job was executed")
-        
+
         # Check if analysis results have been deleted or scheduled for deletion
         # Similar to workdir check - if analysisResults exists with folderId, check its status
         if "analysisResults" in req_obj and req_obj.get("analysisResults"):
             analysis_results = req_obj["analysisResults"]
             results_folder_id = analysis_results.get("folderId")
-            
+
             if results_folder_id:
                 # Get the actual deletion status from the folders API
                 api_status = None
                 try:
                     folder_response = self.get_folder_deletion_status(results_folder_id, workspace_id, verify)
                     folder_data = json.loads(folder_response.content)
-                    
+
                     # If the API returns the folder, get its status
                     if folder_data and len(folder_data) > 0:
                         api_status = folder_data[0].get("status")
@@ -488,12 +482,12 @@ class Cloudos:
                         # If the folder is not returned, check if deletedBy exists in analysisResults
                         if "deletedBy" in analysis_results:
                             api_status = "scheduledForDeletion"  # Assume scheduled for deletion
-                        
+
                 except Exception:
                     # If we can't get the status, check if deletedBy exists
                     if "deletedBy" in analysis_results:
                         api_status = "scheduledForDeletion"  # Assume scheduled for deletion
-                
+
                 # Build contextually appropriate error message based on status
                 # Only raise error for non-ready statuses (ready means it's available, so no error)
                 if api_status == "deleting":
@@ -513,7 +507,7 @@ class Cloudos:
                     error_msg = "Analysis results have been removed. The results folder is no longer available."
                     raise ValueError(error_msg)
                 # If status is "ready" or None, don't raise error - let the code continue to retrieve the results path
-        
+
         cloud_name, meta, cloud_storage = find_cloud(self.cloudos_url, self.apikey, workspace_id, req_obj["logs"])
         # cont_name
         results_obj = req_obj["results"]
@@ -529,12 +523,12 @@ class Cloudos:
         for item in contents_obj:
             if item["isDir"] and item["name"] == "results":
                 return f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
-        
+
         # Fallback: if no "results" directory found, return the first directory
         for item in contents_obj:
             if item["isDir"]:
                 return f"{scheme}://{storage_account_prefix}{results_container}/{item['path']}"
-        
+
         # If no directories found, raise an error
         raise ValueError("No result directories found for this job")
 
@@ -569,19 +563,19 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         # Query all possible deletion statuses
         params = {
             "status": ["ready", "deleted", "deleting", "scheduledForDeletion", "failedToDelete"],
             "teamId": workspace_id
         }
-        
+
         url = f"{self.cloudos_url}/api/v1/datasets/{folder_id}/items"
         response = retry_requests_get(url, params=params, headers=headers, verify=verify)
-        
+
         if response.status_code >= 400:
             raise BadRequestException(response)
-        
+
         return response
 
     def get_results_deletion_status(self, job_id, workspace_id, verify=True):
@@ -625,24 +619,24 @@ class Cloudos:
         job_data = json.loads(job_status.content)
         job_name = job_data.get("name", job_id)
         project_info = job_data.get("project")
-        
+
         # Extract deletedBy info from analysisResults if available
         analysis_results_deleted_by = None
         if "analysisResults" in job_data and job_data.get("analysisResults"):
             analysis_results_deleted_by = job_data["analysisResults"].get("deletedBy")
-        
+
         if not project_info:
             raise ValueError(f"Could not find project for job '{job_id}'")
-        
+
         # Extract project ID and name from the project info dict
         project_id = project_info.get("_id")
         project_name = project_info.get("name")
-        
+
         if not project_name or not project_id:
             raise ValueError(f"Could not extract project information from job '{job_id}'")
-        
+
         from cloudos_cli.datasets.datasets import Datasets
-        
+
         # Create Datasets object to navigate to the Analysis Results folder
         ds = Datasets(
             cloudos_url=self.cloudos_url,
@@ -652,23 +646,23 @@ class Cloudos:
             project_name=project_name,
             verify=verify
         )
-        
+
         # Get project content to find Analysis Results folder
         try:
             project_content = ds.list_project_content()
         except Exception as e:
             raise ValueError(f"Failed to list project content for project '{project_name}'. {str(e)}")
-        
+
         # Find the Analysis Results folder ID
         analysis_results_id = None
         for folder in project_content.get("folders", []):
             if folder['name'] in ['Analyses Results', 'AnalysesResults']:
                 analysis_results_id = folder['_id']
                 break
-        
+
         if not analysis_results_id:
             raise ValueError(f"Analyses Results folder not found in project '{project_name}'.")
-        
+
         # Get items in Analysis Results folder to find the job's specific results folder
         # The Analysis Results folder contains folders for each job's results
         try:
@@ -676,11 +670,11 @@ class Cloudos:
             content = json.loads(response.content)
         except Exception as e:
             raise ValueError(f"Failed to get items from Analyses Results folder. {str(e)}")
-        
+
         # The API response contains folders and files arrays
         # Find the entry matching our job_id
         job_status_info = None
-        
+
         # Check if it's a dict with folders/files arrays
         if isinstance(content, dict):
             # Check for 'folders' or 'files' keys (common dataset API response format)
@@ -689,17 +683,17 @@ class Cloudos:
                 items_to_search.extend(content['folders'])
             if 'files' in content:
                 items_to_search.extend(content['files'])
-            
+
             # If no folders/files keys, treat dict values as items
             if not items_to_search:
                 items_to_search = list(content.values())
-            
+
             for item in items_to_search:
                 if not isinstance(item, dict):
                     continue
-                
+
                 item_name = item.get("name", "")
-                
+
                 # Match by exact job ID in the item name (format: workflowname-jobid)
                 # The folder name should contain the exact job ID
                 if job_id in item_name:
@@ -709,25 +703,25 @@ class Cloudos:
             for item in content:
                 if not isinstance(item, dict):
                     continue
-                
+
                 item_name = item.get("name", "")
-                
+
                 # Match by exact job ID in the item name
                 if job_id in item_name:
                     job_status_info = item
                     break
-        
+
         if not job_status_info:
             raise ValueError(
                 f"Results folder for job '{job_name}' (ID: {job_id}) not found in Analyses Results.\n"
                 f"This may indicate that the results have been deleted or are scheduled for deletion."
             )
-        
+
         # Merge the deletedBy info from job data with the folder info
         # The deletedBy from analysisResults is more reliable than folder's user field
         if analysis_results_deleted_by:
             job_status_info["deletedBy"] = analysis_results_deleted_by
-        
+
         return {
             "job_id": job_id,
             "job_name": job_name,
@@ -768,20 +762,20 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         # Query with all possible deletion statuses
         params = {
             "id": folder_id,
             "status": ["ready", "deleted", "deleting", "scheduledForDeletion", "failedToDelete"],
             "teamId": workspace_id
         }
-        
+
         url = f"{self.cloudos_url}/api/v1/folders/"
         response = retry_requests_get(url, params=params, headers=headers, verify=verify)
-        
+
         if response.status_code >= 400:
             raise BadRequestException(response)
-        
+
         return response
 
     def get_workdir_deletion_status(self, job_id, workspace_id, verify=True):
@@ -825,47 +819,47 @@ class Cloudos:
         job_status = self.get_job_status(job_id, workspace_id, verify)
         job_data = json.loads(job_status.content)
         job_name = job_data.get("name", job_id)
-        
+
         # Try to get the workdir folder ID from workDirectory.folderId first (new format)
         # If not available, fall back to resumeWorkDir (old format)
         workdir_folder_id = None
         workdir_deleted_by = None
-        
+
         if "workDirectory" in job_data and job_data.get("workDirectory"):
             workdir_folder_id = job_data["workDirectory"].get("folderId")
             # Get deletedBy info if available (contains user who scheduled deletion)
             workdir_deleted_by = job_data["workDirectory"].get("deletedBy")
-        
+
         if not workdir_folder_id and "resumeWorkDir" in job_data:
             workdir_folder_id = job_data.get("resumeWorkDir")
-        
+
         if not workdir_folder_id:
             raise ValueError(
                 "Working directory is not available for this job. "
                 "This may be because the analysis was run without resumable mode enabled, "
                 "or because intermediate results have been removed."
             )
-        
+
         # Use the folders API to get the working directory status
         response = self.get_folder_deletion_status(workdir_folder_id, workspace_id, verify)
-        
+
         # Parse the response
         content = json.loads(response.content)
-        
+
         # The API returns an array with the folder info
         if not content or len(content) == 0:
             raise ValueError(
                 f"Working directory for job '{job_name}' (ID: {job_id}) not found.\n"
                 f"This may indicate that the working directory has been deleted or is scheduled for deletion."
             )
-        
+
         workdir_info = content[0]  # Get the first (and should be only) result
-        
+
         # Merge the deletedBy info from job data with the folder info
         # The deletedBy from workDirectory is more reliable than folder's user field
         if workdir_deleted_by:
             workdir_info["deletedBy"] = workdir_deleted_by
-        
+
         return {
             "job_id": job_id,
             "job_name": job_name,
@@ -937,7 +931,7 @@ class Cloudos:
                                              params=search_params, headers=search_headers, verify=verify)
             if user_search_r.status_code >= 400:
                 raise ValueError(f"Error searching for user '{filter_owner}'")
-            
+
             user_search_content = user_search_r.json()
             user_items = user_search_content.get('items', [])
             if user_items and len(user_items) > 0:
@@ -946,7 +940,7 @@ class Cloudos:
                     if user.get("username") == filter_owner or user.get("name") == filter_owner:
                         user_match = user
                         break
-                
+
                 if user_match:
                     return user_match.get("id")
                 else:
@@ -1199,7 +1193,7 @@ class Cloudos:
 
             content = r.json()
             page_jobs = content.get('jobs', [])
-            
+
             # Capture pagination metadata
             last_pagination_metadata = content.get('paginationMetadata', None)
 
@@ -1901,7 +1895,7 @@ class Cloudos:
             "Content-type": "application/json",
             "apikey": apikey
         }
-        
+
         # Create the payload with current timestamp in ISO format (UTC)
         current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         payload = {
@@ -1913,7 +1907,7 @@ class Cloudos:
                 }
             }
         }
-        
+
         r = retry_requests_put(
             f"{cloudos_url}/api/v1/jobs?teamId={workspace_id}",
             headers=headers,
@@ -2001,20 +1995,20 @@ class Cloudos:
         valid_jobs = []
         already_processed = []
         invalid_jobs = {}
-        
+
         for job_id in job_ids:
             try:
                 # Check if job exists in archived list
                 archived_jobs = self.get_job_list(workspace_id, archived=True, filter_job_id=job_id, page_size=1, verify=verify)
                 is_archived = len(archived_jobs.get('jobs', [])) > 0
-                
+
                 if not is_archived:
                     # Check if job exists in unarchived list to verify it's a valid job
                     unarchived_jobs = self.get_job_list(workspace_id, archived=False, filter_job_id=job_id, page_size=1, verify=verify)
                     if len(unarchived_jobs.get('jobs', [])) == 0:
                         # Job doesn't exist in either list
                         raise Exception("Job not found")
-                
+
                 if target_archived_state:
                     # Archiving operation: we want jobs that are NOT archived
                     if is_archived:
@@ -2046,7 +2040,7 @@ class Cloudos:
             except Exception as e:
                 # Job not found or other error - collect and continue processing
                 invalid_jobs[job_id] = str(e)
-        
+
         return {
             'valid_jobs': valid_jobs,
             'already_processed': already_processed,

@@ -24,19 +24,19 @@ class TestRelatedAnalysesFunctions:
                 "computeCostSpent": 1250
             }
         }
-        
+
         # Create a temporary file path
         output_file = tmp_path / "test_output.json"
-        
+
         # Save data
         save_as_json(test_data, str(output_file))
-        
+
         # Verify file was created and contains correct data
         assert output_file.exists()
-        
+
         with open(output_file, 'r') as f:
             loaded_data = json.load(f)
-        
+
         assert loaded_data == test_data
         assert loaded_data["job123"]["name"] == "Test Job"
         assert loaded_data["job123"]["status"] == "completed"
@@ -78,15 +78,15 @@ class TestRelatedAnalysesFunctions:
                 "computeCostSpent": 1000
             }
         }
-        
+
         output_file = tmp_path / "multiple_jobs.json"
         save_as_json(test_data, str(output_file))
-        
+
         assert output_file.exists()
-        
+
         with open(output_file, 'r') as f:
             loaded_data = json.load(f)
-        
+
         assert len(loaded_data) == 3
         assert "job1" in loaded_data
         assert "job2" in loaded_data
@@ -109,7 +109,7 @@ class TestRelatedAnalysesFunctions:
                 "computeCostSpent": 1250
             }
         }
-        
+
         # Should not raise any exceptions
         try:
             save_as_stdout(test_data, "parent_job_id")
@@ -123,7 +123,7 @@ class TestRelatedAnalysesFunctions:
         Test displaying empty related analyses data
         """
         test_data = {}
-        
+
         # Should not raise any exceptions
         try:
             save_as_stdout(test_data, "parent_job_id")
@@ -148,7 +148,7 @@ class TestRelatedAnalysesFunctions:
                 "computeCostSpent": None  # No cost yet
             }
         }
-        
+
         # Should not raise any exceptions
         try:
             save_as_stdout(test_data, "parent_job_id")
@@ -174,7 +174,7 @@ class TestRelatedAnalysesFunctions:
                 "runTime": 100.0 + i,
                 "computeCostSpent": 500 + i * 10
             }
-        
+
         # Should not raise any exceptions and should handle pagination
         try:
             save_as_stdout(test_data, "parent_job_id")
@@ -191,14 +191,14 @@ class TestRelatedAnalysesFunctions:
         """
         test_data = {}
         output_file = tmp_path / "empty_output.json"
-        
+
         save_as_json(test_data, str(output_file))
-        
+
         assert output_file.exists()
-        
+
         with open(output_file, 'r') as f:
             loaded_data = json.load(f)
-        
+
         assert loaded_data == {}
         assert len(loaded_data) == 0
 

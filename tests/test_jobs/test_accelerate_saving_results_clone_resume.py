@@ -3,16 +3,13 @@
 This test file provides testing for the --accelerate-saving-results flag functionality
 in the job resume command of CloudOS CLI.
 """
-import pytest
-from click.testing import CliRunner
-from cloudos_cli.__main__ import clone_resume
+from cloudos_cli.jobs.cli import clone_resume
 
 
 def test_resume_accelerate_saving_results_flag_is_boolean():
     """
     Test that --accelerate-saving-results is properly defined as a boolean flag in resume command
     """
-    from cloudos_cli.__main__ import clone_resume
 
     # Get the accelerate-saving-results option from the command
     accelerate_saving_results_option = None
@@ -30,7 +27,6 @@ def test_resume_accelerate_saving_results_flag_definition():
     """
     Test that the flag has the correct help text definition in resume command
     """
-    from cloudos_cli.__main__ import clone_resume
 
     # Get the accelerate-saving-results option from the command
     accelerate_saving_results_option = None

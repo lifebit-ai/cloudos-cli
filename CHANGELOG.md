@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.79.0 (2026-01-28)
+
+### Patch
+
+- Refactor `__main__.py` to move commands into separate files for better organization
+- Improve CI/CD pipeline to test additional functionalities and use dynamically generated job IDs from tests instead of predefined values
+
 ## v2.78.0 (2026-01-13)
 
 ### Feat

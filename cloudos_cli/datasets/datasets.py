@@ -362,7 +362,7 @@ class Datasets(Cloudos):
                             "files": [file_item],
                             "folders": []
                         }
-                
+
                 # Also check in contents array (for different API response formats)
                 for item in folder_content.get("contents", []):
                     if item["name"] == job_name and not item.get("isDir", True):
