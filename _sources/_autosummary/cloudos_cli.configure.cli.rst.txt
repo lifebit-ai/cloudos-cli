@@ -1,0 +1,6 @@
+cloudos\_cli.configure.cli
+==========================
+
+.. automodule:: cloudos_cli.configure.cli
+
+   

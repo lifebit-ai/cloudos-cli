@@ -1,0 +1,6 @@
+cloudos\_cli.workflows.cli
+==========================
+
+.. automodule:: cloudos_cli.workflows.cli
+
+   

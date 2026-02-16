@@ -1,0 +1,15 @@
+cloudos\_cli.utils.cli\_helpers
+===============================
+
+.. automodule:: cloudos_cli.utils.cli_helpers
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      custom_exception_handler
+      get_debug_mode
+      pass_debug_to_subcommands
+      setup_debug
+   

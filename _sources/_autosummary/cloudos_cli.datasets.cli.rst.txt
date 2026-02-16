@@ -1,0 +1,6 @@
+cloudos\_cli.datasets.cli
+=========================
+
+.. automodule:: cloudos_cli.datasets.cli
+
+   

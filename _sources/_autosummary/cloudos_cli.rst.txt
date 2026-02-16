@@ -10,15 +10,20 @@
    :toctree:
    :recursive:
 
+   bash
    clos
    configure
+   constants
    cost
+   cromwell
    datasets
    import_wf
    jobs
    link
    logging
    procurement
+   projects
    queue
    related_analyses
    utils
+   workflows

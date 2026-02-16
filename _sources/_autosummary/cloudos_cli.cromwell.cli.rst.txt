@@ -1,0 +1,6 @@
+cloudos\_cli.cromwell.cli
+=========================
+
+.. automodule:: cloudos_cli.cromwell.cli
+
+   

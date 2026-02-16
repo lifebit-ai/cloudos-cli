@@ -1,0 +1,6 @@
+cloudos\_cli.jobs.cli
+=====================
+
+.. automodule:: cloudos_cli.jobs.cli
+
+   

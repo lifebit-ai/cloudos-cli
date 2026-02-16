@@ -1,0 +1,13 @@
+cloudos\_cli.cromwell
+=====================
+
+.. automodule:: cloudos_cli.cromwell
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cli

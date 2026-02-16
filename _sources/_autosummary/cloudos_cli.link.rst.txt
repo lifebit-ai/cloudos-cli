@@ -10,4 +10,5 @@ cloudos\_cli.link
    :toctree:
    :recursive:
 
+   cli
    link

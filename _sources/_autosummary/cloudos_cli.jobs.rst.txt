@@ -10,4 +10,5 @@ cloudos\_cli.jobs
    :toctree:
    :recursive:
 
+   cli
    job

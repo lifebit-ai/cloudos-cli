@@ -10,4 +10,5 @@ cloudos\_cli.queue
    :toctree:
    :recursive:
 
+   cli
    queue

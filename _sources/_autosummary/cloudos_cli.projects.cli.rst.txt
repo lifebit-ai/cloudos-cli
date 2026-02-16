@@ -1,0 +1,6 @@
+cloudos\_cli.projects.cli
+=========================
+
+.. automodule:: cloudos_cli.projects.cli
+
+   

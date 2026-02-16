@@ -11,6 +11,7 @@ cloudos\_cli.utils
    :recursive:
 
    array_job
+   cli_helpers
    cloud
    details
    errors

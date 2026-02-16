@@ -1,0 +1,6 @@
+cloudos\_cli.bash.cli
+=====================
+
+.. automodule:: cloudos_cli.bash.cli
+
+   

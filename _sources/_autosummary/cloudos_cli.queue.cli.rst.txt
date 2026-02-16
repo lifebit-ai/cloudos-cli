@@ -1,0 +1,6 @@
+cloudos\_cli.queue.cli
+======================
+
+.. automodule:: cloudos_cli.queue.cli
+
+   

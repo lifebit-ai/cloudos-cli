@@ -1,0 +1,6 @@
+cloudos\_cli.constants
+======================
+
+.. automodule:: cloudos_cli.constants
+
+   

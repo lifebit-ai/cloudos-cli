@@ -1,0 +1,6 @@
+cloudos\_cli.procurement.cli
+============================
+
+.. automodule:: cloudos_cli.procurement.cli
+
+   

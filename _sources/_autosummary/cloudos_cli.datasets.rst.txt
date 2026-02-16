@@ -10,4 +10,5 @@ cloudos\_cli.datasets
    :toctree:
    :recursive:
 
+   cli
    datasets
