@@ -9,6 +9,7 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get, retry_requests_delete
 from pathlib import Path
+from urllib.parse import urlparse
 import base64
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
@@ -174,8 +175,73 @@ class Job(Cloudos):
         else:
             raise ValueError(f'No {name} element in {resource} was found')
 
+    def build_parameters_file_payload(self, params_file):
+        """Build the parametersFile payload for a params file path."""
+        if params_file is None:
+            return None
+        if isinstance(params_file, (list, tuple)):
+            if len(params_file) != 1:
+                raise ValueError('Please, provide a single file for --params-file.')
+            params_file = params_file[0]
+
+        ext = os.path.splitext(params_file)[1].lower()
+        allowed_ext = {'.json', '.yaml', '.yml'}
+        if ext not in allowed_ext:
+            raise ValueError('Please, provide a .json or .yaml file for --params-file.')
+
+        if params_file.startswith('s3://'):
+            parsed = urlparse(params_file)
+            bucket = parsed.netloc
+            s3_key = parsed.path.lstrip('/')
+            if not bucket or not s3_key:
+                raise ValueError('Invalid S3 URL. Please, provide a full s3://bucket/key path.')
+            name = s3_key.rstrip('/').split('/')[-1]
+            return {
+                "parametersFile": {
+                    "dataItemEmbedded": {
+                        "data": {
+                            "name": name,
+                            "s3BucketName": bucket,
+                            "s3ObjectKey": s3_key
+                        },
+                        "type": "S3File"
+                    }
+                }
+            }
+
+        if not self.project_name:
+            raise ValueError('Please, provide --project-name to resolve --params-file paths.')
+
+        normalized_path = params_file.lstrip('/')
+        allowed_prefixes = ('Data', 'Analyses Results', 'Cohorts')
+        if not normalized_path.startswith(allowed_prefixes):
+            raise ValueError('Params file path must start with Data, Analyses Results, or Cohorts.')
+
+        command_path = Path(normalized_path)
+        command_dir = str(command_path.parent)
+        command_name = command_path.name
+        file_id = get_file_or_folder_id(
+            self.cloudos_url,
+            self.apikey,
+            self.workspace_id,
+            self.project_name,
+            self.verify,
+            command_dir,
+            command_name,
+            is_file=True
+        )
+        return {
+            "parametersFile": {
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{file_id}"
+                }
+            }
+        }
+
     def convert_nextflow_to_json(self,
                                  job_config,
+                                 params_file,
                                  parameter,
                                  array_parameter,
                                  array_file_header,
@@ -217,6 +283,8 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        params_file : string
+            S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
@@ -424,6 +492,9 @@ class Job(Cloudos):
             "usesFusionFileSystem": use_mountpoints,
             "accelerateSavingResults": accelerate_saving_results
         }
+        params_file_payload = self.build_parameters_file_payload(params_file)
+        if params_file_payload is not None:
+            params.update(params_file_payload)
         if workflow_type != 'docker':
             params["nextflowVersion"] = nextflow_version
         if execution_platform != 'hpc':
@@ -473,6 +544,7 @@ class Job(Cloudos):
 
     def send_job(self,
                  job_config=None,
+                 params_file=None,
                  parameter=(),
                  array_parameter=(),
                  array_file_header=None,
@@ -513,6 +585,8 @@ class Job(Cloudos):
         ----------
         job_config : string
             Path to a nextflow.config file with parameters scope.
+        params_file : string
+            S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple
             Tuple of strings indicating the parameters to pass to the pipeline call.
             They are in the following form: ('param1=param1val', 'param2=param2val', ...)
@@ -609,6 +683,7 @@ class Job(Cloudos):
             "apikey": apikey
         }
         params = self.convert_nextflow_to_json(job_config,
+                                               params_file,
                                                parameter,
                                                array_parameter,
                                                array_file_header,

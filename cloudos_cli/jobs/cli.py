@@ -64,6 +64,10 @@ def job():
 @click.option('--job-config',
               help=('A config file similar to a nextflow.config file, ' +
                     'but only with the parameters to use with your job.'))
+@click.option('--params-file',
+              help=('A file containing the parameters to pass to the job call. ' +
+                    'It should be a .json or .yaml file with a dictionary structure ' +
+                    'where keys are parameter names and values are parameter values.'))
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -199,6 +203,7 @@ def run(ctx,
         workflow_name,
         last,
         job_config,
+        params_file,
         parameter,
         git_commit,
         git_tag,
@@ -400,6 +405,7 @@ def run(ctx,
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
     j_id = j.send_job(job_config=job_config,
+                      params_file=params_file,
                       parameter=parameter,
                       is_module=is_module,
                       git_commit=git_commit,
