@@ -67,7 +67,9 @@ def job():
 @click.option('--params-file',
               help=('A file containing the parameters to pass to the job call. ' +
                     'It should be a .json or .yaml file with a dictionary structure ' +
-                    'where keys are parameter names and values are parameter values.'))
+                    'where keys are parameter names and values are parameter values. ' +
+                    'This expects an S3 URI file path or a File Explorer relative path ' +
+                    '(e.g., Data/params_file.json) and does not work with local files.'))
 @click.option('-p',
               '--parameter',
               multiple=True,
