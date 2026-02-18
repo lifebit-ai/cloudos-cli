@@ -434,7 +434,13 @@
 <li><p><a class="reference internal" href="#list-jobs"><span class="xref myst">List Jobs</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-results"><span class="xref myst">Get Job Results</span></a></p></li>
 <li><p><a class="reference internal" href="#clone-or-resume-job"><span class="xref myst">Clone or Resume Job</span></a></p></li>
-<li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p></li>
+<li><p><a class="reference internal" href="#abort-jobs"><span class="xref myst">Abort Jobs</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#basic-usage"><span class="xref myst">Basic Usage</span></a></p></li>
+<li><p><a class="reference internal" href="#force-abort"><span class="xref myst">Force Abort</span></a></p></li>
+<li><p><a class="reference internal" href="#additional-options"><span class="xref myst">Additional Options</span></a></p></li>
+</ul>
+</li>
 <li><p><a class="reference internal" href="#get-job-details"><span class="xref myst">Get Job Details</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-workdir"><span class="xref myst">Get Job Workdir</span></a></p></li>
 <li><p><a class="reference internal" href="#get-job-logs"><span class="xref myst">Get Job Logs</span></a></p></li>
@@ -467,11 +473,6 @@
 <li><p><a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">Use multiple projects for files in <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option</span></a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#link"><span class="std std-ref">Link</span></a></p>
-<ul>
-<li><p><a class="reference internal" href="#link-folders-to-interactive-analysis"><span class="xref myst">Link Folders to Interactive Analysis</span></a></p></li>
-</ul>
-</li>
 <li><p><a class="reference internal" href="#datasets"><span class="std std-ref">Datasets</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#list-files"><span class="xref myst">List Files</span></a></p></li>
@@ -481,6 +482,11 @@
 <li><p><a class="reference internal" href="#link-s3-folders-to-interactive-analysis"><span class="xref myst">Link S3 Folders to Interactive Analysis</span></a></p></li>
 <li><p><a class="reference internal" href="#create-folder"><span class="xref myst">Create Folder</span></a></p></li>
 <li><p><a class="reference internal" href="#remove-files-or-folders"><span class="xref myst">Remove Files or Folders</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#link"><span class="std std-ref">Link</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#link-folders-to-interactive-analysis"><span class="xref myst">Link Folders to Interactive Analysis</span></a></p></li>
 </ul>
 </li>
 <li><p><a class="reference internal" href="#procurement"><span class="std std-ref">Procurement</span></a></p>
@@ -868,8 +874,37 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <span class="w">  </span>--resumable
 </pre></div>
 </div>
+<p><strong>Params file</strong></p>
+<p>You can pass a Nextflow-style params file using <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> (only JSON or YAML):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--params-file<span class="w"> </span>Data/params.json<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resumable
+</pre></div>
+</div>
+<p>Example JSON params file:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;reads&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;genome&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;annot&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Example YAML params file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">reads</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">s3://lifebit-featured-datasets/pipelines/rnatoy-data</span>
+<span class="nt">genome</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa</span>
+<span class="nt">annot</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff</span>
+</pre></div>
+</div>
 <blockquote>
-<div><p>NOTE: options <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> and <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> are completely compatible and complementary, so you can use a <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> and add additional parameters using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> in the same call.</p>
+<div><p>NOTE: options <code class="docutils literal notranslate"><span class="pre">--job-config</span></code>, <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> and <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> are completely compatible and complementary, so you can use a <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> or <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> and add additional parameters using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> in the same call.</p>
+</div></blockquote>
+<blockquote>
+<div><p>NOTE: when using <code class="docutils literal notranslate"><span class="pre">--params-file</span></code>, the value must be an S3 URI or a File Explorer relative path (e.g., <code class="docutils literal notranslate"><span class="pre">Data/file.json</span></code>). Local file paths are not supported.</p>
 </div></blockquote>
 <p>If everything went well, you should see something like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>

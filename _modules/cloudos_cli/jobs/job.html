@@ -380,6 +380,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadRequestException</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span><span class="p">,</span> <span class="n">retry_requests_delete</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_pattern</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span><span class="p">,</span> <span class="n">extract_project</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -550,10 +551,78 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> element in </span><span class="si">{</span><span class="n">resource</span><span class="si">}</span><span class="s1"> was found&#39;</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Job.build_parameters_file_payload">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.build_parameters_file_payload">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_parameters_file_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the parametersFile payload for a params file path.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">params_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params_file</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a single file for --params-file.&#39;</span><span class="p">)</span>
+            <span class="n">params_file</span> <span class="o">=</span> <span class="n">params_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">params_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">allowed_ext</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;.json&#39;</span><span class="p">,</span> <span class="s1">&#39;.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;.yml&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_ext</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a .json or .yaml file for --params-file.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">params_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">):</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span>
+            <span class="n">bucket</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span>
+            <span class="n">s3_key</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">s3_key</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid S3 URL. Please, provide a full s3://bucket/key path.&#39;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">s3_key</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;parametersFile&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;dataItemEmbedded&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                            <span class="s2">&quot;s3BucketName&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
+                            <span class="s2">&quot;s3ObjectKey&quot;</span><span class="p">:</span> <span class="n">s3_key</span>
+                        <span class="p">},</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;S3File&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide --project-name to resolve --params-file paths.&#39;</span><span class="p">)</span>
+
+        <span class="n">normalized_path</span> <span class="o">=</span> <span class="n">params_file</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">allowed_prefixes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Analyses Results&#39;</span><span class="p">,</span> <span class="s1">&#39;Cohorts&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">normalized_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">allowed_prefixes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Params file path must start with Data, Analyses Results, or Cohorts.&#39;</span><span class="p">)</span>
+
+        <span class="n">command_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">normalized_path</span><span class="p">)</span>
+        <span class="n">command_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">command_name</span> <span class="o">=</span> <span class="n">command_path</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">file_id</span> <span class="o">=</span> <span class="n">get_file_or_folder_id</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+            <span class="n">command_dir</span><span class="p">,</span>
+            <span class="n">command_name</span><span class="p">,</span>
+            <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;parametersFile&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;File&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+
+
 <div class="viewcode-block" id="Job.convert_nextflow_to_json">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.convert_nextflow_to_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">convert_nextflow_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                  <span class="n">job_config</span><span class="p">,</span>
+                                 <span class="n">params_file</span><span class="p">,</span>
                                  <span class="n">parameter</span><span class="p">,</span>
                                  <span class="n">array_parameter</span><span class="p">,</span>
                                  <span class="n">array_file_header</span><span class="p">,</span>
@@ -595,6 +664,8 @@
 <span class="sd">        ----------</span>
 <span class="sd">        job_config : string</span>
 <span class="sd">            Path to a nextflow.config file with parameters scope.</span>
+<span class="sd">        params_file : string</span>
+<span class="sd">            S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.</span>
 <span class="sd">        parameter : tuple</span>
 <span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call.</span>
 <span class="sd">            They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
@@ -802,6 +873,9 @@
             <span class="s2">&quot;usesFusionFileSystem&quot;</span><span class="p">:</span> <span class="n">use_mountpoints</span><span class="p">,</span>
             <span class="s2">&quot;accelerateSavingResults&quot;</span><span class="p">:</span> <span class="n">accelerate_saving_results</span>
         <span class="p">}</span>
+        <span class="n">params_file_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_parameters_file_payload</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params_file_payload</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params_file_payload</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">!=</span> <span class="s1">&#39;docker&#39;</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nextflowVersion&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
         <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">&#39;hpc&#39;</span><span class="p">:</span>
@@ -854,6 +928,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.send_job">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">send_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">job_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">params_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">parameter</span><span class="o">=</span><span class="p">(),</span>
                  <span class="n">array_parameter</span><span class="o">=</span><span class="p">(),</span>
                  <span class="n">array_file_header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -894,6 +969,8 @@
 <span class="sd">        ----------</span>
 <span class="sd">        job_config : string</span>
 <span class="sd">            Path to a nextflow.config file with parameters scope.</span>
+<span class="sd">        params_file : string</span>
+<span class="sd">            S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.</span>
 <span class="sd">        parameter : tuple</span>
 <span class="sd">            Tuple of strings indicating the parameters to pass to the pipeline call.</span>
 <span class="sd">            They are in the following form: (&#39;param1=param1val&#39;, &#39;param2=param2val&#39;, ...)</span>
@@ -990,6 +1067,7 @@
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="n">apikey</span>
         <span class="p">}</span>
         <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_nextflow_to_json</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span>
+                                               <span class="n">params_file</span><span class="p">,</span>
                                                <span class="n">parameter</span><span class="p">,</span>
                                                <span class="n">array_parameter</span><span class="p">,</span>
                                                <span class="n">array_file_header</span><span class="p">,</span>

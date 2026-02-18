@@ -2846,6 +2846,12 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-job-run-params-file">
+<span class="sig-name descname"><span class="pre">--params-file</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;params_file&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-params-file" title="Link to this definition">¶</a></dt>
+<dd><p>A file containing the parameters to pass to the job call. It should be a .json or .yaml file with a dictionary structure where keys are parameter names and values are parameter values. This expects an S3 URI file path or a File Explorer relative path (e.g., Data/params_file.json) and does not work with local files.</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-p">
 <span id="cmdoption-cloudos-job-run-parameter"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--parameter</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;parameter&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-p" title="Link to this definition">¶</a></dt>
 <dd><p>A single parameter to pass to the job call. It should be in the following form: parameter_name=parameter_value. E.g.: -p input=s3://path_to_my_file. You can use this option as many times as parameters you want to include.</p>
