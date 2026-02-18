@@ -39,6 +39,9 @@ Python package for interacting with CloudOS
       - [Get Job Results](#get-job-results)
       - [Clone or Resume Job](#clone-or-resume-job)
       - [Abort Jobs](#abort-jobs)
+        - [Basic Usage](#basic-usage)
+        - [Force Abort](#force-abort)
+        - [Additional Options](#additional-options)
       - [Get Job Details](#get-job-details)
       - [Get Job Workdir](#get-job-workdir)
       - [Get Job Logs](#get-job-logs)
@@ -60,8 +63,6 @@ Python package for interacting with CloudOS
           - [Custom Script Path](#custom-script-path)
           - [Custom Script Project](#custom-script-project)
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
-    - [Link](#link)
-      - [Link Folders to Interactive Analysis](#link-folders-to-interactive-analysis)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -70,6 +71,8 @@ Python package for interacting with CloudOS
       - [Link S3 Folders to Interactive Analysis](#link-s3-folders-to-interactive-analysis)
       - [Create Folder](#create-folder)
       - [Remove Files or Folders](#remove-files-or-folders)
+    - [Link](#link)
+      - [Link Folders to Interactive Analysis](#link-folders-to-interactive-analysis)
     - [Procurement](#procurement)
       - [List Procurement Images](#list-procurement-images)
       - [Set Procurement Organization Image](#set-procurement-organization-image)
@@ -504,7 +507,42 @@ cloudos job run \
   --resumable
 ```
 
-> NOTE: options `--job-config` and `--parameter` are completely compatible and complementary, so you can use a `--job-config` and add additional parameters using `--parameter` in the same call.
+**Params file**
+
+You can pass a Nextflow-style params file using `--params-file` (only JSON or YAML):
+
+```bash
+cloudos job run \
+  --profile my_profile \
+  --workflow-name rnatoy \
+  --params-file Data/params.json \
+  --resumable
+```
+
+Example JSON params file:
+
+```json
+{
+  "reads": "s3://lifebit-featured-datasets/pipelines/rnatoy-data",
+  "genome": "s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa",
+  "annot": "s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff"
+}
+```
+
+Example YAML params file:
+
+```yaml
+reads:
+  s3://lifebit-featured-datasets/pipelines/rnatoy-data
+genome:
+  s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa
+annot:
+  s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
+```
+
+> NOTE: options `--job-config`, `--parameter` and `--params-file` are completely compatible and complementary, so you can use a `--job-config` or `--params-file` and add additional parameters using `--parameter` in the same call.
+
+> NOTE: when using `--params-file`, the value must be an S3 URI or a File Explorer relative path (e.g., `Data/file.json`). Local file paths are not supported.
 
 If everything went well, you should see something like:
 

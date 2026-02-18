@@ -100,7 +100,7 @@ def test_get_array_file_columns():
             s3_object_key_b64 = base64.b64encode(s3_object_key.encode()).decode()
             break
     else:
-        raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{project_name}".')
+        raise ValueError(f'File "{file_name}" not found in the "Data" folder of the project "{PROJECT_NAME}".')
 
     url = (
         f"{CLOUDOS_URL}/api/v1/jobs/array-file/metadata"

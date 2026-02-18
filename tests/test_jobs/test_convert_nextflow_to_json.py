@@ -8,6 +8,7 @@ actual_json_file = "tests/test_data/convert_nextflow_to_json_params.json"
 param_dict = {
     "config": "cloudos_cli/examples/rnatoy.config",
     "parameter": (),
+    "params_file": None,
     "array_parameter": (),
     "array_file_header": None,
     "is_module": False,
@@ -46,8 +47,19 @@ param_dict = {
 
 
 def test_convert_nextflow_to_json_output_correct():
-    job_json = Job.convert_nextflow_to_json(
-        1, param_dict["config"],
+    job = Job(
+        "https://cloudos.example",
+        "test_api_key",
+        None,
+        "workspace_id",
+        "project",
+        "workflow",
+        project_id=param_dict["project_id"],
+        workflow_id=param_dict["workflow_id"]
+    )
+    job_json = job.convert_nextflow_to_json(
+        param_dict["config"],
+        param_dict["params_file"],
         parameter=param_dict["parameter"],
         array_parameter=param_dict["array_parameter"],
         array_file_header=param_dict["array_file_header"],
@@ -92,8 +104,19 @@ def test_convert_nextflow_to_json_output_correct():
 def test_convert_nextflow_to_json_badly_formed_config():
     no_equals_config = "tests/test_data/wrong_params.config"
     with pytest.raises(ValueError) as excinfo:
-        Job.convert_nextflow_to_json(
-            1, no_equals_config,
+        job = Job(
+            "https://cloudos.example",
+            "test_api_key",
+            None,
+            "workspace_id",
+            "project",
+            "workflow",
+            project_id=param_dict["project_id"],
+            workflow_id=param_dict["workflow_id"]
+        )
+        job.convert_nextflow_to_json(
+            no_equals_config,
+            param_dict["params_file"],
             parameter=param_dict["parameter"],
             array_parameter=param_dict["array_parameter"],
             array_file_header=param_dict["array_file_header"],
@@ -135,3 +158,59 @@ def test_convert_nextflow_to_json_badly_formed_config():
             tests/test_data/wrong_params.config\
             using the \'=\' as spacer.\
             E.g: name = my_name".replace("           ", "") in str(excinfo.value)
+
+
+def test_params_file_payload_s3():
+    job = Job(
+        "https://cloudos.example",
+        "test_api_key",
+        None,
+        "workspace_id",
+        "project",
+        "workflow",
+        project_id=param_dict["project_id"],
+        workflow_id=param_dict["workflow_id"]
+    )
+    payload = job.build_parameters_file_payload("s3://my-bucket/path/to/params.json")
+    assert payload == {
+        "parametersFile": {
+            "dataItemEmbedded": {
+                "data": {
+                    "name": "params.json",
+                    "s3BucketName": "my-bucket",
+                    "s3ObjectKey": "path/to/params.json"
+                },
+                "type": "S3File"
+            }
+        }
+    }
+
+
+def test_params_file_payload_file_explorer(monkeypatch):
+    job = Job(
+        "https://cloudos.example",
+        "test_api_key",
+        None,
+        "workspace_id",
+        "project",
+        "workflow",
+        project_id=param_dict["project_id"],
+        workflow_id=param_dict["workflow_id"]
+    )
+
+    def fake_get_file_or_folder_id(*args, **kwargs):
+        return "file-123"
+
+    monkeypatch.setattr(
+        "cloudos_cli.jobs.job.get_file_or_folder_id",
+        fake_get_file_or_folder_id
+    )
+    payload = job.build_parameters_file_payload("Data/params-files/run160226.json")
+    assert payload == {
+        "parametersFile": {
+            "dataItem": {
+                "kind": "File",
+                "item": "file-123"
+            }
+        }
+    }

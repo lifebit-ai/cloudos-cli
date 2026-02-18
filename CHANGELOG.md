@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.80.0 (2026-02-16)
+
+### Feat
+
+- Adds new parameter `--params-file` for `job run` that supports .json/.yaml/.yml extensions
+
 ## v2.79.0 (2026-01-28)
 
 ### Patch
