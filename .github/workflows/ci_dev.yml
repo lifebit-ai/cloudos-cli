@@ -51,7 +51,7 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
@@ -75,7 +75,7 @@ jobs:
         pip install -e .
     - name: Test job list filtering
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
@@ -109,7 +109,7 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
@@ -134,7 +134,7 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
@@ -159,7 +159,7 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
@@ -183,7 +183,7 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
@@ -207,7 +207,7 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
@@ -234,7 +234,7 @@ jobs:
     - name: Run tests
       id: get-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
@@ -272,7 +272,7 @@ jobs:
     - name: Resume completed job
       id: get-resumed-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
@@ -305,7 +305,7 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV_DEV }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
@@ -868,7 +868,7 @@ jobs:
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           PROJECT_NAME: "cloudos-cli-tests"
           WORKFLOW: "GH-rnatoy"
-          PARAMS_FILE: "cloudos_cli/examples/rnatoy_params.json"
+          PARAMS_FILE: "Data/rnatoy_params.json"
           JOB_NAME_BASE: "cloudos_cli_CI_test_params_file"
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.number }}
