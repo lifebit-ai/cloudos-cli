@@ -692,7 +692,7 @@ jobs:
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         run: |
           cloudos job results --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume_az.outputs.job_id }}
-  params_file_dev:
+  params_file_az:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -710,8 +710,8 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
-          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           PROJECT_NAME: "cloudos-cli-tests"
           WORKFLOW: "GH-rnatoy"
