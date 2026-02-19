@@ -729,4 +729,5 @@ jobs:
             --job-name "$JOB_NAME_BASE|GitHubCommit:${COMMIT_HASH:0:6}|PR-NUMBER:$PR_NUMBER" \
             --instance-type m4.xlarge \
             --params-file "$PARAMS_FILE" \
+            --execution-platform "azure" \
             --wait-completion
