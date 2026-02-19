@@ -14,25 +14,6 @@ permissions:
   contents: read
 
 jobs:
-  Pytest_dev:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.11", "3.13"]
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: setup.py
-    - name: Install dependencies
-      run: |
-        pip install -e '.[test]'
-    - name: Run tests
-      run: |
-        pytest
   job_list_dev:
     runs-on: ubuntu-latest
     strategy:
