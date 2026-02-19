@@ -241,8 +241,8 @@ jobs:
         WORKFLOW: "GH-rnatoy"
         JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test"
-        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        PR_NUMBER: ${{ github.event.number }}
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
         INSTANCE_TYPE: "m4.xlarge"
       run: |
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
@@ -481,8 +481,8 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "plink2"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job"
-        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        PR_NUMBER: ${{ github.event.number }}
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
       run: |
         cloudos bash job \
           --instance-type m4.xlarge \
@@ -563,8 +563,8 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "plink2"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job"
-        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        PR_NUMBER: ${{ github.event.number }}
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
       run: |
         cloudos bash array-job \
           --instance-type m4.xlarge \
@@ -782,8 +782,8 @@ jobs:
         WORKFLOW: "GH-rnatoy"
         JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
-        COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        PR_NUMBER: ${{ github.event.number }}
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
         INSTANCE_TYPE: "m4.xlarge"
       run: |
         # Step 1: Run job (without --wait-completion so it doesn't wait until completion)
