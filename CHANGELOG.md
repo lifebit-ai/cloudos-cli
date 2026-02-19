@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.81.0 (2026-02-19)
+
+### Feat
+
+- Adds CIs for DEV and Azure
+
 ## v2.80.0 (2026-02-16)
 
 ### Feat

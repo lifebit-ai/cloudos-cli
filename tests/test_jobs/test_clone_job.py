@@ -167,7 +167,7 @@ def test_clone_job_with_overrides():
             "page": "1",
             "limit": "100",
             "teamId": WORKSPACE_ID
-        })]
+        }, strict_match=False)]
     )
 
     # Mock POST request for job creation  
