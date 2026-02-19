@@ -1,0 +1,662 @@
+name: AZ
+
+on:
+  pull_request:
+    types: [review_requested, ready_for_review]
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  job_list_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  job_list_filtering_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Test job list filtering
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        JOB_ID="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        # Test filtering by status, project  and workflow name
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-status completed --filter-project cloudos-cli-tests  --filter-workflow GH-rnatoy --last --last-n-jobs 10
+        # Test filtering job id
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-id $JOB_ID 
+        # Test filtering job name
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-job-name "cloudos-cli-CI-test" --last-n-jobs 10
+        # Test filtering by only mine
+        cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-only-mine --last-n-jobs 10
+        # Test filtering by queue
+        #cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "cost_saving_standard_nextflow" --last-n-jobs 10
+  job_details_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        JOB_ID="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        cloudos job details --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  job_workdir_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        JOB_ID="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
+  job_related_analyses_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        JOB_ID="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        cloudos job related --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
+  import_gitlab_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+          CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lifebit-ai/spammer-nf --repository-platform gitlab
+  import_github_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+          CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
+  job_run_and_status_az:
+    runs-on: ubuntu-latest
+    outputs:
+      job_id: ${{ steps.get-job-id.outputs.job_id }}
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      id: get-job-id
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        WORKFLOW: "GH-rnatoy"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
+        JOB_NAME_BASE: "cloudos-cli-CI-test"
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
+        INSTANCE_TYPE: "Standard_D4as_v4"
+      run: |
+        JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --resumable --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
+        cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
+  job_resume_az:
+    needs: job_run_and_status_az
+    outputs:
+      job_id: ${{ steps.get-resumed-job-id.outputs.job_id }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Resume completed job
+      id: get-resumed-job-id
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        INSTANCE_TYPE: "Standard_D4as_v4"
+        JOB_NAME_BASE: "cloudos-cli-CI-test-resume"
+      run: |
+        JOB_ID_TO_RESUME="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        echo "Resuming job $JOB_ID_TO_RESUME..."
+        cloudos job resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --job-name "$JOB_NAME_BASE" --job-id $JOB_ID_TO_RESUME --wait-completion --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        JOB_ID=$(grep -e "Job successfully resumed. New job ID:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
+        echo "Job resumed successfully!"
+  logs_results_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+        feature: ["logs", "results"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+          CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status_az.outputs.job_id }}
+  workflow_list_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  project_list_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  queue_list_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+  dataset_list_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        PROJECT_NAME: "cloudos-cli-tests"
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos datasets ls --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
+  dataset_move_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        PROJECT_NAME: "cloudos-cli-tests"
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name DB-azure-test-pipelines Data/test_mv/test_folder --destination-project-name "$PROJECT_NAME" Data/mv_test
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_folder --destination-project-name DB-azure-test-pipelines Data/test_mv
+  dataset_rename_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        PROJECT_NAME: "cloudos-cli-tests"
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_rename new_renamed_folder
+        cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/new_renamed_folder test_rename
+  dataset_copy_and_remove_az:
+          runs-on: ubuntu-latest
+          strategy:
+            matrix:
+              python-version: ["3.9"]
+          steps:
+          - uses: actions/checkout@v3
+          - name: Set up Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v4
+            with:
+              python-version: ${{ matrix.python-version }}
+              cache: pip
+              cache-dependency-path: setup.py
+          - name: Install dependencies
+            run: |
+              pip install -e .
+          - name: Run tests
+            env:
+              CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+              CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+              PROJECT_NAME: "cloudos-cli-tests"
+              CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+            run: |
+              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr_results Data/test_copy
+              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr_results --force
+  dataset_mkdir_and_remove_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        PROJECT_NAME: "cloudos-cli-tests"
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        cloudos datasets mkdir --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
+        cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
+  archive_unarchive_job_az:
+    needs: job_run_and_status_az
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        PROJECT_NAME: "cloudos-cli-tests"
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        JOB_ID="${{ needs.job_run_and_status_az.outputs.job_id }}"
+        cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
+        cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
+  configure_profile_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Test configure profile workflow
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+      run: |
+        # Step 1: Create a test profile by providing inputs via stdin
+        echo "Creating profile 'ci-test-profile'..."
+        echo -e "$CLOUDOS_TOKEN\n$CLOUDOS_URL\n$CLOUDOS_WORKSPACE_ID\n\n$PROJECT_NAME\n\n\n\n\n" | cloudos configure --profile ci-test-profile
+        echo "Profile created successfully!"
+
+        # Step 2: List all profiles to verify creation
+        echo "Listing all profiles..."
+        cloudos configure list-profiles | tee profiles_output.txt
+
+        # Verify that our test profile exists in the list
+        if grep -q "ci-test-profile" profiles_output.txt; then
+          echo "✅ Profile 'ci-test-profile' found in the list"
+        else
+          echo "❌ Profile 'ci-test-profile' not found in the list"
+          exit 1
+        fi
+
+        # Step 3: Remove the test profile
+        echo "Removing profile 'ci-test-profile'..."
+        cloudos configure remove-profile --profile ci-test-profile
+        echo "Profile removed successfully!"
+
+        # Step 4: List profiles again to verify removal
+        echo "Listing profiles after removal..."
+        cloudos configure list-profiles | tee profiles_after_removal.txt
+
+        # Verify that our test profile no longer exists
+        if grep -q "ci-test-profile" profiles_after_removal.txt; then
+          echo "❌ Profile 'ci-test-profile' still exists after removal"
+          exit 1
+        else
+          echo "✅ Profile 'ci-test-profile' successfully removed"
+        fi
+
+        echo "Configure profile workflow test completed successfully!"
+  job_run_and_abort_az:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run job, wait for running status, then abort
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        WORKFLOW: "GH-rnatoy"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
+        JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
+        COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
+        INSTANCE_TYPE: "Standard_D4as_v4"
+      run: |
+        # Step 1: Run job (without --wait-completion so it doesn't wait until completion)
+        JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
+        echo "Job ID: $JOB_ID"
+
+        # Step 2: Poll status until it reaches "running"
+        MAX_ATTEMPTS=60
+        SLEEP_TIME=10
+        attempt=0
+
+        while [ $attempt -lt $MAX_ATTEMPTS ]; do
+          echo "Checking job status (attempt $((attempt+1))/$MAX_ATTEMPTS)..."
+          STATUS=$(cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID 2>&1 | grep -i "Your current job status is" | head -1 || echo "unknown")
+          echo "Current status: $STATUS"
+
+          if echo "$STATUS" | grep -qi "running"; then
+            echo "Job is now running!"
+            break
+          elif echo "$STATUS" | grep -qi "completed\|failed\|aborted"; then
+            echo "Job finished before we could abort it (status: $STATUS)"
+            exit 1
+          fi
+
+          attempt=$((attempt+1))
+          sleep $SLEEP_TIME
+        done
+
+        if [ $attempt -eq $MAX_ATTEMPTS ]; then
+          echo "Job did not reach running status within timeout"
+          exit 1
+        fi
+
+        # Step 3: Abort the running job
+        echo "Aborting job $JOB_ID..."
+        cloudos job abort --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
+        echo "Job abort command executed successfully!"
+  delete_workdir_az:
+    needs: [job_run_and_status_az, job_workdir_az, job_resume_az]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+          CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        run: |
+          cloudos job workdir --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume_az.outputs.job_id }}
