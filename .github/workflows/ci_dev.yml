@@ -496,6 +496,7 @@ jobs:
           --workflow-name plink2 \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
+          --last \
           --wait-completion 2>&1 | tee bash_job_out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" bash_job_out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
@@ -581,6 +582,7 @@ jobs:
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
           --parameter --file=DB-new/Data/input.csv \
+          --last \
           --wait-completion 2>&1 | tee bash_array_job_out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" bash_array_job_out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
