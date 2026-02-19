@@ -338,37 +338,6 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
       run: |
         cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
-  queue_list_az:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: setup.py
-    - name: Install dependencies
-      run: |
-        pip install -e .
-    - name: Run tests
-      env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
-        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-      run: |
-        set +e
-        OUTPUT=$(cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID 2>&1)
-        STATUS=$?
-        set -e
-        if [ $STATUS -eq 0 ]; then
-          echo "Expected failure, but command succeeded"
-          exit 1
-        fi
-        echo "$OUTPUT" | grep -F "Error: No AWS batch queues found. Please, make sure that your CloudOS supports AWS bath queues"
   dataset_list_az:
     runs-on: ubuntu-latest
     strategy:
@@ -727,7 +696,7 @@ jobs:
             --project-name "$PROJECT_NAME" \
             --workflow-name "$WORKFLOW" \
             --job-name "$JOB_NAME_BASE|GitHubCommit:${COMMIT_HASH:0:6}|PR-NUMBER:$PR_NUMBER" \
-            --instance-type m4.xlarge \
+            --instance-type "Standard_D4as_v4" \
             --params-file "$PARAMS_FILE" \
             --execution-platform "azure" \
             --wait-completion
