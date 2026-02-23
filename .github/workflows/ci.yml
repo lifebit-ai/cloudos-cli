@@ -51,8 +51,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
@@ -75,8 +75,8 @@ jobs:
         pip install -e .
     - name: Test job list filtering
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
@@ -109,8 +109,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
@@ -134,8 +134,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
@@ -159,8 +159,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         JOB_ID="${{ needs.job_run_and_status.outputs.job_id }}"
@@ -183,8 +183,8 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
@@ -207,8 +207,8 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
@@ -234,8 +234,8 @@ jobs:
     - name: Run tests
       id: get-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
@@ -272,8 +272,8 @@ jobs:
     - name: Resume completed job
       id: get-resumed-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         INSTANCE_TYPE: "m4.xlarge"
@@ -305,8 +305,8 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
@@ -329,8 +329,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
@@ -352,8 +352,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
@@ -375,8 +375,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
@@ -398,8 +398,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
@@ -422,13 +422,13 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name lm-test Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME"  Data/mv_test 
-        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name lm-test Data/test_mv
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name DB-testing Data/test_mv/input.csv --destination-project-name "$PROJECT_NAME" Data/mv_test
+        cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/input.csv --destination-project-name DB-testing Data/test_mv
   dataset_rename:
     runs-on: ubuntu-latest
     strategy:
@@ -447,8 +447,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
@@ -475,11 +475,11 @@ jobs:
     - name: Run tests
       id: get-bash-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
-        WORKFLOW: "plink2"
+        WORKFLOW: "plink2-lifebiai-dockerhub"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
@@ -493,7 +493,7 @@ jobs:
           --command "echo 'test' > new_file.txt" \
           --workspace-id "$CLOUDOS_WORKSPACE_ID" \
           --project-name "$PROJECT_NAME" \
-          --workflow-name plink2 \
+          --workflow-name "$WORKFLOW" \
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL" \
           --last \
@@ -520,8 +520,8 @@ jobs:
     - name: Run tests
       id: run-bash-job
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_job_cloned"
@@ -557,11 +557,11 @@ jobs:
     - name: Run tests
       id: get-bash-array-job-id
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
-        WORKFLOW: "plink2"
+        WORKFLOW: "plink2-lifebiai-dockerhub"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
@@ -576,7 +576,7 @@ jobs:
           --command "echo 'test' > new_file.txt" \
           --workspace-id "$CLOUDOS_WORKSPACE_ID" \
           --project-name "$PROJECT_NAME" \
-          --workflow-name plink2 \
+          --workflow-name "$WORKFLOW" \
           --array-file Data/bash_array/sampleArray.csv \
           --separator "," \
           --apikey "$CLOUDOS_TOKEN" \
@@ -606,8 +606,8 @@ jobs:
     - name: Run tests
       id: run-bash-job
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         JOB_NAME_BASE: "cloudos_cli_CI_test_bash_array_job_cloned"
@@ -640,8 +640,8 @@ jobs:
               pip install -e .
           - name: Run tests
             env:
-              CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-              CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+              CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+              CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
               PROJECT_NAME: "cloudos-cli-tests"
               CLOUDOS_URL: "https://cloudos.lifebit.ai"
             run: |
@@ -665,8 +665,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
@@ -691,8 +691,8 @@ jobs:
         pip install -e .
     - name: Run tests
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
@@ -717,8 +717,8 @@ jobs:
         pip install -e .
     - name: Test configure profile workflow
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
       run: |
@@ -775,8 +775,8 @@ jobs:
         pip install -e .
     - name: Run job, wait for running status, then abort
       env:
-        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
@@ -842,8 +842,8 @@ jobs:
           pip install -e .
       - name: Run tests
         env:
-          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN }}
-          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID }}
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
           CLOUDOS_URL: "https://cloudos.lifebit.ai"
         run: |
           cloudos job workdir --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume.outputs.job_id }}
