@@ -435,8 +435,8 @@ jobs:
               PROJECT_NAME: "cloudos-cli-tests"
               CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
             run: |
-              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr_results Data/test_copy
-              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr_results --force
+              cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/rnatoy_params.json Data/test_copy
+              cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/rnatoy_params.json --force
   dataset_mkdir_and_remove_az:
     runs-on: ubuntu-latest
     strategy:
