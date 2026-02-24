@@ -6,6 +6,7 @@
 
 - Adds Azure Blob support for `job run --params-file` using `az://<account>.blob.core.windows.net/<container>/<blob>`
 - Updates `--params-file` docs/help and parsing validation behavior for Azure payload generation
+- Updates `--filter-queue` after API changes
 
 ## v2.80.0 (2026-02-16)
 

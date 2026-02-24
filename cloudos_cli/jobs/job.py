@@ -246,7 +246,7 @@ class Job(Cloudos):
                             "name": name,
                             "blobStorageAccountName": blob_storage_account_name,
                             "blobContainerName": blob_container_name,
-                            "blobName": f"{blob_name}"
+                            "blobName": blob_name
                         },
                         "type": "AzureBlobFile"
                     }

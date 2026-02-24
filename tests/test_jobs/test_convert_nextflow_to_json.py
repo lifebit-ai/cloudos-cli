@@ -209,10 +209,7 @@ def test_params_file_payload_azure_blob():
                     "name": "rnatoy_params.json",
                     "blobStorageAccountName": "6480f3db916489d248956a5f",
                     "blobContainerName": "cloudos-66607e71e8cffa9985592c10",
-                    "blobName": (
-                        "dataset/697b7341c69bacdd8b0b700d/"
-                        "rnatoy_params.json_137531fe-c19a-44c6-9e30-2d6dcb371072/rnatoy_params.json"
-                    )
+                    "blobName": "dataset/697b7341c69bacdd8b0b700d/rnatoy_params.json_137531fe-c19a-44c6-9e30-2d6dcb371072"
                 },
                 "type": "AzureBlobFile"
             }
