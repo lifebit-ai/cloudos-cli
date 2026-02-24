@@ -519,6 +519,16 @@ cloudos job run \
   --resumable
 ```
 
+Azure Blob example:
+
+```bash
+cloudos job run \
+  --profile my_profile \
+  --workflow-name rnatoy \
+  --params-file az://6480f3db916489d248956a5f.blob.core.windows.net/cloudos-66607e71e8cffa9985592c10/dataset/697b7341c69bacdd8b0b700d/rnatoy_params.json \
+  --resumable
+```
+
 Example JSON params file:
 
 ```json
@@ -542,7 +552,7 @@ annot:
 
 > NOTE: options `--job-config`, `--parameter` and `--params-file` are completely compatible and complementary, so you can use a `--job-config` or `--params-file` and add additional parameters using `--parameter` in the same call.
 
-> NOTE: when using `--params-file`, the value must be an S3 URI or a File Explorer relative path (e.g., `Data/file.json`). Local file paths are not supported.
+> NOTE: when using `--params-file`, the value must be an S3 URI, an Azure Blob URI (`az://<account>.blob.core.windows.net/<container>/<blob>`), or a File Explorer relative path (e.g., `Data/file.json`). Local file paths are not supported.
 
 If everything went well, you should see something like:
 
