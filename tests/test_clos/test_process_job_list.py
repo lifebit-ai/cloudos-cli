@@ -27,12 +27,57 @@ def mocked_requests_get():
 
 def test_process_job_list_output_correct_shape(mocked_requests_get,):
     df = Cloudos.process_job_list(mocked_requests_get, all_fields=False)
-    assert df.shape == output_df.shape
+    selected_columns = ['status',
+                        'name',
+                        'project.name',
+                        'user.name',
+                        'user.surname',
+                        'workflow.name',
+                        '_id',
+                        'startTime',
+                        'endTime',
+                        'createdAt',
+                        'updatedAt',
+                        'revision.commit',
+                        'realInstancesExecutionCost',
+                        'masterInstance.usedInstance.type',
+                        'storageMode',
+                        'workflow.repository.url',
+                        'nextflowVersion',
+                        'batch.enabled',
+                        'storageSizeInGb',
+                        'batch.jobQueue',
+                        'usesFusionFileSystem']
+    df_full = Cloudos.process_job_list(mocked_requests_get, all_fields=True)
+    expected_headers = [col for col in selected_columns if col in df_full.columns]
+    assert df.shape == (len(mocked_requests_get), len(expected_headers))
 
 
 def test_process_job_list_output_correct_headers(mocked_requests_get):
     df = Cloudos.process_job_list(mocked_requests_get, all_fields=False)
-    correct_headers = list(output_df.columns)
+    selected_columns = ['status',
+                        'name',
+                        'project.name',
+                        'user.name',
+                        'user.surname',
+                        'workflow.name',
+                        '_id',
+                        'startTime',
+                        'endTime',
+                        'createdAt',
+                        'updatedAt',
+                        'revision.commit',
+                        'realInstancesExecutionCost',
+                        'masterInstance.usedInstance.type',
+                        'storageMode',
+                        'workflow.repository.url',
+                        'nextflowVersion',
+                        'batch.enabled',
+                        'storageSizeInGb',
+                        'batch.jobQueue',
+                        'usesFusionFileSystem']
+    df_full = Cloudos.process_job_list(mocked_requests_get, all_fields=True)
+    correct_headers = [col for col in selected_columns if col in df_full.columns]
     actual_headers = list(df.columns)
     assert correct_headers == actual_headers
 

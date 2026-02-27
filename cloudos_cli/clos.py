@@ -1236,7 +1236,7 @@ class Cloudos:
                     if not queue_id:
                         raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
 
-                    all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}).get("id") == queue_id]
+                    all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}) == queue_id]
                 else:
                     raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
             except Exception as e:
@@ -1284,7 +1284,7 @@ class Cloudos:
                    'nextflowVersion',
                    'batch.enabled',
                    'storageSizeInGb',
-                   'batch.jobQueue.id',
+                   'batch.jobQueue',
                    'usesFusionFileSystem'
                    ]
         df_full = pd.json_normalize(r)
@@ -1416,7 +1416,7 @@ class Cloudos:
             "nextflowVersion": "Nextflow version",
             "batch.enabled": "Executor",
             "storageSizeInGb": "Storage size",
-            "batch.jobQueue.id": "Job queue ID",
+            "batch.jobQueue": "Job queue ID",
             "usesFusionFileSystem": "Accelerated file staging"
         }
 

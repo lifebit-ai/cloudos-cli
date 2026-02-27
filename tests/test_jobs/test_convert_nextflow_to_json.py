@@ -186,6 +186,57 @@ def test_params_file_payload_s3():
     }
 
 
+def test_params_file_payload_azure_blob():
+    job = Job(
+        "https://cloudos.example",
+        "test_api_key",
+        None,
+        "workspace_id",
+        "project",
+        "workflow",
+        project_id=param_dict["project_id"],
+        workflow_id=param_dict["workflow_id"]
+    )
+    payload = job.build_parameters_file_payload(
+        "az://6480f3db916489d248956a5f.blob.core.windows.net/"
+        "cloudos-66607e71e8cffa9985592c10/dataset/697b7341c69bacdd8b0b700d/"
+        "rnatoy_params.json_137531fe-c19a-44c6-9e30-2d6dcb371072"
+    )
+    assert payload == {
+        "parametersFile": {
+            "dataItemEmbedded": {
+                "data": {
+                    "name": "rnatoy_params.json",
+                    "blobStorageAccountName": "6480f3db916489d248956a5f",
+                    "blobContainerName": "cloudos-66607e71e8cffa9985592c10",
+                    "blobName": "dataset/697b7341c69bacdd8b0b700d/rnatoy_params.json_137531fe-c19a-44c6-9e30-2d6dcb371072"
+                },
+                "type": "AzureBlobFile"
+            }
+        }
+    }
+
+
+def test_params_file_payload_azure_blob_with_query_not_supported():
+    job = Job(
+        "https://cloudos.example",
+        "test_api_key",
+        None,
+        "workspace_id",
+        "project",
+        "workflow",
+        project_id=param_dict["project_id"],
+        workflow_id=param_dict["workflow_id"]
+    )
+    with pytest.raises(ValueError) as excinfo:
+        job.build_parameters_file_payload(
+            "az://6480f3db916489d248956a5f.blob.core.windows.net/"
+            "cloudos-66607e71e8cffa9985592c10/dataset/697b7341c69bacdd8b0b700d/"
+            "rnatoy_params.json_137531fe-c19a-44c6-9e30-2d6dcb371072?sv=token"
+        )
+    assert "query parameters is not supported" in str(excinfo.value)
+
+
 def test_params_file_payload_file_explorer(monkeypatch):
     job = Job(
         "https://cloudos.example",

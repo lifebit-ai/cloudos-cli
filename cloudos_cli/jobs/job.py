@@ -11,6 +11,7 @@ from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get, 
 from pathlib import Path
 from urllib.parse import urlparse
 import base64
+import re
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
 import os
 import click
@@ -183,11 +184,7 @@ class Job(Cloudos):
             if len(params_file) != 1:
                 raise ValueError('Please, provide a single file for --params-file.')
             params_file = params_file[0]
-
-        ext = os.path.splitext(params_file)[1].lower()
         allowed_ext = {'.json', '.yaml', '.yml'}
-        if ext not in allowed_ext:
-            raise ValueError('Please, provide a .json or .yaml file for --params-file.')
 
         if params_file.startswith('s3://'):
             parsed = urlparse(params_file)
@@ -196,6 +193,9 @@ class Job(Cloudos):
             if not bucket or not s3_key:
                 raise ValueError('Invalid S3 URL. Please, provide a full s3://bucket/key path.')
             name = s3_key.rstrip('/').split('/')[-1]
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in allowed_ext:
+                raise ValueError('Please, provide a .json or .yaml file for --params-file.')
             return {
                 "parametersFile": {
                     "dataItemEmbedded": {
@@ -209,8 +209,56 @@ class Job(Cloudos):
                 }
             }
 
+        if params_file.startswith('az://'):
+            parsed = urlparse(params_file)
+            if parsed.query:
+                raise ValueError('Azure URL with query parameters is not supported for --params-file.')
+
+            host = parsed.netloc
+            if not host.endswith('.blob.core.windows.net'):
+                raise ValueError('Invalid Azure URL. Expected format: az://<account>.blob.core.windows.net/<container>/<blobName>')
+
+            blob_storage_account_name = host[:-len('.blob.core.windows.net')]
+            path_parts = parsed.path.lstrip('/').split('/', 1)
+            if len(path_parts) != 2:
+                raise ValueError('Invalid Azure URL. Expected format: az://<account>.blob.core.windows.net/<container>/<blobName>')
+
+            blob_container_name, blob_name = path_parts
+            blob_name = blob_name.rstrip('/')
+            if not blob_storage_account_name or not blob_container_name or not blob_name:
+                raise ValueError('Invalid Azure URL. Expected format: az://<account>.blob.core.windows.net/<container>/<blobName>')
+
+            blob_leaf = blob_name.split('/')[-1]
+            uuid_suffix_match = re.match(r'^(.*)_([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$', blob_leaf)
+            if uuid_suffix_match:
+                name = uuid_suffix_match.group(1)
+            else:
+                name = blob_leaf
+
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in allowed_ext:
+                raise ValueError('Please, provide a .json or .yaml file for --params-file.')
+
+            return {
+                "parametersFile": {
+                    "dataItemEmbedded": {
+                        "data": {
+                            "name": name,
+                            "blobStorageAccountName": blob_storage_account_name,
+                            "blobContainerName": blob_container_name,
+                            "blobName": blob_name
+                        },
+                        "type": "AzureBlobFile"
+                    }
+                }
+            }
+
         if not self.project_name:
             raise ValueError('Please, provide --project-name to resolve --params-file paths.')
+
+        ext = os.path.splitext(params_file)[1].lower()
+        if ext not in allowed_ext:
+            raise ValueError('Please, provide a .json or .yaml file for --params-file.')
 
         normalized_path = params_file.lstrip('/')
         allowed_prefixes = ('Data', 'Analyses Results', 'Cohorts')
