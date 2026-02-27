@@ -883,6 +883,14 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <span class="w">  </span>--resumable
 </pre></div>
 </div>
+<p>Azure Blob example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--params-file<span class="w"> </span>az://6480f3db916489d248956a5f.blob.core.windows.net/cloudos-66607e71e8cffa9985592c10/dataset/697b7341c69bacdd8b0b700d/rnatoy_params.json<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resumable
+</pre></div>
+</div>
 <p>Example JSON params file:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;reads&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data&quot;</span><span class="p">,</span>
@@ -904,7 +912,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <div><p>NOTE: options <code class="docutils literal notranslate"><span class="pre">--job-config</span></code>, <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> and <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> are completely compatible and complementary, so you can use a <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> or <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> and add additional parameters using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> in the same call.</p>
 </div></blockquote>
 <blockquote>
-<div><p>NOTE: when using <code class="docutils literal notranslate"><span class="pre">--params-file</span></code>, the value must be an S3 URI or a File Explorer relative path (e.g., <code class="docutils literal notranslate"><span class="pre">Data/file.json</span></code>). Local file paths are not supported.</p>
+<div><p>NOTE: when using <code class="docutils literal notranslate"><span class="pre">--params-file</span></code>, the value must be an S3 URI, an Azure Blob URI (<code class="docutils literal notranslate"><span class="pre">az://&lt;account&gt;.blob.core.windows.net/&lt;container&gt;/&lt;blob&gt;</span></code>), or a File Explorer relative path (e.g., <code class="docutils literal notranslate"><span class="pre">Data/file.json</span></code>). Local file paths are not supported.</p>
 </div></blockquote>
 <p>If everything went well, you should see something like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>

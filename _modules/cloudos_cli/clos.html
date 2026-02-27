@@ -1650,7 +1650,7 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">queue_id</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue with name &#39;</span><span class="si">{</span><span class="n">filter_queue</span><span class="si">}</span><span class="s2">&#39; not found in workspace &#39;</span><span class="si">{</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
-                    <span class="n">all_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span> <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">all_jobs</span> <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobQueue&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">queue_id</span><span class="p">]</span>
+                    <span class="n">all_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span> <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">all_jobs</span> <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobQueue&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="o">==</span> <span class="n">queue_id</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1701,7 +1701,7 @@
                    <span class="s1">&#39;nextflowVersion&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;batch.enabled&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;storageSizeInGb&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;batch.jobQueue.id&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;batch.jobQueue&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;usesFusionFileSystem&#39;</span>
                    <span class="p">]</span>
         <span class="n">df_full</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">json_normalize</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
@@ -1836,7 +1836,7 @@
             <span class="s2">&quot;nextflowVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;Nextflow version&quot;</span><span class="p">,</span>
             <span class="s2">&quot;batch.enabled&quot;</span><span class="p">:</span> <span class="s2">&quot;Executor&quot;</span><span class="p">,</span>
             <span class="s2">&quot;storageSizeInGb&quot;</span><span class="p">:</span> <span class="s2">&quot;Storage size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;batch.jobQueue.id&quot;</span><span class="p">:</span> <span class="s2">&quot;Job queue ID&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;batch.jobQueue&quot;</span><span class="p">:</span> <span class="s2">&quot;Job queue ID&quot;</span><span class="p">,</span>
             <span class="s2">&quot;usesFusionFileSystem&quot;</span><span class="p">:</span> <span class="s2">&quot;Accelerated file staging&quot;</span>
         <span class="p">}</span>
 

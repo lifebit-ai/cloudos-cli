@@ -382,6 +382,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_pattern</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span><span class="p">,</span> <span class="n">extract_project</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
@@ -561,11 +562,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a single file for --params-file.&#39;</span><span class="p">)</span>
             <span class="n">params_file</span> <span class="o">=</span> <span class="n">params_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">params_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">allowed_ext</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;.json&#39;</span><span class="p">,</span> <span class="s1">&#39;.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;.yml&#39;</span><span class="p">}</span>
-        <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_ext</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a .json or .yaml file for --params-file.&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">params_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">):</span>
             <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span>
@@ -574,6 +571,9 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">s3_key</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid S3 URL. Please, provide a full s3://bucket/key path.&#39;</span><span class="p">)</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">s3_key</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_ext</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a .json or .yaml file for --params-file.&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="s2">&quot;parametersFile&quot;</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s2">&quot;dataItemEmbedded&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -587,8 +587,56 @@
                 <span class="p">}</span>
             <span class="p">}</span>
 
+        <span class="k">if</span> <span class="n">params_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;az://&#39;</span><span class="p">):</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">params_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">query</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Azure URL with query parameters is not supported for --params-file.&#39;</span><span class="p">)</span>
+
+            <span class="n">host</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">host</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.blob.core.windows.net&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid Azure URL. Expected format: az://&lt;account&gt;.blob.core.windows.net/&lt;container&gt;/&lt;blobName&gt;&#39;</span><span class="p">)</span>
+
+            <span class="n">blob_storage_account_name</span> <span class="o">=</span> <span class="n">host</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s1">&#39;.blob.core.windows.net&#39;</span><span class="p">)]</span>
+            <span class="n">path_parts</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid Azure URL. Expected format: az://&lt;account&gt;.blob.core.windows.net/&lt;container&gt;/&lt;blobName&gt;&#39;</span><span class="p">)</span>
+
+            <span class="n">blob_container_name</span><span class="p">,</span> <span class="n">blob_name</span> <span class="o">=</span> <span class="n">path_parts</span>
+            <span class="n">blob_name</span> <span class="o">=</span> <span class="n">blob_name</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">blob_storage_account_name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">blob_container_name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">blob_name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid Azure URL. Expected format: az://&lt;account&gt;.blob.core.windows.net/&lt;container&gt;/&lt;blobName&gt;&#39;</span><span class="p">)</span>
+
+            <span class="n">blob_leaf</span> <span class="o">=</span> <span class="n">blob_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">uuid_suffix_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(.*)_([0-9a-fA-F]</span><span class="si">{8}</span><span class="s1">-[0-9a-fA-F]</span><span class="si">{4}</span><span class="s1">-[0-9a-fA-F]</span><span class="si">{4}</span><span class="s1">-[0-9a-fA-F]</span><span class="si">{4}</span><span class="s1">-[0-9a-fA-F]</span><span class="si">{12}</span><span class="s1">)$&#39;</span><span class="p">,</span> <span class="n">blob_leaf</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">uuid_suffix_match</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">uuid_suffix_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">blob_leaf</span>
+
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_ext</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a .json or .yaml file for --params-file.&#39;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;parametersFile&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;dataItemEmbedded&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                            <span class="s2">&quot;blobStorageAccountName&quot;</span><span class="p">:</span> <span class="n">blob_storage_account_name</span><span class="p">,</span>
+                            <span class="s2">&quot;blobContainerName&quot;</span><span class="p">:</span> <span class="n">blob_container_name</span><span class="p">,</span>
+                            <span class="s2">&quot;blobName&quot;</span><span class="p">:</span> <span class="n">blob_name</span>
+                        <span class="p">},</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;AzureBlobFile&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide --project-name to resolve --params-file paths.&#39;</span><span class="p">)</span>
+
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">params_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_ext</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, provide a .json or .yaml file for --params-file.&#39;</span><span class="p">)</span>
 
         <span class="n">normalized_path</span> <span class="o">=</span> <span class="n">params_file</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
         <span class="n">allowed_prefixes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Analyses Results&#39;</span><span class="p">,</span> <span class="s1">&#39;Cohorts&#39;</span><span class="p">)</span>
