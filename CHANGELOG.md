@@ -1,12 +1,18 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.80.1 (2026-02-24)
+## v2.81.1 (2026-02-24)
 
 ### Patch
 
 - Adds Azure Blob support for `job run --params-file` using `az://<account>.blob.core.windows.net/<container>/<blob>`
 - Updates `--params-file` docs/help and parsing validation behavior for Azure payload generation
 - Updates `--filter-queue` after API changes
+
+## v2.81.0 (2026-02-19)
+
+### Feat
+
+- Adds CIs for DEV and Azure
 
 ## v2.80.0 (2026-02-16)
 
