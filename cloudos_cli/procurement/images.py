@@ -74,7 +74,7 @@ class Images(Cloudos):
 
         return response
 
-    def set_procurement_organisation_image(self, organisation_id, image_type, provider, region, image_id, image_name):
+    def set_procurement_organisation_image(self, organisation_id, image_type, provider, region, image_id, image_name, image_version):
         """
         Sets the value for a procurement image of a given organisation.
 
@@ -104,6 +104,8 @@ class Images(Cloudos):
             The new value for image Id. Required.
         imageName
             The new value for image name. Optional.
+        imageVersion
+            The new value for image version. Required.
         """
 
         headers = {
@@ -116,7 +118,8 @@ class Images(Cloudos):
             "imageName": image_name,
             "provider": provider,
             "region": region,
-            "imageId": image_id
+            "imageId": image_id,
+            "imageVersion": image_version
         }
         r = retry_requests_put("{}/api/v1/procurements/{}/images".format(self.cloudos_url, self.procurement_id),
                                headers=headers, data=json.dumps(payload), verify=self.verify)
