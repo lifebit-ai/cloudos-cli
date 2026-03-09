@@ -891,3 +891,31 @@ jobs:
             --instance-type m4.xlarge \
             --params-file "$PARAMS_FILE" \
             --wait-completion
+  workflow_list_dev:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.py
+      - name: Install dependencies
+        run: |
+          pip install -e .
+      - name: Run tests
+        env:
+          CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
+          CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
+          CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        run: |
+          # stdout
+          cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+          # csv
+          cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
+          # json
+          cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json 
