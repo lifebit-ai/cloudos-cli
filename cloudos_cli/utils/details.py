@@ -679,32 +679,39 @@ def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.a
         name_with_link = f"[link={workflow_url}]{name}[/link]"
 
         # Archived status
-        archived_status = workflow.get("archived", {})
-        if isinstance(archived_status, dict):
-            archived = str(archived_status.get("status", "N/A"))
-        else:
-            archived = str(archived_status)
+        # archived_status = workflow.get("archived", {})
+        # if isinstance(archived_status, dict):
+        #     archived = str(archived_status.get("status", "N/A"))
+        # else:
+        #     archived = str(archived_status)
 
         # Repository name
         repository = workflow.get("repository", {})
         repo_name = str(repository.get("name", "N/A"))
+        repo_url = str(repository.get("url", "N/A"))
+        
+        # Create hyperlink for repository name if URL is available
+        if repo_url != "N/A" and repo_url:
+            repo_name_with_link = f"[link={repo_url}]{repo_name}[/link]"
+        else:
+            repo_name_with_link = repo_name
 
         # Repository platform
-        repo_platform = str(repository.get("platform", "N/A"))
+        #repo_platform = str(repository.get("platform", "N/A"))
 
         # Repository URL
-        repo_url = str(repository.get("url", "N/A"))
+        #repo_url = str(repository.get("url", "N/A"))
 
         # Is private
-        is_private = str(repository.get("isPrivate", "N/A"))
+        # is_private = str(repository.get("isPrivate", "N/A"))
 
         rows.append([
             name_with_link,
-            archived,
-            repo_name,
-            repo_platform,
-            repo_url,
-            is_private
+            #archived,
+            repo_name_with_link,
+            #repo_platform,
+            #repo_url,
+            #is_private
         ])
 
     # Pagination
@@ -724,11 +731,11 @@ def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.a
 
         # Add columns
         table.add_column("Name", style="green", overflow="fold")
-        table.add_column("Archived", style="yellow", no_wrap=True)
+        #table.add_column("Archived", style="yellow", no_wrap=True)
         table.add_column("Repository", style="cyan", overflow="fold")
-        table.add_column("Platform", style="green", no_wrap=True)
-        table.add_column("Repository URL", style="blue", overflow="fold")
-        table.add_column("Private", style="red", no_wrap=True)
+        #table.add_column("Platform", style="green", no_wrap=True)
+        #table.add_column("Repository URL", style="blue", overflow="fold")
+        #table.add_column("Private", style="red", no_wrap=True)
 
         # Get rows for current page
         page_rows = rows[start:end]
