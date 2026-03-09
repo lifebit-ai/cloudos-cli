@@ -782,3 +782,70 @@ def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.a
         else:
             # Only one page, no need for input, just exit
             break
+
+
+def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
+    """Display job queues in a rich formatted table.
+
+    Parameters
+    ----------
+    queues : list
+        A list of dicts, each corresponding to a job queue.
+    cloudos_url : str
+        The CloudOS URL for context (currently not used for hyperlinks).
+
+    Returns
+    -------
+    None
+        Prints the formatted table to console.
+    """
+    console = Console()
+
+    # Handle empty queue list
+    if len(queues) == 0:
+        console.print("\n[yellow]No job queues found in this workspace.[/yellow]")
+        return
+
+    # Create table
+    table = Table(title="Job Queue List")
+
+    # Add columns
+    table.add_column("Label", style="green", overflow="fold", min_width=10)
+    table.add_column("Default", style="cyan", no_wrap=True, min_width=7, justify="center")
+    table.add_column("Resource Type", style="magenta", overflow="fold", min_width=12)
+    table.add_column("Status", style="yellow", no_wrap=True, min_width=8, justify="center")
+
+    # Process each queue
+    for queue in queues:
+        # Label
+        label = str(queue.get("label", "N/A"))
+
+        # Default (show as checkmark or dash)
+        is_default = queue.get("isDefault", False)
+        if is_default:
+            default_display = "[bold green]✓[/bold green]"
+        else:
+            default_display = "[dim]—[/dim]"
+
+        # Resource Type
+        resource_type = str(queue.get("resourceType", "N/A"))
+        if not resource_type or resource_type == "":
+            resource_type = "N/A"
+        elif resource_type == "teamBatchJobQueue":
+            resource_type = "Batch Queues"
+
+        # Status with checkmark/X icons
+        status_raw = str(queue.get("status", "N/A"))
+        if status_raw.lower() == "ready":
+            status = "[bold green]✓[/bold green]"
+        else:
+            status = "[bold red]✗[/bold red]"
+
+        # Add row
+        table.add_row(label, default_display, resource_type, status)
+
+    # Print table
+    console.print(table)
+
+    # Display total count
+    console.print(f"\n[cyan]Total job queues:[/cyan] {len(queues)}")
