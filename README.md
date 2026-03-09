@@ -2214,7 +2214,7 @@ You can set a custom image ID or name for an organization within a procurement u
 To set a custom image for an organization, use the following command:
 
 ```bash
-cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "custom-image-name" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "custom-image-name" --image-version "1.0.0" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
 ```
 
 **Set command options:**
@@ -2234,6 +2234,7 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 - `--region`: The cloud region (required). Currently only AWS regions are supported
 - `--image-id`: The new image ID value (required)
 - `--image-name`: The new image name value (optional)
+- `--image-version`: The new image version (required)
 - `--disable-ssl-verification`: Disable SSL certificate verification
 - `--ssl-cert`: Path to your SSL certificate file
 - `--profile`: Profile to use from the config file
@@ -2242,7 +2243,7 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 
 ```bash
 # Set custom image for job execution
-cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "my-custom-job-image" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+cloudos procurement images set --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --image-id "ami-0123456789abcdef0" --image-name "my-custom-job-image" --image-version "1.2.3" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
 ```
 
 #### Reset Procurement Organization Image
