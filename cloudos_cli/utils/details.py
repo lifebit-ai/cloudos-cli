@@ -646,3 +646,132 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
 
         console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")
+
+
+def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.ai", page_size=10):
+    """Display workflows in a rich formatted table with pagination.
+
+    Parameters
+    ----------
+    workflows : list
+        A list of dicts, each corresponding to a workflow.
+    cloudos_url : str
+        The CloudOS URL for creating hyperlinks.
+    page_size : int
+        Number of workflows to display per page. Default is 10.
+    """
+    console = Console()
+
+    # Handle empty workflow list
+    if len(workflows) == 0:
+        console.print("\n[yellow]No workflows found in this workspace.[/yellow]")
+        return
+
+    # Prepare rows data
+    rows = []
+    for workflow in workflows:
+        # Get workflow ID for the hyperlink
+        workflow_id = str(workflow.get("_id", "N/A"))
+        workflow_url = f"{cloudos_url}/app/advanced-analytics/pipelines-and-tools/workspace/{workflow_id}"
+        
+        # Name with hyperlink
+        name = str(workflow.get("name", "N/A"))
+        name_with_link = f"[link={workflow_url}]{name}[/link]"
+
+        # Archived status
+        archived_status = workflow.get("archived", {})
+        if isinstance(archived_status, dict):
+            archived = str(archived_status.get("status", "N/A"))
+        else:
+            archived = str(archived_status)
+
+        # Repository name
+        repository = workflow.get("repository", {})
+        repo_name = str(repository.get("name", "N/A"))
+
+        # Repository platform
+        repo_platform = str(repository.get("platform", "N/A"))
+
+        # Repository URL
+        repo_url = str(repository.get("url", "N/A"))
+
+        # Is private
+        is_private = str(repository.get("isPrivate", "N/A"))
+
+        rows.append([
+            name_with_link,
+            archived,
+            repo_name,
+            repo_platform,
+            repo_url,
+            is_private
+        ])
+
+    # Pagination
+    current_page = 0
+    total_pages = (len(rows) + page_size - 1) // page_size if len(rows) > 0 else 1
+    show_error = None  # Track error messages to display
+
+    while True:
+        start = current_page * page_size
+        end = start + page_size
+
+        # Clear console first
+        console.clear()
+
+        # Create and display table
+        table = Table(title="Workflow List")
+
+        # Add columns
+        table.add_column("Name", style="green", overflow="fold")
+        table.add_column("Archived", style="yellow", no_wrap=True)
+        table.add_column("Repository", style="cyan", overflow="fold")
+        table.add_column("Platform", style="green", no_wrap=True)
+        table.add_column("Repository URL", style="blue", overflow="fold")
+        table.add_column("Private", style="red", no_wrap=True)
+
+        # Get rows for current page
+        page_rows = rows[start:end]
+
+        # Add rows to table
+        for row in page_rows:
+            table.add_row(*row)
+
+        # Print table
+        console.print(table)
+
+        # Display total count and page info
+        console.print(f"\n[cyan]Total workflows:[/cyan] {len(workflows)}")
+        if total_pages > 1:
+            console.print(f"[cyan]Page:[/cyan] {current_page + 1} of {total_pages}")
+            console.print(f"[cyan]Workflows on this page:[/cyan] {len(page_rows)}")
+
+        # Show error message if any
+        if show_error:
+            console.print(show_error)
+            show_error = None  # Reset error after displaying
+
+        # Show pagination controls
+        if total_pages > 1:
+            console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
+
+            # Get user input for navigation
+            choice = input(">>> ").strip().lower()
+
+            if choice in ("q", "quit"):
+                break
+            elif choice in ("n", "next"):
+                if current_page < total_pages - 1:
+                    current_page += 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the last page.[/red]"
+            elif choice in ("p", "prev"):
+                if current_page > 0:
+                    current_page -= 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the first page.[/red]"
+            else:
+                show_error = "[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"
+        else:
+            # Only one page, no need for input, just exit
+            break
