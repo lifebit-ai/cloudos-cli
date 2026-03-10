@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.82.0 (2026-03-10)
+
+### Feat
+
+- Adds rich table output for `workflow/queue/project list` subcommand
+
 ## v2.81.1 (2026-02-24)
 
 ### Patch
