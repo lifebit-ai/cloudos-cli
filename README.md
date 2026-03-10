@@ -330,11 +330,21 @@ Projects in CloudOS provide logical separation of datasets, workflows, and resul
 
 #### List Projects
 
-You can get a summary of all available workspace projects in two different formats:
-- **CSV**: A table with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
-- **JSON**: All available information from projects in JSON format
+You can get a summary of all available workspace projects in three different output formats using the `--output-format` option:
 
-To get a CSV table with all available projects for a given workspace:
+- **stdout** (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting
+- **csv**: Saves project data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
+- **json**: Saves complete project information to a JSON file with all available fields
+
+To display projects as a formatted table in the terminal:
+
+```bash
+cloudos project list --profile my_profile
+# or explicitly:
+cloudos project list --profile my_profile --output-format stdout
+```
+
+To save projects to a CSV file with all available fields:
 
 ```bash
 cloudos project list --profile my_profile --output-format csv --all-fields
@@ -348,7 +358,7 @@ Executing list...
 	Project list saved to project_list.csv
 ```
 
-To get the same information in JSON format:
+To save the same information in JSON format:
 
 ```bash
 cloudos project list --profile my_profile --output-format json
@@ -371,13 +381,28 @@ The expected output is something similar to:
 
 ### Queue
 
-Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the "Compute Resources" section in "Settings". You can get a summary of all available workspace job queues in two formats:
-- **CSV**: A table with a selection of the available job queue information. You can get all information using the `--all-fields` flag
-- **JSON**: All available information from job queues in JSON format
+Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the "Compute Resources" section in "Settings".
+
+> [!NOTE]
+> **Azure Platform**: Queue listing is not available for CloudOS workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.
 
 #### List Queues
 
-This command allows you to view available computational queues and their configurations. Example command for getting all available job queues in JSON format:
+This command allows you to view available computational queues and their configurations. You can get a summary of all available workspace job queues in three different output formats using the `--output-format` option:
+
+- **stdout** (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting
+- **csv**: Saves queue data to a CSV file with a selection of available queue information, or all information using the `--all-fields` flag
+- **json**: Saves complete queue information to a JSON file with all available fields
+
+To display queues as a formatted table in the terminal:
+
+```bash
+cloudos queue list --profile my_profile
+# or explicitly:
+cloudos queue list --profile my_profile --output-format stdout
+```
+
+To save all available job queues in JSON format:
 
 ```bash
 cloudos queue list --profile my_profile --output-format json --output-basename "available_queues"
@@ -389,7 +414,11 @@ Executing list...
 	Job queue list saved to available_queues.json
 ```
 
-This command will output the list of available job queues in JSON format and save it to a file named `available_queues.json`. You can use `--output-format csv` for a CSV file, or omit `--output-basename` to print to the console.
+To save queue data to a CSV file:
+
+```bash
+cloudos queue list --profile my_profile --output-format csv
+```
 
 > NOTE: The queue name that is visible in CloudOS and must be used with the `--job-queue` parameter is the one in the `label` field.
 
@@ -402,11 +431,21 @@ Platform workflows (those provided by CloudOS in your workspace as modules) run 
 
 #### List All Available Workflows
 
-You can get a summary of all available workspace workflows in two different formats:
-- **CSV**: A table with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
-- **JSON**: All available information from workflows in JSON format
+You can get a summary of all available workspace workflows in three different output formats using the `--output-format` option:
 
-To get a CSV table with all available workflows for a given workspace:
+- **stdout** (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting
+- **csv**: Saves workflow data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
+- **json**: Saves complete workflow information to a JSON file with all available fields
+
+To display workflows as a formatted table in the terminal:
+
+```bash
+cloudos workflow list --profile my_profile
+# or explicitly:
+cloudos workflow list --profile my_profile --output-format stdout
+```
+
+To save workflows to a CSV file with all available fields:
 
 ```bash
 cloudos workflow list --profile my_profile --output-format csv --all-fields
@@ -420,7 +459,7 @@ Executing list...
 	Workflow list saved to workflow_list.csv
 ```
 
-To get the same information in JSON format:
+To save the same information in JSON format:
 
 ```bash
 cloudos workflow list --profile my_profile --output-format json
