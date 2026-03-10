@@ -70,7 +70,7 @@ def list_queues(ctx,
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
     my_queues = j_queue.get_job_queues()
     if len(my_queues) == 0:
-        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS bath queues')
+        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS batch queues')
     if output_format == 'stdout':
         create_queue_list_table(my_queues, cloudos_url)
     elif output_format == 'csv':
