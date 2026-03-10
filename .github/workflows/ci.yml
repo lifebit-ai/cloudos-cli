@@ -334,7 +334,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         # stdout
-        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        echo 'q'|cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
         # csv
         cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
         # json
@@ -362,7 +362,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         # stdout
-        cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        echo 'q'|cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
         # csv
         cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
         # json
@@ -390,7 +390,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
         # stdout
-        cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        echo 'q'|cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
         # csv
         cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
         # json
