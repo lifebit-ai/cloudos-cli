@@ -26,7 +26,7 @@ def test_project_list_command_exists():
     result = runner.invoke(run_cloudos_cli, ['project', '--help'])
     assert result.exit_code == 0
     assert 'list' in result.output
-    assert 'Collect all projects from a CloudOS workspace' in result.output
+    assert 'Collect and display all projects from a CloudOS workspace.' in result.output
 
 
 def test_project_list_help():
