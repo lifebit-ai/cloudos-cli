@@ -823,7 +823,7 @@ def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
         # Default (show as checkmark or dash)
         is_default = queue.get("isDefault", False)
         if is_default:
-            default_display = "[bold green]✓[/bold green]"
+            default_display = "[bold green]Default[/bold green]"
         else:
             default_display = "[dim]—[/dim]"
 
@@ -837,9 +837,9 @@ def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
         # Status with checkmark/X icons
         status_raw = str(queue.get("status", "N/A"))
         if status_raw.lower() == "ready":
-            status = "[bold green]✓[/bold green]"
+            status = "[bold green]Ready[/bold green]"
         else:
-            status = "[bold red]✗[/bold red]"
+            status = "[bold red]Not Ready[/bold red]"
 
         # Add row
         table.add_row(label, default_display, resource_type, status)
