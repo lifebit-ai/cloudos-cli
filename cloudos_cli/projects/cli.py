@@ -75,7 +75,7 @@ def list_projects(ctx,
                   disable_ssl_verification,
                   ssl_cert,
                   profile):
-    """Collect all projects from a CloudOS workspace in CSV format."""
+    """Collect and display all projects from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
