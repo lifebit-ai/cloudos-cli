@@ -452,7 +452,7 @@
 
 <div class="viewcode-block" id="Images.set_procurement_organisation_image">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.set_procurement_organisation_image">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_procurement_organisation_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organisation_id</span><span class="p">,</span> <span class="n">image_type</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">image_id</span><span class="p">,</span> <span class="n">image_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_procurement_organisation_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organisation_id</span><span class="p">,</span> <span class="n">image_type</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">image_id</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">image_version</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the value for a procurement image of a given organisation.</span>
 
@@ -482,6 +482,8 @@
 <span class="sd">            The new value for image Id. Required.</span>
 <span class="sd">        imageName</span>
 <span class="sd">            The new value for image name. Optional.</span>
+<span class="sd">        imageVersion</span>
+<span class="sd">            The new value for image version. Required.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
@@ -494,7 +496,8 @@
             <span class="s2">&quot;imageName&quot;</span><span class="p">:</span> <span class="n">image_name</span><span class="p">,</span>
             <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
             <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
-            <span class="s2">&quot;imageId&quot;</span><span class="p">:</span> <span class="n">image_id</span>
+            <span class="s2">&quot;imageId&quot;</span><span class="p">:</span> <span class="n">image_id</span><span class="p">,</span>
+            <span class="s2">&quot;imageVersion&quot;</span><span class="p">:</span> <span class="n">image_version</span>
         <span class="p">}</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procurement_id</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
