@@ -28,7 +28,8 @@ def test_set_procurement_organisation_image():
         "provider": "aws",
         "region": "eu-west-2",
         "imageId": "ami-0123456789abcdef0",
-        "imageName": "Custom-Job-Image"
+        "imageName": "Custom-Job-Image",
+        "imageVersion": "1.0.0"
     }
 
     # Mock endpoint
@@ -54,7 +55,8 @@ def test_set_procurement_organisation_image():
         provider="aws",
         region="eu-west-2",
         image_id="ami-0123456789abcdef0",
-        image_name="Custom-Job-Image"
+        image_name="Custom-Job-Image",
+        image_version="1.0.0"
     )
 
     # Verify the image configuration details
@@ -108,7 +110,8 @@ def test_set_procurement_organisation_image_different_types():
             "provider": "aws",
             "region": "eu-west-2",
             "imageId": f"ami-{image_type.lower()[:8]}123",
-            "imageName": f"Custom-{image_type}-Image"
+            "imageName": f"Custom-{image_type}-Image",
+            "imageVersion": "1.0.0"
         }
 
         responses.add(
@@ -135,7 +138,8 @@ def test_set_procurement_organisation_image_different_types():
             provider="aws",
             region="eu-west-2",
             image_id=f"ami-{image_type.lower()[:8]}123",
-            image_name=f"Custom-{image_type}-Image"
+            image_name=f"Custom-{image_type}-Image",
+            image_version="1.0.0"
         )
 
         assert result["imageType"] == image_type
@@ -165,7 +169,8 @@ def test_set_procurement_organisation_image_without_image_name():
         "provider": "aws",
         "region": "eu-west-2",
         "imageId": "ami-0123456789abcdef0",
-        "imageName": None
+        "imageName": None,
+        "imageVersion": "1.0.0"
     }
 
     responses.add(
@@ -190,7 +195,8 @@ def test_set_procurement_organisation_image_without_image_name():
         provider="aws",
         region="eu-west-2",
         image_id="ami-0123456789abcdef0",
-        image_name=None
+        image_name=None,
+        image_version="1.0.0"
     )
 
     assert result["imageName"] is None

@@ -95,6 +95,7 @@ def list_images(ctx,
 @click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
 @click.option('--image-id', help='The new image id value.', required=True)
 @click.option('--image-name', help='The new image name value.', required=False)
+@click.option('--image-version', help='The new image version value.', required=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -110,6 +111,7 @@ def set_organisation_image(ctx,
                            procurement_id,
                            organisation_id,
                            image_type,
+                           image_version,
                            provider,
                            region,
                            image_id,
@@ -117,7 +119,7 @@ def set_organisation_image(ctx,
                            disable_ssl_verification,
                            ssl_cert,
                            profile):
-    """Set a new image id or name to image associated with an organisations of a given procurement."""
+    """Set a new image id, name, or version to image associated with an organisations of a given procurement."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     procurement_images = Images(
@@ -135,7 +137,8 @@ def set_organisation_image(ctx,
            provider,
            region,
            image_id,
-           image_name
+           image_name,
+           image_version
         )
         console = Console()
         console.print(result)
