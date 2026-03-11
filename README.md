@@ -445,7 +445,7 @@ cloudos workflow list --profile my_profile
 cloudos workflow list --profile my_profile --output-format stdout
 ```
 
-To save workflows to a CSV file with all available fields:
+To save the list of workflows to a CSV file with all available fields:
 
 ```bash
 cloudos workflow list --profile my_profile --output-format csv --all-fields
