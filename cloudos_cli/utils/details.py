@@ -4,6 +4,7 @@ from rich.table import Table
 import json
 import csv
 import os
+import sys
 
 
 def get_path(param, param_kind_map, execution_platform, storage_provider, mode="parameters"):
@@ -646,3 +647,376 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
 
         console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")
+
+
+def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.ai", page_size=10):
+    """Display workflows in a rich formatted table with pagination.
+
+    Parameters
+    ----------
+    workflows : list
+        A list of dicts, each corresponding to a workflow.
+    cloudos_url : str
+        The CloudOS URL for creating hyperlinks.
+    page_size : int
+        Number of workflows to display per page. Default is 10.
+    """
+    console = Console()
+
+    # Handle empty workflow list
+    if len(workflows) == 0:
+        console.print("\n[yellow]No workflows found in this workspace.[/yellow]")
+        return
+
+    # Prepare rows data
+    rows = []
+    for workflow in workflows:
+        # Get workflow ID for the hyperlink
+        workflow_id = str(workflow.get("_id", "N/A"))
+        workflow_url = f"{cloudos_url}/app/advanced-analytics/pipelines-and-tools/workspace/{workflow_id}"
+        
+        # Name with hyperlink
+        name = str(workflow.get("name", "N/A"))
+        name_with_link = f"[link={workflow_url}]{name}[/link]"
+
+        # Archived status
+        # archived_status = workflow.get("archived", {})
+        # if isinstance(archived_status, dict):
+        #     archived = str(archived_status.get("status", "N/A"))
+        # else:
+        #     archived = str(archived_status)
+
+        # Repository name
+        repository = workflow.get("repository", {})
+        repo_name = str(repository.get("name", "N/A"))
+        repo_url = str(repository.get("url", "N/A"))
+        
+        # Create hyperlink for repository name if URL is available
+        if repo_url != "N/A" and repo_url:
+            repo_name_with_link = f"[link={repo_url}]{repo_name}[/link]"
+        else:
+            repo_name_with_link = repo_name
+
+        # Repository platform
+        #repo_platform = str(repository.get("platform", "N/A"))
+
+        # Repository URL
+        #repo_url = str(repository.get("url", "N/A"))
+
+        # Is private
+        # is_private = str(repository.get("isPrivate", "N/A"))
+
+        rows.append([
+            name_with_link,
+            #archived,
+            repo_name_with_link,
+            #repo_platform,
+            #repo_url,
+            #is_private
+        ])
+
+    # Pagination
+    current_page = 0
+    total_pages = (len(rows) + page_size - 1) // page_size if len(rows) > 0 else 1
+    show_error = None  # Track error messages to display
+
+    while True:
+        start = current_page * page_size
+        end = start + page_size
+
+        # Clear console first
+        console.clear()
+
+        # Create and display table
+        table = Table(title="Workflow List")
+
+        # Add columns
+        table.add_column("Name", style="green", overflow="fold")
+        #table.add_column("Archived", style="yellow", no_wrap=True)
+        table.add_column("Repository", style="cyan", overflow="fold")
+        #table.add_column("Platform", style="green", no_wrap=True)
+        #table.add_column("Repository URL", style="blue", overflow="fold")
+        #table.add_column("Private", style="red", no_wrap=True)
+
+        # Get rows for current page
+        page_rows = rows[start:end]
+
+        # Add rows to table
+        for row in page_rows:
+            table.add_row(*row)
+
+        # Print table
+        console.print(table)
+
+        # Display total count and page info
+        console.print(f"\n[cyan]Total workflows:[/cyan] {len(workflows)}")
+        if total_pages > 1:
+            console.print(f"[cyan]Page:[/cyan] {current_page + 1} of {total_pages}")
+            console.print(f"[cyan]Workflows on this page:[/cyan] {len(page_rows)}")
+
+        # Show error message if any
+        if show_error:
+            console.print(show_error)
+            show_error = None  # Reset error after displaying
+
+        # Show pagination controls
+        if total_pages > 1:
+            # Check if we're in an interactive environment
+            if not sys.stdin.isatty():
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
+                break
+            
+            console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
+
+            # Get user input for navigation
+            try:
+                choice = input(">>> ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                # Handle non-interactive environments or user interrupt
+                console.print("\n[yellow]Pagination interrupted.[/yellow]")
+                break
+
+            if choice in ("q", "quit"):
+                break
+            elif choice in ("n", "next"):
+                if current_page < total_pages - 1:
+                    current_page += 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the last page.[/red]"
+            elif choice in ("p", "prev"):
+                if current_page > 0:
+                    current_page -= 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the first page.[/red]"
+            else:
+                show_error = "[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"
+        else:
+            # Only one page, no need for input, just exit
+            break
+
+
+def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
+    """Display job queues in a rich formatted table.
+
+    Parameters
+    ----------
+    queues : list
+        A list of dicts, each corresponding to a job queue.
+    cloudos_url : str
+        The CloudOS URL for context (currently not used for hyperlinks).
+
+    Returns
+    -------
+    None
+        Prints the formatted table to console.
+    """
+    console = Console()
+
+    # Handle empty queue list
+    if len(queues) == 0:
+        console.print("\n[yellow]No job queues found in this workspace.[/yellow]")
+        return
+
+    # Create table
+    table = Table(title="Job Queue List")
+
+    # Add columns
+    table.add_column("Label", style="green", overflow="fold", min_width=10)
+    table.add_column("Default", style="cyan", no_wrap=True, min_width=7, justify="center")
+    table.add_column("Resource Type", style="magenta", overflow="fold", min_width=12)
+    table.add_column("Status", style="yellow", no_wrap=True, min_width=8, justify="center")
+
+    # Process each queue
+    for queue in queues:
+        # Label
+        label = str(queue.get("label", "N/A"))
+
+        # Default (show as checkmark or dash)
+        is_default = queue.get("isDefault", False)
+        if is_default:
+            default_display = "[bold green]Default[/bold green]"
+        else:
+            default_display = "[dim]—[/dim]"
+
+        # Resource Type
+        resource_type = str(queue.get("resourceType", "N/A"))
+        if not resource_type or resource_type == "":
+            resource_type = "N/A"
+        elif resource_type == "teamBatchJobQueue":
+            resource_type = "Batch Queues"
+
+        # Status with checkmark/X icons
+        status_raw = str(queue.get("status", "N/A"))
+        if status_raw.lower() == "ready":
+            status = "[bold green]Ready[/bold green]"
+        else:
+            status = "[bold red]Not Ready[/bold red]"
+
+        # Add row
+        table.add_row(label, default_display, resource_type, status)
+
+    # Print table
+    console.print(table)
+
+    # Display total count
+    console.print(f"\n[cyan]Total job queues:[/cyan] {len(queues)}")
+
+
+def create_project_list_table(projects, cloudos_url="https://cloudos.lifebit.ai", page_size=10):
+    """Display projects in a rich formatted table with pagination.
+
+    Parameters
+    ----------
+    projects : list
+        A list of dicts, each corresponding to a project.
+    cloudos_url : str
+        The CloudOS URL for creating hyperlinks.
+    page_size : int
+        Number of projects to display per page. Default is 10.
+    """
+    console = Console()
+
+    # Handle empty project list
+    if len(projects) == 0:
+        console.print("\n[yellow]No projects found in this workspace.[/yellow]")
+        return
+
+    # Prepare rows data
+    rows = []
+    for project in projects:
+        # Name with hyperlink
+        project_id = str(project.get("_id", "N/A"))
+        project_url = f"{cloudos_url}/app/data-science/datasets/projects/{project_id}"
+        name = str(project.get("name", "N/A"))
+        name_with_link = f"[link={project_url}]{name}[/link]"
+
+        # User (combine name and surname)
+        user_info = project.get("user", {})
+        user_name = user_info.get("name", "")
+        user_surname = user_info.get("surname", "")
+        if user_name and user_surname:
+            user = f"{user_name} {user_surname}"
+        elif user_name:
+            user = user_name
+        elif user_surname:
+            user = user_surname
+        else:
+            user = "N/A"
+
+        # Created date (format: yyyy.mm.dd)
+        created_at = project.get("createdAt")
+        if created_at:
+            try:
+                created_dt = datetime.fromisoformat(str(created_at).replace('Z', '+00:00'))
+                created = created_dt.strftime('%Y.%m.%d')
+            except (ValueError, TypeError):
+                created = "N/A"
+        else:
+            created = "N/A"
+
+        # Updated date (format: yyyy.mm.dd)
+        updated_at = project.get("updatedAt")
+        if updated_at:
+            try:
+                updated_dt = datetime.fromisoformat(str(updated_at).replace('Z', '+00:00'))
+                updated = updated_dt.strftime('%Y.%m.%d')
+            except (ValueError, TypeError):
+                updated = "N/A"
+        else:
+            updated = "N/A"
+
+        # Job count
+        job_count = str(project.get("jobCount", 0))
+
+        # Notebook session count
+        notebook_count = str(project.get("notebookSessionCount", 0))
+
+        rows.append([
+            name_with_link,
+            user,
+            created,
+            updated,
+            job_count,
+            notebook_count
+        ])
+
+    # Pagination
+    current_page = 0
+    total_pages = (len(rows) + page_size - 1) // page_size if len(rows) > 0 else 1
+    show_error = None  # Track error messages to display
+
+    while True:
+        start = current_page * page_size
+        end = start + page_size
+
+        # Clear console first
+        console.clear()
+
+        # Create and display table
+        table = Table(title="Project List")
+
+        # Add columns
+        table.add_column("Name", style="green", overflow="fold", min_width=15)
+        table.add_column("User", style="cyan", overflow="ellipsis", min_width=12, max_width=20)
+        table.add_column("Created", style="magenta", no_wrap=True, min_width=10)
+        table.add_column("Updated", style="blue", no_wrap=True, min_width=10)
+        table.add_column("Jobs", style="yellow", no_wrap=True, min_width=4, justify="right")
+        table.add_column("Notebooks", style="white", no_wrap=True, min_width=9, justify="right")
+
+        # Get rows for current page
+        page_rows = rows[start:end]
+
+        # Add rows to table
+        for row in page_rows:
+            table.add_row(*row)
+
+        # Print table
+        console.print(table)
+
+        # Display total count and page info
+        console.print(f"\n[cyan]Total projects:[/cyan] {len(projects)}")
+        if total_pages > 1:
+            console.print(f"[cyan]Page:[/cyan] {current_page + 1} of {total_pages}")
+            console.print(f"[cyan]Projects on this page:[/cyan] {len(page_rows)}")
+
+        # Show error message if any
+        if show_error:
+            console.print(show_error)
+            show_error = None  # Reset error after displaying
+
+        # Show pagination controls
+        if total_pages > 1:
+            # Check if we're in an interactive environment
+            if not sys.stdin.isatty():
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
+                break
+            
+            console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
+
+            # Get user input for navigation
+            try:
+                choice = input(">>> ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                # Handle non-interactive environments or user interrupt
+                console.print("\n[yellow]Pagination interrupted.[/yellow]")
+                break
+
+            if choice in ("q", "quit"):
+                break
+            elif choice in ("n", "next"):
+                if current_page < total_pages - 1:
+                    current_page += 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the last page.[/red]"
+            elif choice in ("p", "prev"):
+                if current_page > 0:
+                    current_page -= 1
+                else:
+                    show_error = "[red]Invalid choice. Already on the first page.[/red]"
+            else:
+                show_error = "[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"
+        else:
+            # Only one page, no need for input, just exit
+            break

@@ -7,6 +7,7 @@ from cloudos_cli.import_wf.import_wf import ImportWorflow
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from cloudos_cli.utils.details import create_workflow_list_table
 
 
 # Create the workflow group
@@ -35,9 +36,13 @@ def workflow():
               default='workflow_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help=('Output format for workflow list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from workflows or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -66,11 +71,13 @@ def list_workflows(ctx,
                    disable_ssl_verification,
                    ssl_cert,
                    profile):
-    """Collect all workflows from a CloudOS workspace in CSV format."""
+    """Collect and display workflows from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
+    # Only set outfile if not using stdout
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -81,17 +88,22 @@ def list_workflows(ctx,
         print('\tSearching for workflows in the following workspace: ' +
               f'{workspace_id}')
     my_workflows_r = cl.get_workflow_list(workspace_id, verify=verify_ssl)
-    if output_format == 'csv':
+    
+    if output_format == 'stdout':
+        # Display as table with pagination
+        create_workflow_list_table(my_workflows_r, cloudos_url)
+    elif output_format == 'csv':
         my_workflows = cl.process_workflow_list(my_workflows_r, all_fields)
         my_workflows.to_csv(outfile, index=False)
         print(f'\tWorkflow list collected with a total of {my_workflows.shape[0]} workflows.')
+        print(f'\tWorkflow list saved to {outfile}')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_workflows_r))
         print(f'\tWorkflow list collected with a total of {len(my_workflows_r)} workflows.')
+        print(f'\tWorkflow list saved to {outfile}')
     else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tWorkflow list saved to {outfile}')
+        raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
 @workflow.command('import')

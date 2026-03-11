@@ -7,6 +7,7 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from cloudos_cli.utils.details import create_project_list_table
 
 
 @click.group(cls=pass_debug_to_subcommands())
@@ -34,9 +35,13 @@ def project():
               default='project_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help=('Output format for project list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--all-fields',
               help=('Whether to collect all available fields from projects or ' +
                     'just the preconfigured selected fields. Only applicable ' +
@@ -70,11 +75,12 @@ def list_projects(ctx,
                   disable_ssl_verification,
                   ssl_cert,
                   profile):
-    """Collect all projects from a CloudOS workspace in CSV format."""
+    """Collect and display all projects from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
     print('Executing list...')
     if verbose:
         print('\t...Preparing objects')
@@ -93,25 +99,32 @@ def list_projects(ctx,
         if not isinstance(page, int) or page < 1:
             raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
+    
+    # Print informative message if no projects found
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('A total of 0 projects collected. This is likely because your workspace ' +
+            print('\tA total of 0 projects collected. This is likely because your workspace ' +
                   'has no projects created yet.')
         else:
-            print('A total of 0 projects collected. This is likely because the --page you ' +
+            print('\tA total of 0 projects collected. This is likely because the --page you ' +
                   'requested does not exist. Please, try a smaller number for --page or collect all the ' +
                   'projects by not using --page parameter.')
+    
+    # Generate output files (even if empty, for consistency with automation)
+    if output_format == 'stdout':
+        create_project_list_table(my_projects_r, cloudos_url)
     elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
         my_projects.to_csv(outfile, index=False)
         print(f'\tProject list collected with a total of {my_projects.shape[0]} projects.')
+        print(f'\tProject list saved to {outfile}')
     elif output_format == 'json':
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_projects_r))
         print(f'\tProject list collected with a total of {len(my_projects_r)} projects.')
+        print(f'\tProject list saved to {outfile}')
     else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tProject list saved to {outfile}')
+        raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
 @project.command('create')

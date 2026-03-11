@@ -6,6 +6,11 @@
 
 - Fixes `--filter-queue` to retrieve jobs even if the initial page has none matching the filters
 
+## v2.82.0 (2026-03-10)
+
+### Feat
+
+- Adds rich table output for `workflow/queue/project list` subcommand
 
 ## v2.81.2 (2026-03-04)
 
