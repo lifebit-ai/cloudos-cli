@@ -7,6 +7,7 @@ import tempfile
 from click.testing import CliRunner
 from cloudos_cli.__main__ import run_cloudos_cli
 import requests_mock
+from unittest.mock import patch, MagicMock
 
 
 # Test data
@@ -47,10 +48,14 @@ def test_project_list_missing_required_params():
     """Test that the command fails when missing required parameters."""
     runner = CliRunner()
     
-    result = runner.invoke(run_cloudos_cli, ['project', 'list'])
-    assert result.exit_code != 0
-    # The command should be aborted when required params are missing
-    assert 'Missing option' in result.output or 'Error' in result.output or 'Aborted' in result.output
+    # Mock config file loading to ensure no profile provides default values
+    with patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile') as mock_load:
+        mock_load.return_value = {}  # No profile data
+        
+        result = runner.invoke(run_cloudos_cli, ['project', 'list'])
+        assert result.exit_code != 0
+        # The command should be aborted when required params are missing
+        assert 'Missing option' in result.output or 'Error' in result.output or 'Aborted' in result.output
 
 
 def test_project_list_csv_output():

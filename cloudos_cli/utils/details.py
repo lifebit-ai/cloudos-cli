@@ -4,6 +4,7 @@ from rich.table import Table
 import json
 import csv
 import os
+import sys
 
 
 def get_path(param, param_kind_map, execution_platform, storage_provider, mode="parameters"):
@@ -760,10 +761,21 @@ def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.a
 
         # Show pagination controls
         if total_pages > 1:
+            # Check if we're in an interactive environment
+            if not sys.stdin.isatty():
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
+                break
+            
             console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
 
             # Get user input for navigation
-            choice = input(">>> ").strip().lower()
+            try:
+                choice = input(">>> ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                # Handle non-interactive environments or user interrupt
+                console.print("\n[yellow]Pagination interrupted.[/yellow]")
+                break
 
             if choice in ("q", "quit"):
                 break
@@ -975,10 +987,21 @@ def create_project_list_table(projects, cloudos_url="https://cloudos.lifebit.ai"
 
         # Show pagination controls
         if total_pages > 1:
+            # Check if we're in an interactive environment
+            if not sys.stdin.isatty():
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
+                break
+            
             console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
 
             # Get user input for navigation
-            choice = input(">>> ").strip().lower()
+            try:
+                choice = input(">>> ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                # Handle non-interactive environments or user interrupt
+                console.print("\n[yellow]Pagination interrupted.[/yellow]")
+                break
 
             if choice in ("q", "quit"):
                 break
