@@ -437,7 +437,7 @@ You can get a list of all available workspace workflows in three different outpu
 - **csv**: Saves workflow data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
 - **json**: Saves complete workflow information to a JSON file with all available fields
 
-To display workflows as a formatted table in the terminal:
+To display the list of workflows as a formatted table in the terminal:
 
 ```bash
 cloudos workflow list --profile my_profile
