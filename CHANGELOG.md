@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.82.1 (2026-03-11)
+
+### Patch
+
+- Fixes `--filter-queue` to retrieve jobs even if the initial page has none matching the filters
+
 ## v2.82.0 (2026-03-10)
 
 ### Feat
