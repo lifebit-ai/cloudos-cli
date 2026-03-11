@@ -99,15 +99,19 @@ def list_projects(ctx,
         if not isinstance(page, int) or page < 1:
             raise ValueError('Please, use a positive integer (>= 1) for the --page parameter')
     my_projects_r = cl.get_project_list(workspace_id, verify_ssl, page=page, get_all=get_all)
+    
+    # Print informative message if no projects found
     if len(my_projects_r) == 0:
         if ctx.get_parameter_source('page') == click.core.ParameterSource.DEFAULT:
-            print('A total of 0 projects collected. This is likely because your workspace ' +
+            print('\tA total of 0 projects collected. This is likely because your workspace ' +
                   'has no projects created yet.')
         else:
-            print('A total of 0 projects collected. This is likely because the --page you ' +
+            print('\tA total of 0 projects collected. This is likely because the --page you ' +
                   'requested does not exist. Please, try a smaller number for --page or collect all the ' +
                   'projects by not using --page parameter.')
-    elif output_format == 'stdout':
+    
+    # Generate output files (even if empty, for consistency with automation)
+    if output_format == 'stdout':
         create_project_list_table(my_projects_r, cloudos_url)
     elif output_format == 'csv':
         my_projects = cl.process_project_list(my_projects_r, all_fields)
