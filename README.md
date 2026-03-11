@@ -431,7 +431,7 @@ Platform workflows (those provided by CloudOS in your workspace as modules) run 
 
 #### List All Available Workflows
 
-You can get a summary of all available workspace workflows in three different output formats using the `--output-format` option:
+You can get a list of all available workspace workflows in three different output formats using the `--output-format` option:
 
 - **stdout** (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting
 - **csv**: Saves workflow data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
