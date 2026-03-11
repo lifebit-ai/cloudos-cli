@@ -333,7 +333,12 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # stdout
+        echo 'q'|cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # csv
+        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
+        # json
+        cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   project_list:
     runs-on: ubuntu-latest
     strategy:
@@ -356,7 +361,12 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # stdout
+        echo 'q'|cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # csv
+        cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
+        # json
+        cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   queue_list:
     runs-on: ubuntu-latest
     strategy:
@@ -379,7 +389,12 @@ jobs:
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # stdout
+        echo 'q'|cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
+        # csv
+        cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format csv
+        # json
+        cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   dataset_list:
     runs-on: ubuntu-latest
     strategy:

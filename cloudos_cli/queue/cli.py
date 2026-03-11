@@ -6,6 +6,7 @@ from cloudos_cli.queue.queue import Queue
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from cloudos_cli.utils.details import create_queue_list_table
 
 
 # Create the queue group
@@ -34,11 +35,15 @@ def queue():
               default='job_queue_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=csv.',
-              type=click.Choice(['csv', 'json'], case_sensitive=False),
-              default='csv')
+              help=('Output format for queue list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
 @click.option('--all-fields',
-              help=('Whether to collect all available fields from workflows or ' +
+              help=('Whether to collect all available fields from queues or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
@@ -61,24 +66,26 @@ def list_queues(ctx,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Collect all available job queues from a CloudOS workspace."""
+    """Collect and display all available job queues from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    outfile = output_basename + '.' + output_format
     print('Executing list...')
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
     my_queues = j_queue.get_job_queues()
     if len(my_queues) == 0:
-        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS bath queues')
-    if output_format == 'csv':
+        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS batch queues')
+    if output_format == 'stdout':
+        create_queue_list_table(my_queues, cloudos_url)
+    elif output_format == 'csv':
+        outfile = output_basename + '.' + output_format
         queues_processed = j_queue.process_queue_list(my_queues, all_fields)
         queues_processed.to_csv(outfile, index=False)
         print(f'\tJob queue list collected with a total of {queues_processed.shape[0]} queues.')
+        print(f'\tJob queue list saved to {outfile}')
     elif output_format == 'json':
+        outfile = output_basename + '.' + output_format
         with open(outfile, 'w') as o:
             o.write(json.dumps(my_queues))
         print(f'\tJob queue list collected with a total of {len(my_queues)} queues.')
-    else:
-        raise ValueError('Unrecognised output format. Please use one of [csv|json]')
-    print(f'\tJob queue list saved to {outfile}')
+        print(f'\tJob queue list saved to {outfile}')
