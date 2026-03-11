@@ -1,5 +1,18 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.81.3 (2026-03-11)
+
+### Patch
+
+- Fixes `--filter-queue` to retrieve jobs even if the initial page has none matching the filters
+
+
+## v2.81.2 (2026-03-04)
+
+### Patch
+
+- Adds `--image-version` option for `procurement set` subcommand
+
 ## v2.81.1 (2026-02-24)
 
 ### Patch
