@@ -36,7 +36,11 @@ def workflow():
               default='workflow_list',
               required=False)
 @click.option('--output-format',
-              help='The desired output format. Default=stdout.',
+              help=('Output format for workflow list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--all-fields',

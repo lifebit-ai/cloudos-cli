@@ -35,11 +35,15 @@ def queue():
               default='job_queue_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=stdout.',
+              help=('Output format for queue list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--all-fields',
-              help=('Whether to collect all available fields from workflows or ' +
+              help=('Whether to collect all available fields from queues or ' +
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)

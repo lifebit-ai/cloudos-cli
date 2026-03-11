@@ -35,7 +35,11 @@ def project():
               default='project_list',
               required=False)
 @click.option('--output-format',
-              help='The desired file format (file extension) for the output. Default=stdout.',
+              help=('Output format for project list. Options: '
+                    'stdout (display as interactive table in terminal), '
+                    'csv (save as comma-separated values file), '
+                    'json (save as JSON file with full API response). '
+                    'Default=stdout.'),
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
 @click.option('--all-fields',
