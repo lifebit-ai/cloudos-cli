@@ -1249,16 +1249,6 @@ class Cloudos:
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
             all_jobs = all_jobs[:target_job_count]
 
-        # --- Validate queue filtering (check if environment is batch) ---
-        if filter_queue:
-            # Check if any jobs actually are batch jobs (non-batch jobs won't have jobQueue)
-            batch_jobs = [job for job in all_jobs if job.get("batch", {})]
-            if not batch_jobs:
-                # No batch jobs found - verify environment actually has batch capability
-                # by checking if any batch jobs exist in workspace at all
-                # Note: This is a best-effort check with the current page being fetched
-                raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
-
         return {'jobs': all_jobs, 'pagination_metadata': last_pagination_metadata}
 
     @staticmethod
