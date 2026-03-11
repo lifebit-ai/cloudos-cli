@@ -375,6 +375,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 
 <div class="viewcode-block" id="get_path">
@@ -1025,6 +1026,388 @@
         <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_jobs</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="n">total_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
 
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Showing </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_jobs</span><span class="si">}</span><span class="s2"> total jobs | Page </span><span class="si">{</span><span class="n">current_page</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">[/cyan]&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_workflow_list_table">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.create_workflow_list_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_workflow_list_table</span><span class="p">(</span><span class="n">workflows</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="s2">&quot;https://cloudos.lifebit.ai&quot;</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display workflows in a rich formatted table with pagination.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    workflows : list</span>
+<span class="sd">        A list of dicts, each corresponding to a workflow.</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        The CloudOS URL for creating hyperlinks.</span>
+<span class="sd">    page_size : int</span>
+<span class="sd">        Number of workflows to display per page. Default is 10.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+
+    <span class="c1"># Handle empty workflow list</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]No workflows found in this workspace.[/yellow]&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Prepare rows data</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">:</span>
+        <span class="c1"># Get workflow ID for the hyperlink</span>
+        <span class="n">workflow_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="n">workflow_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/pipelines-and-tools/workspace/</span><span class="si">{</span><span class="n">workflow_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Name with hyperlink</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="n">name_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">workflow_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+
+        <span class="c1"># Archived status</span>
+        <span class="c1"># archived_status = workflow.get(&quot;archived&quot;, {})</span>
+        <span class="c1"># if isinstance(archived_status, dict):</span>
+        <span class="c1">#     archived = str(archived_status.get(&quot;status&quot;, &quot;N/A&quot;))</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     archived = str(archived_status)</span>
+
+        <span class="c1"># Repository name</span>
+        <span class="n">repository</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;repository&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">repo_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">repository</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="n">repo_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">repository</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        
+        <span class="c1"># Create hyperlink for repository name if URL is available</span>
+        <span class="k">if</span> <span class="n">repo_url</span> <span class="o">!=</span> <span class="s2">&quot;N/A&quot;</span> <span class="ow">and</span> <span class="n">repo_url</span><span class="p">:</span>
+            <span class="n">repo_name_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">repo_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">repo_name</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repo_name_with_link</span> <span class="o">=</span> <span class="n">repo_name</span>
+
+        <span class="c1"># Repository platform</span>
+        <span class="c1">#repo_platform = str(repository.get(&quot;platform&quot;, &quot;N/A&quot;))</span>
+
+        <span class="c1"># Repository URL</span>
+        <span class="c1">#repo_url = str(repository.get(&quot;url&quot;, &quot;N/A&quot;))</span>
+
+        <span class="c1"># Is private</span>
+        <span class="c1"># is_private = str(repository.get(&quot;isPrivate&quot;, &quot;N/A&quot;))</span>
+
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">name_with_link</span><span class="p">,</span>
+            <span class="c1">#archived,</span>
+            <span class="n">repo_name_with_link</span><span class="p">,</span>
+            <span class="c1">#repo_platform,</span>
+            <span class="c1">#repo_url,</span>
+            <span class="c1">#is_private</span>
+        <span class="p">])</span>
+
+    <span class="c1"># Pagination</span>
+    <span class="n">current_page</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track error messages to display</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">current_page</span> <span class="o">*</span> <span class="n">page_size</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">page_size</span>
+
+        <span class="c1"># Clear console first</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Create and display table</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Workflow List&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add columns</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
+        <span class="c1">#table.add_column(&quot;Archived&quot;, style=&quot;yellow&quot;, no_wrap=True)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Repository&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
+        <span class="c1">#table.add_column(&quot;Platform&quot;, style=&quot;green&quot;, no_wrap=True)</span>
+        <span class="c1">#table.add_column(&quot;Repository URL&quot;, style=&quot;blue&quot;, overflow=&quot;fold&quot;)</span>
+        <span class="c1">#table.add_column(&quot;Private&quot;, style=&quot;red&quot;, no_wrap=True)</span>
+
+        <span class="c1"># Get rows for current page</span>
+        <span class="n">page_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+
+        <span class="c1"># Add rows to table</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">page_rows</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="c1"># Print table</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="c1"># Display total count and page info</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total workflows:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">workflows</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Page:[/cyan] </span><span class="si">{</span><span class="n">current_page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Workflows on this page:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">page_rows</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Show error message if any</span>
+        <span class="k">if</span> <span class="n">show_error</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">show_error</span><span class="p">)</span>
+            <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Reset error after displaying</span>
+
+        <span class="c1"># Show pagination controls</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Check if we&#39;re in an interactive environment</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">isatty</span><span class="p">():</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of </span><span class="si">{0}</span><span class="s2">.[/yellow]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_pages</span><span class="p">))</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get user input for navigation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">EOFError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
+                <span class="c1"># Handle non-interactive environments or user interrupt</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Pagination interrupted.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&lt;</span> <span class="n">total_pages</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">current_page</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the last page.[/red]&quot;</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;prev&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">current_page</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the first page.[/red]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Please enter &#39;n&#39; (next), &#39;p&#39; (prev), or &#39;q&#39; (quit).[/red]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Only one page, no need for input, just exit</span>
+            <span class="k">break</span></div>
+
+
+
+<div class="viewcode-block" id="create_queue_list_table">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.create_queue_list_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_queue_list_table</span><span class="p">(</span><span class="n">queues</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="s2">&quot;https://cloudos.lifebit.ai&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display job queues in a rich formatted table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    queues : list</span>
+<span class="sd">        A list of dicts, each corresponding to a job queue.</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        The CloudOS URL for context (currently not used for hyperlinks).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Prints the formatted table to console.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+
+    <span class="c1"># Handle empty queue list</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">queues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]No job queues found in this workspace.[/yellow]&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Create table</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Job Queue List&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Add columns</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Label&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Default&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Resource Type&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Process each queue</span>
+    <span class="k">for</span> <span class="n">queue</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">:</span>
+        <span class="c1"># Label</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+
+        <span class="c1"># Default (show as checkmark or dash)</span>
+        <span class="n">is_default</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;isDefault&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_default</span><span class="p">:</span>
+            <span class="n">default_display</span> <span class="o">=</span> <span class="s2">&quot;[bold green]Default[/bold green]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">default_display</span> <span class="o">=</span> <span class="s2">&quot;[dim]—[/dim]&quot;</span>
+
+        <span class="c1"># Resource Type</span>
+        <span class="n">resource_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resourceType&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resource_type</span> <span class="ow">or</span> <span class="n">resource_type</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="k">elif</span> <span class="n">resource_type</span> <span class="o">==</span> <span class="s2">&quot;teamBatchJobQueue&quot;</span><span class="p">:</span>
+            <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;Batch Queues&quot;</span>
+
+        <span class="c1"># Status with checkmark/X icons</span>
+        <span class="n">status_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">status_raw</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ready&quot;</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;[bold green]Ready[/bold green]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;[bold red]Not Ready[/bold red]&quot;</span>
+
+        <span class="c1"># Add row</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">default_display</span><span class="p">,</span> <span class="n">resource_type</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+
+    <span class="c1"># Print table</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+    <span class="c1"># Display total count</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total job queues:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">queues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_project_list_table">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.create_project_list_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_project_list_table</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="s2">&quot;https://cloudos.lifebit.ai&quot;</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display projects in a rich formatted table with pagination.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    projects : list</span>
+<span class="sd">        A list of dicts, each corresponding to a project.</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        The CloudOS URL for creating hyperlinks.</span>
+<span class="sd">    page_size : int</span>
+<span class="sd">        Number of projects to display per page. Default is 10.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+
+    <span class="c1"># Handle empty project list</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">projects</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]No projects found in this workspace.[/yellow]&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Prepare rows data</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">projects</span><span class="p">:</span>
+        <span class="c1"># Name with hyperlink</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="n">project_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/data-science/datasets/projects/</span><span class="si">{</span><span class="n">project_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+        <span class="n">name_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">project_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+
+        <span class="c1"># User (combine name and surname)</span>
+        <span class="n">user_info</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">user_name</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">user_surname</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;surname&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">user_name</span> <span class="ow">and</span> <span class="n">user_surname</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">user_surname</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="n">user_name</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">user_name</span>
+        <span class="k">elif</span> <span class="n">user_surname</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">user_surname</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+        <span class="c1"># Created date (format: yyyy.mm.dd)</span>
+        <span class="n">created_at</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;createdAt&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">created_at</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">created_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">created_at</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+                <span class="n">created</span> <span class="o">=</span> <span class="n">created_dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y.%m.</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="n">created</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">created</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+        <span class="c1"># Updated date (format: yyyy.mm.dd)</span>
+        <span class="n">updated_at</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;updatedAt&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">updated_at</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">updated_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">updated_at</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+                <span class="n">updated</span> <span class="o">=</span> <span class="n">updated_dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y.%m.</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="n">updated</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">updated</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+        <span class="c1"># Job count</span>
+        <span class="n">job_count</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobCount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="c1"># Notebook session count</span>
+        <span class="n">notebook_count</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;notebookSessionCount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">name_with_link</span><span class="p">,</span>
+            <span class="n">user</span><span class="p">,</span>
+            <span class="n">created</span><span class="p">,</span>
+            <span class="n">updated</span><span class="p">,</span>
+            <span class="n">job_count</span><span class="p">,</span>
+            <span class="n">notebook_count</span>
+        <span class="p">])</span>
+
+    <span class="c1"># Pagination</span>
+    <span class="n">current_page</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track error messages to display</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">current_page</span> <span class="o">*</span> <span class="n">page_size</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">page_size</span>
+
+        <span class="c1"># Clear console first</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Create and display table</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Project List&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add columns</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;ellipsis&quot;</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">max_width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Created&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Updated&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Jobs&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Notebooks&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_width</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Get rows for current page</span>
+        <span class="n">page_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+
+        <span class="c1"># Add rows to table</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">page_rows</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="c1"># Print table</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="c1"># Display total count and page info</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total projects:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">projects</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Page:[/cyan] </span><span class="si">{</span><span class="n">current_page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Projects on this page:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">page_rows</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Show error message if any</span>
+        <span class="k">if</span> <span class="n">show_error</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">show_error</span><span class="p">)</span>
+            <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Reset error after displaying</span>
+
+        <span class="c1"># Show pagination controls</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Check if we&#39;re in an interactive environment</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">isatty</span><span class="p">():</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of </span><span class="si">{0}</span><span class="s2">.[/yellow]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_pages</span><span class="p">))</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get user input for navigation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">EOFError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
+                <span class="c1"># Handle non-interactive environments or user interrupt</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Pagination interrupted.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&lt;</span> <span class="n">total_pages</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">current_page</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the last page.[/red]&quot;</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;prev&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">current_page</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the first page.[/red]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Please enter &#39;n&#39; (next), &#39;p&#39; (prev), or &#39;q&#39; (quit).[/red]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Only one page, no need for input, just exit</span>
+            <span class="k">break</span></div>
 
 </pre></div>
         </article>

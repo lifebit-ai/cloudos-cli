@@ -10,5 +10,8 @@ cloudos\_cli.utils.details
    
       create_job_details
       create_job_list_table
+      create_project_list_table
+      create_queue_list_table
+      create_workflow_list_table
       get_path
    

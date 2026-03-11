@@ -726,12 +726,19 @@ When there is already at least 1 previous profile defined, a new question will a
 <p>Projects in CloudOS provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.</p>
 <section id="list-projects">
 <h4>List Projects<a class="headerlink" href="#list-projects" title="Link to this heading">¶</a></h4>
-<p>You can get a summary of all available workspace projects in two different formats:</p>
+<p>You can get a summary of all available workspace projects in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
 <ul class="simple">
-<li><p><strong>CSV</strong>: A table with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
-<li><p><strong>JSON</strong>: All available information from projects in JSON format</p></li>
+<li><p><strong>stdout</strong> (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting</p></li>
+<li><p><strong>csv</strong>: Saves project data to a CSV file with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
+<li><p><strong>json</strong>: Saves complete project information to a JSON file with all available fields</p></li>
 </ul>
-<p>To get a CSV table with all available projects for a given workspace:</p>
+<p>To display projects as a formatted table in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile
+<span class="c1"># or explicitly:</span>
+cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>stdout
+</pre></div>
+</div>
+<p>To save projects to a CSV file with all available fields:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
 </pre></div>
 </div>
@@ -741,7 +748,7 @@ When there is already at least 1 previous profile defined, a new question will a
 <span class="go">	Project list saved to project_list.csv</span>
 </pre></div>
 </div>
-<p>To get the same information in JSON format:</p>
+<p>To save the same information in JSON format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json
 </pre></div>
 </div>
@@ -760,14 +767,26 @@ When there is already at least 1 previous profile defined, a new question will a
 </section>
 <section id="queue">
 <h3>Queue<a class="headerlink" href="#queue" title="Link to this heading">¶</a></h3>
-<p>Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the “Compute Resources” section in “Settings”. You can get a summary of all available workspace job queues in two formats:</p>
-<ul class="simple">
-<li><p><strong>CSV</strong>: A table with a selection of the available job queue information. You can get all information using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> flag</p></li>
-<li><p><strong>JSON</strong>: All available information from job queues in JSON format</p></li>
-</ul>
+<p>Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the “Compute Resources” section in “Settings”.</p>
+<blockquote>
+<div><p>[!NOTE]
+<strong>Azure Platform</strong>: Queue listing is not available for CloudOS workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.</p>
+</div></blockquote>
 <section id="list-queues">
 <h4>List Queues<a class="headerlink" href="#list-queues" title="Link to this heading">¶</a></h4>
-<p>This command allows you to view available computational queues and their configurations. Example command for getting all available job queues in JSON format:</p>
+<p>This command allows you to view available computational queues and their configurations. You can get a summary of all available workspace job queues in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
+<ul class="simple">
+<li><p><strong>stdout</strong> (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting</p></li>
+<li><p><strong>csv</strong>: Saves queue data to a CSV file with a selection of available queue information, or all information using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> flag</p></li>
+<li><p><strong>json</strong>: Saves complete queue information to a JSON file with all available fields</p></li>
+</ul>
+<p>To display queues as a formatted table in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile
+<span class="c1"># or explicitly:</span>
+cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>stdout
+</pre></div>
+</div>
+<p>To save all available job queues in JSON format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json<span class="w"> </span>--output-basename<span class="w"> </span><span class="s2">&quot;available_queues&quot;</span>
 </pre></div>
 </div>
@@ -776,7 +795,10 @@ When there is already at least 1 previous profile defined, a new question will a
 <span class="go">	Job queue list saved to available_queues.json</span>
 </pre></div>
 </div>
-<p>This command will output the list of available job queues in JSON format and save it to a file named <code class="docutils literal notranslate"><span class="pre">available_queues.json</span></code>. You can use <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">csv</span></code> for a CSV file, or omit <code class="docutils literal notranslate"><span class="pre">--output-basename</span></code> to print to the console.</p>
+<p>To save queue data to a CSV file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv
+</pre></div>
+</div>
 <blockquote>
 <div><p>NOTE: The queue name that is visible in CloudOS and must be used with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter is the one in the <code class="docutils literal notranslate"><span class="pre">label</span></code> field.</p>
 </div></blockquote>
@@ -788,12 +810,19 @@ When there is already at least 1 previous profile defined, a new question will a
 <h3>Workflow<a class="headerlink" href="#workflow" title="Link to this heading">¶</a></h3>
 <section id="list-all-available-workflows">
 <h4>List All Available Workflows<a class="headerlink" href="#list-all-available-workflows" title="Link to this heading">¶</a></h4>
-<p>You can get a summary of all available workspace workflows in two different formats:</p>
+<p>You can get a list of all available workspace workflows in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
 <ul class="simple">
-<li><p><strong>CSV</strong>: A table with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
-<li><p><strong>JSON</strong>: All available information from workflows in JSON format</p></li>
+<li><p><strong>stdout</strong> (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting</p></li>
+<li><p><strong>csv</strong>: Saves workflow data to a CSV file with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
+<li><p><strong>json</strong>: Saves complete workflow information to a JSON file with all available fields</p></li>
 </ul>
-<p>To get a CSV table with all available workflows for a given workspace:</p>
+<p>To display the list of workflows as a formatted table in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile
+<span class="c1"># or explicitly:</span>
+cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>stdout
+</pre></div>
+</div>
+<p>To save the list of workflows to a CSV file with all available fields:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--all-fields
 </pre></div>
 </div>
@@ -803,7 +832,7 @@ When there is already at least 1 previous profile defined, a new question will a
 <span class="go">	Workflow list saved to workflow_list.csv</span>
 </pre></div>
 </div>
-<p>To get the same information in JSON format:</p>
+<p>To save the same information in JSON format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json
 </pre></div>
 </div>

@@ -3691,7 +3691,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-project-list">
 <h4>list<a class="headerlink" href="#cloudos-project-list" title="Link to this heading">¶</a></h4>
-<p>Collect all projects from a CloudOS workspace in CSV format.</p>
+<p>Collect and display all projects from a CloudOS workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -3724,10 +3724,10 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-list-output-format">
 <span class="sig-name descname"><span class="pre">--output-format</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_format&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-list-output-format" title="Link to this definition">¶</a></dt>
-<dd><p>The desired file format (file extension) for the output. Default=csv.</p>
+<dd><p>Output format for project list. Options: stdout (display as interactive table in terminal), csv (save as comma-separated values file), json (save as JSON file with full API response). Default=stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
-<dd class="field-odd"><p>csv | json</p>
+<dd class="field-odd"><p>stdout | csv | json</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3792,7 +3792,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 
 <section id="cloudos-queue-list">
 <h4>list<a class="headerlink" href="#cloudos-queue-list" title="Link to this heading">¶</a></h4>
-<p>Collect all available job queues from a CloudOS workspace.</p>
+<p>Collect and display all available job queues from a CloudOS workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -3825,10 +3825,10 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-output-format">
 <span class="sig-name descname"><span class="pre">--output-format</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_format&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-output-format" title="Link to this definition">¶</a></dt>
-<dd><p>The desired file format (file extension) for the output. Default=csv.</p>
+<dd><p>Output format for queue list. Options: stdout (display as interactive table in terminal), csv (save as comma-separated values file), json (save as JSON file with full API response). Default=stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
-<dd class="field-odd"><p>csv | json</p>
+<dd class="field-odd"><p>stdout | csv | json</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3836,7 +3836,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-all-fields">
 <span class="sig-name descname"><span class="pre">--all-fields</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-all-fields" title="Link to this definition">¶</a></dt>
-<dd><p>Whether to collect all available fields from workflows or just the preconfigured selected fields. Only applicable when –output-format=csv</p>
+<dd><p>Whether to collect all available fields from queues or just the preconfigured selected fields. Only applicable when –output-format=csv</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3973,7 +3973,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-workflow-list">
 <h4>list<a class="headerlink" href="#cloudos-workflow-list" title="Link to this heading">¶</a></h4>
-<p>Collect all workflows from a CloudOS workspace in CSV format.</p>
+<p>Collect and display workflows from a CloudOS workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4006,10 +4006,10 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-output-format">
 <span class="sig-name descname"><span class="pre">--output-format</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_format&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-output-format" title="Link to this definition">¶</a></dt>
-<dd><p>The desired file format (file extension) for the output. Default=csv.</p>
+<dd><p>Output format for workflow list. Options: stdout (display as interactive table in terminal), csv (save as comma-separated values file), json (save as JSON file with full API response). Default=stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
-<dd class="field-odd"><p>csv | json</p>
+<dd class="field-odd"><p>stdout | csv | json</p>
 </dd>
 </dl>
 </dd></dl>

@@ -387,7 +387,16 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_job_list_table" title="cloudos_cli.utils.details.create_job_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_job_list_table</span></code></a>(jobs, cloudos_url[, ...])</p></td>
 <td><p>Creates a formatted job list table for stdout output with responsive design.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_project_list_table" title="cloudos_cli.utils.details.create_project_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_project_list_table</span></code></a>(projects[, ...])</p></td>
+<td><p>Display projects in a rich formatted table with pagination.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_queue_list_table" title="cloudos_cli.utils.details.create_queue_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_queue_list_table</span></code></a>(queues[, cloudos_url])</p></td>
+<td><p>Display job queues in a rich formatted table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_workflow_list_table" title="cloudos_cli.utils.details.create_workflow_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_workflow_list_table</span></code></a>(workflows[, ...])</p></td>
+<td><p>Display workflows in a rich formatted table with pagination.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.get_path" title="cloudos_cli.utils.details.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(param, param_kind_map, ...[, mode])</p></td>
 <td><p>Constructs a storage path based on the parameter kind and execution platform.</p></td>
 </tr>
 </tbody>
@@ -515,6 +524,56 @@ Valid columns: ‘status’, ‘name’, ‘project’, ‘owner’, ‘pipeline
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.utils.details.create_project_list_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_project_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projects</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://cloudos.lifebit.ai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_project_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_project_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Display projects in a rich formatted table with pagination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projects</strong> (<em>list</em>) – A list of dicts, each corresponding to a project.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – The CloudOS URL for creating hyperlinks.</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – Number of projects to display per page. Default is 10.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.utils.details.create_queue_list_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_queue_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queues</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://cloudos.lifebit.ai'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_queue_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_queue_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Display job queues in a rich formatted table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queues</strong> (<em>list</em>) – A list of dicts, each corresponding to a job queue.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – The CloudOS URL for context (currently not used for hyperlinks).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Prints the formatted table to console.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.utils.details.create_workflow_list_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_workflow_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workflows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://cloudos.lifebit.ai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_workflow_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_workflow_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Display workflows in a rich formatted table with pagination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workflows</strong> (<em>list</em>) – A list of dicts, each corresponding to a workflow.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – The CloudOS URL for creating hyperlinks.</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – Number of workflows to display per page. Default is 10.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.utils.details.get_path">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_kind_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'parameters'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.get_path" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a storage path based on the parameter kind and execution platform.</p>
@@ -628,6 +687,9 @@ leaves the constructed path as generated from the API</p></li>
 <li><a class="reference internal" href="#">cloudos_cli.utils.details</a><ul>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.create_job_details"><code class="docutils literal notranslate"><span class="pre">create_job_details()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.create_job_list_table"><code class="docutils literal notranslate"><span class="pre">create_job_list_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.utils.details.create_project_list_table"><code class="docutils literal notranslate"><span class="pre">create_project_list_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.utils.details.create_queue_list_table"><code class="docutils literal notranslate"><span class="pre">create_queue_list_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.utils.details.create_workflow_list_table"><code class="docutils literal notranslate"><span class="pre">create_workflow_list_table()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.utils.details.get_path"><code class="docutils literal notranslate"><span class="pre">get_path()</span></code></a></li>
 </ul>
 </li>
