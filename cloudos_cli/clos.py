@@ -1179,6 +1179,24 @@ class Cloudos:
             user_id = self.resolve_user_id(filter_owner, workspace_id, verify)
             params["user.id"] = user_id
 
+        # --- Resolve queue ID before pagination (for local filtering during pagination) ---
+        queue_id = None
+        if filter_queue:
+            try:
+                from cloudos_cli.queue.queue import Queue
+                queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
+                queues = queue_api.get_job_queues()
+
+                for queue in queues:
+                    if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
+                        queue_id = queue.get("id") or queue.get("_id")
+                        break
+
+                if not queue_id:
+                    raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
+            except Exception as e:
+                raise ValueError(f"Error resolving queue '{filter_queue}'. {str(e)}")
+
         # --- Fetch jobs page by page ---
         all_jobs = []
         params["limit"] = current_page_size
@@ -1201,50 +1219,45 @@ class Cloudos:
             if not page_jobs:
                 break
 
+            # Apply queue filter during pagination (if specified)
+            if filter_queue and queue_id:
+                page_jobs = [job for job in page_jobs if job.get("batch", {}).get("jobQueue", {}) == queue_id]
+
             all_jobs.extend(page_jobs)
 
             # Check stopping conditions based on mode
             if use_pagination_mode:
-                # In pagination mode (last_n_jobs), continue until we have enough jobs
+                # In pagination mode (last_n_jobs), continue until we have enough jobs (after filtering)
                 if target_job_count != 'all' and len(all_jobs) >= target_job_count:
                     break
             else:
-                # In direct mode (page/page_size), only get one page
-                break
+                # In direct mode (page/page_size), only get one page unless filter_queue is used
+                # When filter_queue is used, continue fetching pages until we have enough filtered results
+                if not filter_queue or len(all_jobs) >= current_page_size:
+                    break
 
             # Check if we reached the last page (fewer jobs than requested page size)
-            if len(page_jobs) < params["limit"]:
+            # Note: For queue filter, we check the unfiltered page_jobs count from the API
+            # This ensures we stop when the API has exhausted results
+            raw_page_jobs = content.get('jobs', [])
+            if len(raw_page_jobs) < params["limit"]:
                 break  # Last page
 
             current_page += 1
 
-        # --- Local queue filtering (not supported by API) ---
-        if filter_queue:
-            try:
-                batch_jobs=[job for job in all_jobs if job.get("batch", {})]
-                if batch_jobs:
-                    from cloudos_cli.queue.queue import Queue
-                    queue_api = Queue(self.cloudos_url, self.apikey, self.cromwell_token, workspace_id, verify)
-                    queues = queue_api.get_job_queues()
-
-                    queue_id = None
-                    for queue in queues:
-                        if queue.get("label") == filter_queue or queue.get("name") == filter_queue:
-                            queue_id = queue.get("id") or queue.get("_id")
-                            break
-
-                    if not queue_id:
-                        raise ValueError(f"Queue with name '{filter_queue}' not found in workspace '{workspace_id}'")
-
-                    all_jobs = [job for job in all_jobs if job.get("batch", {}).get("jobQueue", {}) == queue_id]
-                else:
-                    raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
-            except Exception as e:
-                raise ValueError(f"Error filtering by queue '{filter_queue}'. {str(e)}")
-
         # --- Apply limit after all filtering ---
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
             all_jobs = all_jobs[:target_job_count]
+
+        # --- Validate queue filtering (check if environment is batch) ---
+        if filter_queue:
+            # Check if any jobs actually are batch jobs (non-batch jobs won't have jobQueue)
+            batch_jobs = [job for job in all_jobs if job.get("batch", {})]
+            if not batch_jobs:
+                # No batch jobs found - verify environment actually has batch capability
+                # by checking if any batch jobs exist in workspace at all
+                # Note: This is a best-effort check with the current page being fetched
+                raise ValueError(f"The environment is not a batch environment so queues do not exist. Please remove the --filter-queue option.")
 
         return {'jobs': all_jobs, 'pagination_metadata': last_pagination_metadata}
 
