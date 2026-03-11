@@ -1220,8 +1220,16 @@ class Cloudos:
                 break
 
             # Apply queue filter during pagination (if specified)
+            # jobQueue is a dict with "id" and "name" keys, extract the id for comparison
             if filter_queue and queue_id:
-                page_jobs = [job for job in page_jobs if job.get("batch", {}).get("jobQueue", {}) == queue_id]
+                filtered_jobs = []
+                for job in page_jobs:
+                    job_queue = job.get("batch", {}).get("jobQueue", {})
+                    # jobQueue is a dict like {"id": "...", "name": "...", ...}
+                    job_queue_id = job_queue.get("id") if isinstance(job_queue, dict) else job_queue
+                    if job_queue_id == queue_id:
+                        filtered_jobs.append(job)
+                page_jobs = filtered_jobs
 
             all_jobs.extend(page_jobs)
 
