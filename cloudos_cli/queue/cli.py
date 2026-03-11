@@ -66,7 +66,7 @@ def list_queues(ctx,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Collect all available job queues from a CloudOS workspace."""
+    """Collect and display all available job queues from a CloudOS workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
