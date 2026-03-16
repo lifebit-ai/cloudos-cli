@@ -23,7 +23,7 @@ MOCK_JOB_LIST = {
             "user": {"id": USER_ID, "name": "Test User"},
             "project": {"id": PROJECT_ID, "name": "test-project"},
             "workflow": {"id": WORKFLOW_ID, "name": "test-workflow"},
-            "batch": {"jobQueue": QUEUE_ID}
+            "batch": {"jobQueue": {"id": QUEUE_ID, "name": "v41"}}
         },
         {
             "_id": "job2",
@@ -32,7 +32,7 @@ MOCK_JOB_LIST = {
             "user": {"id": "other_user_id", "name": "Other User"},
             "project": {"id": "other_project_id", "name": "other-project"},
             "workflow": {"id": "other_workflow_id", "name": "other-workflow"},
-            "batch": {"jobQueue": "other_queue_id"}
+            "batch": {"jobQueue": {"id": "other_queue_id", "name": "other-queue"}}
         }
     ]
 }
