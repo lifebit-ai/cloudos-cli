@@ -2252,3 +2252,105 @@ class Cloudos:
 
         # use 'query' to look in the content
         return [wf.get(query) for wf in content.get("workflows", []) if wf.get("name") == workflow_name]
+
+    def get_interactive_session_list(self, team_id, page=None, limit=None, status=None, 
+                                     owner_only=False, include_archived=False, verify=True):
+        """Get interactive sessions from a CloudOS team.
+
+        Parameters
+        ----------
+        team_id : string
+            The CloudOS team id (workspace id) to retrieve sessions from.
+        page : int, optional
+            Page number for pagination. Default=1.
+        limit : int, optional
+            Number of results per page. Default=10, max=100.
+        status : list of string, optional
+            Filter by session status. Valid values: running, stopped, provisioning, scheduled.
+        owner_only : bool, optional
+            If True, retrieve only the current user's sessions.
+        include_archived : bool, optional
+            If True, include archived sessions in results.
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        dict
+            A dict with 'sessions' list and 'pagination_metadata'.
+        """
+        # Validate team_id
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+
+        # Set defaults
+        current_page = page if page is not None else 1
+        current_limit = limit if limit is not None else 10
+
+        # Validate pagination parameters
+        if current_page <= 0 or not isinstance(current_page, int):
+            raise ValueError('Please use a positive integer (>= 1) for the page parameter')
+        if current_limit <= 0 or not isinstance(current_limit, int):
+            raise ValueError('Please use a positive integer (>= 1) for the limit parameter')
+        if current_limit > 100:
+            raise ValueError('Limit cannot exceed 100')
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build query parameters
+        params = {
+            "teamId": team_id,
+            "page": current_page,
+            "limit": current_limit
+        }
+
+        # Add optional filters
+        if status:
+            # status is a list of valid status values
+            valid_statuses = ['running', 'stopped', 'provisioning', 'scheduled']
+            for s in status:
+                if s.lower() not in valid_statuses:
+                    raise ValueError(f"Invalid status '{s}'. Valid values: {', '.join(valid_statuses)}")
+            # Add status[] parameters (multiple status filters)
+            for s in status:
+                params[f"status[]"] = s.lower()
+
+        if owner_only:
+            params["onlyOwnerSessions"] = "true"
+
+        if include_archived:
+            params["archived.status"] = "true"
+        else:
+            params["archived.status"] = "false"
+
+        # Make the API request
+        url = f"{self.cloudos_url}/api/v3/interactive-sessions"
+        r = retry_requests_get(url, params=params, headers=headers, verify=verify)
+        
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        content = r.json()
+        
+        # Extract sessions and pagination metadata
+        # The API returns sessions under 'sessions' key
+        sessions = content.get('sessions', []) if isinstance(content, dict) else []
+        
+        # Build pagination metadata from response
+        # API returns Pagination-Count, Pagination-Page, Pagination-Limit
+        pagination_info = content.get('paginationMetadata', {})
+        total_count = pagination_info.get('Pagination-Count', len(sessions))
+        
+        pagination_metadata = {
+            'count': total_count,
+            'page': current_page,
+            'limit': current_limit,
+            'totalPages': (total_count + current_limit - 1) // current_limit if current_limit > 0 else 1
+        }
+
+        return {'sessions': sessions, 'pagination_metadata': pagination_metadata}

@@ -63,6 +63,8 @@ Python package for interacting with CloudOS
           - [Custom Script Path](#custom-script-path)
           - [Custom Script Project](#custom-script-project)
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
+    - [Interactive Sessions](#interactive-sessions)
+      - [List Interactive Sessions](#list-interactive-sessions)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -1931,6 +1933,103 @@ will take all `csv` file extensions in the specified folder.
 > Project names in the `--parameter` option can start with either forward slash `/` or without. The following are the same: `-p data=/PROJECT1/Data/input.csv` and `-p data=PROJECT1/Data/input.csv`.
 
 ---
+
+
+
+### Interactive Sessions
+
+Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
+
+#### List Interactive Sessions
+
+You can get a list of all interactive sessions in your workspace by running `cloudos interactive-session list`. The command can produce three different output formats that can be selected using the `--output-format` option:
+
+- **stdout** (default): Displays a rich formatted table directly in the terminal with interactive pagination and visual formatting
+- **csv**: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
+- **json**: Saves complete session information to a JSON file with all available fields
+
+To display the list of interactive sessions as a formatted table in the terminal:
+
+```bash
+cloudos interactive-session list --profile my_profile
+# or explicitly:
+cloudos interactive-session list --profile my_profile --output-format stdout
+```
+
+The table displays sessions with pagination controls (press `n` for next page, `p` for previous page, or `q` to quit):
+
+```console
+                          Interactive Sessions                          
+┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ stopped │ cloudosR     │ awsRstudio         │ 69aee0dba197… │ Leila  │
+│ running │ analysis-dev │ awsJupyterNotebook │ 69ae972a18f0… │ John   │
+│ stopped │ test_session │ awsVSCode          │ 69a996c098ab… │ James  │
+└─────────┴──────────────┴────────────────────┴───────────────┴────────┘
+
+Total sessions: 15
+Page: 1 of 3
+Sessions on this page: 5
+
+n = next, p = prev, q = quit
+```
+
+To save sessions to a CSV file with all available fields:
+
+```bash
+cloudos interactive-session list --profile my_profile --output-format csv --all-fields
+```
+
+The expected output is something similar to:
+
+```console
+Interactive session list saved to interactive_sessions_list.csv
+```
+
+To save the same information in JSON format:
+
+```bash
+cloudos interactive-session list --profile my_profile --output-format json
+```
+
+```console
+Interactive session list collected with a total of 15 sessions.
+Interactive session list saved to interactive_sessions_list.json
+```
+
+**Filtering Options**
+
+You can filter sessions by status and other criteria:
+
+```bash
+# Filter by status (running, stopped, provisioning, scheduled)
+cloudos interactive-session list --profile my_profile --filter-status running
+
+# Show only your own sessions
+cloudos interactive-session list --profile my_profile --filter-owner-only
+
+# Include archived sessions
+cloudos interactive-session list --profile my_profile --archived
+
+# Custom pagination
+cloudos interactive-session list --profile my_profile --limit 20 --page 2
+```
+
+**Table Columns**
+
+You can customize which columns to display:
+
+```bash
+# Display specific columns
+cloudos interactive-session list --profile my_profile --table-columns "status,name,cost,owner"
+```
+
+Available columns: `id`, `name`, `status`, `type`, `instance`, `cost`, `owner`
+
+---
+
+
 
 ### Datasets
 
