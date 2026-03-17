@@ -166,8 +166,6 @@ def list_files(ctx,
 
         # Output handling
         if output_format == 'csv':
-            import csv
-
             csv_filename = f'{output_basename}.csv'
 
             if details:

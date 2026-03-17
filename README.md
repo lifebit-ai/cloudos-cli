@@ -65,6 +65,7 @@ Python package for interacting with CloudOS
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
+      - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -2026,6 +2027,265 @@ cloudos interactive-session list --profile my_profile --table-columns "status,na
 ```
 
 Available columns: `id`, `name`, `status`, `type`, `instance`, `cost`, `owner`
+
+#### Create Interactive Session
+
+You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
+
+The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
+
+**Basic Usage**
+
+Create a simple Jupyter notebook session:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "My Analysis" \
+  --session-type jupyter
+```
+
+Create an RStudio session with specific R version:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "R Analysis" \
+  --session-type rstudio \
+  --r-version 4.5.2
+```
+
+Create a VS Code session:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Development" \
+  --session-type vscode
+```
+
+Create a Spark cluster session with custom instance types:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Spark Analysis" \
+  --session-type spark \
+  --spark-master c5.2xlarge \
+  --spark-core c5.xlarge \
+  --spark-workers 3
+```
+
+**Configuration Options**
+
+You can customize your session with various options:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Advanced Session" \
+  --session-type jupyter \
+  --instance c5.2xlarge \
+  --storage 1000 \
+  --spot \
+  --public \
+  --cost-limit 50.0 \
+  --shutdown-in 8h
+```
+
+**Options Reference**
+
+The command automatically loads from profiles (via `@with_profile_config` decorator):
+- **From Profile**: apikey, cloudos-url, workspace-id, project-name
+- **Command Line**: Additional configuration and behavior options
+
+**Required for Each Session:**
+- `--name`: Session name (1-100 characters)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `spark`, or `rstudio`
+
+**Optional Overrides from Profile:**
+- `--apikey` (optional): Override API key from profile
+- `--cloudos-url` (optional): Override CloudOS URL from profile  
+- `--workspace-id` (optional): Override workspace ID from profile
+- `--project-name` (optional): Override project name from profile
+
+**Optional Configuration:**
+- `--instance`: EC2 instance type (default: `c5.xlarge`)
+- `--storage`: Storage in GB (default: 500, range: 100-5000)
+- `--spot`: Use spot instances (cost-saving)
+- `--public`: Make session publicly accessible
+- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
+- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
+
+**Data & Storage Management:**
+- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/Data`). Legacy format: `mountName:bucketName:s3Prefix`. Can be used multiple times.
+
+**Backend-Specific:**
+- `--r-version`: R version for RStudio (options: `4.5.2` (default), `4.4.2`) - **required for rstudio**
+- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
+- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
+- `--spark-workers`: Initial worker count for Spark (default: 1)
+- `--verbose`: Show detailed progress messages
+
+**Output Display**
+
+The session creation output displays:
+- Session ID, Name, Backend type, Status
+- Instance Type and Storage size
+- For RStudio: R version
+- For Spark: Cluster configuration (Master, Core, Workers)
+- Mounted data files (if any)
+- Linked S3 buckets (if any)
+
+**Data Management**
+
+CloudOS CLI supports two ways to access data in interactive sessions:
+
+1. **Mount Data Files** - Load dataset files directly into the session
+   - Files are copied into the session's mounted-data volume
+   - Useful for datasets already stored in CloudOS datasets
+   
+2. **Link S3 Buckets** - Create live links to S3 buckets/folders
+   - Access S3 data directly without copying
+   - Useful for large datasets or shared storage
+   - Supports read and write operations
+
+**Data Mounting Examples**
+
+Mount a data file:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Data Analysis" \
+  --session-type jupyter \
+  --mount "MyDataset/training_data.csv"
+```
+
+Mount multiple data files:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Multi-data Session" \
+  --session-type jupyter \
+  --mount "Dataset1/data.csv" \
+  --mount "Dataset2/metadata.parquet"
+```
+
+Link an S3 bucket:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "S3 Access" \
+  --session-type jupyter \
+  --link "results:my-results-bucket:output/"
+```
+
+Link multiple S3 buckets:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Multi-S3 Session" \
+  --session-type jupyter \
+  --link "input:input-bucket:data/" \
+  --link "output:output-bucket:results/"
+```
+
+
+
+This will show progress updates like:
+
+```console
+✓ Interactive Session Created Successfully
+
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property ┃ Value ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID │ 69aee0dba197abc123 │
+│ Name │ Ready Session │
+│ Backend │ regular │
+│ Status │ provisioning │
+└─────────┴─────────────────────┘
+
+[5m 20s] Current status: provisioning
+[6m 40s] Current status: running
+Session is now running!
+```
+
+**Output Formats**
+
+Get session creation details as a table (default):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Table Output" \
+  --session-type jupyter \
+  --output table
+```
+
+Get only the session ID:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "ID Output" \
+  --session-type jupyter \
+  --output id
+# Output: 69aee0dba197abc123
+```
+
+Get complete session data as JSON:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "JSON Output" \
+  --session-type jupyter \
+  --output json
+```
+
+**Spark Cluster Configuration**
+
+When creating Spark sessions, you can customize the cluster configuration:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --project-name my_project \
+  --name "Large Spark Cluster" \
+  --session-type spark \
+  --spark-master c5.4xlarge \
+  --spark-core c5.2xlarge \
+  --spark-workers 5 \
+  --spot \
+  --storage 2000
+```
+
+**Error Handling**
+
+Common errors and solutions:
+
+- **Missing R version for RStudio**: Add `--r-version` parameter
+- **Invalid storage size**: Ensure storage is between 100-5000 GB
+- **Session creation failed**: Check project ID and workspace permissions
+- **Timeout waiting for session**: Session took longer than 15 minutes to start; check platform status
 
 ---
 

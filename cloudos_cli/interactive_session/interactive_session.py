@@ -2,6 +2,8 @@
 
 import pandas as pd
 import sys
+import re
+from datetime import datetime, timedelta
 from rich.table import Table
 from rich.console import Console
 
@@ -403,3 +405,630 @@ def save_interactive_session_list_to_csv(df, outfile):
     """
     df.to_csv(outfile, index=False)
     print(f'Interactive session list saved to {outfile}')
+
+
+def parse_shutdown_duration(duration_str):
+    """Parse shutdown duration string to ISO8601 datetime string.
+    
+    Accepts formats: 30m, 2h, 8h, 1d, 2d
+    
+    Parameters
+    ----------
+    duration_str : str
+        Duration string (e.g., "2h", "30m", "1d")
+    
+    Returns
+    -------
+    str
+        ISO8601 formatted datetime string (future time)
+    """
+    match = re.match(r'^(\d+)([mhd])$', duration_str.lower())
+    if not match:
+        raise ValueError(f"Invalid duration format: {duration_str}. Use format like '2h', '30m', '1d'")
+    
+    value = int(match.group(1))
+    unit = match.group(2)
+    
+    if unit == 'm':
+        delta = timedelta(minutes=value)
+    elif unit == 'h':
+        delta = timedelta(hours=value)
+    elif unit == 'd':
+        delta = timedelta(days=value)
+    
+    future_time = datetime.utcnow() + delta
+    return future_time.isoformat() + 'Z'
+
+
+def parse_data_file(data_file_str):
+    """Parse data file format: either S3 or CloudOS dataset path.
+    
+    Supports mounting both S3 files and CloudOS dataset files into the session.
+    
+    Parameters
+    ----------
+    data_file_str : str
+        Format:
+        - S3 file: s3://bucket_name/path/to/file.txt
+        - CloudOS dataset: project_name/dataset_path or project_name > dataset_path
+        
+        Examples:
+        - s3://lifebit-featured-datasets/pipelines/phewas/data.csv
+        - leila-test/Data/3_vcf_list.txt
+    
+    Returns
+    -------
+    dict
+        Parsed data item. For S3:
+        {"type": "s3", "s3_bucket": "...", "s3_prefix": "..."}
+        
+        For CloudOS dataset:
+        {"type": "cloudos", "project_name": "...", "dataset_path": "..."}
+    
+    Raises
+    ------
+    ValueError
+        If format is invalid
+    """
+    # Check if it's an S3 path
+    if data_file_str.startswith('s3://'):
+        # Parse S3 path: s3://bucket/prefix/file
+        s3_path = data_file_str[5:]  # Remove 's3://'
+        parts = s3_path.split('/', 1)
+        
+        if len(parts) < 1:
+            raise ValueError(f"Invalid S3 path: {data_file_str}. Expected: s3://bucket_name/path/to/file")
+        
+        bucket = parts[0]
+        prefix = parts[1] if len(parts) > 1 else "/"
+        
+        return {
+            "type": "s3",
+            "s3_bucket": bucket,
+            "s3_prefix": prefix
+        }
+    
+    # Otherwise, parse as CloudOS dataset path
+    # Determine which separator to use: > takes precedence over /
+    separator = None
+    if '>' in data_file_str:
+        separator = '>'
+    elif '/' in data_file_str:
+        separator = '/'
+    else:
+        raise ValueError(
+            f"Invalid data file format: {data_file_str}. Expected one of:\n"
+            f"  - S3 file: s3://bucket/path/file.txt\n"
+            f"  - CloudOS dataset: project_name/dataset_path or project_name > dataset_path"
+        )
+    
+    # Split only on the first separator to handle nested paths
+    parts = data_file_str.split(separator, 1)
+    if len(parts) != 2:
+        raise ValueError(f"Invalid data file format: {data_file_str}. Expected: project_name/dataset_path where dataset_path can be nested")
+    
+    project_name, dataset_path = parts
+    return {
+        "type": "cloudos",
+        "project_name": project_name.strip(),
+        "dataset_path": dataset_path.strip()
+    }
+
+
+def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
+    """Resolve nested dataset path to actual file ID.
+    
+    Searches across all datasets in the project to find the target file.
+    This allows paths like 'Data/file.txt' to work even if 'Data' is a folder
+    within a dataset (not a dataset name itself).
+    
+    Parameters
+    ----------
+    datasets_api : Datasets
+        Initialized Datasets API instance (with correct project_name)
+    dataset_path : str
+        Nested path to file within the project (e.g., 'Data/file.txt' or 'Folder/subfolder/file.txt')
+        Can start with a dataset name or a folder name within any dataset.
+    
+    Returns
+    -------
+    dict
+        Data item object with resolved file ID:
+        {"kind": "File", "item": "<fileId>", "name": "<fileName>"}
+    
+    Raises
+    ------
+    ValueError
+        If file not found in any dataset/folder
+    """
+    try:
+        path_parts = dataset_path.strip('/').split('/')
+        file_name = path_parts[-1]
+        
+        # First, try the path as-is (assuming first part is a dataset name)
+        try:
+            result = datasets_api.list_folder_content(dataset_path)
+            if result and result.get('kind') == 'File':
+                return {
+                    "kind": "File",
+                    "item": result.get('_id'),
+                    "name": result.get('name')
+                }
+            
+            # Check if it's in the files list
+            for file_item in result.get('files', []):
+                if file_item.get('name') == file_name:
+                    return {
+                        "kind": "File",
+                        "item": file_item.get('_id'),
+                        "name": file_item.get('name')
+                    }
+            # If we got here, quick path didn't work, continue to search
+        except (ValueError, KeyError, Exception):
+            # First path attempt failed, try searching across all datasets
+            pass
+        
+        # If the quick path didn't work, search across all datasets
+        # This handles the case where the first part is a folder, not a dataset name
+        project_content = datasets_api.list_project_content()
+        datasets = project_content.get('folders', [])
+        
+        if not datasets:
+            raise ValueError(f"No datasets found in project. Cannot locate path '{dataset_path}'")
+        
+        # Try to find the file in each dataset
+        found_files = []
+        for dataset in datasets:
+            dataset_name = dataset.get('name')
+            try:
+                # Try with the dataset name prepended to the path
+                full_path = f"{dataset_name}/{dataset_path}"
+                result = datasets_api.list_folder_content(full_path)
+                
+                # Check if it's the file we're looking for
+                if result and result.get('kind') == 'File':
+                    return {
+                        "kind": "File",
+                        "item": result.get('_id'),
+                        "name": result.get('name')
+                    }
+                
+                # Check files list
+                for file_item in result.get('files', []):
+                    if file_item.get('name') == file_name:
+                        found_files.append({
+                            "kind": "File",
+                            "item": file_item.get('_id'),
+                            "name": file_item.get('name')
+                        })
+                        # Return first match (most direct path)
+                        return found_files[0]
+            except Exception:
+                # This dataset doesn't contain the path, continue
+                continue
+        
+        # Also try searching without dataset prefix (path is from root of datasets)
+        for dataset in datasets:
+            try:
+                dataset_name = dataset.get('name')
+                # List what's in this dataset at the top level
+                dataset_content = datasets_api.list_datasets_content(dataset_name)
+                
+                # Check if the target file is directly in this dataset's files
+                for file_item in dataset_content.get('files', []):
+                    if file_item.get('name') == file_name:
+                        found_files.append({
+                            "kind": "File",
+                            "item": file_item.get('_id'),
+                            "name": file_item.get('name')
+                        })
+                
+                # Check folders and navigate if needed
+                for folder in dataset_content.get('folders', []):
+                    if folder.get('name') == path_parts[0]:
+                        # This dataset has the target folder
+                        full_path = f"{dataset_name}/{dataset_path}"
+                        try:
+                            result = datasets_api.list_folder_content(full_path)
+                            for file_item in result.get('files', []):
+                                if file_item.get('name') == file_name:
+                                    return {
+                                        "kind": "File",
+                                        "item": file_item.get('_id'),
+                                        "name": file_item.get('name')
+                                    }
+                        except Exception:
+                            continue
+            except Exception:
+                continue
+        
+        # If we found files, return the first one
+        if found_files:
+            return found_files[0]
+        
+        # Nothing found - provide helpful error message
+        available_datasets = [d.get('name') for d in datasets]
+        raise ValueError(
+            f"File at path '{dataset_path}' not found in any dataset. "
+            f"Available datasets: {available_datasets}. "
+            f"Try using 'cloudos datasets ls' to explore your data structure."
+        )
+    
+    except ValueError:
+        raise
+    except Exception as e:
+        raise ValueError(f"Error resolving dataset file at path '{dataset_path}': {str(e)}")
+
+
+def parse_link_path(link_path_str):
+    """Parse link path format: supports S3, CloudOS, or legacy colon format.
+    
+    Links an S3 folder or CloudOS folder to the session for read/write access.
+    
+    Parameters
+    ----------
+    link_path_str : str
+        Format (one of):
+        - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)
+        - CloudOS folder: project/folder_path (e.g., leila-test/Data)
+        - Legacy format (deprecated): mountName:bucketName:s3Prefix
+    
+    Returns
+    -------
+    dict
+        Tuple of (type, data) where type is 's3' or 'cloudos' and data contains:
+        For S3: {"s3_bucket": "...", "s3_prefix": "..."}
+        For CloudOS: {"project_name": "...", "folder_path": "..."}
+    """
+    # Check for S3 path
+    if link_path_str.startswith('s3://'):
+        # Parse S3 path: s3://bucket/prefix
+        s3_path = link_path_str[5:]  # Remove 's3://'
+        parts = s3_path.split('/', 1)
+        
+        if len(parts) < 1:
+            raise ValueError(f"Invalid S3 path: {link_path_str}. Expected: s3://bucket_name/prefix/")
+        
+        bucket = parts[0]
+        prefix = parts[1] if len(parts) > 1 else ""
+        
+        # Ensure prefix ends with / for S3 folders
+        if prefix and not prefix.endswith('/'):
+            prefix = prefix + '/'
+        
+        return {
+            "type": "s3",
+            "s3_bucket": bucket,
+            "s3_prefix": prefix
+        }
+    
+    # Check for legacy colon format
+    if ':' in link_path_str and '//' not in link_path_str:
+        # Legacy format: mountName:bucketName:s3Prefix
+        parts = link_path_str.split(':')
+        if len(parts) != 3:
+            raise ValueError(f"Invalid link format: {link_path_str}. Expected: mountName:bucketName:s3Prefix")
+        
+        mount_name, bucket, prefix = parts
+        
+        # Ensure prefix ends with /
+        if prefix and not prefix.endswith('/'):
+            prefix = prefix + '/'
+        
+        return {
+            "type": "s3",
+            "mount_name": mount_name,
+            "s3_bucket": bucket,
+            "s3_prefix": prefix
+        }
+    
+    # Otherwise, parse as CloudOS folder path
+    # Format: project_name/folder_path or project_name > folder_path
+    separator = None
+    if '>' in link_path_str:
+        separator = '>'
+    elif '/' in link_path_str:
+        separator = '/'
+    else:
+        raise ValueError(
+            f"Invalid link path format: {link_path_str}. Expected one of:\n"
+            f"  - S3 path: s3://bucket/prefix/\n"
+            f"  - CloudOS folder: project/folder/path\n"
+            f"  - Legacy format (deprecated): mountName:bucketName:prefix"
+        )
+    
+    parts = link_path_str.split(separator, 1)
+    if len(parts) != 2:
+        raise ValueError(f"Invalid link path: {link_path_str}")
+    
+    project_name, folder_path = parts
+    return {
+        "type": "cloudos",
+        "project_name": project_name.strip(),
+        "folder_path": folder_path.strip()
+    }
+
+
+def parse_s3_mount(s3_mount_str):
+    """Deprecated: Use parse_link_path instead.
+    
+    Kept for backward compatibility.
+    """
+    result = parse_link_path(s3_mount_str)
+    
+    if result['type'] == 's3':
+        mount_name = result.get('mount_name', f"{result['s3_bucket']}-mount")
+        return {
+            "type": "S3Folder",
+            "data": {
+                "name": mount_name,
+                "s3BucketName": result["s3_bucket"],
+                "s3Prefix": result["s3_prefix"]
+            }
+        }
+    else:
+        raise ValueError(f"parse_s3_mount does not support CloudOS paths. Use parse_link_path instead.")
+
+
+def build_session_payload(
+    name,
+    backend,
+    project_id,
+    instance_type='c5.xlarge',
+    storage_size=500,
+    is_spot=False,
+    is_shared=False,
+    cost_limit=-1,
+    shutdown_at=None,
+    data_files=None,
+    s3_mounts=None,
+    r_version=None,
+    spark_master_type=None,
+    spark_core_type=None,
+    spark_workers=1
+):
+    """Build the complex session creation payload for the API.
+    
+    Parameters
+    ----------
+    name : str
+        Session name (1-100 characters)
+    backend : str
+        Backend type: regular, vscode, spark, rstudio
+    project_id : str
+        Project MongoDB ObjectId
+    instance_type : str
+        EC2 instance type (default: c5.xlarge)
+    storage_size : int
+        Storage in GB (default: 500, range: 100-5000)
+    is_spot : bool
+        Use spot instances (default: False)
+    is_shared : bool
+        Make session shared (default: False)
+    cost_limit : float
+        Compute cost limit in USD (default: -1 for unlimited)
+    shutdown_at : str
+        ISO8601 datetime for auto-shutdown (optional)
+    data_files : list
+        List of data file dicts (optional)
+    s3_mounts : list
+        List of S3 mount dicts (optional)
+    r_version : str
+        R version for RStudio (required for rstudio backend)
+    spark_master_type : str
+        Spark master instance type (required for spark backend)
+    spark_core_type : str
+        Spark core instance type (required for spark backend)
+    spark_workers : int
+        Initial number of Spark workers (default: 1)
+    
+    Returns
+    -------
+    dict
+        Complete payload for API request
+    """
+    # Validate inputs
+    if not 1 <= len(name) <= 100:
+        raise ValueError("Session name must be 1-100 characters")
+    
+    if not 100 <= storage_size <= 5000:
+        raise ValueError("Storage size must be between 100-5000 GB")
+    
+    if backend not in ['regular', 'vscode', 'spark', 'rstudio']:
+        raise ValueError("Invalid backend type")
+    
+    if backend == 'rstudio' and not r_version:
+        raise ValueError("R version (--r-version) is required for RStudio backend")
+    
+    if backend == 'spark' and (not spark_master_type or not spark_core_type):
+        raise ValueError("Spark master and core instance types are required for Spark backend")
+    
+    # Default shutdown to 24 hours if not provided
+    if not shutdown_at:
+        shutdown_at = (datetime.utcnow() + timedelta(hours=24)).isoformat() + 'Z'
+    
+    # Build interactiveSessionConfiguration
+    config = {
+        "name": name,
+        "backend": backend,
+        "executionPlatform": "aws",
+        "instanceType": instance_type,
+        "isCostSaving": is_spot,
+        "storageSizeInGb": storage_size,
+        "storageMode": "regular",
+        "visibility": "workspace" if is_shared else "private",
+        "execution": {
+            "computeCostLimit": cost_limit,
+            "autoShutdownAtDate": shutdown_at
+        }
+    }
+    
+    # Add backend-specific fields
+    if backend == 'rstudio':
+        config['rVersion'] = r_version
+    
+    if backend == 'spark':
+        # Use provided types or default to instance_type
+        master_type = spark_master_type or instance_type
+        core_type = spark_core_type or instance_type
+        
+        config['cluster'] = {
+            "name": f"{name}-cluster",
+            "releaseLabel": "emr-7.3.0",
+            "ebsRootVolumeSizeInGb": 100,
+            "instances": {
+                "master": {
+                    "type": master_type,
+                    "costSaving": is_spot,
+                    "storage": {
+                        "type": "gp2",
+                        "sizeInGbs": 50,
+                        "volumesPerInstance": 1
+                    }
+                },
+                "core": {
+                    "type": core_type,
+                    "costSaving": is_spot,
+                    "storage": {
+                        "type": "gp2",
+                        "sizeInGbs": 50,
+                        "volumesPerInstance": 1
+                    },
+                    "minNumberOfInstances": spark_workers,
+                    "autoscaling": {
+                        "minCapacity": spark_workers,
+                        "maxCapacity": max(spark_workers * 2, 10)
+                    }
+                },
+                "tasks": []
+            },
+            "autoscaling": {
+                "minCapacity": spark_workers,
+                "maxCapacity": max(spark_workers * 2, 10)
+            },
+            "id": None
+        }
+    
+    # Build complete payload
+    payload = {
+        "interactiveSessionConfiguration": config,
+        "dataItems": data_files or [],
+        "fileSystemIds": [],  # Always empty (legacy compatibility)
+        "fuseFileSystems": s3_mounts or [],
+        "projectId": project_id
+    }
+    
+    return payload
+
+
+def format_session_creation_table(session_data, instance_type=None, storage_size=None,
+                                  backend_type=None, r_version=None,
+                                  spark_master=None, spark_core=None, spark_workers=None,
+                                  data_files=None, s3_mounts=None):
+    """Display session creation result in table format.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Session data from API response
+    instance_type : str, optional
+        Instance type that was requested (for display if not in response)
+    storage_size : int, optional
+        Storage size that was requested (for display if not in response)
+    backend_type : str, optional
+        Backend type (regular, vscode, spark, rstudio) for backend-specific display
+    r_version : str, optional
+        R version for RStudio backend
+    spark_master : str, optional
+        Spark master instance type
+    spark_core : str, optional
+        Spark core instance type
+    spark_workers : int, optional
+        Number of Spark workers
+    data_files : list, optional
+        List of parsed data file objects to display
+    s3_mounts : list, optional
+        List of parsed S3 mount objects to display
+    
+    Returns
+    -------
+    str
+        Formatted table output
+    """
+    console = Console()
+    
+    table = Table(title="✓ Interactive Session Created Successfully")
+    table.add_column("Property", style="cyan")
+    table.add_column("Value", style="green")
+    
+    table.add_row("Session ID", session_data.get('_id', 'N/A'))
+    table.add_row("Name", session_data.get('name', 'N/A'))
+    table.add_row("Backend", session_data.get('interactiveSessionType', 'N/A'))
+    table.add_row("Status", session_data.get('status', 'N/A'))
+    
+    # Try to get instance type from response, fallback to provided value
+    response_instance = session_data.get('resources', {}).get('instanceType') or \
+                        session_data.get('interactiveSessionConfiguration', {}).get('instanceType')
+    instance_display = response_instance or instance_type or 'N/A'
+    table.add_row("Instance Type", instance_display)
+    
+    # Try to get storage size from response, fallback to provided value
+    response_storage = session_data.get('resources', {}).get('storageSizeInGb') or \
+                       session_data.get('interactiveSessionConfiguration', {}).get('storageSizeInGb')
+    storage_display = f"{response_storage} GB" if response_storage else (f"{storage_size} GB" if storage_size else "N/A")
+    table.add_row("Storage", storage_display)
+    
+    # Add backend-specific information
+    if backend_type == 'rstudio' and r_version:
+        table.add_row("R Version", r_version)
+    
+    if backend_type == 'spark':
+        spark_config = []
+        if spark_master:
+            spark_config.append(f"Master: {spark_master}")
+        if spark_core:
+            spark_config.append(f"Core: {spark_core}")
+        if spark_workers:
+            spark_config.append(f"Workers: {spark_workers}")
+        
+        if spark_config:
+            table.add_row("Spark Cluster", ", ".join(spark_config))
+    
+    # Display mounted data files
+    if data_files:
+        mounted_files = []
+        for df in data_files:
+            if isinstance(df, dict):
+                # Handle CloudOS dataset files
+                if df.get('kind') == 'File':
+                    name = df.get('name', 'Unknown')
+                    mounted_files.append(name)
+                # Handle S3 files
+                elif df.get('type') == 'S3File':
+                    data = df.get('data', {})
+                    name = data.get('name', 'Unknown')
+                    mounted_files.append(f"{name} (S3)")
+        
+        if mounted_files:
+            table.add_row("Mounted Data", ", ".join(mounted_files))
+    
+    # Display linked S3 buckets
+    if s3_mounts:
+        linked_s3 = []
+        for s3 in s3_mounts:
+            if isinstance(s3, dict):
+                data = s3.get('data', {})
+                bucket = data.get('s3BucketName', '')
+                prefix = data.get('s3Prefix', '')
+                # For CloudOS mounts, show project/path; for S3, show bucket/path
+                if prefix and bucket:
+                    linked_s3.append(f"s3://{bucket}/{prefix}")
+                elif bucket:
+                    linked_s3.append(f"s3://{bucket}/")
+        
+        if linked_s3:
+            table.add_row("Linked S3", "\n".join(linked_s3))
+    
+    console.print(table)
+    console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
+    console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session list' to monitor status")

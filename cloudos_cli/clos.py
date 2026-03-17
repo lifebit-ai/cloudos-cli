@@ -2354,3 +2354,92 @@ class Cloudos:
         }
 
         return {'sessions': sessions, 'pagination_metadata': pagination_metadata}
+
+    def create_interactive_session(self, team_id, payload, verify=True):
+        """Create and start a new interactive session.
+
+        Parameters
+        ----------
+        team_id : string
+            The CloudOS team id (workspace id) to create session in.
+        payload : dict
+            Complete session creation payload with configuration, data items, etc.
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        dict
+            Session object from API response with _id, status, and all configuration.
+        """
+        # Validate team_id
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build URL with teamId query parameter
+        url = f"{self.cloudos_url}/api/v1/interactive-sessions?teamId={team_id}"
+        
+        # Make the API request with POST method
+        try:
+            r = requests.post(
+                url,
+                headers=headers,
+                data=json.dumps(payload),
+                verify=verify,
+                timeout=30
+            )
+        except Exception as e:
+            raise Exception(f"Failed to create interactive session: {str(e)}")
+        
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        
+        # Return the full session object from response
+        content = r.json()
+        return content
+
+    def get_interactive_session(self, team_id, session_id, verify=True):
+        """Get details of a specific interactive session.
+
+        Parameters
+        ----------
+        team_id : string
+            The CloudOS team id (workspace id).
+        session_id : string
+            The interactive session id (MongoDB ObjectId).
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not.
+
+        Returns
+        -------
+        dict
+            Session object with current status and full details.
+        """
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+        
+        if not session_id or not isinstance(session_id, str):
+            raise ValueError("Invalid session_id: must be a non-empty string")
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build URL for getting specific session
+        url = f"{self.cloudos_url}/api/v2/interactive-sessions/{session_id}?teamId={team_id}"
+        
+        r = retry_requests_get(url, headers=headers, verify=verify)
+        
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+
+        content = r.json()
+        return content
