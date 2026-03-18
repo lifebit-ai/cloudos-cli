@@ -190,7 +190,6 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
   job_run_and_status_dev:
@@ -288,7 +287,6 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_DEV }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_DEV }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status_dev.outputs.job_id }}
   workflow_list_dev:
