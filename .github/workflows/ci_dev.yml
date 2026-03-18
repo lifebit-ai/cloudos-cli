@@ -929,7 +929,7 @@ jobs:
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           PROJECT_NAME: "cloudos-cli-tests"
         run: |
-          echo q |cloudos interactive_session list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
+          echo q |cloudos interactive-sessionlist --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
   interactive_session_create:
     runs-on: ubuntu-latest
     strategy:
@@ -953,4 +953,4 @@ jobs:
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           PROJECT_NAME: "cloudos-cli-tests"
       run: |
-        cloudos interactive_session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m
+        cloudos interactive-sessioncreate --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m
