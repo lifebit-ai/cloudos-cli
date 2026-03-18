@@ -557,10 +557,10 @@ def parse_data_file(data_file_str):
         s3_path = data_file_str[5:]  # Remove 's3://'
         parts = s3_path.split('/', 1)
         
-        if len(parts) < 1:
+        bucket = parts[0]
+        if not bucket:
             raise ValueError(f"Invalid S3 path: {data_file_str}. Expected: s3://bucket_name/path/to/file")
         
-        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else "/"
         
         return {
@@ -775,10 +775,10 @@ def parse_link_path(link_path_str):
         s3_path = link_path_str[5:]  # Remove 's3://'
         parts = s3_path.split('/', 1)
         
-        if len(parts) < 1:
+        bucket = parts[0]
+        if not bucket:
             raise ValueError(f"Invalid S3 path: {link_path_str}. Expected: s3://bucket_name/prefix/")
         
-        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else ""
         
         # Ensure prefix ends with / for S3 folders
