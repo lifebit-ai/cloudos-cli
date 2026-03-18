@@ -920,10 +920,9 @@ jobs:
       env:
         CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_ADAPT }}
         CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_ADAPT }}
-        PROJECT_NAME: "cloudos-cli-tests"
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
       run: |
-        echo q |cloudos interactive-session list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
+        echo q |cloudos interactive-session list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID  
   interactive_session_create:
     runs-on: ubuntu-latest
     strategy:
