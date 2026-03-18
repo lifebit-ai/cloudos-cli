@@ -173,7 +173,12 @@ def list_sessions(ctx,
         
         # Handle empty results
         if len(sessions) == 0:
-            if output_format == 'stdout':
+            if filter_status:
+                # Show helpful message when filtering returns no results
+                status_flow = 'scheduled → initialising → setup → running → stopped'
+                click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
+                click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
+            elif output_format == 'stdout':
                 create_interactive_session_list_table([], pagination_metadata, selected_columns, page_size=limit, fetch_page_callback=fetch_page)
             else:
                 print('A total of 0 interactive sessions collected.')
@@ -198,9 +203,9 @@ def list_sessions(ctx,
     except BadRequestException as e:
         # Check if the error is related to status filtering
         if filter_status and ('400' in str(e) or 'Invalid' in str(e)):
-            status_flow = 'setup → initialising → running → stopped'
-            click.secho(f'Error: No interactive sessions found in the requested status.', fg='red', err=True)
-            click.secho(f'Session status flow: {status_flow}', fg='yellow', err=True)
+            status_flow = 'scheduled → initialising → setup → running → stopped'
+            click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
+            click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
             raise SystemExit(1)
         else:
             click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
