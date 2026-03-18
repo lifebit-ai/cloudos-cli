@@ -252,8 +252,8 @@ def list_sessions(ctx,
               help='Type of interactive session.',
               required=True)
 @click.option('--instance',
-              help='EC2 instance type (e.g., c5.xlarge). Default=c5.xlarge.',
-              default='c5.xlarge')
+              help='Instance type (e.g., c5.xlarge for AWS, Standard_F1s for Azure). Default depends on execution platform.',
+              default=None)
 @click.option('--storage',
               type=int,
               help='Storage in GB (100-5000). Default=500.',
@@ -290,6 +290,10 @@ def list_sessions(ctx,
               type=int,
               help='Initial worker count for Spark. Default=1.',
               default=1)
+@click.option('--execution-platform',
+              type=click.Choice(['aws', 'azure'], case_sensitive=False),
+              help='Cloud execution platform (aws or azure). Default is obtained from profile.',
+              default=None)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -321,6 +325,7 @@ def create_session(ctx,
                    spark_master,
                    spark_core,
                    spark_workers,
+                   execution_platform,
                    disable_ssl_verification,
                    ssl_cert,
                    profile,
@@ -328,6 +333,22 @@ def create_session(ctx,
     """Create a new interactive session."""
     
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    
+    # Default execution_platform to 'aws' if not specified by user or profile
+    if execution_platform is None:
+        execution_platform = 'aws'
+    else:
+        # Normalize to lowercase
+        execution_platform = execution_platform.lower()
+    
+    # Validate execution_platform
+    if execution_platform not in ['aws', 'azure']:
+        click.secho(f'Error: Invalid execution_platform: {execution_platform}. Valid values: aws, azure', fg='red', err=True)
+        raise SystemExit(1)
+    
+    # Set instance default based on execution_platform if not specified
+    if instance is None:
+        instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
     
     if verbose:
         print('Executing create interactive session...')
@@ -380,6 +401,11 @@ def create_session(ctx,
                     parsed = parse_data_file(df)
                     
                     if parsed['type'] == 's3':
+                        # S3 files are only supported on AWS
+                        if execution_platform != 'aws':
+                            click.secho(f'Error: S3 mounts are only supported on AWS. Use CloudOS file explorer paths for Azure.', fg='red', err=True)
+                            raise SystemExit(1)
+                        
                         # S3 file: add to dataItems as S3File type
                         if verbose:
                             print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
@@ -428,9 +454,19 @@ def create_session(ctx,
         # Parse and add linked folders from --link (S3 or CloudOS)
         for link_path in link:
             try:
+                # Block all linking on Azure platforms
+                if execution_platform == 'azure':
+                    click.secho(f'Error: Linking folders is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
+                    raise SystemExit(1)
+                
                 parsed = parse_link_path(link_path)
                 
                 if parsed['type'] == 's3':
+                    # S3 folders are only supported on AWS (additional safeguard)
+                    if execution_platform != 'aws':
+                        click.secho(f'Error: S3 links are only supported on AWS execution platform.', fg='red', err=True)
+                        raise SystemExit(1)
+                    
                     # S3 folder: create S3Folder FUSE mount
                     if verbose:
                         print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
@@ -494,6 +530,7 @@ def create_session(ctx,
         payload = build_session_payload(
             name=name,
             backend=backend_type,
+            execution_platform=execution_platform,
             instance_type=instance,
             storage_size=storage,
             is_spot=spot,
@@ -502,7 +539,7 @@ def create_session(ctx,
             shutdown_at=shutdown_at_parsed,
             project_id=project_id,
             data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts,
+            s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else [],
             r_version=r_version,
             spark_master_type=spark_master,
             spark_core_type=spark_core,

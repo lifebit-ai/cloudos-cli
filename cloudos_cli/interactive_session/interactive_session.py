@@ -761,6 +761,14 @@ def parse_link_path(link_path_str):
         For S3: {"s3_bucket": "...", "s3_prefix": "..."}
         For CloudOS: {"project_name": "...", "folder_path": "..."}
     """
+    # Check for Azure blob storage paths and provide helpful error
+    if link_path_str.startswith('az://') or link_path_str.startswith('https://') and '.blob.core.windows.net' in link_path_str:
+        raise ValueError(
+            f"Azure blob storage paths are not supported for linking. "
+            f"Folder linking is not supported on Azure execution platforms. "
+            f"Please use CloudOS file explorer to access your data directly."
+        )
+    
     # Check for S3 path
     if link_path_str.startswith('s3://'):
         # Parse S3 path: s3://bucket/prefix
@@ -855,6 +863,7 @@ def build_session_payload(
     name,
     backend,
     project_id,
+    execution_platform='aws',
     instance_type='c5.xlarge',
     storage_size=500,
     is_spot=False,
@@ -878,12 +887,14 @@ def build_session_payload(
         Backend type: regular, vscode, spark, rstudio
     project_id : str
         Project MongoDB ObjectId
+    execution_platform : str, optional
+        Execution platform: 'aws' (default) or 'azure'
     instance_type : str
-        EC2 instance type (default: c5.xlarge)
+        Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_F1s)
     storage_size : int
         Storage in GB (default: 500, range: 100-5000)
     is_spot : bool
-        Use spot instances (default: False)
+        Use spot instances (AWS only, default: False)
     is_shared : bool
         Make session shared (default: False)
     cost_limit : float
@@ -891,17 +902,17 @@ def build_session_payload(
     shutdown_at : str
         ISO8601 datetime for auto-shutdown (optional)
     data_files : list
-        List of data file dicts (optional)
+        List of data file dicts. For AWS: CloudOS or S3. For Azure: CloudOS only.
     s3_mounts : list
-        List of S3 mount dicts (optional)
+        List of S3 mount dicts (AWS only, ignored for Azure)
     r_version : str
         R version for RStudio (required for rstudio backend)
     spark_master_type : str
-        Spark master instance type (required for spark backend)
+        Spark master instance type (required for spark backend, AWS only)
     spark_core_type : str
-        Spark core instance type (required for spark backend)
+        Spark core instance type (required for spark backend, AWS only)
     spark_workers : int
-        Initial number of Spark workers (default: 1)
+        Initial number of Spark workers (default: 1, AWS only)
     
     Returns
     -------
@@ -918,6 +929,13 @@ def build_session_payload(
     if backend not in ['regular', 'vscode', 'spark', 'rstudio']:
         raise ValueError("Invalid backend type")
     
+    if execution_platform not in ['aws', 'azure']:
+        raise ValueError("Execution platform must be 'aws' or 'azure'")
+    
+    # Spark is AWS only
+    if backend == 'spark' and execution_platform != 'aws':
+        raise ValueError("Spark backend is only available on AWS")
+    
     if backend == 'rstudio' and not r_version:
         raise ValueError("R version (--r-version) is required for RStudio backend")
     
@@ -932,7 +950,7 @@ def build_session_payload(
     config = {
         "name": name,
         "backend": backend,
-        "executionPlatform": "aws",
+        "executionPlatform": execution_platform,
         "instanceType": instance_type,
         "isCostSaving": is_spot,
         "storageSizeInGb": storage_size,
@@ -991,11 +1009,12 @@ def build_session_payload(
         }
     
     # Build complete payload
+    # For Azure, S3 mounts are not supported (fuseFileSystems should be empty)
     payload = {
         "interactiveSessionConfiguration": config,
         "dataItems": data_files or [],
         "fileSystemIds": [],  # Always empty (legacy compatibility)
-        "fuseFileSystems": s3_mounts or [],
+        "fuseFileSystems": s3_mounts or [] if execution_platform == 'aws' else [],
         "projectId": project_id
     }
     
