@@ -201,8 +201,13 @@ def list_sessions(ctx,
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
     
     except BadRequestException as e:
+        error_str = str(e)
+        # Check if the error is related to authentication
+        if '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials', fg='red', err=True)
+            raise SystemExit(1)
         # Check if the error is related to status filtering
-        if filter_status and ('400' in str(e) or 'Invalid' in str(e)):
+        elif filter_status and ('400' in error_str or 'Invalid' in error_str):
             status_flow = 'scheduled → initialising → setup → running → stopped'
             click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
             click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)

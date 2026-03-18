@@ -79,6 +79,55 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             'overflow': 'ellipsis',
             'max_width': 20,
             'accessor': 'user.name'
+        },
+        'project': {
+            'header': 'Project',
+            'style': 'cyan',
+            'overflow': 'ellipsis',
+            'max_width': 20,
+            'accessor': 'project.name'
+        },
+        'created_at': {
+            'header': 'Created At',
+            'style': 'white',
+            'overflow': 'ellipsis',
+            'max_width': 20,
+            'accessor': 'createdAt'
+        },
+        'runtime': {
+            'header': 'Total Running Time',
+            'style': 'white',
+            'no_wrap': True,
+            'max_width': 18,
+            'accessor': 'totalRunningTimeInSeconds'
+        },
+        'saved_at': {
+            'header': 'Last Time Saved',
+            'style': 'white',
+            'overflow': 'ellipsis',
+            'max_width': 20,
+            'accessor': 'lastSavedAt'
+        },
+        'resources': {
+            'header': 'Resources',
+            'style': 'cyan',
+            'overflow': 'ellipsis',
+            'max_width': 30,
+            'accessor': 'resources.instanceType'
+        },
+        'backend': {
+            'header': 'Backend',
+            'style': 'magenta',
+            'overflow': 'fold',
+            'max_width': 15,
+            'accessor': 'interactiveSessionType'
+        },
+        'version': {
+            'header': 'Version',
+            'style': 'white',
+            'no_wrap': True,
+            'max_width': 15,
+            'accessor': 'rVersion'
         }
     }
     
@@ -390,6 +439,37 @@ def _format_session_field(field_name, value):
         if len(value_str) > 25:
             return value_str[:22] + '…'
         return value_str
+    
+    elif field_name == 'runtime':
+        # Convert seconds to human-readable format (e.g., "1h 52m 52s")
+        try:
+            total_seconds = int(float(value))
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            if hours > 0:
+                return f'{hours}h {minutes}m {seconds}s'
+            elif minutes > 0:
+                return f'{minutes}m {seconds}s'
+            else:
+                return f'{seconds}s'
+        except (ValueError, TypeError):
+            return str(value)
+    
+    elif field_name == 'created_at' or field_name == 'saved_at':
+        # Format ISO8601 datetime to readable format
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+            return dt.strftime('%Y-%m-%d %H:%M')
+        except (ValueError, TypeError, ImportError):
+            return str(value)[:19] if value else '-'
+    
+    elif field_name == 'version':
+        # Version is only available for RStudio sessions
+        if value and str(value).lower() != 'none':
+            return f'R {value}'
+        return '-'
     
     return str(value)
 
