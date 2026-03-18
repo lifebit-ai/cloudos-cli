@@ -2004,7 +2004,7 @@ Interactive session list saved to interactive_sessions_list.json
 You can filter sessions by status and other criteria:
 
 ```bash
-# Filter by status (running, stopped, provisioning, scheduled)
+# Filter by status (setup, initialising, running, scheduled, stopped)
 cloudos interactive-session list --profile my_profile --filter-status running
 
 # Show only your own sessions
@@ -2023,10 +2023,10 @@ You can customize which columns to display:
 
 ```bash
 # Display specific columns
-cloudos interactive-session list --profile my_profile --table-columns "status,name,cost,owner"
+cloudos interactive-session list --profile my_profile --table-columns "status,name,owner,project,created_at,cost"
 ```
 
-Available columns: `id`, `name`, `status`, `type`, `instance`, `cost`, `owner`
+Available columns: `status`, `name`, `owner`, `project`, `id`, `created_at`, `runtime`, `saved_at`, `cost`, `resources`, `backend`, `version`
 
 #### Create Interactive Session
 
@@ -2041,7 +2041,6 @@ Create a simple Jupyter notebook session:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "My Analysis" \
   --session-type jupyter
 ```
@@ -2051,10 +2050,9 @@ Create an RStudio session with specific R version:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "R Analysis" \
   --session-type rstudio \
-  --r-version 4.5.2
+  --r-version 4.4.2
 ```
 
 Create a VS Code session:
@@ -2062,7 +2060,6 @@ Create a VS Code session:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Development" \
   --session-type vscode
 ```
@@ -2072,7 +2069,6 @@ Create a Spark cluster session with custom instance types:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Spark Analysis" \
   --session-type spark \
   --spark-master c5.2xlarge \
@@ -2087,13 +2083,12 @@ You can customize your session with various options:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Advanced Session" \
   --session-type jupyter \
   --instance c5.2xlarge \
   --storage 1000 \
   --spot \
-  --public \
+  --shared \
   --cost-limit 50.0 \
   --shutdown-in 8h
 ```
@@ -2112,22 +2107,21 @@ The command automatically loads from profiles (via `@with_profile_config` decora
 - `--apikey` (optional): Override API key from profile
 - `--cloudos-url` (optional): Override CloudOS URL from profile  
 - `--workspace-id` (optional): Override workspace ID from profile
-- `--project-name` (optional): Override project name from profile
 
 **Optional Configuration:**
 - `--instance`: EC2 instance type (default: `c5.xlarge`)
 - `--storage`: Storage in GB (default: 500, range: 100-5000)
 - `--spot`: Use spot instances (cost-saving)
-- `--public`: Make session publicly accessible
+- `--shared`: Make session accessible to workspace members
 - `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
 - `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
 
 **Data & Storage Management:**
 - `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/Data`). Legacy format: `mountName:bucketName:s3Prefix`. Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times.
 
 **Backend-Specific:**
-- `--r-version`: R version for RStudio (options: `4.5.2` (default), `4.4.2`) - **required for rstudio**
+- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
 - `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
 - `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
 - `--spark-workers`: Initial worker count for Spark (default: 1)
@@ -2163,10 +2157,9 @@ Mount a data file:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Data Analysis" \
   --session-type jupyter \
-  --mount "MyDataset/training_data.csv"
+  --mount "my_project/training_data.csv"
 ```
 
 Mount multiple data files:
@@ -2174,11 +2167,10 @@ Mount multiple data files:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Multi-data Session" \
   --session-type jupyter \
-  --mount "Dataset1/data.csv" \
-  --mount "Dataset2/metadata.parquet"
+  --mount "my_project/data.csv" \
+  --mount "my_project/metadata.parquet"
 ```
 
 Link an S3 bucket:
@@ -2186,10 +2178,9 @@ Link an S3 bucket:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "S3 Access" \
   --session-type jupyter \
-  --link "results:my-results-bucket:output/"
+  --link "s3://my-results-bucket/output/"
 ```
 
 Link multiple S3 buckets:
@@ -2197,11 +2188,10 @@ Link multiple S3 buckets:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Multi-S3 Session" \
   --session-type jupyter \
-  --link "input:input-bucket:data/" \
-  --link "output:output-bucket:results/"
+  --link "s3://input-bucket/data/" \
+  --link "s3://output-bucket/results/"
 ```
 
 
@@ -2211,55 +2201,33 @@ This will show progress updates like:
 ```console
 ✓ Interactive Session Created Successfully
 
-┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
-┃ Property ┃ Value ┃
-┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
-│ Session ID │ 69aee0dba197abc123 │
-│ Name │ Ready Session │
-│ Backend │ regular │
-│ Status │ provisioning │
-└─────────┴─────────────────────┘
-
-[5m 20s] Current status: provisioning
-[6m 40s] Current status: running
-Session is now running!
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property    ┃ Value               ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID  │ 69aee0dba197abc123  │
+│ Name        │ Ready Session       │
+│ Backend     │ awsJupyterNotebook  │
+│ Status      │ initialising        │
+└─────────────┴─────────────────────┘
+```
 ```
 
-**Output Formats**
+**Output Display**
 
-Get session creation details as a table (default):
+The session creation output displays a success message with session details:
 
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
-  --name "Table Output" \
-  --session-type jupyter \
-  --output table
+  --name "My Session" \
+  --session-type jupyter
 ```
 
-Get only the session ID:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --project-name my_project \
-  --name "ID Output" \
-  --session-type jupyter \
-  --output id
-# Output: 69aee0dba197abc123
-```
-
-Get complete session data as JSON:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --project-name my_project \
-  --name "JSON Output" \
-  --session-type jupyter \
-  --output json
-```
+The output shows the session details including:
+- Session ID
+- Session name
+- Backend type (jupyter, vscode, rstudio, spark)
+- Current status (scheduled, initialising, setup, running, stopped)
 
 **Spark Cluster Configuration**
 
@@ -2268,7 +2236,6 @@ When creating Spark sessions, you can customize the cluster configuration:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --project-name my_project \
   --name "Large Spark Cluster" \
   --session-type spark \
   --spark-master c5.4xlarge \
