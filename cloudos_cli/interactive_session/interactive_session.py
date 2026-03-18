@@ -1014,7 +1014,7 @@ def build_session_payload(
         "interactiveSessionConfiguration": config,
         "dataItems": data_files or [],
         "fileSystemIds": [],  # Always empty (legacy compatibility)
-        "fuseFileSystems": s3_mounts or [] if execution_platform == 'aws' else [],
+        "fuseFileSystems": (s3_mounts or []) if execution_platform == 'aws' else [],
         "projectId": project_id
     }
     
