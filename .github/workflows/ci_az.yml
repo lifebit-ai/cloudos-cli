@@ -729,5 +729,5 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
       run: |
-        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m --execution-platform azure
+        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m --execution-platform azure --instance-type Standard_D8d_v4
 

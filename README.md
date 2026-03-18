@@ -279,7 +279,14 @@ To generate a named profile, use the following command:
 cloudos configure --profile {profile-name}
 ```
 
-The same prompts will appear. If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.
+The same prompts will appear, including the execution platform (aws or azure). If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.
+
+When configuring a profile, you can specify:
+- **API Key**: Your CloudOS API credentials
+- **CloudOS URL**: The CloudOS instance URL  
+- **Project Name**: Default project for commands
+- **Execution Platform**: `aws` (default) or `azure` - determines default instance types and available features
+- **Repository Platform**: Version control system (github, gitlab, etc.)
 
 > [!NOTE]
 > When there is already at least 1 previous profile defined, a new question will appear asking to make the current profile as default
@@ -2034,6 +2041,46 @@ You can create and start a new interactive session using the `cloudos interactiv
 
 The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
 
+**Execution Platforms (AWS & Azure)**
+
+CloudOS supports both AWS and Azure execution platforms. Your profile configuration determines which platform to use:
+
+```bash
+# AWS profile - uses c5.xlarge by default
+cloudos interactive-session create \
+  --profile aws_profile \
+  --name "AWS Session" \
+  --session-type jupyter
+
+# Azure profile - uses Standard_F1s by default  
+cloudos interactive-session create \
+  --profile azure_profile \
+  --name "Azure Session" \
+  --session-type jupyter
+
+# Override execution platform explicitly
+cloudos interactive-session create \
+  --profile aws_profile \
+  --name "Azure Override" \
+  --session-type jupyter \
+  --execution-platform azure
+```
+
+**Platform-Specific Features**
+
+| Feature | AWS | Azure |
+|---------|-----|-------|
+| **Jupyter** | ✓ | ✓ |
+| **RStudio** | ✓ | ✓ |
+| **VS Code** | ✓ | ✗ |
+| **Spark** | ✓ | ✗ |
+| **S3 Mounts** | ✓ | ✗ |
+| **S3 Linking** | ✓ | ✗ |
+| **CloudOS File Mount** | ✓ | ✓ |
+| **Default Instance** | c5.xlarge | Standard_F1s |
+
+For Azure, use CloudOS file explorer to access your data instead of linking.
+
 **Basic Usage**
 
 Create a simple Jupyter notebook session:
@@ -2055,7 +2102,7 @@ cloudos interactive-session create \
   --r-version 4.4.2
 ```
 
-Create a VS Code session:
+Create a VS Code session (AWS only):
 
 ```bash
 cloudos interactive-session create \
@@ -2064,7 +2111,7 @@ cloudos interactive-session create \
   --session-type vscode
 ```
 
-Create a Spark cluster session with custom instance types:
+Create a Spark cluster session with custom instance types (AWS only):
 
 ```bash
 cloudos interactive-session create \
@@ -2096,29 +2143,30 @@ cloudos interactive-session create \
 **Options Reference**
 
 The command automatically loads from profiles (via `@with_profile_config` decorator):
-- **From Profile**: apikey, cloudos-url, workspace-id, project-name
+- **From Profile**: apikey, cloudos-url, workspace-id, project-name, execution-platform
 - **Command Line**: Additional configuration and behavior options
 
 **Required for Each Session:**
 - `--name`: Session name (1-100 characters)
-- `--session-type`: Type of backend - `jupyter`, `vscode`, `spark`, or `rstudio`
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
 
 **Optional Overrides from Profile:**
 - `--apikey` (optional): Override API key from profile
 - `--cloudos-url` (optional): Override CloudOS URL from profile  
 - `--workspace-id` (optional): Override workspace ID from profile
+- `--execution-platform` (optional): Override execution platform from profile - `aws` or `azure`
 
 **Optional Configuration:**
-- `--instance`: EC2 instance type (default: `c5.xlarge`)
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
 - `--storage`: Storage in GB (default: 500, range: 100-5000)
-- `--spot`: Use spot instances (cost-saving)
+- `--spot`: Use spot instances (AWS only, cost-saving)
 - `--shared`: Make session accessible to workspace members
 - `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
 - `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
 
 **Data & Storage Management:**
-- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times.
+- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
 
 **Backend-Specific:**
 - `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
@@ -2139,20 +2187,27 @@ The session creation output displays:
 
 **Data Management**
 
-CloudOS CLI supports two ways to access data in interactive sessions:
+CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+
+**AWS Data Access**
 
 1. **Mount Data Files** - Load dataset files directly into the session
    - Files are copied into the session's mounted-data volume
-   - Useful for datasets already stored in CloudOS datasets
+   - Useful for datasets already stored in CloudOS datasets or S3
    
 2. **Link S3 Buckets** - Create live links to S3 buckets/folders
    - Access S3 data directly without copying
    - Useful for large datasets or shared storage
    - Supports read and write operations
 
+**Azure Data Access**
+
+- Use CloudOS file explorer to access your data directly within the session
+- **Note:** S3 mounts and linking are not available on Azure. For data stored in CloudOS datasets, use the file explorer interface to browse and access your files.
+
 **Data Mounting Examples**
 
-Mount a data file:
+Mount a data file (CloudOS datasets on both platforms, S3 on AWS only):
 
 ```bash
 cloudos interactive-session create \
