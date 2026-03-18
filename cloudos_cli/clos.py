@@ -2312,7 +2312,8 @@ class Cloudos:
         # Add optional filters
         if status:
             # status is a list of valid status values (user-friendly names)
-            valid_statuses = ['setup', 'initialising', 'running', 'scheduled', 'stopped']
+            # Include both spellings and API names for flexibility
+            valid_statuses = ['setup', 'initialising', 'initializing', 'running', 'scheduled', 'stopped', 'aborted']
             for s in status:
                 if s.lower() not in valid_statuses:
                     raise ValueError(f"Invalid status '{s}'. Valid values: {', '.join(valid_statuses)}")
