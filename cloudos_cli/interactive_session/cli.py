@@ -204,7 +204,7 @@ def list_sessions(ctx,
         error_str = str(e)
         # Check if the error is related to authentication
         if '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials', fg='red', err=True)
+            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
             raise SystemExit(1)
         # Check if the error is related to status filtering
         elif filter_status and ('400' in error_str or 'Invalid' in error_str):
@@ -216,7 +216,15 @@ def list_sessions(ctx,
             click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
             raise SystemExit(1)
     except Exception as e:
-        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        error_str = str(e)
+        # Check for DNS/connection errors
+        if 'Failed to resolve' in error_str or 'Name or service not known' in error_str or 'nodename nor servname provided' in error_str:
+            click.secho(f'Error: Unable to connect to CloudOS URL. Please verify the CloudOS URL is correct.', fg='red', err=True)
+        # Check for 401 Unauthorized
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+        else:
+            click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
 
 
@@ -531,8 +539,20 @@ def create_session(ctx,
             print('\tSession creation completed successfully!')
     
     except BadRequestException as e:
-        click.secho(f'Error: Failed to create interactive session: {e}', fg='red', err=True)
+        error_str = str(e)
+        if '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+        else:
+            click.secho(f'Error: Failed to create interactive session: {e}', fg='red', err=True)
         raise SystemExit(1)
     except Exception as e:
-        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        error_str = str(e)
+        # Check for DNS/connection errors
+        if 'Failed to resolve' in error_str or 'Name or service not known' in error_str or 'nodename nor servname provided' in error_str:
+            click.secho(f'Error: Unable to connect to CloudOS URL. Please verify the CloudOS URL is correct.', fg='red', err=True)
+        # Check for 401 Unauthorized
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+        else:
+            click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
