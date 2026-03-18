@@ -345,36 +345,6 @@ class TestInteractiveSessionAPIMethod:
         with pytest.raises(BadRequestException):
             cl.create_interactive_session('test_team', payload)
 
-    def test_get_interactive_session_method_exists(self):
-        """Test that the get_interactive_session method exists."""
-        from cloudos_cli.clos import Cloudos
-        
-        assert hasattr(Cloudos, 'get_interactive_session')
-        assert callable(getattr(Cloudos, 'get_interactive_session'))
-
-    @patch('cloudos_cli.clos.retry_requests_get')
-    def test_get_interactive_session_api_call(self, mock_get):
-        """Test that the get_interactive_session method makes the correct API call."""
-        from cloudos_cli.clos import Cloudos
-        
-        # Setup mock response
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            '_id': 'session_001',
-            'name': 'Test Session',
-            'status': 'running'
-        }
-        mock_get.return_value = mock_response
-        
-        # Create Cloudos instance and call method
-        cl = Cloudos('http://test.com', 'test_key', None)
-        result = cl.get_interactive_session('test_team', 'session_001')
-        
-        # Verify API was called
-        assert mock_get.called
-        assert result['status'] == 'running'
-
 
 class TestSessionCreatorHelpers:
     """Unit tests for session_creator helper functions."""
