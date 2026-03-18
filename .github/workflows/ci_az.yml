@@ -730,5 +730,5 @@ jobs:
         PROJECT_NAME: "cloudos-cli-tests"
         INSTANCE_TYPE: "Standard_D4as_v4"
       run: |
-        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m --execution-platform azure --instance-type $INSTANCE_TYPE
+        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name ci_test_cli --session-type jupyter --shutdown-in 10m --execution-platform azure --instance $INSTANCE_TYPE
 
