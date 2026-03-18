@@ -356,14 +356,15 @@ def _format_session_field(field_name, value):
     if field_name == 'status':
         # Color code status and map display values
         status_lower = str(value).lower()
-        # Map aborted to stopped for display
-        display_status = 'stopped' if status_lower == 'aborted' else value
+        # Map API statuses to display values
+        # API 'ready' and 'aborted' are mapped to user-friendly names
+        display_status = 'running' if status_lower == 'ready' else ('stopped' if status_lower == 'aborted' else value)
         
-        if status_lower == 'running':
+        if status_lower in ['ready', 'running']:
             return f'[bold green]{display_status}[/bold green]'
         elif status_lower in ['stopped', 'aborted']:
             return f'[bold red]{display_status}[/bold red]'
-        elif status_lower in ['provisioning', 'scheduled']:
+        elif status_lower in ['setup', 'initialising', 'initializing', 'scheduled']:
             return f'[bold yellow]{display_status}[/bold yellow]'
         else:
             return str(display_status)

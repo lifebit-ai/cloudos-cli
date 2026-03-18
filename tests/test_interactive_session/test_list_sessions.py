@@ -211,7 +211,7 @@ class TestInteractiveSessionAPIMethod:
             'test_team',
             page=2,
             limit=20,
-            status=['running', 'provisioning'],
+            status=['running', 'initialising'],
             owner_only=True,
             include_archived=True
         )

@@ -2311,14 +2311,26 @@ class Cloudos:
 
         # Add optional filters
         if status:
-            # status is a list of valid status values
-            valid_statuses = ['running', 'stopped', 'provisioning', 'scheduled']
+            # status is a list of valid status values (user-friendly names)
+            valid_statuses = ['setup', 'initialising', 'running', 'scheduled', 'stopped']
             for s in status:
                 if s.lower() not in valid_statuses:
                     raise ValueError(f"Invalid status '{s}'. Valid values: {', '.join(valid_statuses)}")
+            # Map user-friendly status names to API status names
+            # The API uses various names: 'ready' and 'aborted' but we display them as 'running' and 'stopped' to users
+            status_mapping = {
+                'setup': 'setup',
+                'initialising': 'initialising',
+                'initializing': 'initialising',  # Accept both spellings
+                'running': 'ready',  # API uses 'ready' for running sessions
+                'scheduled': 'scheduled',
+                'stopped': 'aborted',
+                'aborted': 'aborted'  # Also accept 'aborted' as input
+            }
+            mapped_statuses = [status_mapping[s.lower()] for s in status]
             # Add status[] parameters (multiple status filters)
-            for s in status:
-                params[f"status[]"] = s.lower()
+            # requests library will convert list to multiple params with same name
+            params["status[]"] = mapped_statuses
 
         if owner_only:
             params["onlyOwnerSessions"] = "true"

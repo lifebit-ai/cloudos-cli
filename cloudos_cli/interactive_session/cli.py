@@ -46,7 +46,7 @@ def interactive_session():
               required=True)
 @click.option('--filter-status',
               multiple=True,
-              type=click.Choice(['running', 'stopped', 'provisioning', 'scheduled'], case_sensitive=False),
+              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'stopped'], case_sensitive=False),
               help='Filter sessions by status. Can be specified multiple times to filter by multiple statuses.')
 @click.option('--limit',
               type=int,
@@ -196,8 +196,15 @@ def list_sessions(ctx,
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
     
     except BadRequestException as e:
-        click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
-        raise SystemExit(1)
+        # Check if the error is related to status filtering
+        if filter_status and ('400' in str(e) or 'Invalid' in str(e)):
+            status_flow = 'setup → initialising → running → stopped'
+            click.secho(f'Error: No interactive sessions found in the requested status.', fg='red', err=True)
+            click.secho(f'Session status flow: {status_flow}', fg='yellow', err=True)
+            raise SystemExit(1)
+        else:
+            click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
+            raise SystemExit(1)
     except Exception as e:
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
