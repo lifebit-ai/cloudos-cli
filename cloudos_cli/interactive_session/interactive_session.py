@@ -3,9 +3,15 @@
 import pandas as pd
 import sys
 import re
+import json
+import time
+import csv
 from datetime import datetime, timedelta
 from rich.table import Table
 from rich.console import Console
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None):
@@ -1132,3 +1138,554 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
     console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session list' to monitor status")
+
+
+# ============================================================================
+# Interactive Session Status Helper Functions
+# ============================================================================
+
+# Backend type mapping for status display
+BACKEND_MAPPING = {
+    'awsJupyterNotebook': 'Jupyter Notebook',
+    'azureJupyterNotebook': 'Jupyter Notebook',
+    'awsVSCode': 'VS Code',
+    'azureVSCode': 'VS Code',
+    'awsJupyterSparkNotebook': 'Spark',
+    'azureJupyterSparkNotebook': 'Spark',
+    'awsRstudio': 'RStudio',
+    'azureRstudio': 'RStudio',
+}
+
+# Status color mapping for Rich terminal
+STATUS_COLORS = {
+    'running': 'green',
+    'stopped': 'red',
+    'terminated': 'red',
+    'provisioning': 'yellow',
+    'scheduled': 'yellow',
+}
+
+# Terminal states where watch mode should exit
+TERMINAL_STATES = {'running', 'stopped', 'terminated'}
+
+
+def format_duration(seconds: int) -> str:
+    """Convert seconds to human-readable format.
+    
+    Examples: "2h 15m", "45m 30s", "30s"
+    """
+    if not seconds or seconds <= 0:
+        return "Not started"
+    
+    seconds = int(seconds)
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    
+    parts = []
+    if hours > 0:
+        parts.append(f"{hours}h")
+    if minutes > 0:
+        parts.append(f"{minutes}m")
+    if secs > 0 or not parts:
+        parts.append(f"{secs}s")
+    
+    return " ".join(parts)
+
+
+def map_backend_type(api_backend: str) -> str:
+    """Map API backend type to user-friendly display name."""
+    return BACKEND_MAPPING.get(api_backend, api_backend)
+
+
+def format_timestamp(iso_timestamp: str = None) -> str:
+    """Convert ISO8601 timestamp to readable format.
+    
+    Example: "2026-03-13 10:30:00"
+    """
+    if not iso_timestamp:
+        return "N/A"
+    
+    try:
+        dt = datetime.fromisoformat(
+            iso_timestamp.replace('Z', '+00:00')
+        )
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except (ValueError, AttributeError):
+        return iso_timestamp
+
+
+def format_cost(cost_value: float = None) -> str:
+    """Format cost as currency.
+    
+    Examples: "$12.50", "$0.00"
+    """
+    if cost_value is None:
+        return "$0.00"
+    try:
+        return f"${float(cost_value):.2f}"
+    except (ValueError, TypeError):
+        return "$0.00"
+
+
+def format_instance_type(instance_type: str, is_cost_saving: bool = False) -> str:
+    """Format instance type with spot indicator.
+    
+    Examples: "c5.xlarge", "c5.xlarge (spot)"
+    """
+    if is_cost_saving:
+        return f"{instance_type} (spot)"
+    return instance_type
+
+
+def validate_session_id(session_id: str) -> bool:
+    """Validate session ID format (24-character hex string)."""
+    if not session_id:
+        return False
+    return bool(re.match(r'^[a-f0-9]{24}$', session_id, re.IGNORECASE))
+
+
+class InteractiveSessionAPI:
+    """API client for interactive session operations."""
+    
+    REQUEST_TIMEOUT = 30  # seconds
+    
+    def __init__(self, cloudos_url: str, apikey: str, verify_ssl: bool = True):
+        """Initialize API client.
+        
+        Parameters
+        ----------
+        cloudos_url : str
+            Base CloudOS platform URL
+        apikey : str
+            API key for authentication
+        verify_ssl : bool
+            Whether to verify SSL certificates
+        """
+        self.cloudos_url = cloudos_url.rstrip('/')
+        self.apikey = apikey
+        self.verify_ssl = verify_ssl
+        self.session = self._create_session()
+    
+    def _create_session(self) -> requests.Session:
+        """Create requests session with retry strategy."""
+        session = requests.Session()
+        
+        # Configure retry strategy with exponential backoff
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=['GET']
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        
+        return session
+    
+    def get_session_status(self, session_id: str, team_id: str) -> dict:
+        """Retrieve session status from API endpoint.
+        
+        GET /api/v2/interactive-sessions/{sessionId}?teamId={teamId}
+        
+        Parameters
+        ----------
+        session_id : str
+            Session ID (24-character hex)
+        team_id : str
+            Team/workspace ID
+        
+        Returns
+        -------
+        dict
+            Session status response
+        
+        Raises
+        ------
+        PermissionError
+            If authentication fails (401, 403)
+        ValueError
+            If session not found (404)
+        RuntimeError
+            For other API errors
+        """
+        url = f"{self.cloudos_url}/api/v2/interactive-sessions/{session_id}"
+        params = {'teamId': team_id}
+        headers = {
+            'apikey': self.apikey,
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            response = self.session.get(
+                url,
+                params=params,
+                headers=headers,
+                verify=self.verify_ssl,
+                timeout=self.REQUEST_TIMEOUT
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 401:
+                raise PermissionError("Unauthorized: Invalid API key or credentials")
+            elif response.status_code == 403:
+                raise PermissionError("Forbidden: Insufficient permissions for this session")
+            elif response.status_code == 404:
+                raise ValueError(
+                    f"Session not found. Verify session ID ({session_id}) "
+                    f"and team ID ({team_id})"
+                )
+            elif response.status_code == 500:
+                raise RuntimeError("Server error: Unable to retrieve session status")
+            else:
+                raise RuntimeError(
+                    f"API error (HTTP {response.status_code}): {response.text}"
+                )
+        
+        except requests.exceptions.Timeout:
+            raise RuntimeError(f"API request timeout after {self.REQUEST_TIMEOUT} seconds")
+        except requests.exceptions.ConnectionError as e:
+            raise RuntimeError(f"Failed to connect to CloudOS: {str(e)}")
+
+
+class OutputFormatter:
+    """Handles formatting output in different formats."""
+    
+    @staticmethod
+    def format_stdout(session_data: dict, cloudos_url: str) -> None:
+        """Display session status as a rich table with color coding."""
+        console = Console()
+        table = Table(
+            title="[bold cyan]Interactive Session Status[/bold cyan]",
+            show_header=True,
+            header_style="bold magenta"
+        )
+        
+        table.add_column("Property", style="cyan", no_wrap=True)
+        table.add_column("Value", style="green")
+        
+        # Build session link
+        if cloudos_url and session_data.get('id'):
+            base_url = cloudos_url.rstrip('/')
+            session_link = (
+                f"{base_url}/app/interactive-sessions/{session_data['id']}"
+            )
+            table.add_row(
+                "Session ID",
+                f"{session_data['id']} [link={session_link}]Link[/link]"
+            )
+        else:
+            table.add_row("Session ID", session_data.get('id', 'N/A'))
+        
+        table.add_row("Name", session_data.get('name', 'N/A'))
+        
+        # Status with color coding
+        status = session_data.get('status', 'N/A')
+        status_color = STATUS_COLORS.get(status, 'white')
+        status_colored = f"[{status_color}]{status}[/{status_color}]"
+        table.add_row("Status", status_colored)
+        
+        # Add remaining fields
+        table.add_row("Backend", session_data.get('backend_type', 'N/A'))
+        table.add_row("Owner", session_data.get('owner', 'N/A'))
+        table.add_row("Project", session_data.get('project', 'N/A'))
+        table.add_row("Instance Type", session_data.get('instance_type', 'N/A'))
+        table.add_row("Storage", session_data.get('storage_size', 'N/A'))
+        table.add_row("Cost", session_data.get('cost', 'N/A'))
+        table.add_row("Runtime", session_data.get('runtime', 'N/A'))
+        table.add_row("Created At", session_data.get('created_at', 'N/A'))
+        
+        if session_data.get('last_saved'):
+            table.add_row("Last Saved", session_data.get('last_saved'))
+        
+        if session_data.get('auto_shutdown'):
+            table.add_row("Auto-Shutdown At", session_data.get('auto_shutdown'))
+        
+        if session_data.get('r_version'):
+            table.add_row("R Version", session_data.get('r_version'))
+        
+        console.print(table)
+    
+    @staticmethod
+    def format_json(raw_response: dict) -> str:
+        """Return raw API response as formatted JSON."""
+        return json.dumps(raw_response, indent=2, default=str)
+    
+    @staticmethod
+    def format_csv(session_data: dict) -> str:
+        """Export as CSV with key fields."""
+        csv_data = {
+            'ID': session_data.get('id', ''),
+            'Name': session_data.get('name', ''),
+            'Status': session_data.get('status', ''),
+            'Backend': session_data.get('backend_type', ''),
+            'Instance': session_data.get('instance_type', ''),
+            'Storage': session_data.get('storage_size', ''),
+            'Cost': session_data.get('cost', ''),
+            'Runtime': session_data.get('runtime', ''),
+            'Created': session_data.get('created_at', ''),
+        }
+        
+        lines = []
+        lines.append(','.join(csv_data.keys()))
+        lines.append(','.join(str(v) if v else '' for v in csv_data.values()))
+        
+        return '\n'.join(lines)
+
+
+class WatchModeManager:
+    """Manages watch mode polling and display."""
+    
+    def __init__(self, api_client: InteractiveSessionAPI, 
+                 session_id: str, team_id: str, interval: int = 10):
+        """Initialize watch mode manager.
+        
+        Parameters
+        ----------
+        api_client : InteractiveSessionAPI
+            API client instance
+        session_id : str
+            Session ID to monitor
+        team_id : str
+            Team ID
+        interval : int
+            Polling interval in seconds (default: 10)
+        """
+        self.api_client = api_client
+        self.session_id = session_id
+        self.team_id = team_id
+        self.interval = interval
+        self.start_time = time.time()
+    
+    def watch(self, verbose: bool = False) -> dict:
+        """Continuously poll session status until reaching terminal state.
+        
+        Terminal states: running, stopped, terminated
+        
+        Handles Ctrl+C gracefully.
+        """
+        spinner_chars = ['◜', '◝', '◞', '◟']
+        spinner_index = 0
+        
+        try:
+            while True:
+                # Fetch status
+                response = self.api_client.get_session_status(
+                    self.session_id, self.team_id
+                )
+                
+                status = response.get('status', '')
+                elapsed = int(time.time() - self.start_time)
+                
+                # Display progress
+                spinner = spinner_chars[spinner_index % len(spinner_chars)]
+                
+                if verbose:
+                    print(
+                        f"\r{spinner} Status: {status:<12} | "
+                        f"Elapsed: {elapsed}s",
+                        end='',
+                        flush=True
+                    )
+                
+                # Check if reached terminal state
+                if status in TERMINAL_STATES:
+                    print()  # New line after spinner
+                    if status == 'running':
+                        print(
+                            "✓ Session is now running and ready to use!"
+                        )
+                    else:
+                        print(
+                            f"⚠ Session reached terminal state: {status}"
+                        )
+                    return response
+                
+                # Wait before next poll
+                spinner_index += 1
+                time.sleep(self.interval)
+        
+        except KeyboardInterrupt:
+            print("\n⚠ Watch mode interrupted by user.")
+            raise
+    
+    def get_elapsed_time(self) -> str:
+        """Get formatted elapsed time."""
+        elapsed = int(time.time() - self.start_time)
+        return format_duration(elapsed)
+
+
+def transform_session_response(api_response: dict) -> dict:
+    """Transform raw API response to user-friendly display format."""
+    session_id = api_response.get('_id', '')
+    name = api_response.get('name', 'N/A')
+    status = api_response.get('status', 'N/A')
+    
+    # Map backend type
+    api_backend = api_response.get('interactiveSessionType', '')
+    backend_type = map_backend_type(api_backend)
+    
+    # Extract user info
+    user = api_response.get('user', {})
+    owner = f"{user.get('name', '')} {user.get('surname', '')}".strip()
+    if not owner:
+        owner = user.get('email', 'N/A')
+    
+    # Extract project info
+    project = api_response.get('project', {})
+    project_name = project.get('name', 'N/A')
+    
+    # Extract resource info
+    resources = api_response.get('resources', {})
+    instance_type = resources.get('instanceType', 'N/A')
+    is_spot = resources.get('isCostSaving', False)
+    instance_display = format_instance_type(instance_type, is_spot)
+    
+    storage_size_gb = resources.get('storageSizeInGb', 'N/A')
+    storage_display = f"{storage_size_gb} GB" if isinstance(storage_size_gb, int) else 'N/A'
+    
+    # Cost and runtime
+    total_cost = api_response.get('totalCostInUsd', 0)
+    cost = format_cost(total_cost)
+    
+    total_runtime_seconds = api_response.get('totalRunningTimeInSeconds', 0)
+    runtime = format_duration(total_runtime_seconds)
+    
+    # Timestamps
+    created_at = format_timestamp(api_response.get('createdAt'))
+    last_saved = format_timestamp(api_response.get('lastSavedAt'))
+    
+    # Execution info
+    execution = api_response.get('execution', {})
+    auto_shutdown = format_timestamp(execution.get('autoShutdownAtDate'))
+    
+    # R version (for RStudio)
+    r_version = api_response.get('rVersion')
+    
+    return {
+        'id': session_id,
+        'name': name,
+        'status': status,
+        'backend_type': backend_type,
+        'owner': owner,
+        'project': project_name,
+        'instance_type': instance_display,
+        'storage_size': storage_display,
+        'cost': cost,
+        'runtime': runtime,
+        'created_at': created_at,
+        'last_saved': last_saved if last_saved != 'N/A' else None,
+        'auto_shutdown': auto_shutdown if auto_shutdown != 'N/A' else None,
+        'r_version': r_version,
+    }
+
+
+def export_session_status_json(session_data: dict, output_file: str = None) -> str:
+    """Export session status as JSON.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Raw API response
+    output_file : str, optional
+        Path to save JSON file. If None, returns JSON string.
+    
+    Returns
+    -------
+    str
+        JSON formatted string
+    """
+    json_str = json.dumps(session_data, indent=2, default=str)
+    
+    if output_file:
+        with open(output_file, 'w') as f:
+            f.write(json_str)
+    
+    return json_str
+
+
+def export_session_status_csv(session_data: dict, output_file: str = None) -> str:
+    """Export session status as CSV.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Transformed session data (from transform_session_response)
+    output_file : str, optional
+        Path to save CSV file. If None, returns CSV string.
+    
+    Returns
+    -------
+    str
+        CSV formatted string
+    """
+    csv_str = OutputFormatter.format_csv(session_data)
+    
+    if output_file:
+        with open(output_file, 'w') as f:
+            f.write(csv_str)
+    
+    return csv_str
+
+
+# ============================================================================
+# Wrapper Functions for CLI Integration
+# ============================================================================
+
+def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: str, 
+                                   team_id: str, verify_ssl: bool = True, 
+                                   verbose: bool = False) -> dict:
+    """Wrapper function to fetch session status from API.
+    
+    Parameters
+    ----------
+    cloudos_url : str
+        CloudOS platform URL
+    apikey : str
+        API key for authentication
+    session_id : str
+        Session ID (24-char hex)
+    team_id : str
+        Team/workspace ID
+    verify_ssl : bool
+        Whether to verify SSL certificates
+    verbose : bool
+        Whether to print verbose output
+    
+    Returns
+    -------
+    dict
+        Raw API response
+    
+    Raises
+    ------
+    ValueError
+        If session not found
+    PermissionError
+        If authentication fails
+    RuntimeError
+        For other API errors
+    """
+    api_client = InteractiveSessionAPI(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        verify_ssl=verify_ssl
+    )
+    
+    return api_client.get_session_status(session_id, team_id)
+
+
+def format_session_status_table(session_data: dict, cloudos_url: str = None) -> None:
+    """Wrapper function to display session status as a rich table.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Transformed session data (from transform_session_response)
+    cloudos_url : str, optional
+        CloudOS URL for creating links
+    """
+    OutputFormatter.format_stdout(session_data, cloudos_url or '')

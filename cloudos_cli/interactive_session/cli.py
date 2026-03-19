@@ -2,6 +2,7 @@
 
 import rich_click as click
 import json
+import time
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.errors import BadRequestException
@@ -17,7 +18,13 @@ from cloudos_cli.interactive_session.interactive_session import (
     parse_s3_mount,
     build_session_payload,
     format_session_creation_table,
-    resolve_data_file_id
+    resolve_data_file_id,
+    validate_session_id,
+    get_interactive_session_status,
+    format_session_status_table,
+    transform_session_response,
+    export_session_status_json,
+    export_session_status_csv
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -592,4 +599,173 @@ def create_session(ctx,
             click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
         else:
             click.secho(f'Error: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+
+
+
+@interactive_session.command('status')
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=False)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=False)
+@click.option('--interactive-session',
+              'session_id',
+              help='The session ID to retrieve status for (24-character hex string).',
+              required=True)
+@click.option('--team-id',
+              help='Team/workspace identifier.',
+              required=True)
+@click.option('--format',
+              'output_format',
+              help='Output format for session status.',
+              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--watch',
+              is_flag=True,
+              help='Continuously poll status until session reaches running state.')
+@click.option('--watch-interval',
+              type=int,
+              default=10,
+              help='Poll interval in seconds when using --watch. Default=10.')
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey'])
+def get_session_status(ctx,
+                       apikey,
+                       cloudos_url,
+                       session_id,
+                       team_id,
+                       output_format,
+                       watch,
+                       watch_interval,
+                       verbose,
+                       disable_ssl_verification,
+                       ssl_cert,
+                       profile):
+    """Get status of an interactive session."""
+    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    
+    # Validate session ID format
+    if not validate_session_id(session_id):
+        click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    # Validate watch-interval
+    if watch_interval <= 0:
+        click.secho(f'Error: --watch-interval must be a positive number, got: {watch_interval}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    # Validate output format
+    if output_format.lower() not in ['stdout', 'csv', 'json']:
+        click.secho(f'Error: Invalid output format. Must be one of: stdout, csv, json', fg='red', err=True)
+        raise SystemExit(1)
+    
+    if verbose:
+        print('Executable: get interactive session status...')
+        print('\t...Preparing objects')
+    
+    try:
+        # Get initial status
+        if verbose:
+            print(f'\tRetrieving session status from: {cloudos_url}')
+        
+        session_response = get_interactive_session_status(
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            session_id=session_id,
+            team_id=team_id,
+            verify_ssl=verify_ssl,
+            verbose=verbose
+        )
+        
+        if verbose:
+            print(f'\t✓ Session retrieved successfully')
+        
+        # Apply watch mode if requested
+        if watch:
+            elapsed_time = 0
+            start_time = time.time()
+            
+            while True:
+                status = session_response.get('status', '')
+                
+                if verbose:
+                    elapsed = time.time() - start_time
+                    print(f'\tPolling... Status: {status} | Elapsed: {int(elapsed)}s')
+                
+                # Exit watch mode if session is ready or terminated
+                if status == 'running':
+                    click.secho('✓ Session is now running and ready to use!', fg='green')
+                    break
+                elif status in ['stopped', 'terminated']:
+                    click.secho(f'⚠ Session reached terminal state: {status}', fg='yellow')
+                    break
+                
+                # Wait before next poll
+                time.sleep(watch_interval)
+                
+                # Fetch updated status
+                session_response = get_interactive_session_status(
+                    cloudos_url=cloudos_url,
+                    apikey=apikey,
+                    session_id=session_id,
+                    team_id=team_id,
+                    verify_ssl=verify_ssl,
+                    verbose=False
+                )
+        
+        # Transform and display response based on format
+        if output_format.lower() == 'json':
+            json_output = export_session_status_json(session_response)
+            click.echo(json_output)
+        
+        elif output_format.lower() == 'csv':
+            transformed_data = transform_session_response(session_response)
+            csv_output = export_session_status_csv(transformed_data)
+            click.echo(csv_output)
+        
+        else:  # stdout (default)
+            transformed_data = transform_session_response(session_response)
+            format_session_status_table(transformed_data, cloudos_url=cloudos_url)
+    
+    except ValueError as e:
+        # Handle validation errors (e.g., session not found)
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    except PermissionError as e:
+        # Handle authentication/permission errors
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        if '401' in str(e) or 'Unauthorized' in str(e):
+            click.secho('Please check your API credentials (apikey and cloudos-url).', fg='yellow', err=True)
+        raise SystemExit(1)
+    
+    except KeyboardInterrupt:
+        click.secho('\n⚠ Watch mode interrupted by user.', fg='yellow', err=True)
+        raise SystemExit(0)
+    
+    except Exception as e:
+        error_str = str(e)
+        # Check for network errors
+        if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
+            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to retrieve session status. Please check your credentials.', fg='red', err=True)
+        else:
+            click.secho(f'Error: Failed to retrieve session status: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
