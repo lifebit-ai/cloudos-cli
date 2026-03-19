@@ -581,6 +581,9 @@ def create_session(ctx,
             s3_mounts=parsed_s3_mounts
         )
         
+        # Output session link in greppable format for CI/automation
+        click.echo(f"Session link: {cloudos_url}/interactive-sessions/{session_id}")
+        
         if verbose:
             print('\tSession creation completed successfully!')
     
