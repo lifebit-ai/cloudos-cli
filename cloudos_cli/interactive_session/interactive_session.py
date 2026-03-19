@@ -526,6 +526,38 @@ def parse_shutdown_duration(duration_str):
     return future_time.isoformat() + 'Z'
 
 
+def parse_watch_timeout_duration(duration_str):
+    """Parse watch timeout duration string to seconds.
+    
+    Accepts formats: 30m, 2h, 1d, 30s
+    
+    Parameters
+    ----------
+    duration_str : str
+        Duration string (e.g., "30m", "2h", "1d", "30s")
+    
+    Returns
+    -------
+    int
+        Duration in seconds
+    """
+    match = re.match(r'^(\d+)([smhd])$', duration_str.lower())
+    if not match:
+        raise ValueError(f"Invalid duration format: {duration_str}. Use format like '30s', '30m', '2h', '1d'")
+    
+    value = int(match.group(1))
+    unit = match.group(2)
+    
+    if unit == 's':
+        return value
+    elif unit == 'm':
+        return value * 60
+    elif unit == 'h':
+        return value * 3600
+    elif unit == 'd':
+        return value * 86400
+
+
 def parse_data_file(data_file_str):
     """Parse data file format: either S3 or CloudOS dataset path.
     

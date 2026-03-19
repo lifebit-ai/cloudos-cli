@@ -2112,6 +2112,39 @@ Customize the polling interval for watch mode:
 cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --watch-interval 15
 ```
 
+**Watch Mode Timeout**
+
+Set a maximum time to wait for the session to reach running state. The `--max-wait-time` option accepts human-friendly duration formats:
+
+```bash
+# 30 minutes (default)
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+
+# 5 minutes
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 5m
+
+# 2 hours
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 2h
+
+# 1 day
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 1d
+
+# 60 seconds
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 60s
+```
+
+**Supported timeout formats:**
+- `30s` - seconds
+- `5m` - minutes
+- `2h` - hours
+- `1d` - days
+
+If the session does not reach running state within the specified timeout, the watch mode exits with a clear message:
+
+```console
+Timeout: Session did not reach running state within 30m. Current status: provisioning. Exiting watch mode.
+```
+
 **Output Formats**
 
 Save session status to a file:

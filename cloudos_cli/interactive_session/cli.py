@@ -13,6 +13,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     process_interactive_session_list,
     save_interactive_session_list_to_csv,
     parse_shutdown_duration,
+    parse_watch_timeout_duration,
     parse_data_file,
     parse_link_path,
     parse_s3_mount,
@@ -641,6 +642,10 @@ def create_session(ctx,
               type=int,
               default=30,
               help='Poll interval in seconds when using --watch. Default=30.')
+@click.option('--max-wait-time',
+              type=str,
+              default='30m',
+              help='Maximum time to wait for session in watch mode. Accepts formats: 30s, 5m, 2h, 1d. Default=30m (30 minutes).')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -662,6 +667,7 @@ def get_session_status(ctx,
                        output_basename,
                        watch,
                        watch_interval,
+                       max_wait_time,
                        verbose,
                        disable_ssl_verification,
                        ssl_cert,
@@ -678,6 +684,13 @@ def get_session_status(ctx,
     # Validate watch-interval
     if watch_interval <= 0:
         click.secho(f'Error: --watch-interval must be a positive number, got: {watch_interval}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    # Parse and validate max-wait-time
+    try:
+        max_wait_time_seconds = parse_watch_timeout_duration(max_wait_time)
+    except ValueError as e:
+        click.secho(f'Error: Invalid --max-wait-time format: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
     
     # Validate output format
@@ -724,7 +737,6 @@ def get_session_status(ctx,
                 # Print initial status message before starting watch
                 click.echo(f'Session {session_id} currently is in {display_status}...')
                 
-                elapsed_time = 0
                 start_time = time.time()
                 previous_status = display_status  # Track previous status to detect changes
                 
@@ -732,8 +744,9 @@ def get_session_status(ctx,
                     api_status = session_response.get('status', '')
                     display_status = map_status(api_status)
                     
+                    elapsed = time.time() - start_time
+                    
                     if verbose:
-                        elapsed = time.time() - start_time
                         print(f'\tPolling... Status: {display_status} | Elapsed: {int(elapsed)}s')
                     
                     # Print status change message
@@ -747,6 +760,16 @@ def get_session_status(ctx,
                         break
                     elif display_status in ['stopped', 'terminated']:
                         click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
+                        break
+                    
+                    # Check timeout
+                    if elapsed > max_wait_time_seconds:
+                        click.secho(
+                            f'Timeout: Session did not reach running state within {max_wait_time}. '
+                            f'Current status: {display_status}. Exiting watch mode.',
+                            fg='red',
+                            err=True
+                        )
                         break
                     
                     # Wait before next poll
