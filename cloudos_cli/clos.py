@@ -2417,6 +2417,71 @@ class Cloudos:
         # Return the full session object from response
         content = r.json()
         return content
+
+    def abort_interactive_session(self, session_id, team_id, upload_on_close=True, force_abort=False, verify=True):
+        """Abort and stop a running interactive session.
+
+        Parameters
+        ----------
+        session_id : string
+            The session ID (MongoDB ObjectId) to abort.
+        team_id : string
+            The CloudOS team id (workspace id) where the session is running.
+        upload_on_close : bool, optional
+            If True, save session data to S3 before terminating. Default=True.
+        force_abort : bool, optional
+            If True, force immediate termination (skip graceful shutdown). Default=False.
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        int
+            HTTP status code (204 for successful abort, no content returned).
+        """
+        # Validate session_id
+        if not session_id or not isinstance(session_id, str):
+            raise ValueError("Invalid session_id: must be a non-empty string")
+        
+        # Validate team_id
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build request body
+        payload = {
+            "uploadOnClose": upload_on_close,
+            "forceAbort": force_abort
+        }
+
+        # Build URL with teamId query parameter
+        url = f"{self.cloudos_url}/api/v1/interactive-sessions/{session_id}/abort?teamId={team_id}"
+        
+        # Make the API request with PUT method
+        try:
+            r = requests.put(
+                url,
+                headers=headers,
+                data=json.dumps(payload),
+                verify=verify,
+                timeout=30
+            )
+        except Exception as e:
+            raise Exception(f"Failed to abort interactive session: {str(e)}")
+        
+        if r.status_code >= 400:
+            if r.status_code == 404:
+                raise ValueError(f"Session not found: {session_id}")
+            raise BadRequestException(r)
+        
+        # Return the status code (204 No Content is success)
+        return r.status_code
     
     ## FOR FUTURE COMMANDS IMPLEMENTATION
     # def get_interactive_session(self, team_id, session_id, verify=True):

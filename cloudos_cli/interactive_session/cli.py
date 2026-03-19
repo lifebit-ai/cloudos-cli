@@ -28,6 +28,9 @@ from cloudos_cli.interactive_session.interactive_session import (
     export_session_status_csv,
     map_status,
     PRE_RUNNING_STATUSES,
+    confirm_session_stop,
+    format_stop_success_output,
+    poll_session_termination,
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -830,4 +833,199 @@ def get_session_status(ctx,
             click.secho(f'Error: Failed to retrieve session status. Please check your credentials.', fg='red', err=True)
         else:
             click.secho(f'Error: Failed to retrieve session status: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+
+
+@interactive_session.command('stop')
+@click.option('--session-id',
+              help='The session ID to stop (24-character hex string).',
+              required=True)
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=False)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=False)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=False)
+@click.option('--no-upload',
+              is_flag=True,
+              help='Don\'t save session data before stopping (use with caution).')
+@click.option('--force',
+              is_flag=True,
+              help='Force immediate termination, skip graceful shutdown.')
+@click.option('--wait',
+              is_flag=True,
+              help='Wait for session to fully stop.')
+@click.option('--yes', '-y',
+              'skip_confirmation',
+              is_flag=True,
+              help='Skip confirmation prompt.')
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def stop_session(ctx,
+                 session_id,
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 no_upload,
+                 force,
+                 wait,
+                 skip_confirmation,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    """Stop a running interactive session."""
+    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    
+    # Validate session ID format
+    if not validate_session_id(session_id):
+        click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    if verbose:
+        print('Executing stop interactive session...')
+        print('\t...Preparing objects')
+    
+    try:
+        # Try to get current session status for confirmation (optional)
+        session_response = None
+        try:
+            if verbose:
+                print(f'\tRetrieving session status from: {cloudos_url}')
+            
+            session_response = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=workspace_id,
+                verify_ssl=verify_ssl,
+                verbose=verbose
+            )
+            
+            if verbose:
+                print(f'\t✓ Session retrieved successfully')
+        except Exception as e:
+            # If we can't get session status, that's okay - we can still stop it
+            if verbose:
+                print(f'\t⚠ Could not retrieve session status (this is okay): {str(e)}')
+        
+        # Show confirmation prompt unless --yes flag is used
+        if not skip_confirmation:
+            if session_response:
+                confirm_session_stop(session_response, no_upload=no_upload, force=force)
+            else:
+                # Show basic confirmation without session details
+                click.echo(f'About to stop session: {session_id}')
+                click.echo(f'Upload data before stopping: {not no_upload}')
+                click.echo(f'Force immediate termination: {force}')
+            
+            # Get user confirmation
+            try:
+                response = click.prompt('Continue? [y/N]', type=str, default='N')
+                if response.lower() != 'y':
+                    click.echo('Cancelled.')
+                    raise SystemExit(0)
+            except KeyboardInterrupt:
+                click.secho('\n⚠ Operation cancelled by user.', fg='yellow', err=True)
+                raise SystemExit(0)
+        
+        # Prepare abort parameters
+        upload_on_close = not no_upload  # Invert no_upload to get upload_on_close
+        force_abort = force
+        
+        # Create Cloudos client and abort session
+        cl = Cloudos(cloudos_url, apikey, None)
+        
+        if verbose:
+            print('\t...Sending abort request to CloudOS')
+        
+        # Call the abort endpoint
+        status_code = cl.abort_interactive_session(
+            session_id=session_id,
+            team_id=workspace_id,
+            upload_on_close=upload_on_close,
+            force_abort=force_abort,
+            verify=verify_ssl
+        )
+        
+        if verbose:
+            print(f'\t✓ Abort request sent successfully (HTTP {status_code})')
+        
+        # If --wait flag is set, poll until session is stopped
+        if wait:
+            if verbose:
+                print('\t...Waiting for session to fully stop')
+            
+            try:
+                final_response = poll_session_termination(
+                    cloudos_url=cloudos_url,
+                    apikey=apikey,
+                    session_id=session_id,
+                    team_id=workspace_id,
+                    max_wait=300,  # 5 minutes timeout
+                    poll_interval=5,  # Poll every 5 seconds
+                    verify_ssl=verify_ssl
+                )
+                
+                # Display final status
+                transformed_data = transform_session_response(final_response)
+                format_stop_success_output(transformed_data, wait=True)
+                
+            except TimeoutError as e:
+                click.secho(f'⚠ Timeout: {str(e)}', fg='yellow', err=True)
+                click.echo('The session stop command has been sent, but the session did not fully terminate within the timeout period.')
+                click.echo(f'You can check the session status using: cloudos interactive-session status --session-id {session_id} --profile {profile or "default"}')
+                raise SystemExit(1)
+        else:
+            # Show success message without waiting
+            if session_response:
+                format_stop_success_output(session_response, wait=False)
+            else:
+                click.secho('✓ Session stop request sent successfully.', fg='green')
+            click.echo(f'You can monitor the session status using: cloudos interactive-session status --session-id {session_id} --profile {profile or "default"}')
+    
+    except ValueError as e:
+        # Handle validation errors
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    except PermissionError as e:
+        # Handle authentication/permission errors
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
+        if '401' in str(e) or 'Unauthorized' in str(e):
+            click.secho('Please check your API credentials (apikey and cloudos-url).', fg='yellow', err=True)
+        raise SystemExit(1)
+    
+    except KeyboardInterrupt:
+        click.secho('\n⚠ Operation interrupted by user.', fg='yellow', err=True)
+        raise SystemExit(0)
+    
+    except Exception as e:
+        error_str = str(e)
+        # Check for network errors
+        if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
+            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to stop session. Please check your credentials.', fg='red', err=True)
+        elif 'Session not found' in error_str:
+            click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
+        else:
+            click.secho(f'Error: Failed to stop session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)

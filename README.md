@@ -66,6 +66,7 @@ Python package for interacting with CloudOS
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
       - [Get Interactive Session Status](#get-interactive-session-status)
+      - [Stop Interactive Session](#stop-interactive-session)
       - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
@@ -2158,6 +2159,158 @@ cloudos interactive-session status --session-id <SESSION_ID> --profile my_profil
 cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --format csv --output-base-name /tmp/session_status
 # Creates: /tmp/session_status.csv
 ```
+
+#### Stop Interactive Session
+
+You can stop and terminate a running interactive session using the `cloudos interactive-session stop` command. This command gracefully shuts down the session and optionally saves session data before termination.
+
+**Basic Usage**
+
+Stop a session with confirmation:
+
+```bash
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile
+```
+
+The command displays a confirmation prompt showing session details:
+
+```console
+About to stop session: my-analysis
+┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property         ┃ Value                              ┃
+┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID       │ 688351ab6be610972db54a8e           │
+│ Current Status   │ running                            │
+│ Data Action      │ Will be saved before stopping      │
+│ Termination      │ Graceful shutdown                  │
+│ Cost/Hour        │ $2.45                              │
+└──────────────────┴────────────────────────────────────┘
+
+Continue? [y/N]: y
+
+✓ Session Stop Complete
+Session stopped successfully
+  Session ID: 688351ab6be610972db54a8e
+  Total cost: $12.50
+  Total runtime: 2h 15m
+```
+
+**Skip Confirmation Prompt**
+
+Use the `-y` or `--yes` flag to skip the confirmation prompt:
+
+```bash
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile -y
+```
+
+**Data Management Options**
+
+By default, session data is saved to S3 before stopping. Use `--no-upload` to skip data saving (use with caution):
+
+```bash
+# Save session data before stopping (default)
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile
+
+# Skip saving data (use with caution)
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile --no-upload
+```
+
+**Termination Modes**
+
+**Graceful Shutdown (default)**
+
+Allows the session to clean up resources and save data before terminating:
+
+```bash
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile
+```
+
+**Force Immediate Termination**
+
+Bypass graceful shutdown for immediate termination (useful for stuck sessions):
+
+```bash
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile --force
+```
+
+Use `--force` with caution as it may not save session data properly.
+
+**Wait for Termination**
+
+Use the `--wait` flag to monitor the session until it reaches a terminal state:
+
+```bash
+cloudos interactive-session stop --session-id <SESSION_ID> --profile my_profile --wait
+```
+
+Output with `--wait`:
+
+```console
+Stopping session...
+Status: shutting_down
+Status: uploading_data
+Status: cleaning_up
+Status: stopped
+✓ Session stopped successfully
+```
+
+**Examples**
+
+Basic stop with confirmation:
+
+```bash
+cloudos interactive-session stop --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a
+```
+
+Stop without saving data and skip confirmation:
+
+```bash
+cloudos interactive-session stop --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --no-upload -y
+```
+
+Force stop and wait for termination:
+
+```bash
+cloudos interactive-session stop --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --force -y --wait
+```
+
+Stop using profile configuration:
+
+```bash
+cloudos interactive-session stop --session-id 688351ab6be610972db54a8e --profile my_profile --wait
+```
+
+Stop with verbose output:
+
+```bash
+cloudos interactive-session stop --session-id 688351ab6be610972db54a8e --profile my_profile --verbose
+```
+
+**Options Reference**
+
+The command automatically loads from profile (via `@with_profile_config` decorator):
+- **From Profile**: apikey, cloudos-url, workspace-id
+- **Command Line**: Additional options and behaviors
+
+**Required:**
+- `--session-id`: The session ID to stop (24-character hex string)
+
+**Optional Overrides from Profile:**
+- `--apikey` (optional): Override API key from profile
+- `--cloudos-url` (optional): Override CloudOS URL from profile
+- `--workspace-id` (optional): Override workspace ID from profile
+
+**Optional Behavior Flags:**
+- `--no-upload`: Don't save session data before stopping (default: saves data)
+- `--force`: Force immediate termination, skip graceful shutdown (default: graceful)
+- `--wait`: Wait for session to fully terminate (default: return immediately after sending stop command)
+- `-y, --yes`: Skip confirmation prompt (default: show confirmation)
+- `--verbose`: Show detailed progress messages
+
+**Optional Connection:**
+- `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
+- `--ssl-cert`: Path to SSL certificate file
+- `--profile`: Profile to use from config file (default: default profile)
 
 #### Create Interactive Session
 

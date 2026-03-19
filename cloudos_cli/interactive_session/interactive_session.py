@@ -1732,3 +1732,158 @@ def format_session_status_table(session_data: dict, cloudos_url: str = None) -> 
         CloudOS URL for creating links
     """
     OutputFormatter.format_stdout(session_data, cloudos_url or '')
+
+
+def confirm_session_stop(session_data: dict, no_upload: bool = False, force: bool = False) -> None:
+    """Display session termination confirmation details.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Session data from API response
+    no_upload : bool
+        Whether data upload on close is disabled
+    force : bool
+        Whether force abort is enabled
+    """
+    console = Console()
+    
+    session_name = session_data.get('name', 'Unknown')
+    session_id = session_data.get('_id', 'Unknown')
+    status = map_status(session_data.get('status', 'unknown'))
+    cost_per_hour = session_data.get('costPerHour', 0)
+    
+    # Create confirmation table
+    table = Table(title=f"About to stop session: {session_name}", title_style="bold yellow")
+    table.add_column("Property", style="cyan", no_wrap=True)
+    table.add_column("Value", style="green")
+    
+    table.add_row("Session ID", session_id)
+    table.add_row("Current Status", status)
+    
+    if not no_upload:
+        table.add_row("Data Action", "Will be saved before stopping")
+    else:
+        table.add_row("Data Action", "⚠ Will NOT be saved (--no-upload)")
+    
+    if force:
+        table.add_row("Termination", "⚠ FORCED (skip graceful shutdown)")
+    else:
+        table.add_row("Termination", "Graceful shutdown")
+    
+    if cost_per_hour:
+        table.add_row("Cost/Hour", f"${cost_per_hour:.2f}")
+    
+    console.print(table)
+
+
+def format_stop_success_output(session_data: dict, wait: bool = False) -> None:
+    """Display successful session stop output.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Final session data from API response
+    wait : bool
+        Whether the command waited for full termination
+    """
+    from rich.console import Console
+    from rich.panel import Panel
+    
+    console = Console()
+    session_name = session_data.get('name', 'Unknown')
+    session_id = session_data.get('_id', 'Unknown')
+    status = map_status(session_data.get('status', 'unknown'))
+    total_cost = session_data.get('totalCostInUsd', 0)
+    total_runtime = session_data.get('totalRunningTimeInSeconds', 0)
+    
+    # Format runtime
+    runtime_str = format_duration(total_runtime) if total_runtime else 'N/A'
+    
+    # Build message
+    message = f"Session stopped successfully\n"
+    message += f"  Session ID: {session_id}\n"
+    message += f"  Final status: {status}\n"
+    
+    if total_cost:
+        message += f"  Total cost: ${total_cost:.2f}\n"
+    
+    if total_runtime:
+        message += f"  Total runtime: {runtime_str}"
+    
+    # Display success message
+    console.print(Panel(message, title="✓ Session Stop Complete", style="bold green"))
+
+
+def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, team_id: str, 
+                            max_wait: int = 300, poll_interval: int = 5, verify_ssl: bool = True) -> dict:
+    """Poll session status until it reaches a terminal state.
+    
+    Parameters
+    ----------
+    cloudos_url : str
+        CloudOS API URL
+    apikey : str
+        API key for authentication
+    session_id : str
+        Session ID to monitor
+    team_id : str
+        Team/workspace ID
+    max_wait : int
+        Maximum time to wait in seconds (default: 300 = 5 minutes)
+    poll_interval : int
+        Polling interval in seconds (default: 5)
+    verify_ssl : bool
+        Whether to verify SSL certificates
+    
+    Returns
+    -------
+    dict
+        Final session status response
+    
+    Raises
+    ------
+    TimeoutError
+        If session doesn't reach terminal state within max_wait
+    """
+    from rich.console import Console
+    
+    console = Console()
+    start_time = time.time()
+    previous_status = None
+    
+    with console.status("[bold yellow]Stopping session...", spinner='dots'):
+        while True:
+            elapsed = time.time() - start_time
+            
+            # Fetch current status
+            session_response = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=team_id,
+                verify_ssl=verify_ssl,
+                verbose=False
+            )
+            
+            current_status = map_status(session_response.get('status', ''))
+            
+            # Print status changes
+            if current_status != previous_status:
+                console.log(f"Status: {current_status}")
+                previous_status = current_status
+            
+            # Check if terminal state reached
+            if current_status in ['stopped', 'terminated']:
+                console.print("[bold green]✓ Session stopped successfully")
+                return session_response
+            
+            # Check timeout
+            if elapsed > max_wait:
+                raise TimeoutError(
+                    f"Session did not reach terminal state within {max_wait} seconds. "
+                    f"Current status: {current_status}"
+                )
+            
+            # Wait before next poll
+            time.sleep(poll_interval)
