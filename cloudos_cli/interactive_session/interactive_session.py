@@ -628,12 +628,6 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
         # First, try the path as-is (assuming first part is a dataset name)
         try:
             result = datasets_api.list_folder_content(dataset_path)
-            if result and result.get('kind') == 'File':
-                return {
-                    "kind": "File",
-                    "item": result.get('_id'),
-                    "name": result.get('name')
-                }
             
             # Check if it's in the files list
             for file_item in result.get('files', []):
@@ -664,14 +658,6 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
                 # Try with the dataset name prepended to the path
                 full_path = f"{dataset_name}/{dataset_path}"
                 result = datasets_api.list_folder_content(full_path)
-                
-                # Check if it's the file we're looking for
-                if result and result.get('kind') == 'File':
-                    return {
-                        "kind": "File",
-                        "item": result.get('_id'),
-                        "name": result.get('name')
-                    }
                 
                 # Check files list
                 for file_item in result.get('files', []):
