@@ -41,7 +41,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             'header': 'ID',
             'style': 'cyan',
             'no_wrap': True,
-            'max_width': 12,
+            'max_width': 24,
             'accessor': '_id'
         },
         'name': {
@@ -433,11 +433,9 @@ def _format_session_field(field_name, value):
             return str(value)
     
     elif field_name == 'id':
-        # Truncate long IDs
-        value_str = str(value)
-        if len(value_str) > 12:
-            return value_str[:12] + '…'
-        return value_str
+        # Return full ID without truncation (MongoDB ObjectIds are always 24 chars)
+        # Full ID is needed for status command and other operations
+        return str(value)
     
     elif field_name == 'name':
         # Truncate long names
@@ -567,6 +565,7 @@ def parse_data_file(data_file_str):
         if not bucket:
             raise ValueError(f"Invalid S3 path: {data_file_str}. Expected: s3://bucket_name/path/to/file")
         
+        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else "/"
         
         return {
@@ -635,12 +634,6 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
         # First, try the path as-is (assuming first part is a dataset name)
         try:
             result = datasets_api.list_folder_content(dataset_path)
-            if result and result.get('kind') == 'File':
-                return {
-                    "kind": "File",
-                    "item": result.get('_id'),
-                    "name": result.get('name')
-                }
             
             # Check if it's in the files list
             for file_item in result.get('files', []):
@@ -671,14 +664,6 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
                 # Try with the dataset name prepended to the path
                 full_path = f"{dataset_name}/{dataset_path}"
                 result = datasets_api.list_folder_content(full_path)
-                
-                # Check if it's the file we're looking for
-                if result and result.get('kind') == 'File':
-                    return {
-                        "kind": "File",
-                        "item": result.get('_id'),
-                        "name": result.get('name')
-                    }
                 
                 # Check files list
                 for file_item in result.get('files', []):
@@ -781,10 +766,10 @@ def parse_link_path(link_path_str):
         s3_path = link_path_str[5:]  # Remove 's3://'
         parts = s3_path.split('/', 1)
         
-        bucket = parts[0]
-        if not bucket:
+        if len(parts) < 1:
             raise ValueError(f"Invalid S3 path: {link_path_str}. Expected: s3://bucket_name/prefix/")
         
+        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else ""
         
         # Ensure prefix ends with / for S3 folders
@@ -1020,7 +1005,7 @@ def build_session_payload(
         "interactiveSessionConfiguration": config,
         "dataItems": data_files or [],
         "fileSystemIds": [],  # Always empty (legacy compatibility)
-        "fuseFileSystems": (s3_mounts or []) if execution_platform == 'aws' else [],
+        "fuseFileSystems": s3_mounts or [] if execution_platform == 'aws' else [],
         "projectId": project_id
     }
     
