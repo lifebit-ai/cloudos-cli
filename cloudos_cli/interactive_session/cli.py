@@ -24,7 +24,9 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_session_status_table,
     transform_session_response,
     export_session_status_json,
-    export_session_status_csv
+    export_session_status_csv,
+    map_status,
+    PRE_RUNNING_STATUSES,
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -42,7 +44,7 @@ def interactive_session():
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=True)
+              required=False)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -613,25 +615,29 @@ def create_session(ctx,
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=False)
-@click.option('--interactive-session',
-              'session_id',
+@click.option('--session-id',
               help='The session ID to retrieve status for (24-character hex string).',
               required=True)
-@click.option('--team-id',
-              help='Team/workspace identifier.',
-              required=True)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=False)
 @click.option('--format',
               'output_format',
               help='Output format for session status.',
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
+@click.option('--output-basename',
+              help=('Output file base name to save session status. ' +
+                    'Default=interactive_session_status'),
+              default='interactive_session_status',
+              required=False)
 @click.option('--watch',
               is_flag=True,
-              help='Continuously poll status until session reaches running state.')
+              help='Continuously poll status until session reaches running state (only for pre-running statuses).')
 @click.option('--watch-interval',
               type=int,
-              default=10,
-              help='Poll interval in seconds when using --watch. Default=10.')
+              default=30,
+              help='Poll interval in seconds when using --watch. Default=30.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -643,13 +649,14 @@ def create_session(ctx,
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
-@with_profile_config(required_params=['apikey'])
+@with_profile_config(required_params=['apikey', 'workspace_id'])
 def get_session_status(ctx,
                        apikey,
                        cloudos_url,
                        session_id,
-                       team_id,
+                       workspace_id,
                        output_format,
+                       output_basename,
                        watch,
                        watch_interval,
                        verbose,
@@ -688,7 +695,7 @@ def get_session_status(ctx,
             cloudos_url=cloudos_url,
             apikey=apikey,
             session_id=session_id,
-            team_id=team_id,
+            team_id=workspace_id,
             verify_ssl=verify_ssl,
             verbose=verbose
         )
@@ -696,48 +703,77 @@ def get_session_status(ctx,
         if verbose:
             print(f'\t✓ Session retrieved successfully')
         
+        # Get mapped status for display
+        api_status = session_response.get('status', '')
+        display_status = map_status(api_status)
+        
         # Apply watch mode if requested
         if watch:
-            elapsed_time = 0
-            start_time = time.time()
-            
-            while True:
-                status = session_response.get('status', '')
-                
-                if verbose:
-                    elapsed = time.time() - start_time
-                    print(f'\tPolling... Status: {status} | Elapsed: {int(elapsed)}s')
-                
-                # Exit watch mode if session is ready or terminated
-                if status == 'running':
-                    click.secho('✓ Session is now running and ready to use!', fg='green')
-                    break
-                elif status in ['stopped', 'terminated']:
-                    click.secho(f'⚠ Session reached terminal state: {status}', fg='yellow')
-                    break
-                
-                # Wait before next poll
-                time.sleep(watch_interval)
-                
-                # Fetch updated status
-                session_response = get_interactive_session_status(
-                    cloudos_url=cloudos_url,
-                    apikey=apikey,
-                    session_id=session_id,
-                    team_id=team_id,
-                    verify_ssl=verify_ssl,
-                    verbose=False
+            # Check if watch mode is appropriate for this session status
+            if display_status not in PRE_RUNNING_STATUSES:
+                click.secho(
+                    f'⚠ Warning: Watch mode only works for pre-running statuses (setup, initialising, scheduled). '
+                    f'Current status: {display_status}. Showing session status instead.',
+                    fg='yellow',
+                    err=True
                 )
+            else:
+                # Print initial status message before starting watch
+                click.echo(f'Session {session_id} currently is in {display_status}...')
+                
+                elapsed_time = 0
+                start_time = time.time()
+                previous_status = display_status  # Track previous status to detect changes
+                
+                while True:
+                    api_status = session_response.get('status', '')
+                    display_status = map_status(api_status)
+                    
+                    if verbose:
+                        elapsed = time.time() - start_time
+                        print(f'\tPolling... Status: {display_status} | Elapsed: {int(elapsed)}s')
+                    
+                    # Print status change message
+                    if display_status != previous_status:
+                        click.echo(f'Status changed: {previous_status} → {display_status}')
+                        previous_status = display_status
+                    
+                    # Exit watch mode if session is ready or terminated
+                    if display_status == 'running':
+                        click.secho('✓ Session is now running and ready to use!', fg='green')
+                        break
+                    elif display_status in ['stopped', 'terminated']:
+                        click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
+                        break
+                    
+                    # Wait before next poll
+                    time.sleep(watch_interval)
+                    
+                    # Fetch updated status
+                    session_response = get_interactive_session_status(
+                        cloudos_url=cloudos_url,
+                        apikey=apikey,
+                        session_id=session_id,
+                        team_id=workspace_id,
+                        verify_ssl=verify_ssl,
+                        verbose=False
+                    )
         
         # Transform and display response based on format
         if output_format.lower() == 'json':
             json_output = export_session_status_json(session_response)
-            click.echo(json_output)
+            outfile = f"{output_basename}.json"
+            with open(outfile, 'w') as f:
+                f.write(json_output)
+            click.echo(f'Session status saved to {outfile}')
         
         elif output_format.lower() == 'csv':
             transformed_data = transform_session_response(session_response)
             csv_output = export_session_status_csv(transformed_data)
-            click.echo(csv_output)
+            outfile = f"{output_basename}.csv"
+            with open(outfile, 'w') as f:
+                f.write(csv_output)
+            click.echo(f'Session status saved to {outfile}')
         
         else:  # stdout (default)
             transformed_data = transform_session_response(session_response)

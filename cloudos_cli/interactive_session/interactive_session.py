@@ -12,6 +12,7 @@ from rich.console import Console
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from cloudos_cli.utils.requests import retry_requests_get
 
 
 def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None):
@@ -1153,6 +1154,22 @@ STATUS_COLORS = {
 # Terminal states where watch mode should exit
 TERMINAL_STATES = {'running', 'stopped', 'terminated'}
 
+# Status mapping from API to user-friendly display
+API_STATUS_MAPPING = {
+    'ready': 'running',      # API returns 'ready' for running sessions
+    'aborted': 'stopped',    # API returns 'aborted' for stopped sessions
+    'setup': 'setup',
+    'initialising': 'initialising',
+    'initializing': 'initialising',
+    'scheduled': 'scheduled',
+    'running': 'running',    # Some endpoints may return 'running'
+    'stopped': 'stopped',    # Some endpoints may return 'stopped'
+    'terminated': 'terminated',
+}
+
+# Pre-running statuses (watch mode only valid for these)
+PRE_RUNNING_STATUSES = {'setup', 'initialising', 'scheduled'}
+
 
 def format_duration(seconds: int) -> str:
     """Convert seconds to human-readable format.
@@ -1181,6 +1198,15 @@ def format_duration(seconds: int) -> str:
 def map_backend_type(api_backend: str) -> str:
     """Map API backend type to user-friendly display name."""
     return BACKEND_MAPPING.get(api_backend, api_backend)
+
+
+def map_status(api_status: str) -> str:
+    """Map API status value to user-friendly display status.
+    
+    Converts API status values (like 'ready', 'aborted') to display values
+    (like 'running', 'stopped') matching the list command.
+    """
+    return API_STATUS_MAPPING.get(api_status, api_status)
 
 
 def format_timestamp(iso_timestamp: str = None) -> str:
@@ -1304,12 +1330,11 @@ class InteractiveSessionAPI:
         }
         
         try:
-            response = self.session.get(
+            response = retry_requests_get(
                 url,
                 params=params,
                 headers=headers,
-                verify=self.verify_ssl,
-                timeout=self.REQUEST_TIMEOUT
+                verify=self.verify_ssl
             )
             
             if response.status_code == 200:
@@ -1336,6 +1361,7 @@ class InteractiveSessionAPI:
             raise RuntimeError(f"Failed to connect to CloudOS: {str(e)}")
 
 
+
 class OutputFormatter:
     """Handles formatting output in different formats."""
     
@@ -1352,20 +1378,19 @@ class OutputFormatter:
         table.add_column("Property", style="cyan", no_wrap=True)
         table.add_column("Value", style="green")
         
-        # Build session link
-        if cloudos_url and session_data.get('id'):
-            base_url = cloudos_url.rstrip('/')
-            session_link = (
-                f"{base_url}/app/interactive-sessions/{session_data['id']}"
-            )
-            table.add_row(
-                "Session ID",
-                f"{session_data['id']} [link={session_link}]Link[/link]"
-            )
-        else:
-            table.add_row("Session ID", session_data.get('id', 'N/A'))
+        # Build session link and embed it in the name
+        session_id = session_data.get('id', 'N/A')
+        session_name = session_data.get('name', 'N/A')
         
-        table.add_row("Name", session_data.get('name', 'N/A'))
+        if cloudos_url and session_id != 'N/A':
+            base_url = cloudos_url.rstrip('/')
+            session_link = f"{base_url}/app/interactive-sessions/{session_id}"
+            session_name_with_link = f"[link={session_link}]{session_name}[/link]"
+        else:
+            session_name_with_link = session_name
+        
+        table.add_row("Session ID", session_id)
+        table.add_row("Name", session_name_with_link)
         
         # Status with color coding
         status = session_data.get('status', 'N/A')
@@ -1507,7 +1532,8 @@ def transform_session_response(api_response: dict) -> dict:
     """Transform raw API response to user-friendly display format."""
     session_id = api_response.get('_id', '')
     name = api_response.get('name', 'N/A')
-    status = api_response.get('status', 'N/A')
+    api_status = api_response.get('status', 'N/A')
+    status = map_status(api_status)  # Map API status to display status
     
     # Map backend type
     api_backend = api_response.get('interactiveSessionType', '')
