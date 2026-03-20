@@ -741,6 +741,7 @@ def get_session_status(ctx,
                 previous_status = display_status  # Track previous status to detect changes
                 
                 while True:
+                    # Get current status
                     api_status = session_response.get('status', '')
                     display_status = map_status(api_status)
                     
@@ -762,7 +763,7 @@ def get_session_status(ctx,
                         click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
                         break
                     
-                    # Check timeout
+                    # Check timeout AFTER evaluating current status
                     if elapsed > max_wait_time_seconds:
                         click.secho(
                             f'Timeout: Session did not reach running state within {max_wait_time}. '
@@ -775,7 +776,7 @@ def get_session_status(ctx,
                     # Wait before next poll
                     time.sleep(watch_interval)
                     
-                    # Fetch updated status
+                    # Fetch updated status for next iteration
                     session_response = get_interactive_session_status(
                         cloudos_url=cloudos_url,
                         apikey=apikey,
