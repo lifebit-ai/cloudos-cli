@@ -2042,10 +2042,6 @@ You can create and start a new interactive session using the `cloudos interactiv
 
 The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
 
-**Important:** Instance types are validated before submission to catch typos and formatting errors:
-- **AWS**: Must follow the pattern `<family><generation>.<size>` (e.g., `c5.xlarge`, `m5.2xlarge`, `t3.medium`)
-- **Azure**: Must follow the pattern `Standard_<series><size>` or `Basic_<series><size>` (e.g., `Standard_F1s`, `Standard_D4as_v4`)
-
 **Basic Usage**
 
 Create a simple Jupyter notebook session:
