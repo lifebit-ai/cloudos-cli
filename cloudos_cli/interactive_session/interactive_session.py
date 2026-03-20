@@ -1155,7 +1155,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
-    console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session list' to monitor status")
+    console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session status' to monitor status")
 
 
 # ============================================================================
