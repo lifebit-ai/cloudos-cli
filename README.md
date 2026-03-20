@@ -63,6 +63,11 @@ Python package for interacting with CloudOS
           - [Custom Script Path](#custom-script-path)
           - [Custom Script Project](#custom-script-project)
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
+    - [Interactive Sessions](#interactive-sessions)
+      - [List Interactive Sessions](#list-interactive-sessions)
+      - [Get Interactive Session Status](#get-interactive-session-status)
+      - [Pause Interactive Session](#pause-interactive-session)
+      - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -276,7 +281,14 @@ To generate a named profile, use the following command:
 cloudos configure --profile {profile-name}
 ```
 
-The same prompts will appear. If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.
+The same prompts will appear, including the execution platform (aws or azure). If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.
+
+When configuring a profile, you can specify:
+- **API Key**: Your CloudOS API credentials
+- **CloudOS URL**: The CloudOS instance URL  
+- **Project Name**: Default project for commands
+- **Execution Platform**: `aws` (default) or `azure` - determines default instance types and available features
+- **Repository Platform**: Version control system (github, gitlab, etc.)
 
 > [!NOTE]
 > When there is already at least 1 previous profile defined, a new question will appear asking to make the current profile as default
@@ -1931,6 +1943,661 @@ will take all `csv` file extensions in the specified folder.
 > Project names in the `--parameter` option can start with either forward slash `/` or without. The following are the same: `-p data=/PROJECT1/Data/input.csv` and `-p data=PROJECT1/Data/input.csv`.
 
 ---
+
+
+
+### Interactive Sessions
+
+Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
+
+#### List Interactive Sessions
+
+You can get a list of all interactive sessions in your workspace by running `cloudos interactive-session list`. The command can produce three different output formats that can be selected using the `--output-format` option:
+
+- **stdout** (default): Displays a rich formatted table directly in the terminal with interactive pagination and visual formatting
+- **csv**: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
+- **json**: Saves complete session information to a JSON file with all available fields
+
+To display the list of interactive sessions as a formatted table in the terminal:
+
+```bash
+cloudos interactive-session list --profile my_profile
+# or explicitly:
+cloudos interactive-session list --profile my_profile --output-format stdout
+```
+
+The table displays sessions with pagination controls (press `n` for next page, `p` for previous page, or `q` to quit):
+
+```console
+                          Interactive Sessions                          
+┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ stopped │ cloudosR     │ awsRstudio         │ 69aee0dba197… │ Leila  │
+│ running │ analysis-dev │ awsJupyterNotebook │ 69ae972a18f0… │ John   │
+│ stopped │ test_session │ awsVSCode          │ 69a996c098ab… │ James  │
+└─────────┴──────────────┴────────────────────┴───────────────┴────────┘
+
+Total sessions: 15
+Page: 1 of 3
+Sessions on this page: 5
+
+n = next, p = prev, q = quit
+```
+
+To save sessions to a CSV file with all available fields:
+
+```bash
+cloudos interactive-session list --profile my_profile --output-format csv --all-fields
+```
+
+The expected output is something similar to:
+
+```console
+Interactive session list saved to interactive_sessions_list.csv
+```
+
+To save the same information in JSON format:
+
+```bash
+cloudos interactive-session list --profile my_profile --output-format json
+```
+
+```console
+Interactive session list collected with a total of 15 sessions.
+Interactive session list saved to interactive_sessions_list.json
+```
+
+**Filtering Options**
+
+You can filter sessions by status and other criteria:
+
+```bash
+# Filter by status (setup, initialising, running, scheduled, stopped)
+cloudos interactive-session list --profile my_profile --filter-status running
+
+# Show only your own sessions
+cloudos interactive-session list --profile my_profile --filter-owner-only
+
+# Include archived sessions
+cloudos interactive-session list --profile my_profile --archived
+
+# Custom pagination
+cloudos interactive-session list --profile my_profile --limit 20 --page 2
+```
+
+**Table Columns**
+
+You can customize which columns to display:
+
+```bash
+# Display specific columns
+cloudos interactive-session list --profile my_profile --table-columns "status,name,owner,project,created_at,cost"
+```
+
+Available columns: `status`, `name`, `owner`, `project`, `id`, `created_at`, `runtime`, `saved_at`, `cost`, `resources`, `backend`, `version`
+
+#### Get Interactive Session Status
+
+You can retrieve detailed status information for a specific interactive session using the `cloudos interactive-session status` command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.
+
+**Basic Usage**
+
+Get the status of a session:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile
+```
+
+The command displays session information in a formatted table:
+
+```console
+╔════════════════════╦═════════════════════════════════════════════════════╗
+║ Property           ║ Value                                               ║
+╠════════════════════╬═════════════════════════════════════════════════════╣
+║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║
+║ Name               ║ analysis-dev (linked)                               ║
+║ Status             ║ running                                             ║
+║ Backend            ║ awsJupyterNotebook                                  ║
+║ Owner              ║ John Doe                                            ║
+║ Project            ║ research                                            ║
+║ Instance Type      ║ c5.xlarge                                           ║
+║ Storage            ║ 50 GB                                               ║
+║ Cost               ║ $2.45/hour                                          ║
+║ Runtime            ║ 2h 15m 30s                                          ║
+║ Created At         ║ 2024-03-19 10:30:00 UTC                             ║
+║ Last Saved         ║ 2024-03-19 12:30:00 UTC                             ║
+║ Auto-Shutdown At   ║ 2024-03-19 18:30:00 UTC                             ║
+╚════════════════════╩═════════════════════════════════════════════════════╝
+```
+
+**Watch Mode for Provisioning Sessions**
+
+Use the `--watch` flag to continuously monitor a session's status as it provisions, with real-time status change notifications:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+```
+
+Watch mode automatically tracks status changes and polls until the session reaches a terminal state:
+
+```console
+Session 69bc00cb1488084e5a6cae70 currently is in initialising...
+Status changed: initialising → provisioning
+Status changed: provisioning → running
+✓ Session is now running and ready to use!
+```
+
+**Watch Mode Behavior**
+
+- **Pre-running sessions** (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)
+- **Running/stopped sessions**: Watch mode will show a warning and display the current status instead
+
+Example with a running session:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+```
+
+```console
+⚠ Warning: Watch mode only works for pre-running statuses (setup, initialising, scheduled). Current status: running. Showing session status instead.
+[session status table displayed]
+```
+
+**Polling Interval**
+
+Customize the polling interval for watch mode:
+
+```bash
+# Poll every 15 seconds instead of default 30
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --watch-interval 15
+```
+
+**Watch Mode Timeout**
+
+Set a maximum time to wait for the session to reach running state. The `--max-wait-time` option accepts human-friendly duration formats:
+
+```bash
+# 30 minutes (default)
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+
+# 5 minutes
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 5m
+
+# 2 hours
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 2h
+
+# 1 day
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 1d
+
+# 60 seconds
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 60s
+```
+
+**Supported timeout formats:**
+- `30s` - seconds
+- `5m` - minutes
+- `2h` - hours
+- `1d` - days
+
+If the session does not reach running state within the specified timeout, the watch mode exits with a clear message:
+
+```console
+Timeout: Session did not reach running state within 30m. Current status: provisioning. Exiting watch mode.
+```
+
+**Output Formats**
+
+Save session status to a file:
+
+```bash
+# Save as JSON
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --format json --output-base-name /tmp/session_status
+# Creates: /tmp/session_status.json
+
+# Save as CSV
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --format csv --output-base-name /tmp/session_status
+# Creates: /tmp/session_status.csv
+```
+
+#### Pause Interactive Session
+
+You can pause and terminate a running interactive session using the `cloudos interactive-session pause` command. This command gracefully shuts down the session and optionally saves session data before termination.
+
+**Basic Usage**
+
+Pause a session with confirmation:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+```
+
+The command displays a confirmation prompt:
+
+```console
+About to pause session: 69bd11ca02326c5b3649f5c1
+Upload data before pausing: True
+Force immediate termination: False
+Continue? [y/N]: y
+
+✓ Session pause request sent successfully.
+You can monitor the session status using: cloudos interactive-session status --session-id 69bd11ca02326c5b3649f5c1
+```
+
+**Skip Confirmation Prompt**
+
+Use the `-y` or `--yes` flag to skip the confirmation prompt:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile -y
+```
+
+**Data Management Options**
+
+By default, session data is saved to S3 before pausing. Use `--no-upload` to skip data saving (use with caution):
+
+```bash
+# Save session data before pausing (default)
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+
+# Skip saving data (use with caution)
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --no-upload
+```
+
+**Termination Modes**
+
+**Graceful Shutdown (default)**
+
+Allows the session to clean up resources and save data before terminating:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+```
+
+**Force Immediate Termination**
+
+Bypass graceful shutdown for immediate termination (useful for stuck sessions):
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --force
+```
+
+**Important:** When using `--force`, you will see a warning:
+
+```console
+⚠ Warning: Session was force-aborted by the user. Some data may have not been saved.
+```
+
+Use `--force` with caution as it may not save session data properly.
+
+**Wait for Termination**
+
+Use the `--wait` flag to monitor the session until it reaches a terminal state:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --wait
+```
+
+Output with `--wait`:
+
+```console
+Pausing session...
+Status: shutting_down
+Status: uploading_data
+Status: cleaning_up
+Status: stopped
+✓ Session paused successfully
+```
+
+**Error Handling**
+
+The command provides helpful error messages for common issues:
+
+```console
+# Trying to pause an already stopped session
+Error: Cannot pause session - the session is already stopped.
+Tip: Check the session status with: cloudos interactive-session status --session-id <SESSION_ID>
+
+# Trying to pause a session that is already being paused
+Error: Cannot pause session - the session is already being paused.
+Tip: Wait a moment and check status with: cloudos interactive-session status --session-id <SESSION_ID>
+```
+
+**Examples**
+
+Basic pause with confirmation:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a
+```
+
+Pause without saving data and skip confirmation:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --no-upload -y
+```
+
+Force pause and wait for termination:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --force -y --wait
+```
+
+Pause using profile configuration:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --profile my_profile --wait
+```
+
+Pause with verbose output:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --profile my_profile --verbose
+```
+
+**Options Reference**
+
+The command automatically loads from profile (via `@with_profile_config` decorator):
+- **From Profile**: apikey, cloudos-url, workspace-id
+- **Command Line**: Additional options and behaviors
+
+**Required:**
+- `--session-id`: The session ID to pause (24-character hex string)
+
+**Optional Overrides from Profile:**
+- `--apikey` (optional): Override API key from profile
+- `--cloudos-url` (optional): Override CloudOS URL from profile
+- `--workspace-id` (optional): Override workspace ID from profile
+
+**Optional Behavior Flags:**
+- `--no-upload`: Don't save session data before pausing (default: saves data)
+- `--force`: Force immediate termination, skip graceful shutdown (default: graceful). **Warning:** Shows a warning message that some data may not be saved.
+- `--wait`: Wait for session to fully pause (default: return immediately after sending pause command)
+- `-y, --yes`: Skip confirmation prompt (default: show confirmation)
+- `--verbose`: Show detailed progress messages
+
+**Optional Connection:**
+- `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
+- `--ssl-cert`: Path to SSL certificate file
+- `--profile`: Profile to use from config file (default: default profile)
+
+#### Create Interactive Session
+
+You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
+
+The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
+
+**Execution Platforms (AWS & Azure)**
+
+CloudOS supports both AWS and Azure execution platforms. Your profile configuration determines which platform to use:
+
+```bash
+# AWS profile - uses c5.xlarge by default
+cloudos interactive-session create \
+  --profile aws_profile \
+  --name "AWS Session" \
+  --session-type jupyter
+
+# Azure profile - uses Standard_F1s by default  
+cloudos interactive-session create \
+  --profile azure_profile \
+  --name "Azure Session" \
+  --session-type jupyter
+
+# Override execution platform explicitly
+cloudos interactive-session create \
+  --profile aws_profile \
+  --name "Azure Override" \
+  --session-type jupyter \
+  --execution-platform azure
+```
+
+**Platform-Specific Features**
+
+| Feature | AWS | Azure |
+|---------|-----|-------|
+| **Jupyter** | ✓ | ✓ |
+| **RStudio** | ✓ | ✓ |
+| **VS Code** | ✓ | ✗ |
+| **Spark** | ✓ | ✗ |
+| **S3 Mounts** | ✓ | ✗ |
+| **S3 Linking** | ✓ | ✗ |
+| **CloudOS File Mount** | ✓ | ✓ |
+| **Default Instance** | c5.xlarge | Standard_F1s |
+
+For Azure, use CloudOS file explorer to access your data instead of linking.
+
+**Basic Usage**
+
+Create a simple Jupyter notebook session:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Analysis" \
+  --session-type jupyter
+```
+
+Create an RStudio session with specific R version:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "R Analysis" \
+  --session-type rstudio \
+  --r-version 4.4.2
+```
+
+Create a VS Code session (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Development" \
+  --session-type vscode
+```
+
+Create a Spark cluster session with custom instance types (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Spark Analysis" \
+  --session-type spark \
+  --spark-master c5.2xlarge \
+  --spark-core c5.xlarge \
+  --spark-workers 3
+```
+
+**Configuration Options**
+
+You can customize your session with various options:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Advanced Session" \
+  --session-type jupyter \
+  --instance c5.2xlarge \
+  --storage 1000 \
+  --spot \
+  --shared \
+  --cost-limit 50.0 \
+  --shutdown-in 8h
+```
+
+**Options Reference**
+
+The command automatically loads from profiles (via `@with_profile_config` decorator):
+- **From Profile**: apikey, cloudos-url, workspace-id, project-name, execution-platform
+- **Command Line**: Additional configuration and behavior options
+
+**Required for Each Session:**
+- `--name`: Session name (1-100 characters)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+
+**Optional Overrides from Profile:**
+- `--apikey` (optional): Override API key from profile
+- `--cloudos-url` (optional): Override CloudOS URL from profile  
+- `--workspace-id` (optional): Override workspace ID from profile
+- `--execution-platform` (optional): Override execution platform from profile - `aws` or `azure`
+
+**Optional Configuration:**
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
+- `--storage`: Storage in GB (default: 500, range: 100-5000)
+- `--spot`: Use spot instances (AWS only, cost-saving)
+- `--shared`: Make session accessible to workspace members
+- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
+- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
+
+**Data & Storage Management:**
+- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
+
+**Backend-Specific:**
+- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
+- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
+- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
+- `--spark-workers`: Initial worker count for Spark (default: 1)
+- `--verbose`: Show detailed progress messages
+
+**Output Display**
+
+The session creation output displays:
+- Session ID, Name, Backend type, Status
+- Instance Type and Storage size
+- For RStudio: R version
+- For Spark: Cluster configuration (Master, Core, Workers)
+- Mounted data files (if any)
+- Linked S3 buckets (if any)
+
+**Data Management**
+
+CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+
+**AWS Data Access**
+
+1. **Mount Data Files** - Load dataset files directly into the session
+   - Files are copied into the session's mounted-data volume
+   - Useful for datasets already stored in CloudOS datasets or S3
+   
+2. **Link S3 Buckets** - Create live links to S3 buckets/folders
+   - Access S3 data directly without copying
+   - Useful for large datasets or shared storage
+   - Supports read and write operations
+
+**Azure Data Access**
+
+- Use CloudOS file explorer to access your data directly within the session
+- **Note:** S3 mounts and linking are not available on Azure. For data stored in CloudOS datasets, use the file explorer interface to browse and access your files.
+
+**Data Mounting Examples**
+
+Mount a data file (CloudOS datasets on both platforms, S3 on AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Data Analysis" \
+  --session-type jupyter \
+  --mount "my_project/training_data.csv"
+```
+
+Mount multiple data files:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-data Session" \
+  --session-type jupyter \
+  --mount "my_project/data.csv" \
+  --mount "my_project/metadata.parquet"
+```
+
+Link an S3 bucket:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "S3 Access" \
+  --session-type jupyter \
+  --link "s3://my-results-bucket/output/"
+```
+
+Link multiple S3 buckets:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-S3 Session" \
+  --session-type jupyter \
+  --link "s3://input-bucket/data/" \
+  --link "s3://output-bucket/results/"
+```
+
+
+
+This will show progress updates like:
+
+```console
+✓ Interactive Session Created Successfully
+
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property    ┃ Value               ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID  │ 69aee0dba197abc123  │
+│ Name        │ Ready Session       │
+│ Backend     │ awsJupyterNotebook  │
+│ Status      │ initialising        │
+└─────────────┴─────────────────────┘
+```
+```
+
+**Output Display**
+
+The session creation output displays a success message with session details:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Session" \
+  --session-type jupyter
+```
+
+The output shows the session details including:
+- Session ID
+- Session name
+- Backend type (jupyter, vscode, rstudio, spark)
+- Current status (scheduled, initialising, setup, running, stopped)
+
+**Spark Cluster Configuration**
+
+When creating Spark sessions, you can customize the cluster configuration:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Large Spark Cluster" \
+  --session-type spark \
+  --spark-master c5.4xlarge \
+  --spark-core c5.2xlarge \
+  --spark-workers 5 \
+  --spot \
+  --storage 2000
+```
+
+**Error Handling**
+
+Common errors and solutions:
+
+- **Missing R version for RStudio**: Add `--r-version` parameter
+- **Invalid storage size**: Ensure storage is between 100-5000 GB
+- **Session creation failed**: Check project ID and workspace permissions
+- **Timeout waiting for session**: Session took longer than 15 minutes to start; check platform status
+
+---
+
+
 
 ### Datasets
 

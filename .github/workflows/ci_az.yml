@@ -167,7 +167,6 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lifebit-ai/spammer-nf --repository-platform gitlab
   import_github_az:
@@ -191,7 +190,6 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
   job_run_and_status_az:
@@ -289,7 +287,6 @@ jobs:
           CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
           CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status_az.outputs.job_id }}
   workflow_list_az:
@@ -686,3 +683,112 @@ jobs:
             --params-file "$PARAMS_FILE" \
             --execution-platform "azure" \
             --wait-completion
+  interactive_session_list:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Run tests
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+      run: |
+        echo q |cloudos interactive-session list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID  
+  interactive_session_create:
+    outputs:
+      session_id: ${{ steps.get-session-id.outputs.session_id }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Create interactive session
+      id: get-session-id
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        PROJECT_NAME: "cloudos-cli-tests"
+        SESSION_NAME: "ci_test_cli"
+        SESSION_TYPE: "jupyter"
+        SHUTDOWN_IN: "10m"
+        EXECUTION_PLATFORM: "azure"
+        INSTANCE_TYPE: "Standard_D4as_v4"
+      run: |
+        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name $SESSION_NAME --session-type $SESSION_TYPE --shutdown-in $SHUTDOWN_IN --execution-platform $EXECUTION_PLATFORM --instance $INSTANCE_TYPE 2>&1 | tee out.txt
+        SESSION_ID=$(grep -oP '(?<=/interactive-sessions/)[a-f0-9]{24}' out.txt | head -1)
+        echo "session_id=$SESSION_ID" >> $GITHUB_OUTPUT
+  interactive_session_status:
+    needs: interactive_session_create
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Get session status
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
+      run: |
+        cloudos interactive-session status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID
+  interactive_session_pause:
+    needs: interactive_session_create
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: setup.py
+    - name: Install dependencies
+      run: |
+        pip install -e .
+    - name: Pause interactive session
+      env:
+        CLOUDOS_TOKEN: ${{ secrets.CLOUDOS_TOKEN_AZURE }}
+        CLOUDOS_WORKSPACE_ID: ${{ secrets.CLOUDOS_WORKSPACE_ID_AZURE }}
+        CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
+        SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
+      run: |
+        cloudos interactive-session pause --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --yes
+
+
