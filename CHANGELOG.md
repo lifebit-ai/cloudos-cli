@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.83.0 (2026-03-18)
+
+### Feat
+
+- Adds interactive session class
+- Adds interactive session listing
+- Adds interactive session creation
+
 ## v2.82.1 (2026-03-11)
 
 ### Patch
