@@ -3,7 +3,7 @@
 import pandas as pd
 import sys
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from rich.table import Table
 from rich.console import Console
 
@@ -191,12 +191,12 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
         # For server-side pagination, we use the API page directly
         if fetch_page_callback and pagination_metadata:
             # Server-side pagination - sessions list contains current page data
-            page_rows = [row for row in rows]  # All rows are from current page
+            page_rows = rows[:]  # All rows are from current page
         else:
             # Client-side pagination
             start = current_api_page * page_size
             end = start + page_size
-            page_rows = [row for row in rows[start:end]]
+            page_rows = rows[start:end]
 
         # Clear console first
         console.clear()
@@ -457,7 +457,6 @@ def _format_session_field(field_name, value):
     elif field_name == 'created_at' or field_name == 'saved_at':
         # Format ISO8601 datetime to readable format
         try:
-            from datetime import datetime
             dt = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
             return dt.strftime('%Y-%m-%d %H:%M')
         except (ValueError, TypeError, ImportError):
@@ -515,7 +514,7 @@ def parse_shutdown_duration(duration_str):
     elif unit == 'd':
         delta = timedelta(days=value)
     
-    future_time = datetime.utcnow() + delta
+    future_time = datetime.now(timezone.utc) + delta
     return future_time.isoformat() + 'Z'
 
 
@@ -559,7 +558,6 @@ def parse_data_file(data_file_str):
         if not bucket:
             raise ValueError(f"Invalid S3 path: {data_file_str}. Expected: s3://bucket_name/path/to/file")
         
-        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else "/"
         
         return {
@@ -638,7 +636,7 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
                         "name": file_item.get('name')
                     }
             # If we got here, quick path didn't work, continue to search
-        except (ValueError, KeyError, Exception):
+        except (Exception):
             # First path attempt failed, try searching across all datasets
             pass
         
@@ -823,27 +821,6 @@ def parse_link_path(link_path_str):
     }
 
 
-def parse_s3_mount(s3_mount_str):
-    """Deprecated: Use parse_link_path instead.
-    
-    Kept for backward compatibility.
-    """
-    result = parse_link_path(s3_mount_str)
-    
-    if result['type'] == 's3':
-        mount_name = result.get('mount_name', f"{result['s3_bucket']}-mount")
-        return {
-            "type": "S3Folder",
-            "data": {
-                "name": mount_name,
-                "s3BucketName": result["s3_bucket"],
-                "s3Prefix": result["s3_prefix"]
-            }
-        }
-    else:
-        raise ValueError(f"parse_s3_mount does not support CloudOS paths. Use parse_link_path instead.")
-
-
 def build_session_payload(
     name,
     backend,
@@ -929,7 +906,7 @@ def build_session_payload(
     
     # Default shutdown to 24 hours if not provided
     if not shutdown_at:
-        shutdown_at = (datetime.utcnow() + timedelta(hours=24)).isoformat() + 'Z'
+        shutdown_at = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat() + 'Z'
     
     # Build interactiveSessionConfiguration
     config = {
@@ -952,9 +929,8 @@ def build_session_payload(
         config['rVersion'] = r_version
     
     if backend == 'spark':
-        # Use provided types or default to instance_type
-        master_type = spark_master_type or instance_type
-        core_type = spark_core_type or instance_type
+        master_type = spark_master_type
+        core_type = spark_core_type
         
         config['cluster'] = {
             "name": f"{name}-cluster",

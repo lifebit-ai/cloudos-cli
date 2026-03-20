@@ -2401,7 +2401,7 @@ class Cloudos:
         
         # Make the API request with POST method
         try:
-            r = requests.post(
+            r = retry_requests_post(
                 url,
                 headers=headers,
                 data=json.dumps(payload),

@@ -117,7 +117,7 @@ class TestInteractiveSessionCreateIntegration:
         ])
         
         # Command should execute (may fail at config loading but not at argument parsing)
-        assert 'Error' not in result.output or result.exit_code in [0, 1]
+        assert 'Error' not in result.output or result.exit_code == 0
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
@@ -158,7 +158,7 @@ class TestInteractiveSessionCreateIntegration:
         ])
         
         # Command should be invoked without syntax errors
-        assert result.exit_code in [0, 1]
+        assert result.exit_code == 0
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
@@ -194,7 +194,7 @@ class TestInteractiveSessionCreateIntegration:
             '--spark-workers', '3'
         ])
         
-        assert result.exit_code in [0, 1]
+        assert result.exit_code == 0
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
@@ -228,7 +228,7 @@ class TestInteractiveSessionCreateIntegration:
             '--r-version', '4.5.2'
         ])
         
-        assert result.exit_code in [0, 1]
+        assert result.exit_code == 0
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
@@ -265,7 +265,7 @@ class TestInteractiveSessionCreateIntegration:
             '--session-type', 'jupyter'
         ])
         
-        assert result.exit_code in [0, 1]
+        assert result.exit_code == 0
 
 
 class TestInteractiveSessionAPIMethod:

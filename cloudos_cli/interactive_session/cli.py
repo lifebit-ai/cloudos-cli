@@ -6,7 +6,6 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
-from cloudos_cli.utils.details import create_job_list_table
 from cloudos_cli.interactive_session.interactive_session import (
     create_interactive_session_list_table,
     process_interactive_session_list,
@@ -340,11 +339,6 @@ def create_session(ctx,
     else:
         # Normalize to lowercase
         execution_platform = execution_platform.lower()
-    
-    # Validate execution_platform
-    if execution_platform not in ['aws', 'azure']:
-        click.secho(f'Error: Invalid execution_platform: {execution_platform}. Valid values: aws, azure', fg='red', err=True)
-        raise SystemExit(1)
     
     # Set instance default based on execution_platform if not specified
     if instance is None:
