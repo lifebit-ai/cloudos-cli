@@ -28,7 +28,6 @@ from cloudos_cli.interactive_session.interactive_session import (
     export_session_status_csv,
     map_status,
     PRE_RUNNING_STATUSES,
-    confirm_session_stop,
     format_stop_success_output,
     poll_session_termination,
 )
@@ -836,9 +835,9 @@ def get_session_status(ctx,
         raise SystemExit(1)
 
 
-@interactive_session.command('stop')
+@interactive_session.command('pause')
 @click.option('--session-id',
-              help='The session ID to stop (24-character hex string).',
+              help='The session ID to pause (24-character hex string).',
               required=True)
 @click.option('-k',
               '--apikey',
@@ -854,13 +853,13 @@ def get_session_status(ctx,
               required=False)
 @click.option('--no-upload',
               is_flag=True,
-              help='Don\'t save session data before stopping (use with caution).')
+              help='Don\'t save session data before pausing (use with caution).')
 @click.option('--force',
               is_flag=True,
               help='Force immediate termination, skip graceful shutdown.')
 @click.option('--wait',
               is_flag=True,
-              help='Wait for session to fully stop.')
+              help='Wait for session to fully pause.')
 @click.option('--yes', '-y',
               'skip_confirmation',
               is_flag=True,
@@ -877,20 +876,20 @@ def get_session_status(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id'])
-def stop_session(ctx,
-                 session_id,
-                 apikey,
-                 cloudos_url,
-                 workspace_id,
-                 no_upload,
-                 force,
-                 wait,
-                 skip_confirmation,
-                 verbose,
-                 disable_ssl_verification,
-                 ssl_cert,
-                 profile):
-    """Stop a running interactive session."""
+def pause_session(ctx,
+                  session_id,
+                  apikey,
+                  cloudos_url,
+                  workspace_id,
+                  no_upload,
+                  force,
+                  wait,
+                  skip_confirmation,
+                  verbose,
+                  disable_ssl_verification,
+                  ssl_cert,
+                  profile):
+    """Pause a running interactive session."""
     
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     
@@ -900,41 +899,15 @@ def stop_session(ctx,
         raise SystemExit(1)
     
     if verbose:
-        print('Executing stop interactive session...')
+        print('Executing pause interactive session...')
         print('\t...Preparing objects')
     
     try:
-        # Try to get current session status for confirmation (optional)
-        session_response = None
-        try:
-            if verbose:
-                print(f'\tRetrieving session status from: {cloudos_url}')
-            
-            session_response = get_interactive_session_status(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                session_id=session_id,
-                team_id=workspace_id,
-                verify_ssl=verify_ssl,
-                verbose=verbose
-            )
-            
-            if verbose:
-                print(f'\t✓ Session retrieved successfully')
-        except Exception as e:
-            # If we can't get session status, that's okay - we can still stop it
-            if verbose:
-                print(f'\t⚠ Could not retrieve session status (this is okay): {str(e)}')
-        
         # Show confirmation prompt unless --yes flag is used
         if not skip_confirmation:
-            if session_response:
-                confirm_session_stop(session_response, no_upload=no_upload, force=force)
-            else:
-                # Show basic confirmation without session details
-                click.echo(f'About to stop session: {session_id}')
-                click.echo(f'Upload data before stopping: {not no_upload}')
-                click.echo(f'Force immediate termination: {force}')
+            click.echo(f'About to pause session: {session_id}')
+            click.echo(f'Upload data before pausing: {not no_upload}')
+            click.echo(f'Force immediate termination: {force}')
             
             # Get user confirmation
             try:
@@ -968,10 +941,14 @@ def stop_session(ctx,
         if verbose:
             print(f'\t✓ Abort request sent successfully (HTTP {status_code})')
         
-        # If --wait flag is set, poll until session is stopped
+        # Show force abort warning if applicable
+        if force:
+            click.secho('\n⚠ Warning: Session was force-aborted by the user. Some data may have not been saved.', fg='yellow', err=True)
+        
+        # If --wait flag is set, poll until session is paused
         if wait:
             if verbose:
-                print('\t...Waiting for session to fully stop')
+                print('\t...Waiting for session to fully pause')
             
             try:
                 final_response = poll_session_termination(
@@ -990,15 +967,12 @@ def stop_session(ctx,
                 
             except TimeoutError as e:
                 click.secho(f'⚠ Timeout: {str(e)}', fg='yellow', err=True)
-                click.echo('The session stop command has been sent, but the session did not fully terminate within the timeout period.')
+                click.echo('The session pause command has been sent, but the session did not fully terminate within the timeout period.')
                 click.echo(f'You can check the session status using: cloudos interactive-session status --session-id {session_id} --profile {profile or "default"}')
                 raise SystemExit(1)
         else:
             # Show success message without waiting
-            if session_response:
-                format_stop_success_output(session_response, wait=False)
-            else:
-                click.secho('✓ Session stop request sent successfully.', fg='green')
+            click.secho('✓ Session pause request sent successfully.', fg='green')
             click.echo(f'You can monitor the session status using: cloudos interactive-session status --session-id {session_id} --profile {profile or "default"}')
     
     except ValueError as e:
@@ -1013,6 +987,20 @@ def stop_session(ctx,
             click.secho('Please check your API credentials (apikey and cloudos-url).', fg='yellow', err=True)
         raise SystemExit(1)
     
+    except BadRequestException as e:
+        # Handle API errors with better messages
+        error_str = str(e)
+        if 'aborted in aborted status' in error_str.lower():
+            click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
+            click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+        elif 'aborted in aborting status' in error_str.lower():
+            click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
+            click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+        else:
+            # Show the original error for other bad request errors
+            click.secho(f'Error: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+    
     except KeyboardInterrupt:
         click.secho('\n⚠ Operation interrupted by user.', fg='yellow', err=True)
         raise SystemExit(0)
@@ -1023,9 +1011,17 @@ def stop_session(ctx,
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
             click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
         elif '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to stop session. Please check your credentials.', fg='red', err=True)
+            click.secho(f'Error: Failed to pause session. Please check your credentials.', fg='red', err=True)
         elif 'Session not found' in error_str:
             click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
+        elif 'aborted in aborted status' in error_str.lower() or 'aborted in aborting status' in error_str.lower():
+            # Session is already stopped/stopping
+            if 'aborted status' in error_str.lower():
+                click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
+                click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            else:
+                click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
+                click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
         else:
-            click.secho(f'Error: Failed to stop session: {str(e)}', fg='red', err=True)
+            click.secho(f'Error: Failed to pause session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
