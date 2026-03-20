@@ -75,6 +75,8 @@ def _map_session_type_to_friendly_name(session_type):
         'awsRstudio': 'RStudio',
         'azureRstudio': 'RStudio',
         'awsSpark': 'Spark',
+        'awsJupyterSparkNotebook': 'Spark',
+        'azureJupyterSparkNotebook': 'Spark',
         'azureSpark': 'Spark',
         'awsRStudio': 'RStudio',  # Handle both capitalizations
         'azureRStudio': 'RStudio'
