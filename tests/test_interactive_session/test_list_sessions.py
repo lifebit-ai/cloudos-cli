@@ -43,7 +43,7 @@ class TestInteractiveSessionCommand:
         assert '--filter-status' in result.output
         assert '--limit' in result.output
         assert '--page' in result.output
-        assert '--filter-owner-only' in result.output
+        assert '--filter-only-mine' in result.output
         assert '--archived' in result.output
         assert '--output-format' in result.output
 
