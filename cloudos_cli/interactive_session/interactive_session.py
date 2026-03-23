@@ -5,8 +5,7 @@ import sys
 import re
 import json
 import time
-import csv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from rich.table import Table
 from rich.console import Console
 import requests

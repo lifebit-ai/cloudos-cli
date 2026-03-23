@@ -738,7 +738,7 @@ jobs:
         INSTANCE_TYPE: "Standard_D4as_v4"
       run: |
         cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name $SESSION_NAME --session-type $SESSION_TYPE --shutdown-in $SHUTDOWN_IN --execution-platform $EXECUTION_PLATFORM --instance $INSTANCE_TYPE 2>&1 | tee out.txt
-        SESSION_ID=$(grep -oP '(?<=/interactive-sessions/)[a-f0-9]{24}' out.txt | head -1)
+        SESSION_ID=$(grep -oP '(?<=/view/)[a-f0-9]{24}' out.txt | head -1)
         echo "session_id=$SESSION_ID" >> $GITHUB_OUTPUT
   interactive_session_status:
     needs: interactive_session_create
