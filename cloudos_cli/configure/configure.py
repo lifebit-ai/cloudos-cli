@@ -2,6 +2,10 @@ import os
 from pathlib import Path
 import configparser
 import click
+import functools
+import inspect
+import sys
+from rich.console import Console
 from cloudos_cli.logging.logger import update_command_context_from_click
 from cloudos_cli.constants import CLOUDOS_URL, INIT_PROFILE
 
@@ -649,7 +653,6 @@ def with_profile_config(required_params=None):
     function
         Decorated function with automatic profile configuration loading.
     """
-    import functools
 
     if required_params is None:
         required_params = []
@@ -657,8 +660,6 @@ def with_profile_config(required_params=None):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            import inspect
-
             # Get context from args or kwargs
             ctx = kwargs.get('ctx') or (args[0] if args and isinstance(args[0], click.Context) else None)
 
@@ -722,7 +723,6 @@ def with_profile_config(required_params=None):
             # Only update kwargs with parameters that the function actually accepts
             # AND that were not explicitly provided by the user on the command line
             # AND that have a meaningful value from the profile (not None)
-            import sys
             for key, value in user_options.items():
                 if key in func_params and value is not None:
                     # Check if the parameter was provided via command line
@@ -809,8 +809,6 @@ def get_shared_config():
     >>> shared_config = get_shared_config()
     >>> ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)
     """
-    from rich.console import Console
-
     config_manager = ConfigurationProfile()
     profile_to_use = config_manager.determine_default_profile()
 
