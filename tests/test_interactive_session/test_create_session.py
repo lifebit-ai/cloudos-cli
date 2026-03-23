@@ -119,9 +119,11 @@ class TestInteractiveSessionCreateIntegration:
         # Command should execute (may fail at config loading but not at argument parsing)
         assert 'Error' not in result.output or result.exit_code == 0
 
+    @patch('cloudos_cli.interactive_session.cli.resolve_data_file_id')
+    @patch('cloudos_cli.interactive_session.cli.Datasets')
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
-    def test_create_session_with_all_options(self, mock_config, mock_cloudos):
+    def test_create_session_with_all_options(self, mock_config, mock_cloudos, mock_datasets, mock_resolve):
         """Test creating a session with all options specified."""
         runner = CliRunner()
         
@@ -130,6 +132,12 @@ class TestInteractiveSessionCreateIntegration:
             'cloudos_url': 'http://test.com',
             'workspace_id': 'test_team',
             'project_name': 'my_project'
+        }
+        
+        # Mock Datasets API for resolving mounted files
+        mock_resolve.return_value = {
+            'type': 'CloudOSFile',
+            'item': 'file_id_123'
         }
         
         mock_cloudos_instance = MagicMock()
@@ -292,7 +300,7 @@ class TestInteractiveSessionAPIMethod:
         assert 'payload' in params
         assert 'verify' in params
 
-    @patch('cloudos_cli.clos.requests.post')
+    @patch('cloudos_cli.clos.retry_requests_post')
     def test_create_interactive_session_api_call(self, mock_post):
         """Test that the method makes the correct API call."""
         from cloudos_cli.clos import Cloudos
@@ -325,7 +333,7 @@ class TestInteractiveSessionAPIMethod:
         # Verify the result
         assert result['_id'] == 'session_001'
 
-    @patch('cloudos_cli.clos.requests.post')
+    @patch('cloudos_cli.clos.retry_requests_post')
     def test_create_interactive_session_error_handling(self, mock_post):
         """Test error handling for failed API calls."""
         from cloudos_cli.clos import Cloudos
@@ -423,30 +431,6 @@ class TestSessionCreatorHelpers:
         from cloudos_cli.interactive_session.interactive_session import resolve_data_file_id
         
         assert callable(resolve_data_file_id)
-
-    def test_parse_s3_mount_function_exists(self):
-        """Test that parse_s3_mount function exists."""
-        from cloudos_cli.interactive_session.interactive_session import parse_s3_mount
-        
-        assert callable(parse_s3_mount)
-
-    def test_parse_s3_mount_format(self):
-        """Test parsing S3 mount format."""
-        from cloudos_cli.interactive_session.interactive_session import parse_s3_mount
-        
-        result = parse_s3_mount('results:my-bucket:output/')
-        assert isinstance(result, dict)
-        assert 'type' in result
-        assert 'data' in result
-        assert result['type'] == 'S3Folder'
-        
-        data = result['data']
-        assert 'name' in data
-        assert 's3BucketName' in data
-        assert 's3Prefix' in data
-        assert data['name'] == 'results'
-        assert data['s3BucketName'] == 'my-bucket'
-        assert data['s3Prefix'] == 'output/'
 
     def test_build_session_payload_function_exists(self):
         """Test that build_session_payload function exists."""
