@@ -1045,6 +1045,73 @@ def build_session_payload(
     return payload
 
 
+def build_resume_payload(
+    instance_type=None,
+    storage_size=None,
+    cost_limit=None,
+    shutdown_at=None,
+    data_files=None,
+    s3_mounts=None
+):
+    """Build the resume session payload for the API.
+    
+    Only includes fields that have been specified (all are optional).
+    
+    Parameters
+    ----------
+    instance_type : str, optional
+        New instance type (if changing)
+    storage_size : int, optional
+        New storage size in GB (if changing)
+    cost_limit : float, optional
+        New compute cost limit (if changing)
+    shutdown_at : str, optional
+        New auto-shutdown datetime in ISO8601 format (if changing)
+    data_files : list, optional
+        Additional data files to mount
+    s3_mounts : list, optional
+        Additional S3 mounts (AWS only)
+    
+    Returns
+    -------
+    dict
+        Resume payload for API request
+    """
+    payload = {
+        "dataItems": data_files or [],
+        "fileSystemIds": []  # Always empty (deprecated)
+    }
+    
+    # Only include newInteractiveSessionConfiguration if any config changes are specified
+    config_updates = {}
+    
+    if instance_type is not None:
+        config_updates["instanceType"] = instance_type
+    
+    if storage_size is not None:
+        config_updates["storageSizeInGb"] = storage_size
+    
+    # Build execution updates if cost_limit or shutdown_at are specified
+    execution_updates = {}
+    if cost_limit is not None:
+        execution_updates["computeCostLimit"] = cost_limit
+    if shutdown_at is not None:
+        execution_updates["autoShutdownAtDate"] = shutdown_at
+    
+    if execution_updates:
+        config_updates["execution"] = execution_updates
+    
+    # Only add config updates if there are any
+    if config_updates:
+        payload["newInteractiveSessionConfiguration"] = config_updates
+    
+    # Add S3 mounts if provided (for AWS)
+    if s3_mounts:
+        payload["fuseFileSystems"] = s3_mounts
+    
+    return payload
+
+
 def format_session_creation_table(session_data, instance_type=None, storage_size=None,
                                   backend_type=None, r_version=None,
                                   spark_master=None, spark_core=None, spark_workers=None,

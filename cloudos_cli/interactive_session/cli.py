@@ -30,6 +30,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     PRE_RUNNING_STATUSES,
     format_stop_success_output,
     poll_session_termination,
+    build_resume_payload,
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -1025,3 +1026,291 @@ def pause_session(ctx,
         else:
             click.secho(f'Error: Failed to pause session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
+
+
+@interactive_session.command('resume')
+@click.option('--session-id',
+              help='Session ID to resume.',
+              required=True)
+@click.option('-k',
+              '--apikey',
+              help='Your CloudOS API key',
+              required=False)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=False)
+@click.option('--workspace-id',
+              help='The specific CloudOS workspace id.',
+              required=False)
+@click.option('--instance',
+              help='Change instance type when resuming.',
+              default=None)
+@click.option('--storage',
+              type=int,
+              help='Update storage size in GB (100-5000).',
+              default=None)
+@click.option('--cost-limit',
+              type=float,
+              help='Update compute cost limit in USD. Default=-1 (unlimited).',
+              default=None)
+@click.option('--shutdown-in',
+              help='Update auto-shutdown duration (e.g., 8h, 2d).',
+              default=None)
+@click.option('--mount',
+              multiple=True,
+              help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
+@click.option('--link',
+              multiple=True,
+              help='Link additional folder. Format: s3://bucket/prefix or project_name/folder_path. Can be used multiple times.')
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def resume_session(ctx,
+                   session_id,
+                   apikey,
+                   cloudos_url,
+                   workspace_id,
+                   instance,
+                   storage,
+                   cost_limit,
+                   shutdown_in,
+                   mount,
+                   link,
+                   verbose,
+                   disable_ssl_verification,
+                   ssl_cert,
+                   profile):
+    """Resume a paused interactive session with optional configuration updates."""
+    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    
+    # Validate session ID format
+    if not validate_session_id(session_id):
+        click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    # Validate storage if provided
+    if storage is not None and not (100 <= storage <= 5000):
+        click.secho('Error: Storage size must be between 100-5000 GB', fg='red', err=True)
+        raise SystemExit(1)
+    
+    if verbose:
+        print('Executing resume interactive session...')
+        print('\t...Preparing objects')
+    
+    cl = Cloudos(cloudos_url, apikey, None)
+    
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tResuming session: {session_id}')
+    
+    try:
+        # Get current session details to determine execution platform
+        try:
+            session_data = cl.get_interactive_session_status(session_id, workspace_id, verify=verify_ssl)
+            current_config = session_data.get('interactiveSessionConfiguration', {})
+            execution_platform = current_config.get('executionPlatform', 'aws')
+            
+            if verbose:
+                print(f'\tCurrent session platform: {execution_platform}')
+                print(f'\tCurrent status: {session_data.get("status", "unknown")}')
+        except Exception as e:
+            # If we can't get session details, default to aws
+            execution_platform = 'aws'
+            if verbose:
+                print(f'\tCould not retrieve session details (using default platform: aws)')
+        
+        # Parse shutdown duration if provided
+        shutdown_at_parsed = None
+        if shutdown_in:
+            try:
+                shutdown_at_parsed = parse_shutdown_duration(shutdown_in)
+                if verbose:
+                    print(f'\tParsed shutdown duration: {shutdown_in} -> {shutdown_at_parsed}')
+            except ValueError as e:
+                click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+        
+        # Parse and resolve mounted data files
+        parsed_data_files = []
+        if mount:
+            try:
+                for df in mount:
+                    parsed = parse_data_file(df)
+                    
+                    if parsed['type'] == 's3':
+                        # S3 files are only supported on AWS
+                        if execution_platform != 'aws':
+                            click.secho(f'Error: S3 mounts are only supported on AWS.', fg='red', err=True)
+                            raise SystemExit(1)
+                        
+                        if verbose:
+                            print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
+                        
+                        s3_file_item = {
+                            "type": "S3File",
+                            "data": {
+                                "name": parsed["s3_prefix"],
+                                "s3BucketName": parsed["s3_bucket"],
+                                "s3ObjectKey": parsed["s3_prefix"]
+                            }
+                        }
+                        parsed_data_files.append(s3_file_item)
+                        
+                    else:  # CloudOS dataset
+                        data_project = parsed['project_name']
+                        dataset_path = parsed['dataset_path']
+                        
+                        if verbose:
+                            print(f'\tResolving dataset: {data_project}/{dataset_path}')
+                        
+                        datasets_api = Datasets(
+                            cloudos_url=cloudos_url,
+                            apikey=apikey,
+                            workspace_id=workspace_id,
+                            project_name=data_project,
+                            verify=verify_ssl,
+                            cromwell_token=None
+                        )
+                        
+                        resolved = resolve_data_file_id(datasets_api, dataset_path)
+                        parsed_data_files.append(resolved)
+                        
+                        if verbose:
+                            print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
+            except Exception as e:
+                click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+        
+        # Parse and add linked folders
+        parsed_s3_mounts = []
+        if link:
+            try:
+                for link_path in link:
+                    # Block all linking on Azure
+                    if execution_platform == 'azure':
+                        click.secho(f'Error: Linking folders is not supported on Azure. Please use --mount instead.', fg='red', err=True)
+                        raise SystemExit(1)
+                    
+                    parsed = parse_link_path(link_path)
+                    
+                    if parsed['type'] == 's3':
+                        if verbose:
+                            print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
+                        
+                        mount_name = parsed.get('mount_name', f"{parsed['s3_bucket']}-mount")
+                        s3_mount_item = {
+                            "type": "S3Folder",
+                            "data": {
+                                "name": mount_name,
+                                "s3BucketName": parsed["s3_bucket"],
+                                "s3Prefix": parsed["s3_prefix"]
+                            }
+                        }
+                        parsed_s3_mounts.append(s3_mount_item)
+                        
+                    else:  # CloudOS folder
+                        folder_project = parsed['project_name']
+                        folder_path = parsed['dataset_path']
+                        
+                        if verbose:
+                            print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
+                        
+                        # AWS-only: Create S3Folder mount for CloudOS folders
+                        mount_name = folder_path.split('/')[-1] if folder_path else folder_project
+                        cloudos_mount_item = {
+                            "type": "S3Folder",
+                            "data": {
+                                "name": mount_name,
+                                "s3BucketName": folder_project,
+                                "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
+                            }
+                        }
+                        parsed_s3_mounts.append(cloudos_mount_item)
+            except Exception as e:
+                click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+        
+        # Build the resume payload
+        payload = build_resume_payload(
+            instance_type=instance,
+            storage_size=storage,
+            cost_limit=cost_limit,
+            shutdown_at=shutdown_at_parsed,
+            data_files=parsed_data_files,
+            s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else None
+        )
+        
+        if verbose:
+            print('\tResume payload constructed:')
+            print(json.dumps(payload, indent=2))
+        
+        # Resume the session via API
+        response = cl.resume_interactive_session(session_id, workspace_id, payload, verify=verify_ssl)
+        
+        if verbose:
+            print(f'\tSession resumed successfully')
+        
+        # Display success message
+        click.secho(f'✓ Session {session_id} has been resumed successfully!', fg='green')
+        
+        # Show updated configuration
+        updated_config = response.get('interactiveSessionConfiguration', {})
+        if instance or storage or cost_limit is not None or shutdown_at_parsed:
+            click.echo('\nUpdated configuration:')
+            if instance:
+                click.echo(f'  Instance type: {updated_config.get("instanceType", instance)}')
+            if storage:
+                click.echo(f'  Storage: {updated_config.get("storageSizeInGb", storage)} GB')
+            if cost_limit is not None:
+                exec_config = updated_config.get('execution', {})
+                click.echo(f'  Cost limit: ${exec_config.get("computeCostLimit", cost_limit)}')
+            if shutdown_at_parsed:
+                exec_config = updated_config.get('execution', {})
+                click.echo(f'  Auto-shutdown: {exec_config.get("autoShutdownAtDate", shutdown_at_parsed)}')
+        
+        if parsed_data_files:
+            click.echo(f'\n  {len(parsed_data_files)} additional file(s) mounted')
+        if parsed_s3_mounts:
+            click.echo(f'  {len(parsed_s3_mounts)} additional folder(s) linked')
+        
+        click.echo(f'\nSession status: {response.get("status", "unknown")}')
+        click.echo(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}')
+    
+    except BadRequestException as e:
+        error_str = str(e)
+        # Check for specific error patterns
+        if '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to resume session. Please check your credentials.', fg='red', err=True)
+        elif '404' in error_str or 'not found' in error_str.lower():
+            click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
+        elif 'already running' in error_str.lower() or 'ready' in error_str.lower():
+            click.secho(f'Error: Cannot resume session - the session is already running.', fg='red', err=True)
+            click.secho(f'Tip: Check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+        else:
+            click.secho(f'Error: Failed to resume session: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+    
+    except Exception as e:
+        error_str = str(e)
+        # Check for network errors
+        if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
+            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+        elif '401' in error_str or 'Unauthorized' in error_str:
+            click.secho(f'Error: Failed to resume session. Please check your credentials.', fg='red', err=True)
+        else:
+            click.secho(f'Error: Failed to resume session: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+

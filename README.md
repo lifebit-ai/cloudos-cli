@@ -67,6 +67,7 @@ Python package for interacting with CloudOS
       - [List Interactive Sessions](#list-interactive-sessions)
       - [Get Interactive Session Status](#get-interactive-session-status)
       - [Pause Interactive Session](#pause-interactive-session)
+      - [Resume Interactive Session](#resume-interactive-session)
       - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
@@ -2320,6 +2321,173 @@ The command automatically loads from profile (via `@with_profile_config` decorat
 - `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
 - `--ssl-cert`: Path to SSL certificate file
 - `--profile`: Profile to use from config file (default: default profile)
+
+#### Resume Interactive Session
+
+Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.
+
+The command automatically loads API credentials and workspace information from your profile configuration.
+
+**Basic Usage**
+
+Resume a paused session:
+
+```bash
+cloudos interactive-session resume --session-id <SESSION_ID> --profile my_profile
+```
+
+Resume with updated instance type:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
+  --profile my_profile \
+  --instance c5.2xlarge
+```
+
+Resume with multiple updates:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
+  --profile my_profile \
+  --instance m5.xlarge \
+  --storage 1000 \
+  --cost-limit 50.0 \
+  --shutdown-in 12h
+```
+
+**Mount Additional Data**
+
+Resume and mount additional files:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
+  --profile my_profile \
+  --mount my-project/Data/new-dataset.csv \
+  --mount s3://my-bucket/data/file.txt
+```
+
+Resume and link additional folders (AWS only):
+
+```bash
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
+  --profile my_profile \
+  --link s3://my-bucket/analysis/ \
+  --link my-project/Data/results
+```
+
+**Configuration Updates**
+
+All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
+
+- `--instance <TYPE>` - Change instance type (validated by platform)
+- `--storage <GB>` - Update storage size (100-5000 GB)
+- `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
+- `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
+
+**Mount and Link Behavior**
+
+The `--mount` and `--link` options follow the same patterns as the `create` command:
+
+**Mount formats:**
+- CloudOS files: `project_name/path/to/file.csv`
+- S3 files (AWS only): `s3://bucket-name/path/to/file.txt`
+
+**Link formats:**
+- S3 folders (AWS only): `s3://bucket-name/prefix/`
+- CloudOS folders (AWS only): `project_name/path/to/folder`
+
+**Important Notes:**
+- Linking is only supported on AWS execution platform
+- S3 mounts only work with AWS sessions
+- Azure sessions can only mount CloudOS files from the file explorer
+
+**Examples**
+
+Resume with default configuration:
+
+```bash
+cloudos interactive-session resume --session-id 688351ab6be610972db54a8e --profile my_profile
+```
+
+Resume and upgrade instance:
+
+```bash
+# AWS session
+cloudos interactive-session resume --session-id <ID> --profile my_profile --instance c5.4xlarge
+
+# Azure session
+cloudos interactive-session resume --session-id <ID> --profile azure_profile --instance Standard_D8as_v4
+```
+
+Resume, increase storage, and set cost limit:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <ID> \
+  --profile my_profile \
+  --storage 2000 \
+  --cost-limit 100.0
+```
+
+Resume with new shutdown time:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <ID> \
+  --profile my_profile \
+  --shutdown-in 24h
+```
+
+Resume and mount additional datasets:
+
+```bash
+cloudos interactive-session resume \
+  --session-id <ID> \
+  --profile my_profile \
+  --mount project-a/Data/dataset1.csv \
+  --mount project-b/Results/analysis.txt
+```
+
+**Error Handling**
+
+Common errors and their meanings:
+
+```bash
+# Session is already running
+Error: Cannot resume session - the session is already running.
+Tip: Check status with: cloudos interactive-session status --session-id <SESSION_ID>
+
+# Session not found
+Error: Session not found. Please check the session ID.
+
+# Invalid instance type
+Error: Invalid AWS instance type format: 'c5-xlarge'. Expected format: <family><generation>.<size> (e.g., c5.xlarge, m5.2xlarge)
+Hint: Check your instance type spelling and format for AWS.
+
+# Azure linking not supported
+Error: Linking folders is not supported on Azure. Please use --mount instead.
+```
+
+**Options Reference**
+
+The command automatically loads from profile:
+- `--apikey` - CloudOS API key
+- `--cloudos-url` - CloudOS URL
+- `--workspace-id` - Workspace/team identifier
+
+Command-specific options:
+- `--session-id <ID>` - Session ID to resume (required)
+- `--instance <TYPE>` - Change instance type
+- `--storage <GB>` - Update storage size (100-5000 GB)
+- `--cost-limit <USD>` - Update cost limit (-1 = unlimited)
+- `--shutdown-in <DURATION>` - Update auto-shutdown (e.g., 8h, 2d)
+- `--mount <FILE>` - Mount additional data file (repeatable)
+- `--link <FOLDER>` - Link additional folder (repeatable, AWS only)
+- `--verbose` - Print detailed information
 
 #### Create Interactive Session
 
