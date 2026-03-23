@@ -16,7 +16,6 @@ from cloudos_cli.interactive_session.interactive_session import (
     parse_watch_timeout_duration,
     parse_data_file,
     parse_link_path,
-    parse_s3_mount,
     build_session_payload,
     format_session_creation_table,
     resolve_data_file_id,
