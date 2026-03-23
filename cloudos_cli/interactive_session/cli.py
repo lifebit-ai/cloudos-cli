@@ -7,7 +7,6 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
-from cloudos_cli.utils.details import create_job_list_table
 from cloudos_cli.interactive_session.interactive_session import (
     create_interactive_session_list_table,
     process_interactive_session_list,
