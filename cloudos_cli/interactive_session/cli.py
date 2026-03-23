@@ -45,7 +45,7 @@ def interactive_session():
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=False)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -66,7 +66,7 @@ def interactive_session():
               type=int,
               default=1,
               help='Page number to retrieve. Default=1.')
-@click.option('--filter-owner-only',
+@click.option('--filter-only-mine',
               is_flag=True,
               help='Show only the current user\'s sessions.')
 @click.option('--archived',
@@ -83,7 +83,7 @@ def interactive_session():
               required=False)
 @click.option('--table-columns',
               help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
-                    'Available columns: id,name,status,type,instance,cost,owner. ' +
+                    'Available columns: backend, cost, cost_limit, created_at, id, instance, name, owner, project, resources, runtime, saved_at, spot, status, time_left, type, version. ' +
                     'Default: responsive (auto-selects columns based on terminal width)'),
               default=None)
 @click.option('--all-fields',
@@ -110,7 +110,7 @@ def list_sessions(ctx,
                   filter_status,
                   limit,
                   page,
-                  filter_owner_only,
+                  filter_only_mine,
                   archived,
                   output_format,
                   output_basename,
@@ -137,8 +137,24 @@ def list_sessions(ctx,
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     
-    # Prepare output file if needed
+    # Validate table columns if specified
+    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
+                     'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
+                     'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
+    
+    if selected_columns:
+        # Parse columns (split by comma and strip whitespace)
+        col_list = [col.strip() for col in selected_columns.split(',')]
+        invalid_cols = [col for col in col_list if col not in valid_columns]
+        
+        if invalid_cols:
+            click.secho(f'Error: Invalid column(s): {", ".join(invalid_cols)}', fg='red', err=True)
+            click.secho(f'Valid columns: {", ".join(sorted(valid_columns))}', fg='yellow', err=True)
+            click.secho(f'\nTip: Use --help without other options to see command help', fg='cyan', err=True)
+            raise SystemExit(1)
+    
+    # Prepare output file if needed
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
     
@@ -160,7 +176,7 @@ def list_sessions(ctx,
             page=page,
             limit=limit,
             status=list(filter_status) if filter_status else None,
-            owner_only=filter_owner_only,
+            owner_only=filter_only_mine,
             include_archived=archived,
             verify=verify_ssl
         )
@@ -176,7 +192,7 @@ def list_sessions(ctx,
                 page=page_num,
                 limit=limit,
                 status=list(filter_status) if filter_status else None,
-                owner_only=filter_owner_only,
+                owner_only=filter_only_mine,
                 include_archived=archived,
                 verify=verify_ssl
             )
@@ -199,12 +215,12 @@ def list_sessions(ctx,
         
         elif output_format == 'csv':
             sessions_df = process_interactive_session_list(sessions, all_fields)
-            save_interactive_session_list_to_csv(sessions_df, outfile)
+            save_interactive_session_list_to_csv(sessions_df, outfile, count=len(sessions))
         
         elif output_format == 'json':
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
-            print(f'\tInteractive session list collected with a total of {len(sessions)} sessions.')
+            print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
             print(f'\tInteractive session list saved to {outfile}')
         
         else:
@@ -351,14 +367,29 @@ def create_session(ctx,
         # Normalize to lowercase
         execution_platform = execution_platform.lower()
     
-    # Validate execution_platform
-    if execution_platform not in ['aws', 'azure']:
-        click.secho(f'Error: Invalid execution_platform: {execution_platform}. Valid values: aws, azure', fg='red', err=True)
-        raise SystemExit(1)
-    
     # Set instance default based on execution_platform if not specified
     if instance is None:
         instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
+    
+    # Validate instance type format
+    is_valid, error_msg = validate_instance_type(instance, execution_platform)
+    if not is_valid:
+        click.secho(f'Error: {error_msg}', fg='red', err=True)
+        click.secho(f'Hint: Check your instance type spelling and format for {execution_platform.upper()}.', fg='yellow', err=True)
+        raise SystemExit(1)
+    
+    # Validate Spark instance types if session type is spark
+    if session_type.lower() == 'spark':
+        # Spark is AWS only, so use 'aws' for validation
+        is_valid_master, error_msg_master = validate_instance_type(spark_master, 'aws')
+        if not is_valid_master:
+            click.secho(f'Error: Invalid Spark master instance type: {error_msg_master}', fg='red', err=True)
+            raise SystemExit(1)
+        
+        is_valid_core, error_msg_core = validate_instance_type(spark_core, 'aws')
+        if not is_valid_core:
+            click.secho(f'Error: Invalid Spark core instance type: {error_msg_core}', fg='red', err=True)
+            raise SystemExit(1)
     
     if verbose:
         print('Executing create interactive session...')
@@ -583,7 +614,7 @@ def create_session(ctx,
         )
         
         # Output session link in greppable format for CI/automation
-        click.echo(f"Session link: {cloudos_url}/interactive-sessions/{session_id}")
+        click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
         
         if verbose:
             print('\tSession creation completed successfully!')

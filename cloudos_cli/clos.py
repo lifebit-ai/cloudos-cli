@@ -2401,7 +2401,7 @@ class Cloudos:
         
         # Make the API request with POST method
         try:
-            r = requests.post(
+            r = retry_requests_post(
                 url,
                 headers=headers,
                 data=json.dumps(payload),
@@ -2418,42 +2418,4 @@ class Cloudos:
         content = r.json()
         return content
     
-    ## FOR FUTURE COMMANDS IMPLEMENTATION
-    # def get_interactive_session(self, team_id, session_id, verify=True):
-    #     """Get details of a specific interactive session.
 
-    #     Parameters
-    #     ----------
-    #     team_id : string
-    #         The CloudOS team id (workspace id).
-    #     session_id : string
-    #         The interactive session id (MongoDB ObjectId).
-    #     verify: [bool|string], default=True
-    #         Whether to use SSL verification or not.
-
-    #     Returns
-    #     -------
-    #     dict
-    #         Session object with current status and full details.
-    #     """
-    #     if not team_id or not isinstance(team_id, str):
-    #         raise ValueError("Invalid team_id: must be a non-empty string")
-        
-    #     if not session_id or not isinstance(session_id, str):
-    #         raise ValueError("Invalid session_id: must be a non-empty string")
-
-    #     headers = {
-    #         "Content-type": "application/json",
-    #         "apikey": self.apikey
-    #     }
-
-    #     # Build URL for getting specific session
-    #     url = f"{self.cloudos_url}/api/v2/interactive-sessions/{session_id}?teamId={team_id}"
-        
-    #     r = retry_requests_get(url, headers=headers, verify=verify)
-        
-    #     if r.status_code >= 400:
-    #         raise BadRequestException(r)
-
-    #     content = r.json()
-    #     return content
