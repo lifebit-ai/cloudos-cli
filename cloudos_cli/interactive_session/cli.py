@@ -30,7 +30,6 @@ from cloudos_cli.interactive_session.interactive_session import (
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
-from cloudos_cli.utils.requests import retry_requests_get
 
 
 # Create the interactive_session group
