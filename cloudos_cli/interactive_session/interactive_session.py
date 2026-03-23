@@ -414,11 +414,11 @@ def _format_session_field(field_name, value):
         status_lower = str(value).lower()
         # Map API statuses to display values
         # API 'ready' and 'aborted' are mapped to user-friendly names
-        display_status = 'running' if status_lower == 'ready' else ('stopped' if status_lower == 'aborted' else value)
+        display_status = 'running' if status_lower == 'ready' else ('paused' if status_lower == 'aborted' else value)
         
         if status_lower in ['ready', 'running']:
             return f'[bold green]{display_status}[/bold green]'
-        elif status_lower in ['stopped', 'aborted']:
+        elif status_lower in ['paused', 'aborted', 'stopped']:
             return f'[bold red]{display_status}[/bold red]'
         elif status_lower in ['setup', 'initialising', 'initializing', 'scheduled']:
             return f'[bold yellow]{display_status}[/bold yellow]'
@@ -1244,25 +1244,25 @@ BACKEND_MAPPING = {
 # Status color mapping for Rich terminal
 STATUS_COLORS = {
     'running': 'green',
-    'stopped': 'red',
+    'paused': 'red',
     'terminated': 'red',
     'provisioning': 'yellow',
     'scheduled': 'yellow',
 }
 
 # Terminal states where watch mode should exit
-TERMINAL_STATES = {'running', 'stopped', 'terminated'}
+TERMINAL_STATES = {'running', 'paused', 'terminated'}
 
 # Status mapping from API to user-friendly display
 API_STATUS_MAPPING = {
     'ready': 'running',      # API returns 'ready' for running sessions
-    'aborted': 'stopped',    # API returns 'aborted' for stopped sessions
+    'aborted': 'paused',     # API returns 'aborted' for paused sessions
     'setup': 'setup',
     'initialising': 'initialising',
     'initializing': 'initialising',
     'scheduled': 'scheduled',
     'running': 'running',    # Some endpoints may return 'running'
-    'stopped': 'stopped',    # Some endpoints may return 'stopped'
+    'stopped': 'paused',     # Some endpoints may return 'stopped' - map to 'paused'
     'terminated': 'terminated',
 }
 

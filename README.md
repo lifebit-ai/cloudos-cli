@@ -1971,13 +1971,13 @@ The table displays sessions with pagination controls (press `n` for next page, `
 
 ```console
                           Interactive Sessions                          
-┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ stopped │ cloudosR     │ awsRstudio         │ 69aee0dba197… │ Leila  │
-│ running │ analysis-dev │ awsJupyterNotebook │ 69ae972a18f0… │ John   │
-│ stopped │ test_session │ awsVSCode          │ 69a996c098ab… │ James  │
-└─────────┴──────────────┴────────────────────┴───────────────┴────────┘
+┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Status  ┃ Name         ┃ Type           ┃ ID            ┃ Owner  ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ paused  │ cloudosR     │ RStudio        │ 69aee0dba197… │ Leila  │
+│ running │ analysis-dev │ Jupyter        │ 69ae972a18f0… │ John   │
+│ paused  │ test_session │ VS Code        │ 69a996c098ab… │ James  │
+└─────────┴──────────────┴────────────────┴───────────────┴────────┘
 
 Total sessions: 15
 Page: 1 of 3
@@ -2014,11 +2014,11 @@ Interactive session list saved to interactive_sessions_list.json
 You can filter sessions by status and other criteria:
 
 ```bash
-# Filter by status (setup, initialising, running, scheduled, stopped)
+# Filter by status (setup, initialising, running, scheduled, paused)
 cloudos interactive-session list --profile my_profile --filter-status running
 
 # Show only your own sessions
-cloudos interactive-session list --profile my_profile --filter-owner-only
+cloudos interactive-session list --profile my_profile --filter-only-mine
 
 # Include archived sessions
 cloudos interactive-session list --profile my_profile --archived
@@ -2059,7 +2059,7 @@ The command displays session information in a formatted table:
 ║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║
 ║ Name               ║ analysis-dev (linked)                               ║
 ║ Status             ║ running                                             ║
-║ Backend            ║ awsJupyterNotebook                                  ║
+║ Backend            ║ Jupyter                                             ║
 ║ Owner              ║ John Doe                                            ║
 ║ Project            ║ research                                            ║
 ║ Instance Type      ║ c5.xlarge                                           ║
@@ -2092,7 +2092,7 @@ Status changed: provisioning → running
 **Watch Mode Behavior**
 
 - **Pre-running sessions** (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)
-- **Running/stopped sessions**: Watch mode will show a warning and display the current status instead
+- **Running/paused sessions**: Watch mode will show a warning and display the current status instead
 
 Example with a running session:
 
@@ -2246,7 +2246,7 @@ Pausing session...
 Status: shutting_down
 Status: uploading_data
 Status: cleaning_up
-Status: stopped
+Status: paused
 ✓ Session paused successfully
 ```
 
@@ -2255,8 +2255,8 @@ Status: stopped
 The command provides helpful error messages for common issues:
 
 ```console
-# Trying to pause an already stopped session
-Error: Cannot pause session - the session is already stopped.
+# Trying to pause an already paused session
+Error: Cannot pause session - the session is already paused.
 Tip: Check the session status with: cloudos interactive-session status --session-id <SESSION_ID>
 
 # Trying to pause a session that is already being paused
@@ -2725,7 +2725,7 @@ This will show progress updates like:
 ┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
 │ Session ID  │ 69aee0dba197abc123  │
 │ Name        │ Ready Session       │
-│ Backend     │ awsJupyterNotebook  │
+│ Backend     │ Jupyter             │
 │ Status      │ initialising        │
 └─────────────┴─────────────────────┘
 ```
@@ -2746,7 +2746,7 @@ The output shows the session details including:
 - Session ID
 - Session name
 - Backend type (jupyter, vscode, rstudio, spark)
-- Current status (scheduled, initialising, setup, running, stopped)
+- Current status (scheduled, initialising, setup, running, paused)
 
 **Spark Cluster Configuration**
 
