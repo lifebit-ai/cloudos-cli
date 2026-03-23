@@ -2457,6 +2457,16 @@ cloudos interactive-session resume \
 Common errors and their meanings:
 
 ```bash
+# Session is not in resumable status (e.g., already running, terminated, initializing)
+Error: Cannot resume session - current status is "running".
+Only sessions with status "paused" can be resumed.
+Tip: This session is already running. Use the CloudOS web interface to access it.
+
+# Session is terminated
+Error: Cannot resume session - current status is "terminated".
+Only sessions with status "paused" can be resumed.
+Tip: Terminated sessions cannot be resumed. Please create a new session instead.
+
 # Session is already running
 Error: Cannot resume session - the session is already running.
 Tip: Check status with: cloudos interactive-session status --session-id <SESSION_ID>

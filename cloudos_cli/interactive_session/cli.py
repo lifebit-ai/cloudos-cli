@@ -1223,10 +1223,23 @@ def resume_session(ctx,
                         
                     else:  # CloudOS folder
                         folder_project = parsed['project_name']
-                        folder_path = parsed['dataset_path']
+                        folder_path = parsed['folder_path']
                         
                         if verbose:
                             print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
+                        
+                        # Create Datasets API instance for this project
+                        datasets_api = Datasets(
+                            cloudos_url=cloudos_url,
+                            apikey=apikey,
+                            workspace_id=workspace_id,
+                            project_name=folder_project,
+                            verify=verify_ssl,
+                            cromwell_token=None
+                        )
+                        
+                        # Get folder contents to verify it exists
+                        folder_content = datasets_api.list_folder_content(folder_path)
                         
                         # AWS-only: Create S3Folder mount for CloudOS folders
                         mount_name = folder_path.split('/')[-1] if folder_path else folder_project
@@ -1239,6 +1252,9 @@ def resume_session(ctx,
                             }
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
+                        
+                        if verbose:
+                            print(f'\t  ✓ Linked CloudOS folder: {mount_name}')
             except Exception as e:
                 click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
@@ -1296,6 +1312,32 @@ def resume_session(ctx,
             click.secho(f'Error: Failed to resume session. Please check your credentials.', fg='red', err=True)
         elif '404' in error_str or 'not found' in error_str.lower():
             click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
+        elif 'not in a resumable status' in error_str.lower():
+            # Try to fetch the current session status to show the user
+            try:
+                from cloudos_cli.interactive_session.interactive_session import get_interactive_session_status, map_status
+                status_response = get_interactive_session_status(
+                    cloudos_url=cloudos_url,
+                    apikey=apikey,
+                    session_id=session_id,
+                    team_id=workspace_id,
+                    verify_ssl=verify_ssl,
+                    verbose=False
+                )
+                current_status = map_status(status_response.get('status', 'unknown'))
+                click.secho(f'Error: Cannot resume session - current status is "{current_status}".', fg='red', err=True)
+                click.secho(f'Only sessions with status "paused" can be resumed.', fg='yellow', err=True)
+                if current_status == 'running':
+                    click.secho(f'Tip: This session is already running. Use the CloudOS web interface to access it.', fg='yellow', err=True)
+                elif current_status == 'terminated':
+                    click.secho(f'Tip: Terminated sessions cannot be resumed. Please create a new session instead.', fg='yellow', err=True)
+                else:
+                    click.secho(f'Tip: Wait for the session to reach "paused" status, or check: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            except:
+                # Fallback if we can't fetch status
+                click.secho(f'Error: Cannot resume session - it is not in a resumable status.', fg='red', err=True)
+                click.secho(f'Only sessions with status "paused" can be resumed.', fg='yellow', err=True)
+                click.secho(f'Tip: Check current status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
         elif 'already running' in error_str.lower() or 'ready' in error_str.lower():
             click.secho(f'Error: Cannot resume session - the session is already running.', fg='red', err=True)
             click.secho(f'Tip: Check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
