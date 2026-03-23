@@ -19,6 +19,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_session_creation_table,
     resolve_data_file_id,
     validate_session_id,
+    validate_instance_type,
     get_interactive_session_status,
     format_session_status_table,
     transform_session_response,
