@@ -58,7 +58,7 @@ def interactive_session():
               required=True)
 @click.option('--filter-status',
               multiple=True,
-              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'stopped'], case_sensitive=False),
+              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'paused'], case_sensitive=False),
               help='Filter sessions by status. Can be specified multiple times to filter by multiple statuses.')
 @click.option('--limit',
               type=int,
@@ -187,7 +187,7 @@ def list_sessions(ctx,
         if len(sessions) == 0:
             if filter_status:
                 # Show helpful message when filtering returns no results
-                status_flow = 'scheduled → initialising → setup → running → stopped'
+                status_flow = 'scheduled → initialising → setup → running → paused'
                 click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
                 click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
             elif output_format == 'stdout':
@@ -220,7 +220,7 @@ def list_sessions(ctx,
             raise SystemExit(1)
         # Check if the error is related to status filtering
         elif filter_status and ('400' in error_str or 'Invalid' in error_str):
-            status_flow = 'scheduled → initialising → setup → running → stopped'
+            status_flow = 'scheduled → initialising → setup → running → paused'
             click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
             click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
             raise SystemExit(1)
@@ -760,7 +760,7 @@ def get_session_status(ctx,
                     if display_status == 'running':
                         click.secho('✓ Session is now running and ready to use!', fg='green')
                         break
-                    elif display_status in ['stopped', 'terminated']:
+                    elif display_status in ['paused', 'terminated']:
                         click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
                         break
                     
@@ -991,7 +991,7 @@ def pause_session(ctx,
         # Handle API errors with better messages
         error_str = str(e)
         if 'aborted in aborted status' in error_str.lower():
-            click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
+            click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
             click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
         elif 'aborted in aborting status' in error_str.lower():
             click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
@@ -1015,9 +1015,9 @@ def pause_session(ctx,
         elif 'Session not found' in error_str:
             click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
         elif 'aborted in aborted status' in error_str.lower() or 'aborted in aborting status' in error_str.lower():
-            # Session is already stopped/stopping
+            # Session is already paused/pausing
             if 'aborted status' in error_str.lower():
-                click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
+                click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
                 click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             else:
                 click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)

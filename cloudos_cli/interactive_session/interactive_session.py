@@ -414,11 +414,11 @@ def _format_session_field(field_name, value):
         status_lower = str(value).lower()
         # Map API statuses to display values
         # API 'ready' and 'aborted' are mapped to user-friendly names
-        display_status = 'running' if status_lower == 'ready' else ('stopped' if status_lower == 'aborted' else value)
+        display_status = 'running' if status_lower == 'ready' else ('paused' if status_lower == 'aborted' else value)
         
         if status_lower in ['ready', 'running']:
             return f'[bold green]{display_status}[/bold green]'
-        elif status_lower in ['stopped', 'aborted']:
+        elif status_lower in ['paused', 'aborted']:
             return f'[bold red]{display_status}[/bold red]'
         elif status_lower in ['setup', 'initialising', 'initializing', 'scheduled']:
             return f'[bold yellow]{display_status}[/bold yellow]'
@@ -1177,25 +1177,25 @@ BACKEND_MAPPING = {
 # Status color mapping for Rich terminal
 STATUS_COLORS = {
     'running': 'green',
-    'stopped': 'red',
+    'paused': 'red',
     'terminated': 'red',
     'provisioning': 'yellow',
     'scheduled': 'yellow',
 }
 
 # Terminal states where watch mode should exit
-TERMINAL_STATES = {'running', 'stopped', 'terminated'}
+TERMINAL_STATES = {'running', 'paused', 'terminated'}
 
 # Status mapping from API to user-friendly display
 API_STATUS_MAPPING = {
     'ready': 'running',      # API returns 'ready' for running sessions
-    'aborted': 'stopped',    # API returns 'aborted' for stopped sessions
+    'aborted': 'paused',     # API returns 'aborted' for paused sessions
     'setup': 'setup',
     'initialising': 'initialising',
     'initializing': 'initialising',
     'scheduled': 'scheduled',
     'running': 'running',    # Some endpoints may return 'running'
-    'stopped': 'stopped',    # Some endpoints may return 'stopped'
+    'stopped': 'paused',     # Some endpoints may return 'stopped' - map to 'paused'
     'terminated': 'terminated',
 }
 
@@ -1236,7 +1236,7 @@ def map_status(api_status: str) -> str:
     """Map API status value to user-friendly display status.
     
     Converts API status values (like 'ready', 'aborted') to display values
-    (like 'running', 'stopped') matching the list command.
+    (like 'running', 'paused') matching the list command.
     """
     return API_STATUS_MAPPING.get(api_status, api_status)
 
@@ -1505,7 +1505,7 @@ class WatchModeManager:
     def watch(self, verbose: bool = False) -> dict:
         """Continuously poll session status until reaching terminal state.
         
-        Terminal states: running, stopped, terminated
+        Terminal states: running, paused, terminated
         
         Handles Ctrl+C gracefully.
         """
@@ -1801,7 +1801,7 @@ def format_stop_success_output(session_data: dict, wait: bool = False) -> None:
     runtime_str = format_duration(total_runtime) if total_runtime else 'N/A'
     
     # Build message
-    message = f"Session stopped successfully\n"
+    message = f"Session paused successfully\n"
     message += f"  Session ID: {session_id}\n"
     message += f"  Final status: {status}\n"
     
@@ -1852,7 +1852,7 @@ def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, tea
     start_time = time.time()
     previous_status = None
     
-    with console.status("[bold yellow]Stopping session...", spinner='dots'):
+    with console.status("[bold yellow]Pausing session...", spinner='dots'):
         while True:
             elapsed = time.time() - start_time
             
@@ -1874,8 +1874,8 @@ def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, tea
                 previous_status = current_status
             
             # Check if terminal state reached
-            if current_status in ['stopped', 'terminated']:
-                console.print("[bold green]✓ Session stopped successfully")
+            if current_status in ['paused', 'terminated']:
+                console.print("[bold green]✓ Session paused successfully")
                 return session_response
             
             # Check timeout
