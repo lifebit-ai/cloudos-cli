@@ -1416,7 +1416,7 @@ class OutputFormatter:
         
         if cloudos_url and session_id != 'N/A':
             base_url = cloudos_url.rstrip('/')
-            session_link = f"{base_url}/app/interactive-sessions/{session_id}"
+            session_link = f"{base_url}/app/data-science/interactive-analysis/view/{session_id}/"
             session_name_with_link = f"[link={session_link}]{session_name}[/link]"
         else:
             session_name_with_link = session_name

@@ -2151,11 +2151,11 @@ Save session status to a file:
 
 ```bash
 # Save as JSON
-cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --format json --output-base-name /tmp/session_status
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --output-format json --output-basename /tmp/session_status
 # Creates: /tmp/session_status.json
 
 # Save as CSV
-cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --format csv --output-base-name /tmp/session_status
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --output-format csv --output-basename /tmp/session_status
 # Creates: /tmp/session_status.csv
 ```
 

@@ -625,8 +625,7 @@ def create_session(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=False)
-@click.option('--format',
-              'output_format',
+@click.option('--output-format',
               help='Output format for session status.',
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
