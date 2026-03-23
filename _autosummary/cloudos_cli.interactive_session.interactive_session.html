@@ -1,0 +1,745 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cloudos_cli.jobs" href="cloudos_cli.jobs.html"><link rel="prev" title="cloudos_cli.interactive_session.cli" href="cloudos_cli.interactive_session.cli.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>cloudos_cli.interactive_session.interactive_session - CloudOS CLI Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">CloudOS CLI Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">CloudOS CLI Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html#cloudos-cli">cloudos-cli</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../modules.html">API Reference</a><input aria-label="Toggle navigation of API Reference" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="cloudos_cli.html">cloudos_cli</a><input aria-label="Toggle navigation of cloudos_cli" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.bash.html">cloudos_cli.bash</a><input aria-label="Toggle navigation of cloudos_cli.bash" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.bash.cli.html">cloudos_cli.bash.cli</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.configure.html">cloudos_cli.configure</a><input aria-label="Toggle navigation of cloudos_cli.configure" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.configure.cli.html">cloudos_cli.configure.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.constants.html">cloudos_cli.constants</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.cost.html">cloudos_cli.cost</a><input aria-label="Toggle navigation of cloudos_cli.cost" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.cost.cost.html">cloudos_cli.cost.cost</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.cromwell.html">cloudos_cli.cromwell</a><input aria-label="Toggle navigation of cloudos_cli.cromwell" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.cromwell.cli.html">cloudos_cli.cromwell.cli</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.datasets.html">cloudos_cli.datasets</a><input aria-label="Toggle navigation of cloudos_cli.datasets" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.datasets.cli.html">cloudos_cli.datasets.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input aria-label="Toggle navigation of cloudos_cli.import_wf" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="cloudos_cli.interactive_session.html">cloudos_cli.interactive_session</a><input aria-label="Toggle navigation of cloudos_cli.interactive_session" checked="" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.interactive_session.cli.html">cloudos_cli.interactive_session.cli</a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">cloudos_cli.interactive_session.interactive_session</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.jobs.html">cloudos_cli.jobs</a><input aria-label="Toggle navigation of cloudos_cli.jobs" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.jobs.cli.html">cloudos_cli.jobs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.link.html">cloudos_cli.link</a><input aria-label="Toggle navigation of cloudos_cli.link" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.link.cli.html">cloudos_cli.link.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.logging.html">cloudos_cli.logging</a><input aria-label="Toggle navigation of cloudos_cli.logging" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.logging.logger.html">cloudos_cli.logging.logger</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.procurement.html">cloudos_cli.procurement</a><input aria-label="Toggle navigation of cloudos_cli.procurement" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.procurement.cli.html">cloudos_cli.procurement.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.projects.html">cloudos_cli.projects</a><input aria-label="Toggle navigation of cloudos_cli.projects" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.projects.cli.html">cloudos_cli.projects.cli</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.queue.html">cloudos_cli.queue</a><input aria-label="Toggle navigation of cloudos_cli.queue" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.queue.cli.html">cloudos_cli.queue.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.related_analyses.html">cloudos_cli.related_analyses</a><input aria-label="Toggle navigation of cloudos_cli.related_analyses" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.related_analyses.related_analyses.html">cloudos_cli.related_analyses.related_analyses</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.utils.html">cloudos_cli.utils</a><input aria-label="Toggle navigation of cloudos_cli.utils" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="cloudos_cli.workflows.html">cloudos_cli.workflows</a><input aria-label="Toggle navigation of cloudos_cli.workflows" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="cloudos_cli.workflows.cli.html">cloudos_cli.workflows.cli</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli._version.html">cloudos_cli._version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.clos.html">cloudos_cli.clos</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.configure.html">cloudos_cli.configure</a><input aria-label="Toggle navigation of cloudos_cli.configure" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.configure.cli.html">cloudos_cli.configure.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.configure.configure.html">cloudos_cli.configure.configure</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.datasets.html">cloudos_cli.datasets</a><input aria-label="Toggle navigation of cloudos_cli.datasets" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.datasets.cli.html">cloudos_cli.datasets.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.datasets.datasets.html">cloudos_cli.datasets.datasets</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.import_wf.html">cloudos_cli.import_wf</a><input aria-label="Toggle navigation of cloudos_cli.import_wf" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.import_wf.import_wf.html">cloudos_cli.import_wf.import_wf</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.jobs.html">cloudos_cli.jobs</a><input aria-label="Toggle navigation of cloudos_cli.jobs" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.jobs.cli.html">cloudos_cli.jobs.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.jobs.job.html">cloudos_cli.jobs.job</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.link.html">cloudos_cli.link</a><input aria-label="Toggle navigation of cloudos_cli.link" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.link.cli.html">cloudos_cli.link.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.link.link.html">cloudos_cli.link.link</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.procurement.html">cloudos_cli.procurement</a><input aria-label="Toggle navigation of cloudos_cli.procurement" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.procurement.cli.html">cloudos_cli.procurement.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.procurement.images.html">cloudos_cli.procurement.images</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.queue.html">cloudos_cli.queue</a><input aria-label="Toggle navigation of cloudos_cli.queue" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.queue.cli.html">cloudos_cli.queue.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.queue.queue.html">cloudos_cli.queue.queue</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cloudos_cli.utils.html">cloudos_cli.utils</a><input aria-label="Toggle navigation of cloudos_cli.utils" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.array_job.html">cloudos_cli.utils.array_job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.requests.html">cloudos_cli.utils.requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudos_cli.utils.resources.html">cloudos_cli.utils.resources</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/_autosummary/cloudos_cli.interactive_session.interactive_session.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-cloudos_cli.interactive_session.interactive_session">
+<span id="cloudos-cli-interactive-session-interactive-session"></span><h1>cloudos_cli.interactive_session.interactive_session<a class="headerlink" href="#module-cloudos_cli.interactive_session.interactive_session" title="Link to this heading">¶</a></h1>
+<p>Interactive session helper functions for CloudOS.</p>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.build_session_payload" title="cloudos_cli.interactive_session.interactive_session.build_session_payload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_session_payload</span></code></a>(name, backend, project_id)</p></td>
+<td><p>Build the complex session creation payload for the API.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table" title="cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_interactive_session_list_table</span></code></a>(sessions)</p></td>
+<td><p>Create a rich table displaying interactive sessions with interactive pagination.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table" title="cloudos_cli.interactive_session.interactive_session.format_session_creation_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_session_creation_table</span></code></a>(session_data)</p></td>
+<td><p>Display session creation result in table format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file" title="cloudos_cli.interactive_session.interactive_session.parse_data_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_data_file</span></code></a>(data_file_str)</p></td>
+<td><p>Parse data file format: either S3 or CloudOS dataset path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path" title="cloudos_cli.interactive_session.interactive_session.parse_link_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_link_path</span></code></a>(link_path_str)</p></td>
+<td><p>Parse link path format: supports S3, CloudOS, or legacy colon format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration" title="cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_shutdown_duration</span></code></a>(duration_str)</p></td>
+<td><p>Parse shutdown duration string to ISO8601 datetime string.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_interactive_session_list</span></code></a>(sessions[, ...])</p></td>
+<td><p>Process interactive sessions data into a pandas DataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id" title="cloudos_cli.interactive_session.interactive_session.resolve_data_file_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_data_file_id</span></code></a>(datasets_api, dataset_path)</p></td>
+<td><p>Resolve nested dataset path to actual file ID.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv</span></code></a>(df, outfile)</p></td>
+<td><p>Save interactive session list to CSV file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_instance_type</span></code></a>(instance_type[, ...])</p></td>
+<td><p>Validate instance type format for the given execution platform.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.build_session_payload">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">build_session_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aws'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c5.xlarge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_spot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shutdown_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s3_mounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_master_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_core_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#build_session_payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.build_session_payload" title="Link to this definition">¶</a></dt>
+<dd><p>Build the complex session creation payload for the API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Session name (1-100 characters)</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – Backend type: regular, vscode, spark, rstudio</p></li>
+<li><p><strong>project_id</strong> (<em>str</em>) – Project MongoDB ObjectId</p></li>
+<li><p><strong>execution_platform</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution platform: ‘aws’ (default) or ‘azure’</p></li>
+<li><p><strong>instance_type</strong> (<em>str</em>) – Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_F1s)</p></li>
+<li><p><strong>storage_size</strong> (<em>int</em>) – Storage in GB (default: 500, range: 100-5000)</p></li>
+<li><p><strong>is_spot</strong> (<em>bool</em>) – Use spot instances (AWS only, default: False)</p></li>
+<li><p><strong>is_shared</strong> (<em>bool</em>) – Make session shared (default: False)</p></li>
+<li><p><strong>cost_limit</strong> (<em>float</em>) – Compute cost limit in USD (default: -1 for unlimited)</p></li>
+<li><p><strong>shutdown_at</strong> (<em>str</em>) – ISO8601 datetime for auto-shutdown (optional)</p></li>
+<li><p><strong>data_files</strong> (<em>list</em>) – List of data file dicts. For AWS: CloudOS or S3. For Azure: CloudOS only.</p></li>
+<li><p><strong>s3_mounts</strong> (<em>list</em>) – List of S3 mount dicts (AWS only, ignored for Azure)</p></li>
+<li><p><strong>r_version</strong> (<em>str</em>) – R version for RStudio (required for rstudio backend)</p></li>
+<li><p><strong>spark_master_type</strong> (<em>str</em>) – Spark master instance type (required for spark backend, AWS only)</p></li>
+<li><p><strong>spark_core_type</strong> (<em>str</em>) – Spark core instance type (required for spark backend, AWS only)</p></li>
+<li><p><strong>spark_workers</strong> (<em>int</em>) – Initial number of Spark workers (default: 1, AWS only)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete payload for API request</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">create_interactive_session_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sessions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagination_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_page_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#create_interactive_session_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Create a rich table displaying interactive sessions with interactive pagination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sessions</strong> (<em>list</em>) – List of session objects from the API</p></li>
+<li><p><strong>pagination_metadata</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pagination information from the API response</p></li>
+<li><p><strong>selected_columns</strong> (<em>str</em><em> or </em><em>list</em><em>, </em><em>optional</em>) – Comma-separated string or list of column names to display.
+If None, uses responsive column selection based on terminal width.
+Available columns: id, name, status, type, instance, cost, owner</p></li>
+<li><p><strong>page_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of sessions per page for interactive pagination. Default=10.</p></li>
+<li><p><strong>fetch_page_callback</strong> (<em>callable</em><em>, </em><em>optional</em>) – Callback function to fetch a specific page of results.
+Should accept page number (1-indexed) and return dict with ‘sessions’ and ‘pagination_metadata’ keys.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_session_creation_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_session_creation_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_master</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_core</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s3_mounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_session_creation_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table" title="Link to this definition">¶</a></dt>
+<dd><p>Display session creation result in table format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_data</strong> (<em>dict</em>) – Session data from API response</p></li>
+<li><p><strong>instance_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Instance type that was requested (for display if not in response)</p></li>
+<li><p><strong>storage_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Storage size that was requested (for display if not in response)</p></li>
+<li><p><strong>backend_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Backend type (regular, vscode, spark, rstudio) for backend-specific display</p></li>
+<li><p><strong>r_version</strong> (<em>str</em><em>, </em><em>optional</em>) – R version for RStudio backend</p></li>
+<li><p><strong>spark_master</strong> (<em>str</em><em>, </em><em>optional</em>) – Spark master instance type</p></li>
+<li><p><strong>spark_core</strong> (<em>str</em><em>, </em><em>optional</em>) – Spark core instance type</p></li>
+<li><p><strong>spark_workers</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of Spark workers</p></li>
+<li><p><strong>data_files</strong> (<em>list</em><em>, </em><em>optional</em>) – List of parsed data file objects to display</p></li>
+<li><p><strong>s3_mounts</strong> (<em>list</em><em>, </em><em>optional</em>) – List of parsed S3 mount objects to display</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Formatted table output</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_data_file">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_data_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_file_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_data_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file" title="Link to this definition">¶</a></dt>
+<dd><p>Parse data file format: either S3 or CloudOS dataset path.</p>
+<p>Supports mounting both S3 files and CloudOS dataset files into the session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_file_str</strong> (<em>str</em>) – <p>Format:
+- S3 file: s3://bucket_name/path/to/file.txt
+- CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path</p>
+<p>Examples:
+- s3://lifebit-featured-datasets/pipelines/phewas/data.csv
+- leila-test/Data/3_vcf_list.txt</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Parsed data item. For S3:
+{“type”: “s3”, “s3_bucket”: “…”, “s3_prefix”: “…”}</p>
+<p>For CloudOS dataset:
+{“type”: “cloudos”, “project_name”: “…”, “dataset_path”: “…”}</p>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If format is invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_link_path">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_link_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link_path_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_link_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path" title="Link to this definition">¶</a></dt>
+<dd><p>Parse link path format: supports S3, CloudOS, or legacy colon format.</p>
+<p>Links an S3 folder or CloudOS folder to the session for read/write access.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>link_path_str</strong> (<em>str</em>) – Format (one of):
+- S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)
+- CloudOS folder: project/folder_path (e.g., leila-test/Data)
+- Legacy format (deprecated): mountName:bucketName:s3Prefix</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (type, data) where type is ‘s3’ or ‘cloudos’ and data contains:
+For S3: {“s3_bucket”: “…”, “s3_prefix”: “…”}
+For CloudOS: {“project_name”: “…”, “folder_path”: “…”}</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_shutdown_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_shutdown_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration" title="Link to this definition">¶</a></dt>
+<dd><p>Parse shutdown duration string to ISO8601 datetime string.</p>
+<p>Accepts formats: 30m, 2h, 8h, 1d, 2d</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>duration_str</strong> (<em>str</em>) – Duration string (e.g., “2h”, “30m”, “1d”)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ISO8601 formatted datetime string (future time)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">process_interactive_session_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sessions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#process_interactive_session_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="Link to this definition">¶</a></dt>
+<dd><p>Process interactive sessions data into a pandas DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sessions</strong> (<em>list</em>) – List of session objects from the API</p></li>
+<li><p><strong>all_fields</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, include all fields from the API response.
+If False, include only the most relevant fields.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – DataFrame with session data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.resolve_data_file_id">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">resolve_data_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets_api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#resolve_data_file_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve nested dataset path to actual file ID.</p>
+<p>Searches across all datasets in the project to find the target file.
+This allows paths like ‘Data/file.txt’ to work even if ‘Data’ is a folder
+within a dataset (not a dataset name itself).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets_api</strong> (<a class="reference internal" href="cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets" title="cloudos_cli.datasets.datasets.Datasets"><em>Datasets</em></a>) – Initialized Datasets API instance (with correct project_name)</p></li>
+<li><p><strong>dataset_path</strong> (<em>str</em>) – Nested path to file within the project (e.g., ‘Data/file.txt’ or ‘Folder/subfolder/file.txt’)
+Can start with a dataset name or a folder name within any dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Data item object with resolved file ID:
+{“kind”: “File”, “item”: “&lt;fileId&gt;”, “name”: “&lt;fileName&gt;”}</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If file not found in any dataset/folder</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">save_interactive_session_list_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#save_interactive_session_list_to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Save interactive session list to CSV file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – The session data to save</p></li>
+<li><p><strong>outfile</strong> (<em>str</em>) – Path to the output CSV file</p></li>
+<li><p><strong>count</strong> (<em>int</em><em>, </em><em>optional</em>) – Total number of sessions on this page for display message</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_instance_type">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_instance_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aws'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_instance_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="Link to this definition">¶</a></dt>
+<dd><p>Validate instance type format for the given execution platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance_type</strong> (<em>str</em>) – Instance type to validate</p></li>
+<li><p><strong>execution_platform</strong> (<em>str</em>) – ‘aws’ or ‘azure’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(is_valid: bool, error_message: str or None)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="cloudos_cli.jobs.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">cloudos_cli.jobs</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="cloudos_cli.interactive_session.cli.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">cloudos_cli.interactive_session.cli</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Lifebit AI
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">cloudos_cli.interactive_session.interactive_session</a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.build_session_payload"><code class="docutils literal notranslate"><span class="pre">build_session_payload()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table"><code class="docutils literal notranslate"><span class="pre">create_interactive_session_list_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table"><code class="docutils literal notranslate"><span class="pre">format_session_creation_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file"><code class="docutils literal notranslate"><span class="pre">parse_data_file()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path"><code class="docutils literal notranslate"><span class="pre">parse_link_path()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration"><code class="docutils literal notranslate"><span class="pre">parse_shutdown_duration()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="docutils literal notranslate"><span class="pre">process_interactive_session_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id"><code class="docutils literal notranslate"><span class="pre">resolve_data_file_id()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="docutils literal notranslate"><span class="pre">validate_instance_type()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,6 @@
+cloudos\_cli.interactive\_session.cli
+=====================================
+
+.. automodule:: cloudos_cli.interactive_session.cli
+
+   
