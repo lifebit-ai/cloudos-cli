@@ -10,12 +10,33 @@ cloudos\_cli.interactive\_session.interactive\_session
    
       build_session_payload
       create_interactive_session_list_table
+      export_session_status_csv
+      export_session_status_json
+      format_cost
+      format_duration
+      format_instance_type
       format_session_creation_table
+      format_session_status_table
+      format_timestamp
+      get_interactive_session_status
+      map_backend_type
+      map_status
       parse_data_file
       parse_link_path
       parse_shutdown_duration
+      parse_watch_timeout_duration
       process_interactive_session_list
       resolve_data_file_id
       save_interactive_session_list_to_csv
+      transform_session_response
       validate_instance_type
+      validate_session_id
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      InteractiveSessionAPI
+      OutputFormatter
+      WatchModeManager
    

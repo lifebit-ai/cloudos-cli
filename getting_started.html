@@ -481,6 +481,7 @@
 <li><p><a class="reference internal" href="#interactive-sessions"><span class="xref myst">Interactive Sessions</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#list-interactive-sessions"><span class="xref myst">List Interactive Sessions</span></a></p></li>
+<li><p><a class="reference internal" href="#get-interactive-session-status"><span class="xref myst">Get Interactive Session Status</span></a></p></li>
 <li><p><a class="reference internal" href="#create-interactive-session"><span class="xref myst">Create Interactive Session</span></a></p></li>
 </ul>
 </li>
@@ -2179,7 +2180,7 @@ Project names in the <code class="docutils literal notranslate"><span class="pre
 <h4>List Interactive Sessions<a class="headerlink" href="#list-interactive-sessions" title="Link to this heading">¶</a></h4>
 <p>You can get a list of all interactive sessions in your workspace by running <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">list</span></code>. The command can produce three different output formats that can be selected using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
 <ul class="simple">
-<li><p><strong>stdout</strong> (default): Displaysa  table directly in the terminal with interactive pagination</p></li>
+<li><p><strong>stdout</strong> (default): Displays a table directly in the terminal with interactive pagination</p></li>
 <li><p><strong>csv</strong>: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> parameter</p></li>
 <li><p><strong>json</strong>: Saves complete session information to a JSON file with all available fields</p></li>
 </ul>
@@ -2244,6 +2245,106 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </pre></div>
 </div>
 <p>Available columns: <code class="docutils literal notranslate"><span class="pre">backend</span></code>, <code class="docutils literal notranslate"><span class="pre">cost</span></code>, <code class="docutils literal notranslate"><span class="pre">cost_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">created_at</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">instance</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">owner</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">resources</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">saved_at</span></code>, <code class="docutils literal notranslate"><span class="pre">spot</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">time_left</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code></p>
+</section>
+<section id="get-interactive-session-status">
+<h4>Get Interactive Session Status<a class="headerlink" href="#get-interactive-session-status" title="Link to this heading">¶</a></h4>
+<p>You can retrieve detailed status information for a specific interactive session using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">status</span></code> command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.</p>
+<p><strong>Basic Usage</strong></p>
+<p>Get the status of a session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p>The command displays session information in a formatted table:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">╔════════════════════╦═════════════════════════════════════════════════════╗</span>
+<span class="go">║ Property           ║ Value                                               ║</span>
+<span class="go">╠════════════════════╬═════════════════════════════════════════════════════╣</span>
+<span class="go">║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║</span>
+<span class="go">║ Name               ║ analysis-dev (linked)                               ║</span>
+<span class="go">║ Status             ║ running                                             ║</span>
+<span class="go">║ Backend            ║ awsJupyterNotebook                                  ║</span>
+<span class="go">║ Owner              ║ John Doe                                            ║</span>
+<span class="go">║ Project            ║ research                                            ║</span>
+<span class="go">║ Instance Type      ║ c5.xlarge                                           ║</span>
+<span class="go">║ Storage            ║ 50 GB                                               ║</span>
+<span class="go">║ Cost               ║ $2.45/hour                                          ║</span>
+<span class="go">║ Runtime            ║ 2h 15m 30s                                          ║</span>
+<span class="go">║ Created At         ║ 2024-03-19 10:30:00 UTC                             ║</span>
+<span class="go">║ Last Saved         ║ 2024-03-19 12:30:00 UTC                             ║</span>
+<span class="go">║ Auto-Shutdown At   ║ 2024-03-19 18:30:00 UTC                             ║</span>
+<span class="go">╚════════════════════╩═════════════════════════════════════════════════════╝</span>
+</pre></div>
+</div>
+<p><strong>Watch Mode for Provisioning Sessions</strong></p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--watch</span></code> flag to continuously monitor a session’s status as it provisions, with real-time status change notifications:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch
+</pre></div>
+</div>
+<p>Watch mode automatically tracks status changes and polls until the session reaches a terminal state:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Session 69bc00cb1488084e5a6cae70 currently is in initialising...</span>
+<span class="go">Status changed: initialising → provisioning</span>
+<span class="go">Status changed: provisioning → running</span>
+<span class="go">✓ Session is now running and ready to use!</span>
+</pre></div>
+</div>
+<p><strong>Watch Mode Behavior</strong></p>
+<ul class="simple">
+<li><p><strong>Pre-running sessions</strong> (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)</p></li>
+<li><p><strong>Running/stopped sessions</strong>: Watch mode will show a warning and display the current status instead</p></li>
+</ul>
+<p>Example with a running session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">⚠ Warning: Watch mode only works for pre-running statuses (setup, initialising, scheduled). Current status: running. Showing session status instead.</span>
+<span class="go">[session status table displayed]</span>
+</pre></div>
+</div>
+<p><strong>Polling Interval</strong></p>
+<p>Customize the polling interval for watch mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Poll every 15 seconds instead of default 30</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch<span class="w"> </span>--watch-interval<span class="w"> </span><span class="m">15</span>
+</pre></div>
+</div>
+<p><strong>Watch Mode Timeout</strong></p>
+<p>Set a maximum time to wait for the session to reach running state. The <code class="docutils literal notranslate"><span class="pre">--max-wait-time</span></code> option accepts human-friendly duration formats:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 30 minutes (default)</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch
+
+<span class="c1"># 5 minutes</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch<span class="w"> </span>--max-wait-time<span class="w"> </span>5m
+
+<span class="c1"># 2 hours</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch<span class="w"> </span>--max-wait-time<span class="w"> </span>2h
+
+<span class="c1"># 1 day</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch<span class="w"> </span>--max-wait-time<span class="w"> </span>1d
+
+<span class="c1"># 60 seconds</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch<span class="w"> </span>--max-wait-time<span class="w"> </span>60s
+</pre></div>
+</div>
+<p><strong>Supported timeout formats:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">30s</span></code> - seconds</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5m</span></code> - minutes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2h</span></code> - hours</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1d</span></code> - days</p></li>
+</ul>
+<p>If the session does not reach running state within the specified timeout, the watch mode exits with a clear message:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Timeout: Session did not reach running state within 30m. Current status: provisioning. Exiting watch mode.</span>
+</pre></div>
+</div>
+<p><strong>Output Formats</strong></p>
+<p>Save session status to a file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save as JSON</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json<span class="w"> </span>--output-basename<span class="w"> </span>/tmp/session_status
+<span class="c1"># Creates: /tmp/session_status.json</span>
+
+<span class="c1"># Save as CSV</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-basename<span class="w"> </span>/tmp/session_status
+<span class="c1"># Creates: /tmp/session_status.csv</span>
+</pre></div>
+</div>
 </section>
 <section id="create-interactive-session">
 <h4>Create Interactive Session<a class="headerlink" href="#create-interactive-session" title="Link to this heading">¶</a></h4>

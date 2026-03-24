@@ -2905,45 +2905,7 @@
 </div>
 
     
-    <span class="c1">## FOR FUTURE COMMANDS IMPLEMENTATION</span>
-    <span class="c1"># def get_interactive_session(self, team_id, session_id, verify=True):</span>
-    <span class="c1">#     &quot;&quot;&quot;Get details of a specific interactive session.</span>
 
-    <span class="c1">#     Parameters</span>
-    <span class="c1">#     ----------</span>
-    <span class="c1">#     team_id : string</span>
-    <span class="c1">#         The CloudOS team id (workspace id).</span>
-    <span class="c1">#     session_id : string</span>
-    <span class="c1">#         The interactive session id (MongoDB ObjectId).</span>
-    <span class="c1">#     verify: [bool|string], default=True</span>
-    <span class="c1">#         Whether to use SSL verification or not.</span>
-
-    <span class="c1">#     Returns</span>
-    <span class="c1">#     -------</span>
-    <span class="c1">#     dict</span>
-    <span class="c1">#         Session object with current status and full details.</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     if not team_id or not isinstance(team_id, str):</span>
-    <span class="c1">#         raise ValueError(&quot;Invalid team_id: must be a non-empty string&quot;)</span>
-        
-    <span class="c1">#     if not session_id or not isinstance(session_id, str):</span>
-    <span class="c1">#         raise ValueError(&quot;Invalid session_id: must be a non-empty string&quot;)</span>
-
-    <span class="c1">#     headers = {</span>
-    <span class="c1">#         &quot;Content-type&quot;: &quot;application/json&quot;,</span>
-    <span class="c1">#         &quot;apikey&quot;: self.apikey</span>
-    <span class="c1">#     }</span>
-
-    <span class="c1">#     # Build URL for getting specific session</span>
-    <span class="c1">#     url = f&quot;{self.cloudos_url}/api/v2/interactive-sessions/{session_id}?teamId={team_id}&quot;</span>
-        
-    <span class="c1">#     r = retry_requests_get(url, headers=headers, verify=verify)</span>
-        
-    <span class="c1">#     if r.status_code &gt;= 400:</span>
-    <span class="c1">#         raise BadRequestException(r)</span>
-
-    <span class="c1">#     content = r.json()</span>
-    <span class="c1">#     return content</span>
 </pre></div>
         </article>
       </div>

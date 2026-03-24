@@ -1984,6 +1984,104 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 </section>
+<section id="cloudos-interactive-session-status">
+<h4>status<a class="headerlink" href="#cloudos-interactive-session-status" title="Link to this heading">¶</a></h4>
+<p>Get status of an interactive session.</p>
+<p class="rubric">Usage</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-k">
+<span id="cmdoption-cloudos-interactive-session-status-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-k" title="Link to this definition">¶</a></dt>
+<dd><p>Your CloudOS API key</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-c">
+<span id="cmdoption-cloudos-interactive-session-status-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-c" title="Link to this definition">¶</a></dt>
+<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-session-id">
+<span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-session-id" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The session ID to retrieve status for (24-character hex string).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-workspace-id">
+<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-workspace-id" title="Link to this definition">¶</a></dt>
+<dd><p>The specific CloudOS workspace id.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-output-format">
+<span class="sig-name descname"><span class="pre">--output-format</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_format&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-output-format" title="Link to this definition">¶</a></dt>
+<dd><p>Output format for session status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Options<span class="colon">:</span></dt>
+<dd class="field-odd"><p>stdout | csv | json</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-output-basename">
+<span class="sig-name descname"><span class="pre">--output-basename</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_basename&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-output-basename" title="Link to this definition">¶</a></dt>
+<dd><p>Output file base name to save session status. Default=interactive_session_status</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-watch">
+<span class="sig-name descname"><span class="pre">--watch</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-watch" title="Link to this definition">¶</a></dt>
+<dd><p>Continuously poll status until session reaches running state (only for pre-running statuses).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-watch-interval">
+<span class="sig-name descname"><span class="pre">--watch-interval</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;watch_interval&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-watch-interval" title="Link to this definition">¶</a></dt>
+<dd><p>Poll interval in seconds when using –watch. Default=30.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-max-wait-time">
+<span class="sig-name descname"><span class="pre">--max-wait-time</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;max_wait_time&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-max-wait-time" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum time to wait for session in watch mode. Accepts formats: 30s, 5m, 2h, 1d. Default=30m (30 minutes).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-verbose">
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-disable-ssl-verification">
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-disable-ssl-verification" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-ssl-cert">
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-ssl-cert" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-profile">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-profile" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+</section>
 </section>
 <section id="cloudos-job">
 <h3>job<a class="headerlink" href="#cloudos-job" title="Link to this heading">¶</a></h3>
@@ -4450,6 +4548,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <li><a class="reference internal" href="#cloudos-interactive-session">interactive-session</a><ul>
 <li><a class="reference internal" href="#cloudos-interactive-session-create">create</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-list">list</a></li>
+<li><a class="reference internal" href="#cloudos-interactive-session-status">status</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#cloudos-job">job</a><ul>

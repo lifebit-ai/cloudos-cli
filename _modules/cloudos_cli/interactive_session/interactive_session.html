@@ -379,9 +379,16 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib3.util.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_get</span>
+
 
 
 <div class="viewcode-block" id="validate_instance_type">
@@ -1071,10 +1078,42 @@
         <span class="n">delta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-    
     <span class="n">future_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">+</span> <span class="n">delta</span>
     <span class="k">return</span> <span class="n">future_time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="parse_watch_timeout_duration">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_watch_timeout_duration</span><span class="p">(</span><span class="n">duration_str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse watch timeout duration string to seconds.</span>
+<span class="sd">    </span>
+<span class="sd">    Accepts formats: 30m, 2h, 1d, 30s</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    duration_str : str</span>
+<span class="sd">        Duration string (e.g., &quot;30m&quot;, &quot;2h&quot;, &quot;1d&quot;, &quot;30s&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Duration in seconds</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d+)([smhd])$&#39;</span><span class="p">,</span> <span class="n">duration_str</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid duration format: </span><span class="si">{</span><span class="n">duration_str</span><span class="si">}</span><span class="s2">. Use format like &#39;30s&#39;, &#39;30m&#39;, &#39;2h&#39;, &#39;1d&#39;&quot;</span><span class="p">)</span>
+    
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;m&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="mi">3600</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="mi">86400</span></div>
 
 
 <div class="viewcode-block" id="parse_data_file">
@@ -1389,6 +1428,7 @@
 
 
 
+
 <div class="viewcode-block" id="build_session_payload">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.build_session_payload">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_session_payload</span><span class="p">(</span>
@@ -1665,7 +1705,646 @@
     
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.&quot;</span><span class="p">)</span>
-    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[cyan]Next steps:[/cyan] Use &#39;cloudos interactive-session list&#39; to monitor status&quot;</span><span class="p">)</span></div>
+    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[cyan]Next steps:[/cyan] Use &#39;cloudos interactive-session status&#39; to monitor status&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ============================================================================</span>
+<span class="c1"># Interactive Session Status Helper Functions</span>
+<span class="c1"># ============================================================================</span>
+
+<span class="c1"># Backend type mapping for status display</span>
+<span class="n">BACKEND_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;awsJupyterNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Jupyter Notebook&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;azureJupyterNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Jupyter Notebook&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;awsVSCode&#39;</span><span class="p">:</span> <span class="s1">&#39;VS Code&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;azureVSCode&#39;</span><span class="p">:</span> <span class="s1">&#39;VS Code&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;awsJupyterSparkNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;azureJupyterSparkNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;awsRstudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;azureRstudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Status color mapping for Rich terminal</span>
+<span class="n">STATUS_COLORS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;terminated&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;provisioning&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;scheduled&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Terminal states where watch mode should exit</span>
+<span class="n">TERMINAL_STATES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span> <span class="s1">&#39;terminated&#39;</span><span class="p">}</span>
+
+<span class="c1"># Status mapping from API to user-friendly display</span>
+<span class="n">API_STATUS_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;ready&#39;</span><span class="p">:</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span>      <span class="c1"># API returns &#39;ready&#39; for running sessions</span>
+    <span class="s1">&#39;aborted&#39;</span><span class="p">:</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span>    <span class="c1"># API returns &#39;aborted&#39; for stopped sessions</span>
+    <span class="s1">&#39;setup&#39;</span><span class="p">:</span> <span class="s1">&#39;setup&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;initialising&#39;</span><span class="p">:</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;initializing&#39;</span><span class="p">:</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;scheduled&#39;</span><span class="p">:</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span>    <span class="c1"># Some endpoints may return &#39;running&#39;</span>
+    <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span>    <span class="c1"># Some endpoints may return &#39;stopped&#39;</span>
+    <span class="s1">&#39;terminated&#39;</span><span class="p">:</span> <span class="s1">&#39;terminated&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Pre-running statuses (watch mode only valid for these)</span>
+<span class="n">PRE_RUNNING_STATUSES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="format_duration">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_duration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_duration</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert seconds to human-readable format.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples: &quot;2h 15m&quot;, &quot;45m 30s&quot;, &quot;30s&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">seconds</span> <span class="ow">or</span> <span class="n">seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Not started&quot;</span>
+    
+    <span class="n">seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="n">hours</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">//</span> <span class="mi">3600</span>
+    <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
+    <span class="n">secs</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">%</span> <span class="mi">60</span>
+    
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">secs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">secs</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="map_backend_type">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.map_backend_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_backend_type</span><span class="p">(</span><span class="n">api_backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map API backend type to user-friendly display name.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">BACKEND_MAPPING</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_backend</span><span class="p">,</span> <span class="n">api_backend</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="map_status">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.map_status">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map API status value to user-friendly display status.</span>
+<span class="sd">    </span>
+<span class="sd">    Converts API status values (like &#39;ready&#39;, &#39;aborted&#39;) to display values</span>
+<span class="sd">    (like &#39;running&#39;, &#39;stopped&#39;) matching the list command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">API_STATUS_MAPPING</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_status</span><span class="p">,</span> <span class="n">api_status</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="format_timestamp">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_timestamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_timestamp</span><span class="p">(</span><span class="n">iso_timestamp</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert ISO8601 timestamp to readable format.</span>
+<span class="sd">    </span>
+<span class="sd">    Example: &quot;2026-03-13 10:30:00&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">iso_timestamp</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span>
+            <span class="n">iso_timestamp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">iso_timestamp</span></div>
+
+
+
+<div class="viewcode-block" id="format_cost">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_cost">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_cost</span><span class="p">(</span><span class="n">cost_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format cost as currency.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples: &quot;$12.50&quot;, &quot;$0.00&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cost_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;$0.00&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cost_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;$0.00&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="format_instance_type">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_instance_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_instance_type</span><span class="p">(</span><span class="n">instance_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_cost_saving</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format instance type with spot indicator.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples: &quot;c5.xlarge&quot;, &quot;c5.xlarge (spot)&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_cost_saving</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">instance_type</span><span class="si">}</span><span class="s2"> (spot)&quot;</span>
+    <span class="k">return</span> <span class="n">instance_type</span></div>
+
+
+
+<div class="viewcode-block" id="validate_session_id">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.validate_session_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_session_id</span><span class="p">(</span><span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate session ID format (24-character hex string).&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[a-f0-9]</span><span class="si">{24}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="InteractiveSessionAPI">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InteractiveSessionAPI</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;API client for interactive session operations.&quot;&quot;&quot;</span>
+    
+    <span class="n">REQUEST_TIMEOUT</span> <span class="o">=</span> <span class="mi">30</span>  <span class="c1"># seconds</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">apikey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize API client.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cloudos_url : str</span>
+<span class="sd">            Base CloudOS platform URL</span>
+<span class="sd">        apikey : str</span>
+<span class="sd">            API key for authentication</span>
+<span class="sd">        verify_ssl : bool</span>
+<span class="sd">            Whether to verify SSL certificates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span> <span class="o">=</span> <span class="n">cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span> <span class="o">=</span> <span class="n">apikey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_ssl</span> <span class="o">=</span> <span class="n">verify_ssl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_session</span><span class="p">()</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create requests session with retry strategy.&quot;&quot;&quot;</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        
+        <span class="c1"># Configure retry strategy with exponential backoff</span>
+        <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
+            <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="n">adapter</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry_strategy</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">session</span>
+    
+<div class="viewcode-block" id="InteractiveSessionAPI.get_session_status">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.get_session_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_session_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve session status from API endpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        GET /api/v2/interactive-sessions/{sessionId}?teamId={teamId}</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            Session ID (24-character hex)</span>
+<span class="sd">        team_id : str</span>
+<span class="sd">            Team/workspace ID</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Session status response</span>
+<span class="sd">        </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        PermissionError</span>
+<span class="sd">            If authentication fails (401, 403)</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If session not found (404)</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            For other API errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v2/interactive-sessions/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;teamId&#39;</span><span class="p">:</span> <span class="n">team_id</span><span class="p">}</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="p">}</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span>
+                <span class="n">url</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify_ssl</span>
+            <span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">&quot;Unauthorized: Invalid API key or credentials&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">&quot;Forbidden: Insufficient permissions for this session&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Session not found. Verify session ID (</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;and team ID (</span><span class="si">{</span><span class="n">team_id</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">500</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Server error: Unable to retrieve session status&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;API error (HTTP </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+        
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API request timeout after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">REQUEST_TIMEOUT</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to connect to CloudOS: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="OutputFormatter">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutputFormatter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles formatting output in different formats.&quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="OutputFormatter.format_stdout">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_stdout">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_stdout</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display session status as a rich table with color coding.&quot;&quot;&quot;</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;[bold cyan]Interactive Session Status[/bold cyan]&quot;</span><span class="p">,</span>
+            <span class="n">show_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">header_style</span><span class="o">=</span><span class="s2">&quot;bold magenta&quot;</span>
+        <span class="p">)</span>
+        
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Property&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Build session link and embed it in the name</span>
+        <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+        <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">cloudos_url</span> <span class="ow">and</span> <span class="n">session_id</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span>
+            <span class="n">base_url</span> <span class="o">=</span> <span class="n">cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">session_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/app/data-science/interactive-analysis/view/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/&quot;</span>
+            <span class="n">session_name_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">session_link</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">session_name</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">session_name_with_link</span> <span class="o">=</span> <span class="n">session_name</span>
+        
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">session_name_with_link</span><span class="p">)</span>
+        
+        <span class="c1"># Status with color coding</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+        <span class="n">status_color</span> <span class="o">=</span> <span class="n">STATUS_COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">status_colored</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">status_color</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">[/</span><span class="si">{</span><span class="n">status_color</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">status_colored</span><span class="p">)</span>
+        
+        <span class="c1"># Add remaining fields</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Backend&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend_type&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Owner&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;owner&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Instance Type&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instance_type&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Storage&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storage_size&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Cost&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Runtime&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Created At&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;created_at&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;last_saved&#39;</span><span class="p">):</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Last Saved&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;last_saved&#39;</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_shutdown&#39;</span><span class="p">):</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Auto-Shutdown At&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_shutdown&#39;</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_version&#39;</span><span class="p">):</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;R Version&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_version&#39;</span><span class="p">))</span>
+        
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="OutputFormatter.format_json">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_json">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_json</span><span class="p">(</span><span class="n">raw_response</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return raw API response as formatted JSON.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">raw_response</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="OutputFormatter.format_csv">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_csv">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_csv</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export as CSV with key fields.&quot;&quot;&quot;</span>
+        <span class="n">csv_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ID&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Status&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Backend&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend_type&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Instance&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instance_type&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Storage&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storage_size&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Runtime&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Created&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;created_at&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csv_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">csv_data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="WatchModeManager">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WatchModeManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages watch mode polling and display.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_client</span><span class="p">:</span> <span class="n">InteractiveSessionAPI</span><span class="p">,</span> 
+                 <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize watch mode manager.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        api_client : InteractiveSessionAPI</span>
+<span class="sd">            API client instance</span>
+<span class="sd">        session_id : str</span>
+<span class="sd">            Session ID to monitor</span>
+<span class="sd">        team_id : str</span>
+<span class="sd">            Team ID</span>
+<span class="sd">        interval : int</span>
+<span class="sd">            Polling interval in seconds (default: 10)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_client</span> <span class="o">=</span> <span class="n">api_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">=</span> <span class="n">session_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">team_id</span> <span class="o">=</span> <span class="n">team_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="WatchModeManager.watch">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager.watch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">watch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Continuously poll session status until reaching terminal state.</span>
+<span class="sd">        </span>
+<span class="sd">        Terminal states: running, stopped, terminated</span>
+<span class="sd">        </span>
+<span class="sd">        Handles Ctrl+C gracefully.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">spinner_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;◜&#39;</span><span class="p">,</span> <span class="s1">&#39;◝&#39;</span><span class="p">,</span> <span class="s1">&#39;◞&#39;</span><span class="p">,</span> <span class="s1">&#39;◟&#39;</span><span class="p">]</span>
+        <span class="n">spinner_index</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># Fetch status</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_client</span><span class="o">.</span><span class="n">get_session_status</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">team_id</span>
+                <span class="p">)</span>
+                
+                <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+                
+                <span class="c1"># Display progress</span>
+                <span class="n">spinner</span> <span class="o">=</span> <span class="n">spinner_chars</span><span class="p">[</span><span class="n">spinner_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">spinner_chars</span><span class="p">)]</span>
+                
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="si">{</span><span class="n">spinner</span><span class="si">}</span><span class="s2"> Status: </span><span class="si">{</span><span class="n">status</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> | &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Elapsed: </span><span class="si">{</span><span class="n">elapsed</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+                        <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                        <span class="n">flush</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+                
+                <span class="c1"># Check if reached terminal state</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">TERMINAL_STATES</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">()</span>  <span class="c1"># New line after spinner</span>
+                    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;running&#39;</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s2">&quot;✓ Session is now running and ready to use!&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;⚠ Session reached terminal state: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">response</span>
+                
+                <span class="c1"># Wait before next poll</span>
+                <span class="n">spinner_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+        
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠ Watch mode interrupted by user.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+    
+<div class="viewcode-block" id="WatchModeManager.get_elapsed_time">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager.get_elapsed_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_elapsed_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted elapsed time.&quot;&quot;&quot;</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">format_duration</span><span class="p">(</span><span class="n">elapsed</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="transform_session_response">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.transform_session_response">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">transform_session_response</span><span class="p">(</span><span class="n">api_response</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform raw API response to user-friendly display format.&quot;&quot;&quot;</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    <span class="n">api_status</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">)</span>  <span class="c1"># Map API status to display status</span>
+    
+    <span class="c1"># Map backend type</span>
+    <span class="n">api_backend</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">backend_type</span> <span class="o">=</span> <span class="n">map_backend_type</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span>
+    
+    <span class="c1"># Extract user info</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surname&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">owner</span><span class="p">:</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Extract project info</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">project_name</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Extract resource info</span>
+    <span class="n">resources</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resources&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">instance_type</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instanceType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    <span class="n">is_spot</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isCostSaving&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">instance_display</span> <span class="o">=</span> <span class="n">format_instance_type</span><span class="p">(</span><span class="n">instance_type</span><span class="p">,</span> <span class="n">is_spot</span><span class="p">)</span>
+    
+    <span class="n">storage_size_gb</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storageSizeInGb&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    <span class="n">storage_display</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_size_gb</span><span class="si">}</span><span class="s2"> GB&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">storage_size_gb</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
+    
+    <span class="c1"># Cost and runtime</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalCostInUsd&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">format_cost</span><span class="p">(</span><span class="n">total_cost</span><span class="p">)</span>
+    
+    <span class="n">total_runtime_seconds</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalRunningTimeInSeconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">runtime</span> <span class="o">=</span> <span class="n">format_duration</span><span class="p">(</span><span class="n">total_runtime_seconds</span><span class="p">)</span>
+    
+    <span class="c1"># Timestamps</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;createdAt&#39;</span><span class="p">))</span>
+    <span class="n">last_saved</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lastSavedAt&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># Execution info</span>
+    <span class="n">execution</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">auto_shutdown</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoShutdownAtDate&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># R version (for RStudio)</span>
+    <span class="n">r_version</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rVersion&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">session_id</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+        <span class="s1">&#39;backend_type&#39;</span><span class="p">:</span> <span class="n">backend_type</span><span class="p">,</span>
+        <span class="s1">&#39;owner&#39;</span><span class="p">:</span> <span class="n">owner</span><span class="p">,</span>
+        <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project_name</span><span class="p">,</span>
+        <span class="s1">&#39;instance_type&#39;</span><span class="p">:</span> <span class="n">instance_display</span><span class="p">,</span>
+        <span class="s1">&#39;storage_size&#39;</span><span class="p">:</span> <span class="n">storage_display</span><span class="p">,</span>
+        <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="n">cost</span><span class="p">,</span>
+        <span class="s1">&#39;runtime&#39;</span><span class="p">:</span> <span class="n">runtime</span><span class="p">,</span>
+        <span class="s1">&#39;created_at&#39;</span><span class="p">:</span> <span class="n">created_at</span><span class="p">,</span>
+        <span class="s1">&#39;last_saved&#39;</span><span class="p">:</span> <span class="n">last_saved</span> <span class="k">if</span> <span class="n">last_saved</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;auto_shutdown&#39;</span><span class="p">:</span> <span class="n">auto_shutdown</span> <span class="k">if</span> <span class="n">auto_shutdown</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;r_version&#39;</span><span class="p">:</span> <span class="n">r_version</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="export_session_status_json">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.export_session_status_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">export_session_status_json</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export session status as JSON.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session_data : dict</span>
+<span class="sd">        Raw API response</span>
+<span class="sd">    output_file : str, optional</span>
+<span class="sd">        Path to save JSON file. If None, returns JSON string.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        JSON formatted string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session_data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">json_str</span></div>
+
+
+
+<div class="viewcode-block" id="export_session_status_csv">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.export_session_status_csv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">export_session_status_csv</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export session status as CSV.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session_data : dict</span>
+<span class="sd">        Transformed session data (from transform_session_response)</span>
+<span class="sd">    output_file : str, optional</span>
+<span class="sd">        Path to save CSV file. If None, returns CSV string.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        CSV formatted string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">csv_str</span> <span class="o">=</span> <span class="n">OutputFormatter</span><span class="o">.</span><span class="n">format_csv</span><span class="p">(</span><span class="n">session_data</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv_str</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">csv_str</span></div>
+
+
+
+<span class="c1"># ============================================================================</span>
+<span class="c1"># Wrapper Functions for CLI Integration</span>
+<span class="c1"># ============================================================================</span>
+
+<div class="viewcode-block" id="get_interactive_session_status">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.get_interactive_session_status">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_interactive_session_status</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">apikey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                                   <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                                   <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper function to fetch session status from API.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        CloudOS platform URL</span>
+<span class="sd">    apikey : str</span>
+<span class="sd">        API key for authentication</span>
+<span class="sd">    session_id : str</span>
+<span class="sd">        Session ID (24-char hex)</span>
+<span class="sd">    team_id : str</span>
+<span class="sd">        Team/workspace ID</span>
+<span class="sd">    verify_ssl : bool</span>
+<span class="sd">        Whether to verify SSL certificates</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Whether to print verbose output</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Raw API response</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If session not found</span>
+<span class="sd">    PermissionError</span>
+<span class="sd">        If authentication fails</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">        For other API errors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">api_client</span> <span class="o">=</span> <span class="n">InteractiveSessionAPI</span><span class="p">(</span>
+        <span class="n">cloudos_url</span><span class="o">=</span><span class="n">cloudos_url</span><span class="p">,</span>
+        <span class="n">apikey</span><span class="o">=</span><span class="n">apikey</span><span class="p">,</span>
+        <span class="n">verify_ssl</span><span class="o">=</span><span class="n">verify_ssl</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">api_client</span><span class="o">.</span><span class="n">get_session_status</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">team_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="format_session_status_table">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_session_status_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_session_status_table</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper function to display session status as a rich table.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session_data : dict</span>
+<span class="sd">        Transformed session data (from transform_session_response)</span>
+<span class="sd">    cloudos_url : str, optional</span>
+<span class="sd">        CloudOS URL for creating links</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">OutputFormatter</span><span class="o">.</span><span class="n">format_stdout</span><span class="p">(</span><span class="n">session_data</span><span class="p">,</span> <span class="n">cloudos_url</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

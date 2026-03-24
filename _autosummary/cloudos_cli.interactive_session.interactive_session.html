@@ -393,8 +393,38 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table" title="cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_interactive_session_list_table</span></code></a>(sessions)</p></td>
 <td><p>Create a rich table displaying interactive sessions with interactive pagination.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table" title="cloudos_cli.interactive_session.interactive_session.format_session_creation_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_session_creation_table</span></code></a>(session_data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_csv" title="cloudos_cli.interactive_session.interactive_session.export_session_status_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_session_status_csv</span></code></a>(session_data[, ...])</p></td>
+<td><p>Export session status as CSV.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_json" title="cloudos_cli.interactive_session.interactive_session.export_session_status_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_session_status_json</span></code></a>(session_data[, ...])</p></td>
+<td><p>Export session status as JSON.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_cost" title="cloudos_cli.interactive_session.interactive_session.format_cost"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_cost</span></code></a>([cost_value])</p></td>
+<td><p>Format cost as currency.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_duration" title="cloudos_cli.interactive_session.interactive_session.format_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_duration</span></code></a>(seconds)</p></td>
+<td><p>Convert seconds to human-readable format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_instance_type" title="cloudos_cli.interactive_session.interactive_session.format_instance_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_instance_type</span></code></a>(instance_type[, ...])</p></td>
+<td><p>Format instance type with spot indicator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table" title="cloudos_cli.interactive_session.interactive_session.format_session_creation_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_session_creation_table</span></code></a>(session_data)</p></td>
 <td><p>Display session creation result in table format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_status_table" title="cloudos_cli.interactive_session.interactive_session.format_session_status_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_session_status_table</span></code></a>(session_data[, ...])</p></td>
+<td><p>Wrapper function to display session status as a rich table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_timestamp" title="cloudos_cli.interactive_session.interactive_session.format_timestamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_timestamp</span></code></a>([iso_timestamp])</p></td>
+<td><p>Convert ISO8601 timestamp to readable format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.get_interactive_session_status" title="cloudos_cli.interactive_session.interactive_session.get_interactive_session_status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interactive_session_status</span></code></a>(cloudos_url, ...)</p></td>
+<td><p>Wrapper function to fetch session status from API.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.map_backend_type" title="cloudos_cli.interactive_session.interactive_session.map_backend_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_backend_type</span></code></a>(api_backend)</p></td>
+<td><p>Map API backend type to user-friendly display name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.map_status" title="cloudos_cli.interactive_session.interactive_session.map_status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_status</span></code></a>(api_status)</p></td>
+<td><p>Map API status value to user-friendly display status.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file" title="cloudos_cli.interactive_session.interactive_session.parse_data_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_data_file</span></code></a>(data_file_str)</p></td>
 <td><p>Parse data file format: either S3 or CloudOS dataset path.</p></td>
@@ -405,21 +435,191 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration" title="cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_shutdown_duration</span></code></a>(duration_str)</p></td>
 <td><p>Parse shutdown duration string to ISO8601 datetime string.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_interactive_session_list</span></code></a>(sessions[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration" title="cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_watch_timeout_duration</span></code></a>(duration_str)</p></td>
+<td><p>Parse watch timeout duration string to seconds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_interactive_session_list</span></code></a>(sessions[, ...])</p></td>
 <td><p>Process interactive sessions data into a pandas DataFrame.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id" title="cloudos_cli.interactive_session.interactive_session.resolve_data_file_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_data_file_id</span></code></a>(datasets_api, dataset_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id" title="cloudos_cli.interactive_session.interactive_session.resolve_data_file_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_data_file_id</span></code></a>(datasets_api, dataset_path)</p></td>
 <td><p>Resolve nested dataset path to actual file ID.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv</span></code></a>(df, outfile)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv</span></code></a>(df, outfile)</p></td>
 <td><p>Save interactive session list to CSV file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response" title="cloudos_cli.interactive_session.interactive_session.transform_session_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_session_response</span></code></a>(api_response)</p></td>
+<td><p>Transform raw API response to user-friendly display format.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_instance_type</span></code></a>(instance_type[, ...])</p></td>
 <td><p>Validate instance type format for the given execution platform.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id" title="cloudos_cli.interactive_session.interactive_session.validate_session_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_session_id</span></code></a>(session_id)</p></td>
+<td><p>Validate session ID format (24-character hex string).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI" title="cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InteractiveSessionAPI</span></code></a>(cloudos_url, apikey[, ...])</p></td>
+<td><p>API client for interactive session operations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter" title="cloudos_cli.interactive_session.interactive_session.OutputFormatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputFormatter</span></code></a>()</p></td>
+<td><p>Handles formatting output in different formats.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager" title="cloudos_cli.interactive_session.interactive_session.WatchModeManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WatchModeManager</span></code></a>(api_client, session_id, team_id)</p></td>
+<td><p>Manages watch mode polling and display.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">InteractiveSessionAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#InteractiveSessionAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>API client for interactive session operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cloudos_url</strong> (<em>str</em>)</p></li>
+<li><p><strong>apikey</strong> (<em>str</em>)</p></li>
+<li><p><strong>verify_ssl</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.REQUEST_TIMEOUT">
+<span class="sig-name descname"><span class="pre">REQUEST_TIMEOUT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">30</span></span><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.REQUEST_TIMEOUT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.get_session_status">
+<span class="sig-name descname"><span class="pre">get_session_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#InteractiveSessionAPI.get_session_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.get_session_status" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve session status from API endpoint.</p>
+<p>GET /api/v2/interactive-sessions/{sessionId}?teamId={teamId}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_id</strong> (<em>str</em>) – Session ID (24-character hex)</p></li>
+<li><p><strong>team_id</strong> (<em>str</em>) – Team/workspace ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Session status response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>PermissionError</strong> – If authentication fails (401, 403)</p></li>
+<li><p><strong>ValueError</strong> – If session not found (404)</p></li>
+<li><p><strong>RuntimeError</strong> – For other API errors</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.OutputFormatter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">OutputFormatter</span></span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#OutputFormatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handles formatting output in different formats.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_csv">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">format_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#OutputFormatter.format_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Export as CSV with key fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>session_data</strong> (<em>dict</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_json">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">format_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#OutputFormatter.format_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_json" title="Link to this definition">¶</a></dt>
+<dd><p>Return raw API response as formatted JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>raw_response</strong> (<em>dict</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_stdout">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">format_stdout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#OutputFormatter.format_stdout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_stdout" title="Link to this definition">¶</a></dt>
+<dd><p>Display session status as a rich table with color coding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_data</strong> (<em>dict</em>)</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.WatchModeManager">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">WatchModeManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#WatchModeManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manages watch mode polling and display.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api_client</strong> (<a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI" title="cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI"><em>InteractiveSessionAPI</em></a>)</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>team_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>interval</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.WatchModeManager.get_elapsed_time">
+<span class="sig-name descname"><span class="pre">get_elapsed_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#WatchModeManager.get_elapsed_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager.get_elapsed_time" title="Link to this definition">¶</a></dt>
+<dd><p>Get formatted elapsed time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.WatchModeManager.watch">
+<span class="sig-name descname"><span class="pre">watch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#WatchModeManager.watch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager.watch" title="Link to this definition">¶</a></dt>
+<dd><p>Continuously poll session status until reaching terminal state.</p>
+<p>Terminal states: running, stopped, terminated</p>
+<p>Handles Ctrl+C gracefully.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<em>bool</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.build_session_payload">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">build_session_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aws'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c5.xlarge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_spot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shutdown_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s3_mounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_master_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_core_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#build_session_payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.build_session_payload" title="Link to this definition">¶</a></dt>
@@ -475,6 +675,94 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.export_session_status_csv">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">export_session_status_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#export_session_status_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Export session status as CSV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_data</strong> (<em>dict</em>) – Transformed session data (from transform_session_response)</p></li>
+<li><p><strong>output_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to save CSV file. If None, returns CSV string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CSV formatted string</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.export_session_status_json">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">export_session_status_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#export_session_status_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_json" title="Link to this definition">¶</a></dt>
+<dd><p>Export session status as JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_data</strong> (<em>dict</em>) – Raw API response</p></li>
+<li><p><strong>output_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to save JSON file. If None, returns JSON string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON formatted string</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_cost">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_cost" title="Link to this definition">¶</a></dt>
+<dd><p>Format cost as currency.</p>
+<p>Examples: “$12.50”, “$0.00”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cost_value</strong> (<em>float</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_duration">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_duration" title="Link to this definition">¶</a></dt>
+<dd><p>Convert seconds to human-readable format.</p>
+<p>Examples: “2h 15m”, “45m 30s”, “30s”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seconds</strong> (<em>int</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_instance_type">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_instance_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cost_saving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_instance_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_instance_type" title="Link to this definition">¶</a></dt>
+<dd><p>Format instance type with spot indicator.</p>
+<p>Examples: “c5.xlarge”, “c5.xlarge (spot)”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance_type</strong> (<em>str</em>)</p></li>
+<li><p><strong>is_cost_saving</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_session_creation_table">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_session_creation_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_master</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_core</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s3_mounts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_session_creation_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table" title="Link to this definition">¶</a></dt>
 <dd><p>Display session creation result in table format.</p>
@@ -498,6 +786,99 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_session_status_table">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_session_status_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_session_status_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_session_status_table" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper function to display session status as a rich table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_data</strong> (<em>dict</em>) – Transformed session data (from transform_session_response)</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em><em>, </em><em>optional</em>) – CloudOS URL for creating links</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.format_timestamp">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">format_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iso_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#format_timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.format_timestamp" title="Link to this definition">¶</a></dt>
+<dd><p>Convert ISO8601 timestamp to readable format.</p>
+<p>Example: “2026-03-13 10:30:00”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>iso_timestamp</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.get_interactive_session_status">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">get_interactive_session_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#get_interactive_session_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.get_interactive_session_status" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper function to fetch session status from API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – CloudOS platform URL</p></li>
+<li><p><strong>apikey</strong> (<em>str</em>) – API key for authentication</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Session ID (24-char hex)</p></li>
+<li><p><strong>team_id</strong> (<em>str</em>) – Team/workspace ID</p></li>
+<li><p><strong>verify_ssl</strong> (<em>bool</em>) – Whether to verify SSL certificates</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to print verbose output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Raw API response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If session not found</p></li>
+<li><p><strong>PermissionError</strong> – If authentication fails</p></li>
+<li><p><strong>RuntimeError</strong> – For other API errors</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.map_backend_type">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">map_backend_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#map_backend_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.map_backend_type" title="Link to this definition">¶</a></dt>
+<dd><p>Map API backend type to user-friendly display name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api_backend</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.map_status">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">map_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_status</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#map_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.map_status" title="Link to this definition">¶</a></dt>
+<dd><p>Map API status value to user-friendly display status.</p>
+<p>Converts API status values (like ‘ready’, ‘aborted’) to display values
+(like ‘running’, ‘stopped’) matching the list command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api_status</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -575,6 +956,24 @@ For CloudOS: {“project_name”: “…”, “folder_path”: “…”}</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_watch_timeout_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_watch_timeout_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration" title="Link to this definition">¶</a></dt>
+<dd><p>Parse watch timeout duration string to seconds.</p>
+<p>Accepts formats: 30m, 2h, 1d, 30s</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>duration_str</strong> (<em>str</em>) – Duration string (e.g., “30m”, “2h”, “1d”, “30s”)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Duration in seconds</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">process_interactive_session_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sessions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#process_interactive_session_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="Link to this definition">¶</a></dt>
 <dd><p>Process interactive sessions data into a pandas DataFrame.</p>
@@ -639,6 +1038,20 @@ Can start with a dataset name or a folder name within any dataset.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.transform_session_response">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">transform_session_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#transform_session_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response" title="Link to this definition">¶</a></dt>
+<dd><p>Transform raw API response to user-friendly display format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api_response</strong> (<em>dict</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_instance_type">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_instance_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aws'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_instance_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="Link to this definition">¶</a></dt>
 <dd><p>Validate instance type format for the given execution platform.</p>
@@ -654,6 +1067,20 @@ Can start with a dataset name or a folder name within any dataset.</p></li>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_session_id">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_session_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_session_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id" title="Link to this definition">¶</a></dt>
+<dd><p>Validate session ID format (24-character hex string).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>session_id</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -716,16 +1143,45 @@ Can start with a dataset name or a folder name within any dataset.</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">cloudos_cli.interactive_session.interactive_session</a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI"><code class="docutils literal notranslate"><span class="pre">InteractiveSessionAPI</span></code></a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.REQUEST_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">InteractiveSessionAPI.REQUEST_TIMEOUT</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.get_session_status"><code class="docutils literal notranslate"><span class="pre">InteractiveSessionAPI.get_session_status()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter"><code class="docutils literal notranslate"><span class="pre">OutputFormatter</span></code></a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_csv"><code class="docutils literal notranslate"><span class="pre">OutputFormatter.format_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_json"><code class="docutils literal notranslate"><span class="pre">OutputFormatter.format_json()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_stdout"><code class="docutils literal notranslate"><span class="pre">OutputFormatter.format_stdout()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager"><code class="docutils literal notranslate"><span class="pre">WatchModeManager</span></code></a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager.get_elapsed_time"><code class="docutils literal notranslate"><span class="pre">WatchModeManager.get_elapsed_time()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.WatchModeManager.watch"><code class="docutils literal notranslate"><span class="pre">WatchModeManager.watch()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.build_session_payload"><code class="docutils literal notranslate"><span class="pre">build_session_payload()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table"><code class="docutils literal notranslate"><span class="pre">create_interactive_session_list_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_csv"><code class="docutils literal notranslate"><span class="pre">export_session_status_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.export_session_status_json"><code class="docutils literal notranslate"><span class="pre">export_session_status_json()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_cost"><code class="docutils literal notranslate"><span class="pre">format_cost()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_duration"><code class="docutils literal notranslate"><span class="pre">format_duration()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_instance_type"><code class="docutils literal notranslate"><span class="pre">format_instance_type()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_creation_table"><code class="docutils literal notranslate"><span class="pre">format_session_creation_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_session_status_table"><code class="docutils literal notranslate"><span class="pre">format_session_status_table()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.format_timestamp"><code class="docutils literal notranslate"><span class="pre">format_timestamp()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.get_interactive_session_status"><code class="docutils literal notranslate"><span class="pre">get_interactive_session_status()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.map_backend_type"><code class="docutils literal notranslate"><span class="pre">map_backend_type()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.map_status"><code class="docutils literal notranslate"><span class="pre">map_status()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file"><code class="docutils literal notranslate"><span class="pre">parse_data_file()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path"><code class="docutils literal notranslate"><span class="pre">parse_link_path()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration"><code class="docutils literal notranslate"><span class="pre">parse_shutdown_duration()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration"><code class="docutils literal notranslate"><span class="pre">parse_watch_timeout_duration()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="docutils literal notranslate"><span class="pre">process_interactive_session_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id"><code class="docutils literal notranslate"><span class="pre">resolve_data_file_id()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response"><code class="docutils literal notranslate"><span class="pre">transform_session_response()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="docutils literal notranslate"><span class="pre">validate_instance_type()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id"><code class="docutils literal notranslate"><span class="pre">validate_session_id()</span></code></a></li>
 </ul>
 </li>
 </ul>
