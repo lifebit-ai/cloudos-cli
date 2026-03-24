@@ -7,7 +7,6 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
-from cloudos_cli.utils.details import create_job_list_table
 from cloudos_cli.interactive_session.interactive_session import (
     create_interactive_session_list_table,
     process_interactive_session_list,
@@ -16,11 +15,11 @@ from cloudos_cli.interactive_session.interactive_session import (
     parse_watch_timeout_duration,
     parse_data_file,
     parse_link_path,
-    parse_s3_mount,
     build_session_payload,
     format_session_creation_table,
     resolve_data_file_id,
     validate_session_id,
+    validate_instance_type,
     get_interactive_session_status,
     format_session_status_table,
     transform_session_response,
@@ -34,7 +33,6 @@ from cloudos_cli.interactive_session.interactive_session import (
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
-from cloudos_cli.utils.requests import retry_requests_get
 
 
 # Create the interactive_session group
@@ -48,7 +46,7 @@ def interactive_session():
 @click.option('-k',
               '--apikey',
               help='Your CloudOS API key',
-              required=False)
+              required=True)
 @click.option('-c',
               '--cloudos-url',
               help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -59,7 +57,7 @@ def interactive_session():
               required=True)
 @click.option('--filter-status',
               multiple=True,
-              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'stopped'], case_sensitive=False),
+              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'paused'], case_sensitive=False),
               help='Filter sessions by status. Can be specified multiple times to filter by multiple statuses.')
 @click.option('--limit',
               type=int,
@@ -69,7 +67,7 @@ def interactive_session():
               type=int,
               default=1,
               help='Page number to retrieve. Default=1.')
-@click.option('--filter-owner-only',
+@click.option('--filter-only-mine',
               is_flag=True,
               help='Show only the current user\'s sessions.')
 @click.option('--archived',
@@ -86,7 +84,7 @@ def interactive_session():
               required=False)
 @click.option('--table-columns',
               help=('Comma-separated list of columns to display in the table. Only applicable when --output-format=stdout. ' +
-                    'Available columns: id,name,status,type,instance,cost,owner. ' +
+                    'Available columns: backend, cost, cost_limit, created_at, id, instance, name, owner, project, resources, runtime, saved_at, spot, status, time_left, type, version. ' +
                     'Default: responsive (auto-selects columns based on terminal width)'),
               default=None)
 @click.option('--all-fields',
@@ -113,7 +111,7 @@ def list_sessions(ctx,
                   filter_status,
                   limit,
                   page,
-                  filter_owner_only,
+                  filter_only_mine,
                   archived,
                   output_format,
                   output_basename,
@@ -140,8 +138,24 @@ def list_sessions(ctx,
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     
-    # Prepare output file if needed
+    # Validate table columns if specified
+    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
+                     'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
+                     'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
+    
+    if selected_columns:
+        # Parse columns (split by comma and strip whitespace)
+        col_list = [col.strip() for col in selected_columns.split(',')]
+        invalid_cols = [col for col in col_list if col not in valid_columns]
+        
+        if invalid_cols:
+            click.secho(f'Error: Invalid column(s): {", ".join(invalid_cols)}', fg='red', err=True)
+            click.secho(f'Valid columns: {", ".join(sorted(valid_columns))}', fg='yellow', err=True)
+            click.secho(f'\nTip: Use --help without other options to see command help', fg='cyan', err=True)
+            raise SystemExit(1)
+    
+    # Prepare output file if needed
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
     
@@ -163,7 +177,7 @@ def list_sessions(ctx,
             page=page,
             limit=limit,
             status=list(filter_status) if filter_status else None,
-            owner_only=filter_owner_only,
+            owner_only=filter_only_mine,
             include_archived=archived,
             verify=verify_ssl
         )
@@ -179,7 +193,7 @@ def list_sessions(ctx,
                 page=page_num,
                 limit=limit,
                 status=list(filter_status) if filter_status else None,
-                owner_only=filter_owner_only,
+                owner_only=filter_only_mine,
                 include_archived=archived,
                 verify=verify_ssl
             )
@@ -188,7 +202,7 @@ def list_sessions(ctx,
         if len(sessions) == 0:
             if filter_status:
                 # Show helpful message when filtering returns no results
-                status_flow = 'scheduled → initialising → setup → running → stopped'
+                status_flow = 'scheduled → initialising → setup → running → paused'
                 click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
                 click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
             elif output_format == 'stdout':
@@ -202,12 +216,12 @@ def list_sessions(ctx,
         
         elif output_format == 'csv':
             sessions_df = process_interactive_session_list(sessions, all_fields)
-            save_interactive_session_list_to_csv(sessions_df, outfile)
+            save_interactive_session_list_to_csv(sessions_df, outfile, count=len(sessions))
         
         elif output_format == 'json':
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
-            print(f'\tInteractive session list collected with a total of {len(sessions)} sessions.')
+            print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
             print(f'\tInteractive session list saved to {outfile}')
         
         else:
@@ -221,7 +235,7 @@ def list_sessions(ctx,
             raise SystemExit(1)
         # Check if the error is related to status filtering
         elif filter_status and ('400' in error_str or 'Invalid' in error_str):
-            status_flow = 'scheduled → initialising → setup → running → stopped'
+            status_flow = 'scheduled → initialising → setup → running → paused'
             click.secho(f'No interactive sessions found in the requested status.', fg='yellow', err=True)
             click.secho(f'Session status flow: {status_flow}', fg='cyan', err=True)
             raise SystemExit(1)
@@ -354,14 +368,29 @@ def create_session(ctx,
         # Normalize to lowercase
         execution_platform = execution_platform.lower()
     
-    # Validate execution_platform
-    if execution_platform not in ['aws', 'azure']:
-        click.secho(f'Error: Invalid execution_platform: {execution_platform}. Valid values: aws, azure', fg='red', err=True)
-        raise SystemExit(1)
-    
     # Set instance default based on execution_platform if not specified
     if instance is None:
         instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
+    
+    # Validate instance type format
+    is_valid, error_msg = validate_instance_type(instance, execution_platform)
+    if not is_valid:
+        click.secho(f'Error: {error_msg}', fg='red', err=True)
+        click.secho(f'Hint: Check your instance type spelling and format for {execution_platform.upper()}.', fg='yellow', err=True)
+        raise SystemExit(1)
+    
+    # Validate Spark instance types if session type is spark
+    if session_type.lower() == 'spark':
+        # Spark is AWS only, so use 'aws' for validation
+        is_valid_master, error_msg_master = validate_instance_type(spark_master, 'aws')
+        if not is_valid_master:
+            click.secho(f'Error: Invalid Spark master instance type: {error_msg_master}', fg='red', err=True)
+            raise SystemExit(1)
+        
+        is_valid_core, error_msg_core = validate_instance_type(spark_core, 'aws')
+        if not is_valid_core:
+            click.secho(f'Error: Invalid Spark core instance type: {error_msg_core}', fg='red', err=True)
+            raise SystemExit(1)
     
     if verbose:
         print('Executing create interactive session...')
@@ -586,7 +615,7 @@ def create_session(ctx,
         )
         
         # Output session link in greppable format for CI/automation
-        click.echo(f"Session link: {cloudos_url}/interactive-sessions/{session_id}")
+        click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
         
         if verbose:
             print('\tSession creation completed successfully!')
@@ -628,8 +657,7 @@ def create_session(ctx,
 @click.option('--workspace-id',
               help='The specific CloudOS workspace id.',
               required=False)
-@click.option('--format',
-              'output_format',
+@click.option('--output-format',
               help='Output format for session status.',
               type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
               default='stdout')
@@ -744,6 +772,7 @@ def get_session_status(ctx,
                 previous_status = display_status  # Track previous status to detect changes
                 
                 while True:
+                    # Get current status
                     api_status = session_response.get('status', '')
                     display_status = map_status(api_status)
                     
@@ -761,11 +790,11 @@ def get_session_status(ctx,
                     if display_status == 'running':
                         click.secho('✓ Session is now running and ready to use!', fg='green')
                         break
-                    elif display_status in ['stopped', 'terminated']:
+                    elif display_status in ['paused', 'terminated']:
                         click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
                         break
                     
-                    # Check timeout
+                    # Check timeout AFTER evaluating current status
                     if elapsed > max_wait_time_seconds:
                         click.secho(
                             f'Timeout: Session did not reach running state within {max_wait_time}. '
@@ -778,7 +807,7 @@ def get_session_status(ctx,
                     # Wait before next poll
                     time.sleep(watch_interval)
                     
-                    # Fetch updated status
+                    # Fetch updated status for next iteration
                     session_response = get_interactive_session_status(
                         cloudos_url=cloudos_url,
                         apikey=apikey,
@@ -857,7 +886,7 @@ def get_session_status(ctx,
               help='Don\'t save session data before pausing (use with caution).')
 @click.option('--force',
               is_flag=True,
-              help='Force immediate termination, skip graceful shutdown.')
+              help='Force immediate termination and skip confirmation prompt.')
 @click.option('--wait',
               is_flag=True,
               help='Wait for session to fully pause.')
@@ -904,8 +933,47 @@ def pause_session(ctx,
         print('\t...Preparing objects')
     
     try:
-        # Show confirmation prompt unless --yes flag is used
-        if not skip_confirmation:
+        # Check session status BEFORE prompting for confirmation
+        if verbose:
+            print('\t...Checking session status')
+        
+        try:
+            session_response = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=workspace_id,
+                verify_ssl=verify_ssl,
+                verbose=False
+            )
+        except Exception as e:
+            # Handle invalid session ID or API errors
+            error_msg = str(e).lower()
+            if 'not found' in error_msg or '404' in error_msg:
+                click.secho(f'Error: Session ID not found: {session_id}', fg='red', err=True)
+            else:
+                click.secho(f'Error: Unable to retrieve session status: {str(e)}', fg='red', err=True)
+            raise SystemExit(1)
+        
+        # Check if session is already paused or terminated
+        api_status = session_response.get('status', '')
+
+        
+        if api_status == 'aborted':
+            click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
+            click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            raise SystemExit(1)
+        elif  api_status == 'aborting':
+            click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
+            click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            raise SystemExit(1)
+        
+        if api_status == 'terminated':
+            click.secho(f'Error: Session is terminated and cannot be paused.', fg='red', err=True)
+            raise SystemExit(1)
+        
+        # Show confirmation prompt unless --yes or --force flag is used
+        if not skip_confirmation and not force:
             click.echo(f'About to pause session: {session_id}')
             click.echo(f'Upload data before pausing: {not no_upload}')
             click.echo(f'Force immediate termination: {force}')
@@ -962,9 +1030,8 @@ def pause_session(ctx,
                     verify_ssl=verify_ssl
                 )
                 
-                # Display final status
-                transformed_data = transform_session_response(final_response)
-                format_stop_success_output(transformed_data, wait=True)
+                # Display final status (pass raw API response, not transformed data)
+                format_stop_success_output(final_response, wait=True)
                 
             except TimeoutError as e:
                 click.secho(f'⚠ Timeout: {str(e)}', fg='yellow', err=True)
@@ -991,15 +1058,8 @@ def pause_session(ctx,
     except BadRequestException as e:
         # Handle API errors with better messages
         error_str = str(e)
-        if 'aborted in aborted status' in error_str.lower():
-            click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
-            click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-        elif 'aborted in aborting status' in error_str.lower():
-            click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
-            click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-        else:
-            # Show the original error for other bad request errors
-            click.secho(f'Error: {str(e)}', fg='red', err=True)
+        # Show the original error for other bad request errors
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
     
     except KeyboardInterrupt:
@@ -1016,9 +1076,9 @@ def pause_session(ctx,
         elif 'Session not found' in error_str:
             click.secho(f'Error: Session not found. Please check the session ID.', fg='red', err=True)
         elif 'aborted in aborted status' in error_str.lower() or 'aborted in aborting status' in error_str.lower():
-            # Session is already stopped/stopping
+            # Session is already paused/pausing
             if 'aborted status' in error_str.lower():
-                click.secho(f'Error: Cannot pause session - the session is already stopped.', fg='red', err=True)
+                click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
                 click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             else:
                 click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)

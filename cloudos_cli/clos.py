@@ -2313,7 +2313,7 @@ class Cloudos:
         if status:
             # status is a list of valid status values (user-friendly names)
             # Include both spellings and API names for flexibility
-            valid_statuses = ['setup', 'initialising', 'initializing', 'running', 'scheduled', 'stopped', 'aborted']
+            valid_statuses = ['setup', 'initialising', 'initializing', 'running', 'scheduled', 'stopped', 'paused', 'aborted']
             for s in status:
                 if s.lower() not in valid_statuses:
                     raise ValueError(f"Invalid status '{s}'. Valid values: {', '.join(valid_statuses)}")
@@ -2326,6 +2326,7 @@ class Cloudos:
                 'running': 'ready',  # API uses 'ready' for running sessions
                 'scheduled': 'scheduled',
                 'stopped': 'aborted',
+                'paused': 'aborted',  # 'paused' and 'stopped' both map to 'aborted' API status
                 'aborted': 'aborted'  # Also accept 'aborted' as input
             }
             mapped_statuses = [status_mapping[s.lower()] for s in status]
@@ -2401,7 +2402,7 @@ class Cloudos:
         
         # Make the API request with POST method
         try:
-            r = requests.post(
+            r = retry_requests_post(
                 url,
                 headers=headers,
                 data=json.dumps(payload),
@@ -2537,42 +2538,4 @@ class Cloudos:
         # Return the status code (204 No Content is success)
         return r.status_code
     
-    ## FOR FUTURE COMMANDS IMPLEMENTATION
-    # def get_interactive_session(self, team_id, session_id, verify=True):
-    #     """Get details of a specific interactive session.
 
-    #     Parameters
-    #     ----------
-    #     team_id : string
-    #         The CloudOS team id (workspace id).
-    #     session_id : string
-    #         The interactive session id (MongoDB ObjectId).
-    #     verify: [bool|string], default=True
-    #         Whether to use SSL verification or not.
-
-    #     Returns
-    #     -------
-    #     dict
-    #         Session object with current status and full details.
-    #     """
-    #     if not team_id or not isinstance(team_id, str):
-    #         raise ValueError("Invalid team_id: must be a non-empty string")
-        
-    #     if not session_id or not isinstance(session_id, str):
-    #         raise ValueError("Invalid session_id: must be a non-empty string")
-
-    #     headers = {
-    #         "Content-type": "application/json",
-    #         "apikey": self.apikey
-    #     }
-
-    #     # Build URL for getting specific session
-    #     url = f"{self.cloudos_url}/api/v2/interactive-sessions/{session_id}?teamId={team_id}"
-        
-    #     r = retry_requests_get(url, headers=headers, verify=verify)
-        
-    #     if r.status_code >= 400:
-    #         raise BadRequestException(r)
-
-    #     content = r.json()
-    #     return content
