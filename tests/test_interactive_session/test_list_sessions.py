@@ -115,7 +115,7 @@ class TestInteractiveSessionListIntegration:
         
         # Even if it fails due to config, we want to verify the command was invoked
         # Success would mean no exceptions during argument parsing
-        assert 'No interactive sessions found' in result.output or result.exit_code in [0, 1]
+        assert 'No interactive sessions found' in result.output or result.exit_code == 0
 
 
 class TestInteractiveSessionAPIMethod:

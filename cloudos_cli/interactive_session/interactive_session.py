@@ -5,14 +5,90 @@ import sys
 import re
 import json
 import time
-import csv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from rich.table import Table
 from rich.console import Console
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from cloudos_cli.utils.requests import retry_requests_get
+
+
+
+def validate_instance_type(instance_type, execution_platform='aws'):
+    """Validate instance type format for the given execution platform.
+    
+    Parameters
+    ----------
+    instance_type : str
+        Instance type to validate
+    execution_platform : str
+        'aws' or 'azure'
+    
+    Returns
+    -------
+    tuple
+        (is_valid: bool, error_message: str or None)
+    """
+    if not instance_type or not isinstance(instance_type, str):
+        return False, "Instance type must be a non-empty string"
+    
+    if execution_platform == 'aws':
+        # AWS EC2 instance format: <family><generation>.<size>
+        # Examples: c5.xlarge, m5.2xlarge, r6i.large, t3.medium, g4dn.xlarge
+        # Family: c, m, r, t, g, p, i, d, x, z, h, etc. (1-4 chars)
+        # Generation: digit(s) optionally followed by letter(s) for variants
+        # Size: nano, micro, small, medium, large, xlarge, 2xlarge, 4xlarge, etc.
+        aws_pattern = r'^[a-z]{1,4}\d+[a-z]*\.(\d+)?(nano|micro|small|medium|large|xlarge|metal)$'
+        
+        if not re.match(aws_pattern, instance_type, re.IGNORECASE):
+            return False, (f"Invalid AWS instance type format: '{instance_type}'. "
+                          f"Expected format: <family><generation>.<size> (e.g., c5.xlarge, m5.2xlarge)")
+    
+    elif execution_platform == 'azure':
+        # Azure VM format: Standard_<series><version>_<size> or Basic_<series><version>
+        # Examples: Standard_F1s, Standard_D4as_v4, Standard_B2ms, Basic_A1
+        azure_pattern = r'^(Standard|Basic)_[A-Z]\d+[a-z]*(_v\d+)?$'
+        
+        if not re.match(azure_pattern, instance_type):
+            return False, (f"Invalid Azure instance type format: '{instance_type}'. "
+                          f"Expected format: Standard_<series><size> (e.g., Standard_F1s, Standard_D4as_v4)")
+    
+    else:
+        # Unknown platform - skip validation
+        return True, None
+    
+    return True, None
+
+
+def _map_session_type_to_friendly_name(session_type):
+    """Map internal session type names to user-friendly display names.
+    
+    Parameters
+    ----------
+    session_type : str
+        Internal session type (e.g., 'awsJupyterNotebook')
+    
+    Returns
+    -------
+    str
+        User-friendly type name (e.g., 'Jupyter')
+    """
+    type_mapping = {
+        'awsJupyterNotebook': 'Jupyter',
+        'azureJupyterNotebook': 'Jupyter',
+        'awsVSCode': 'VS Code',
+        'azureVSCode': 'VS Code',
+        'awsRstudio': 'RStudio',
+        'azureRstudio': 'RStudio',
+        'awsSpark': 'Spark',
+        'awsJupyterSparkNotebook': 'Spark',
+        'azureJupyterSparkNotebook': 'Spark',
+        'azureSpark': 'Spark',
+        'awsRStudio': 'RStudio',  # Handle both capitalizations
+        'azureRStudio': 'RStudio'
+    }
+    return type_mapping.get(session_type, session_type)
 
 
 def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None):
@@ -135,6 +211,27 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             'no_wrap': True,
             'max_width': 15,
             'accessor': 'rVersion'
+        },
+        'spot': {
+            'header': 'Spot',
+            'style': 'cyan',
+            'no_wrap': True,
+            'max_width': 6,
+            'accessor': 'resources.isCostSaving'
+        },
+        'cost_limit': {
+            'header': 'Cost Limit Left',
+            'style': 'yellow',
+            'no_wrap': True,
+            'max_width': 15,
+            'accessor': 'execution'
+        },
+        'time_left': {
+            'header': 'Time Until Shutdown',
+            'style': 'magenta',
+            'no_wrap': True,
+            'max_width': 20,
+            'accessor': 'execution.autoShutdownAtDate'
         }
     }
     
@@ -198,12 +295,12 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
         # For server-side pagination, we use the API page directly
         if fetch_page_callback and pagination_metadata:
             # Server-side pagination - sessions list contains current page data
-            page_rows = [row for row in rows]  # All rows are from current page
+            page_rows = rows[:]  # All rows are from current page
         else:
             # Client-side pagination
             start = current_api_page * page_size
             end = start + page_size
-            page_rows = [row for row in rows[start:end]]
+            page_rows = rows[start:end]
 
         # Clear console first
         console.clear()
@@ -351,12 +448,20 @@ def process_interactive_session_list(sessions, all_fields=False):
         # Return only selected fields
         rows = []
         for session in sessions:
+            # Get user info (API uses 'name' and 'surname', not 'firstName' and 'lastName')
+            user_obj = session.get('user', {})
+            user_name = ''
+            if user_obj:
+                first_name = user_obj.get('name', '')
+                last_name = user_obj.get('surname', '')
+                user_name = f'{first_name} {last_name}'.strip()
+            
             row = {
                 '_id': session.get('_id', ''),
                 'name': session.get('name', ''),
                 'status': session.get('status', ''),
-                'interactiveSessionType': session.get('interactiveSessionType', ''),
-                'user': session.get('user', {}).get('firstName', '') + ' ' + session.get('user', {}).get('lastName', '') if session.get('user') else '',
+                'interactiveSessionType': _map_session_type_to_friendly_name(session.get('interactiveSessionType', '')),
+                'user': user_name,
                 'instanceType': session.get('resources', {}).get('instanceType', ''),
                 'totalCostInUsd': session.get('totalCostInUsd', 0),
             }
@@ -464,7 +569,6 @@ def _format_session_field(field_name, value):
     elif field_name == 'created_at' or field_name == 'saved_at':
         # Format ISO8601 datetime to readable format
         try:
-            from datetime import datetime
             dt = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
             return dt.strftime('%Y-%m-%d %H:%M')
         except (ValueError, TypeError, ImportError):
@@ -476,10 +580,69 @@ def _format_session_field(field_name, value):
             return f'R {value}'
         return '-'
     
+    elif field_name == 'type':
+        # Map internal type names to user-friendly names
+        return _map_session_type_to_friendly_name(str(value))
+    
+    elif field_name == 'spot':
+        # Indicate if instance is cost-saving (spot)
+        if value is True:
+            return '[bold cyan]Yes[/bold cyan]'
+        elif value is False:
+            return 'No'
+        else:
+            return '-'
+    
+    elif field_name == 'cost_limit':
+        # Calculate remaining cost limit (execution object contains computeCostLimit and computeCostSpent)
+        if isinstance(value, dict):
+            cost_limit = value.get('computeCostLimit', -1)
+            cost_spent = value.get('computeCostSpent', 0)
+            
+            # -1 means unlimited
+            if cost_limit == -1:
+                return 'Unlimited'
+            
+            try:
+                remaining = float(cost_limit) - float(cost_spent)
+                if remaining < 0:
+                    remaining = 0
+                return f'${remaining:.2f}'
+            except (ValueError, TypeError):
+                return '-'
+        return '-'
+    
+    elif field_name == 'time_left':
+        # Calculate time until auto-shutdown
+        if value and value != 'null' and str(value).strip():
+            try:
+                shutdown_time = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                
+                if shutdown_time > now:
+                    time_diff = shutdown_time - now
+                    total_seconds = int(time_diff.total_seconds())
+                    hours = total_seconds // 3600
+                    minutes = (total_seconds % 3600) // 60
+                    
+                    if hours > 24:
+                        days = hours // 24
+                        remaining_hours = hours % 24
+                        return f'{days}d {remaining_hours}h'
+                    elif hours > 0:
+                        return f'{hours}h {minutes}m'
+                    else:
+                        return f'{minutes}m'
+                else:
+                    return '[red]Expired[/red]'
+            except (ValueError, TypeError, ImportError):
+                return '-'
+        return '-'
+    
     return str(value)
 
 
-def save_interactive_session_list_to_csv(df, outfile):
+def save_interactive_session_list_to_csv(df, outfile, count=None):
     """Save interactive session list to CSV file.
     
     Parameters
@@ -488,9 +651,13 @@ def save_interactive_session_list_to_csv(df, outfile):
         The session data to save
     outfile : str
         Path to the output CSV file
+    count : int, optional
+        Total number of sessions on this page for display message
     """
     df.to_csv(outfile, index=False)
-    print(f'Interactive session list saved to {outfile}')
+    if count is not None:
+        print(f'\tInteractive session list collected with a total of {count} sessions on this page.')
+    print(f'\tInteractive session list saved to {outfile}')
 
 
 def parse_shutdown_duration(duration_str):
@@ -521,10 +688,8 @@ def parse_shutdown_duration(duration_str):
         delta = timedelta(hours=value)
     elif unit == 'd':
         delta = timedelta(days=value)
-    
-    future_time = datetime.utcnow() + delta
-    return future_time.isoformat() + 'Z'
-
+    future_time = datetime.now(timezone.utc) + delta
+    return future_time.isoformat().replace('+00:00', 'Z')
 
 def parse_watch_timeout_duration(duration_str):
     """Parse watch timeout duration string to seconds.
@@ -556,7 +721,6 @@ def parse_watch_timeout_duration(duration_str):
         return value * 3600
     elif unit == 'd':
         return value * 86400
-
 
 def parse_data_file(data_file_str):
     """Parse data file format: either S3 or CloudOS dataset path.
@@ -598,7 +762,6 @@ def parse_data_file(data_file_str):
         if not bucket:
             raise ValueError(f"Invalid S3 path: {data_file_str}. Expected: s3://bucket_name/path/to/file")
         
-        bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else "/"
         
         return {
@@ -677,7 +840,7 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
                         "name": file_item.get('name')
                     }
             # If we got here, quick path didn't work, continue to search
-        except (ValueError, KeyError, Exception):
+        except (Exception):
             # First path attempt failed, try searching across all datasets
             pass
         
@@ -862,26 +1025,6 @@ def parse_link_path(link_path_str):
     }
 
 
-def parse_s3_mount(s3_mount_str):
-    """Deprecated: Use parse_link_path instead.
-    
-    Kept for backward compatibility.
-    """
-    result = parse_link_path(s3_mount_str)
-    
-    if result['type'] == 's3':
-        mount_name = result.get('mount_name', f"{result['s3_bucket']}-mount")
-        return {
-            "type": "S3Folder",
-            "data": {
-                "name": mount_name,
-                "s3BucketName": result["s3_bucket"],
-                "s3Prefix": result["s3_prefix"]
-            }
-        }
-    else:
-        raise ValueError(f"parse_s3_mount does not support CloudOS paths. Use parse_link_path instead.")
-
 
 def build_session_payload(
     name,
@@ -968,7 +1111,7 @@ def build_session_payload(
     
     # Default shutdown to 24 hours if not provided
     if not shutdown_at:
-        shutdown_at = (datetime.utcnow() + timedelta(hours=24)).isoformat() + 'Z'
+        shutdown_at = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat().replace('+00:00', 'Z')
     
     # Build interactiveSessionConfiguration
     config = {
@@ -991,9 +1134,8 @@ def build_session_payload(
         config['rVersion'] = r_version
     
     if backend == 'spark':
-        # Use provided types or default to instance_type
-        master_type = spark_master_type or instance_type
-        core_type = spark_core_type or instance_type
+        master_type = spark_master_type
+        core_type = spark_core_type
         
         config['cluster'] = {
             "name": f"{name}-cluster",
@@ -1155,7 +1297,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
-    console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session list' to monitor status")
+    console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session status' to monitor status")
 
 
 # ============================================================================
@@ -1416,7 +1558,7 @@ class OutputFormatter:
         
         if cloudos_url and session_id != 'N/A':
             base_url = cloudos_url.rstrip('/')
-            session_link = f"{base_url}/app/interactive-sessions/{session_id}"
+            session_link = f"{base_url}/app/data-science/interactive-analysis/view/{session_id}/"
             session_name_with_link = f"[link={session_link}]{session_name}[/link]"
         else:
             session_name_with_link = session_name
