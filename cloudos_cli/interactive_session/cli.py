@@ -932,6 +932,45 @@ def pause_session(ctx,
         print('\t...Preparing objects')
     
     try:
+        # Check session status BEFORE prompting for confirmation
+        if verbose:
+            print('\t...Checking session status')
+        
+        try:
+            session_response = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=workspace_id,
+                verify_ssl=verify_ssl,
+                verbose=False
+            )
+        except Exception as e:
+            # Handle invalid session ID or API errors
+            error_msg = str(e).lower()
+            if 'not found' in error_msg or '404' in error_msg:
+                click.secho(f'Error: Session ID not found: {session_id}', fg='red', err=True)
+            else:
+                click.secho(f'Error: Unable to retrieve session status: {str(e)}', fg='red', err=True)
+            raise SystemExit(1)
+        
+        # Check if session is already paused or terminated
+        api_status = session_response.get('status', '')
+
+        
+        if api_status == 'aborted':
+            click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
+            click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            raise SystemExit(1)
+        elif  api_status == 'aborting':
+            click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
+            click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
+            raise SystemExit(1)
+        
+        if api_status == 'terminated':
+            click.secho(f'Error: Session is terminated and cannot be paused.', fg='red', err=True)
+            raise SystemExit(1)
+        
         # Show confirmation prompt unless --yes or --force flag is used
         if not skip_confirmation and not force:
             click.echo(f'About to pause session: {session_id}')
@@ -1018,15 +1057,8 @@ def pause_session(ctx,
     except BadRequestException as e:
         # Handle API errors with better messages
         error_str = str(e)
-        if 'aborted in aborted status' in error_str.lower():
-            click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
-            click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-        elif 'aborted in aborting status' in error_str.lower():
-            click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
-            click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-        else:
-            # Show the original error for other bad request errors
-            click.secho(f'Error: {str(e)}', fg='red', err=True)
+        # Show the original error for other bad request errors
+        click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
     
     except KeyboardInterrupt:
