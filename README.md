@@ -65,6 +65,7 @@ Python package for interacting with CloudOS
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
+      - [Get Interactive Session Status](#get-interactive-session-status)
       - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
@@ -1952,7 +1953,7 @@ Interactive sessions allow you to work within the platform using different virtu
 
 You can get a list of all interactive sessions in your workspace by running `cloudos interactive-session list`. The command can produce three different output formats that can be selected using the `--output-format` option:
 
-- **stdout** (default): Displaysa  table directly in the terminal with interactive pagination 
+- **stdout** (default): Displays a table directly in the terminal with interactive pagination 
 - **csv**: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
 - **json**: Saves complete session information to a JSON file with all available fields
 
@@ -2035,6 +2036,128 @@ cloudos interactive-session list --profile my_profile --table-columns "status,na
 
 Available columns: `backend`, `cost`, `cost_limit`, `created_at`, `id`, `instance`, `name`, `owner`, `project`, `resources`, `runtime`, `saved_at`, `spot`, `status`, `time_left`, `type`, `version`
 
+#### Get Interactive Session Status
+
+You can retrieve detailed status information for a specific interactive session using the `cloudos interactive-session status` command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.
+
+**Basic Usage**
+
+Get the status of a session:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile
+```
+
+The command displays session information in a formatted table:
+
+```console
+╔════════════════════╦═════════════════════════════════════════════════════╗
+║ Property           ║ Value                                               ║
+╠════════════════════╬═════════════════════════════════════════════════════╣
+║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║
+║ Name               ║ analysis-dev (linked)                               ║
+║ Status             ║ running                                             ║
+║ Backend            ║ awsJupyterNotebook                                  ║
+║ Owner              ║ John Doe                                            ║
+║ Project            ║ research                                            ║
+║ Instance Type      ║ c5.xlarge                                           ║
+║ Storage            ║ 50 GB                                               ║
+║ Cost               ║ $2.45/hour                                          ║
+║ Runtime            ║ 2h 15m 30s                                          ║
+║ Created At         ║ 2024-03-19 10:30:00 UTC                             ║
+║ Last Saved         ║ 2024-03-19 12:30:00 UTC                             ║
+║ Auto-Shutdown At   ║ 2024-03-19 18:30:00 UTC                             ║
+╚════════════════════╩═════════════════════════════════════════════════════╝
+```
+
+**Watch Mode for Provisioning Sessions**
+
+Use the `--watch` flag to continuously monitor a session's status as it provisions, with real-time status change notifications:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+```
+
+Watch mode automatically tracks status changes and polls until the session reaches a terminal state:
+
+```console
+Session 69bc00cb1488084e5a6cae70 currently is in initialising...
+Status changed: initialising → provisioning
+Status changed: provisioning → running
+✓ Session is now running and ready to use!
+```
+
+**Watch Mode Behavior**
+
+- **Pre-running sessions** (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)
+- **Running/stopped sessions**: Watch mode will show a warning and display the current status instead
+
+Example with a running session:
+
+```bash
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+```
+
+```console
+⚠ Warning: Watch mode only works for pre-running statuses (setup, initialising, scheduled). Current status: running. Showing session status instead.
+[session status table displayed]
+```
+
+**Polling Interval**
+
+Customize the polling interval for watch mode:
+
+```bash
+# Poll every 15 seconds instead of default 30
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --watch-interval 15
+```
+
+**Watch Mode Timeout**
+
+Set a maximum time to wait for the session to reach running state. The `--max-wait-time` option accepts human-friendly duration formats:
+
+```bash
+# 30 minutes (default)
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch
+
+# 5 minutes
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 5m
+
+# 2 hours
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 2h
+
+# 1 day
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 1d
+
+# 60 seconds
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --watch --max-wait-time 60s
+```
+
+**Supported timeout formats:**
+- `30s` - seconds
+- `5m` - minutes
+- `2h` - hours
+- `1d` - days
+
+If the session does not reach running state within the specified timeout, the watch mode exits with a clear message:
+
+```console
+Timeout: Session did not reach running state within 30m. Current status: provisioning. Exiting watch mode.
+```
+
+**Output Formats**
+
+Save session status to a file:
+
+```bash
+# Save as JSON
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --output-format json --output-basename /tmp/session_status
+# Creates: /tmp/session_status.json
+
+# Save as CSV
+cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --output-format csv --output-basename /tmp/session_status
+# Creates: /tmp/session_status.csv
+```
 
 #### Create Interactive Session
 
