@@ -961,9 +961,8 @@ def pause_session(ctx,
                     verify_ssl=verify_ssl
                 )
                 
-                # Display final status
-                transformed_data = transform_session_response(final_response)
-                format_stop_success_output(transformed_data, wait=True)
+                # Display final status (pass raw API response, not transformed data)
+                format_stop_success_output(final_response, wait=True)
                 
             except TimeoutError as e:
                 click.secho(f'⚠ Timeout: {str(e)}', fg='yellow', err=True)

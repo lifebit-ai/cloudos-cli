@@ -2313,7 +2313,7 @@ class Cloudos:
         if status:
             # status is a list of valid status values (user-friendly names)
             # Include both spellings and API names for flexibility
-            valid_statuses = ['setup', 'initialising', 'initializing', 'running', 'scheduled', 'stopped', 'aborted']
+            valid_statuses = ['setup', 'initialising', 'initializing', 'running', 'scheduled', 'stopped', 'paused', 'aborted']
             for s in status:
                 if s.lower() not in valid_statuses:
                     raise ValueError(f"Invalid status '{s}'. Valid values: {', '.join(valid_statuses)}")
@@ -2326,6 +2326,7 @@ class Cloudos:
                 'running': 'ready',  # API uses 'ready' for running sessions
                 'scheduled': 'scheduled',
                 'stopped': 'aborted',
+                'paused': 'aborted',  # 'paused' and 'stopped' both map to 'aborted' API status
                 'aborted': 'aborted'  # Also accept 'aborted' as input
             }
             mapped_statuses = [status_mapping[s.lower()] for s in status]
