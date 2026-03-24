@@ -885,7 +885,7 @@ def get_session_status(ctx,
               help='Don\'t save session data before pausing (use with caution).')
 @click.option('--force',
               is_flag=True,
-              help='Force immediate termination, skip graceful shutdown.')
+              help='Force immediate termination and skip confirmation prompt.')
 @click.option('--wait',
               is_flag=True,
               help='Wait for session to fully pause.')
@@ -932,8 +932,8 @@ def pause_session(ctx,
         print('\t...Preparing objects')
     
     try:
-        # Show confirmation prompt unless --yes flag is used
-        if not skip_confirmation:
+        # Show confirmation prompt unless --yes or --force flag is used
+        if not skip_confirmation and not force:
             click.echo(f'About to pause session: {session_id}')
             click.echo(f'Upload data before pausing: {not no_upload}')
             click.echo(f'Force immediate termination: {force}')

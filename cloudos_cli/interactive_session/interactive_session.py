@@ -14,7 +14,6 @@ from urllib3.util.retry import Retry
 from cloudos_cli.utils.requests import retry_requests_get
 
 
-
 def validate_instance_type(instance_type, execution_platform='aws'):
     """Validate instance type format for the given execution platform.
     
@@ -422,7 +421,6 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
         else:
             # Only one page, no need for input, just exit
             break
-
 
 
 def process_interactive_session_list(sessions, all_fields=False):
@@ -1025,7 +1023,6 @@ def parse_link_path(link_path_str):
     }
 
 
-
 def build_session_payload(
     name,
     backend,
@@ -1229,7 +1226,12 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     
     table.add_row("Session ID", session_data.get('_id', 'N/A'))
     table.add_row("Name", session_data.get('name', 'N/A'))
-    table.add_row("Backend", session_data.get('interactiveSessionType', 'N/A'))
+    
+    # Map backend type to friendly name
+    api_backend = session_data.get('interactiveSessionType', 'N/A')
+    backend_display = _map_session_type_to_friendly_name(api_backend) if api_backend != 'N/A' else 'N/A'
+    table.add_row("Backend", backend_display)
+    
     table.add_row("Status", session_data.get('status', 'N/A'))
     
     # Try to get instance type from response, fallback to provided value
@@ -1304,18 +1306,6 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
 # Interactive Session Status Helper Functions
 # ============================================================================
 
-# Backend type mapping for status display
-BACKEND_MAPPING = {
-    'awsJupyterNotebook': 'Jupyter Notebook',
-    'azureJupyterNotebook': 'Jupyter Notebook',
-    'awsVSCode': 'VS Code',
-    'azureVSCode': 'VS Code',
-    'awsJupyterSparkNotebook': 'Spark',
-    'azureJupyterSparkNotebook': 'Spark',
-    'awsRstudio': 'RStudio',
-    'azureRstudio': 'RStudio',
-}
-
 # Status color mapping for Rich terminal
 STATUS_COLORS = {
     'running': 'green',
@@ -1367,11 +1357,6 @@ def format_duration(seconds: int) -> str:
         parts.append(f"{secs}s")
     
     return " ".join(parts)
-
-
-def map_backend_type(api_backend: str) -> str:
-    """Map API backend type to user-friendly display name."""
-    return BACKEND_MAPPING.get(api_backend, api_backend)
 
 
 def map_status(api_status: str) -> str:
@@ -1533,7 +1518,6 @@ class InteractiveSessionAPI:
             raise RuntimeError(f"API request timeout after {self.REQUEST_TIMEOUT} seconds")
         except requests.exceptions.ConnectionError as e:
             raise RuntimeError(f"Failed to connect to CloudOS: {str(e)}")
-
 
 
 class OutputFormatter:
@@ -1711,7 +1695,7 @@ def transform_session_response(api_response: dict) -> dict:
     
     # Map backend type
     api_backend = api_response.get('interactiveSessionType', '')
-    backend_type = map_backend_type(api_backend)
+    backend_type = _map_session_type_to_friendly_name(api_backend)
     
     # Extract user info
     user = api_response.get('user', {})
