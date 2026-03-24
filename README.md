@@ -2222,12 +2222,6 @@ Bypass graceful shutdown for immediate termination (useful for stuck sessions):
 cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --force
 ```
 
-**Important:** When using `--force`, you will see a warning:
-
-```console
-⚠ Warning: Session was force-aborted by the user. Some data may have not been saved.
-```
-
 Use `--force` with caution as it may not save session data properly.
 
 **Wait for Termination**
