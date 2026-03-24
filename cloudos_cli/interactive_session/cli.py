@@ -1179,7 +1179,14 @@ def resume_session(ctx,
     try:
         # Get current session details to determine execution platform
         try:
-            session_data = cl.get_interactive_session_status(session_id, workspace_id, verify=verify_ssl)
+            session_data = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=workspace_id,
+                verify_ssl=verify_ssl,
+                verbose=False
+            )
             current_config = session_data.get('interactiveSessionConfiguration', {})
             execution_platform = current_config.get('executionPlatform', 'aws')
             
