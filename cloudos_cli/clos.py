@@ -2456,7 +2456,7 @@ class Cloudos:
         
         # Make the API request with PUT method
         try:
-            r = requests.put(
+            r = retry_requests_put(
                 url,
                 headers=headers,
                 data=json.dumps(payload),
@@ -2520,7 +2520,7 @@ class Cloudos:
         
         # Make the API request with PUT method
         try:
-            r = requests.put(
+            r = retry_requests_put(
                 url,
                 headers=headers,
                 data=json.dumps(payload),

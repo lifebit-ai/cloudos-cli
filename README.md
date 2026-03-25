@@ -65,10 +65,10 @@ Python package for interacting with CloudOS
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
+      - [Create Interactive Session](#create-interactive-session)
       - [Get Interactive Session Status](#get-interactive-session-status)
       - [Pause Interactive Session](#pause-interactive-session)
       - [Resume Interactive Session](#resume-interactive-session)
-      - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -2038,6 +2038,172 @@ cloudos interactive-session list --profile my_profile --table-columns "status,na
 
 Available columns: `backend`, `cost`, `cost_limit`, `created_at`, `id`, `instance`, `name`, `owner`, `project`, `resources`, `runtime`, `saved_at`, `spot`, `status`, `time_left`, `type`, `version`
 
+#### Create Interactive Session
+
+You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
+
+The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
+
+**Basic Usage**
+
+Create a simple Jupyter notebook session:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Analysis" \
+  --session-type jupyter
+```
+
+Create an RStudio session with specific R version:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "R Analysis" \
+  --session-type rstudio \
+  --r-version 4.4.2
+```
+
+Create a VS Code session (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Development" \
+  --session-type vscode
+```
+
+Create a Spark cluster session with custom instance types (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Spark Analysis" \
+  --session-type spark \
+  --spark-master c5.2xlarge \
+  --spark-core c5.xlarge \
+  --spark-workers 3
+```
+
+**Configuration Options**
+
+You can customize your session with various options:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Advanced Session" \
+  --session-type jupyter \
+  --instance c5.2xlarge \
+  --storage 1000 \
+  --spot \
+  --shared \
+  --cost-limit 50.0 \
+  --shutdown-in 8h
+```
+
+**Required for Each Session:**
+- `--name`: Session name (1-100 characters)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+
+**Optional Configuration:**
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
+- `--storage`: Storage in GB (default: 500, range: 100-5000)
+- `--spot`: Use spot instances (AWS only, cost-saving)
+- `--shared`: Make session accessible to workspace members
+- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
+- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
+
+**Data & Storage Management:**
+- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
+
+**Backend-Specific:**
+- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
+- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
+- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
+- `--spark-workers`: Initial worker count for Spark (default: 1)
+- `--verbose`: Show detailed progress messages
+
+
+**Data Management**
+
+CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+- you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
+- you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
+
+
+**Data Mounting Examples**
+
+Mount a file from File Explorer:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Data Analysis" \
+  --session-type jupyter \
+  --mount "my_project/training_data.csv"
+```
+
+Link an S3 bucket:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "S3 Access" \
+  --session-type jupyter \
+  --link "s3://my-results-bucket/output/"
+```
+
+Link multiple S3 buckets:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-S3 Session" \
+  --session-type jupyter \
+  --link "s3://input-bucket/data/" \
+  --link "s3://output-bucket/results/"
+```
+
+
+
+This will show progress updates like:
+
+```console
+✓ Interactive Session Created Successfully
+
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property    ┃ Value               ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID  │ 69aee0dba197abc123  │
+│ Name        │ Ready Session       │
+│ Backend     │ awsJupyterNotebook  │
+│ Status      │ initialising        │
+└─────────────┴─────────────────────┘
+```
+```
+
+**Output Display**
+
+The session creation output displays a success message with session details:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Session" \
+  --session-type jupyter
+```
+
+The output shows the session details including:
+- Session ID
+- Session name
+- Backend type (jupyter, vscode, rstudio, spark)
+- Current status (scheduled, initialising, setup, running, paused)
+
+
+
 #### Get Interactive Session Status
 
 You can retrieve detailed status information for a specific interactive session using the `cloudos interactive-session status` command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.
@@ -2320,7 +2486,6 @@ The command automatically loads from profile (via `@with_profile_config` decorat
 
 Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.
 
-The command automatically loads API credentials and workspace information from your profile configuration.
 
 **Basic Usage**
 
@@ -2363,15 +2528,6 @@ cloudos interactive-session resume \
   --mount s3://my-bucket/data/file.txt
 ```
 
-Resume and link additional folders (AWS only):
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --link s3://my-bucket/analysis/ \
-  --link my-project/Data/results
-```
 
 **Configuration Updates**
 
@@ -2381,459 +2537,6 @@ All configuration parameters are optional. If not specified, the session resumes
 - `--storage <GB>` - Update storage size (100-5000 GB)
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
-
-**Mount and Link Behavior**
-
-The `--mount` and `--link` options follow the same patterns as the `create` command:
-
-**Mount formats:**
-- CloudOS files: `project_name/path/to/file.csv`
-- S3 files (AWS only): `s3://bucket-name/path/to/file.txt`
-
-**Link formats:**
-- S3 folders (AWS only): `s3://bucket-name/prefix/`
-- CloudOS folders (AWS only): `project_name/path/to/folder`
-
-**Important Notes:**
-- Linking is only supported on AWS execution platform
-- S3 mounts only work with AWS sessions
-- Azure sessions can only mount CloudOS files from the file explorer
-
-**Examples**
-
-Resume with default configuration:
-
-```bash
-cloudos interactive-session resume --session-id 688351ab6be610972db54a8e --profile my_profile
-```
-
-Resume and upgrade instance:
-
-```bash
-# AWS session
-cloudos interactive-session resume --session-id <ID> --profile my_profile --instance c5.4xlarge
-
-# Azure session
-cloudos interactive-session resume --session-id <ID> --profile azure_profile --instance Standard_D8as_v4
-```
-
-Resume, increase storage, and set cost limit:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --storage 2000 \
-  --cost-limit 100.0
-```
-
-Resume with new shutdown time:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --shutdown-in 24h
-```
-
-Resume and mount additional datasets:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --mount project-a/Data/dataset1.csv \
-  --mount project-b/Results/analysis.txt
-```
-
-**Error Handling**
-
-Common errors and their meanings:
-
-```bash
-# Session is not in resumable status (e.g., already running, terminated, initializing)
-Error: Cannot resume session - current status is "running".
-Only sessions with status "paused" can be resumed.
-Tip: This session is already running. Use the CloudOS web interface to access it.
-
-# Session is terminated
-Error: Cannot resume session - current status is "terminated".
-Only sessions with status "paused" can be resumed.
-Tip: Terminated sessions cannot be resumed. Please create a new session instead.
-
-# Session is already running
-Error: Cannot resume session - the session is already running.
-Tip: Check status with: cloudos interactive-session status --session-id <SESSION_ID>
-
-# Session not found
-Error: Session not found. Please check the session ID.
-
-# Invalid instance type
-Error: Invalid AWS instance type format: 'c5-xlarge'. Expected format: <family><generation>.<size> (e.g., c5.xlarge, m5.2xlarge)
-Hint: Check your instance type spelling and format for AWS.
-
-# Azure linking not supported
-Error: Linking folders is not supported on Azure. Please use --mount instead.
-```
-
-**Options Reference**
-
-The command automatically loads from profile:
-- `--apikey` - CloudOS API key
-- `--cloudos-url` - CloudOS URL
-- `--workspace-id` - Workspace/team identifier
-
-Command-specific options:
-- `--session-id <ID>` - Session ID to resume (required)
-- `--instance <TYPE>` - Change instance type
-- `--storage <GB>` - Update storage size (100-5000 GB)
-- `--cost-limit <USD>` - Update cost limit (-1 = unlimited)
-- `--shutdown-in <DURATION>` - Update auto-shutdown (e.g., 8h, 2d)
-- `--mount <FILE>` - Mount additional data file (repeatable)
-- `--link <FOLDER>` - Link additional folder (repeatable, AWS only)
-- `--verbose` - Print detailed information
-
-#### Resume Interactive Session
-
-Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.
-
-The command automatically loads API credentials and workspace information from your profile configuration.
-
-**Basic Usage**
-
-Resume a paused session:
-
-```bash
-cloudos interactive-session resume --session-id <SESSION_ID> --profile my_profile
-```
-
-Resume with updated instance type:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --instance c5.2xlarge
-```
-
-Resume with multiple updates:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --instance m5.xlarge \
-  --storage 1000 \
-  --cost-limit 50.0 \
-  --shutdown-in 12h
-```
-
-**Mount Additional Data**
-
-Resume and mount additional files:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --mount my-project/Data/new-dataset.csv \
-  --mount s3://my-bucket/data/file.txt
-```
-
-Resume and link additional folders (AWS only):
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --link s3://my-bucket/analysis/ \
-  --link my-project/Data/results
-```
-
-**Configuration Updates**
-
-All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
-
-- `--instance <TYPE>` - Change instance type (validated by platform)
-- `--storage <GB>` - Update storage size (100-5000 GB)
-- `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
-- `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
-
-**Mount and Link Behavior**
-
-The `--mount` and `--link` options follow the same patterns as the `create` command:
-
-**Mount formats:**
-- CloudOS files: `project_name/path/to/file.csv`
-- S3 files (AWS only): `s3://bucket-name/path/to/file.txt`
-
-**Link formats:**
-- S3 folders (AWS only): `s3://bucket-name/prefix/`
-- CloudOS folders (AWS only): `project_name/path/to/folder`
-
-**Important Notes:**
-- Linking is only supported on AWS execution platform
-- S3 mounts only work with AWS sessions
-- Azure sessions can only mount CloudOS files from the file explorer
-
-**Examples**
-
-Resume with default configuration:
-
-```bash
-cloudos interactive-session resume --session-id 688351ab6be610972db54a8e --profile my_profile
-```
-
-Resume and upgrade instance:
-
-```bash
-# AWS session
-cloudos interactive-session resume --session-id <ID> --profile my_profile --instance c5.4xlarge
-
-# Azure session
-cloudos interactive-session resume --session-id <ID> --profile azure_profile --instance Standard_D8as_v4
-```
-
-Resume, increase storage, and set cost limit:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --storage 2000 \
-  --cost-limit 100.0
-```
-
-Resume with new shutdown time:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --shutdown-in 24h
-```
-
-Resume and mount additional datasets:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <ID> \
-  --profile my_profile \
-  --mount project-a/Data/dataset1.csv \
-  --mount project-b/Results/analysis.txt
-```
-
-**Error Handling**
-
-Common errors and their meanings:
-
-```bash
-# Session is not in resumable status (e.g., already running, terminated, initializing)
-Error: Cannot resume session - current status is "running".
-Only sessions with status "paused" can be resumed.
-Tip: This session is already running. Use the CloudOS web interface to access it.
-
-# Session is terminated
-Error: Cannot resume session - current status is "terminated".
-Only sessions with status "paused" can be resumed.
-Tip: Terminated sessions cannot be resumed. Please create a new session instead.
-
-# Session is already running
-Error: Cannot resume session - the session is already running.
-Tip: Check status with: cloudos interactive-session status --session-id <SESSION_ID>
-
-# Session not found
-Error: Session not found. Please check the session ID.
-
-# Invalid instance type
-Error: Invalid AWS instance type format: 'c5-xlarge'. Expected format: <family><generation>.<size> (e.g., c5.xlarge, m5.2xlarge)
-Hint: Check your instance type spelling and format for AWS.
-
-# Azure linking not supported
-Error: Linking folders is not supported on Azure. Please use --mount instead.
-```
-
-**Options Reference**
-
-The command automatically loads from profile:
-- `--apikey` - CloudOS API key
-- `--cloudos-url` - CloudOS URL
-- `--workspace-id` - Workspace/team identifier
-
-Command-specific options:
-- `--session-id <ID>` - Session ID to resume (required)
-- `--instance <TYPE>` - Change instance type
-- `--storage <GB>` - Update storage size (100-5000 GB)
-- `--cost-limit <USD>` - Update cost limit (-1 = unlimited)
-- `--shutdown-in <DURATION>` - Update auto-shutdown (e.g., 8h, 2d)
-- `--mount <FILE>` - Mount additional data file (repeatable)
-- `--link <FOLDER>` - Link additional folder (repeatable, AWS only)
-- `--verbose` - Print detailed information
-
-#### Create Interactive Session
-
-You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
-
-The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
-
-**Basic Usage**
-
-Create a simple Jupyter notebook session:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "My Analysis" \
-  --session-type jupyter
-```
-
-Create an RStudio session with specific R version:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "R Analysis" \
-  --session-type rstudio \
-  --r-version 4.4.2
-```
-
-Create a VS Code session (AWS only):
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Development" \
-  --session-type vscode
-```
-
-Create a Spark cluster session with custom instance types (AWS only):
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Spark Analysis" \
-  --session-type spark \
-  --spark-master c5.2xlarge \
-  --spark-core c5.xlarge \
-  --spark-workers 3
-```
-
-**Configuration Options**
-
-You can customize your session with various options:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Advanced Session" \
-  --session-type jupyter \
-  --instance c5.2xlarge \
-  --storage 1000 \
-  --spot \
-  --shared \
-  --cost-limit 50.0 \
-  --shutdown-in 8h
-```
-
-**Required for Each Session:**
-- `--name`: Session name (1-100 characters)
-- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
-
-**Optional Configuration:**
-- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
-- `--storage`: Storage in GB (default: 500, range: 100-5000)
-- `--spot`: Use spot instances (AWS only, cost-saving)
-- `--shared`: Make session accessible to workspace members
-- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
-- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
-
-**Data & Storage Management:**
-- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
-
-**Backend-Specific:**
-- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
-- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
-- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
-- `--spark-workers`: Initial worker count for Spark (default: 1)
-- `--verbose`: Show detailed progress messages
-
-
-**Data Management**
-
-CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
-- you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
-- you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
-
-
-**Data Mounting Examples**
-
-Mount a file from File Explorer:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Data Analysis" \
-  --session-type jupyter \
-  --mount "my_project/training_data.csv"
-```
-
-Link an S3 bucket:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "S3 Access" \
-  --session-type jupyter \
-  --link "s3://my-results-bucket/output/"
-```
-
-Link multiple S3 buckets:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Multi-S3 Session" \
-  --session-type jupyter \
-  --link "s3://input-bucket/data/" \
-  --link "s3://output-bucket/results/"
-```
-
-
-
-This will show progress updates like:
-
-```console
-✓ Interactive Session Created Successfully
-
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
-┃ Property    ┃ Value               ┃
-┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
-│ Session ID  │ 69aee0dba197abc123  │
-│ Name        │ Ready Session       │
-│ Backend     │ awsJupyterNotebook  │
-│ Status      │ initialising        │
-└─────────────┴─────────────────────┘
-```
-```
-
-**Output Display**
-
-The session creation output displays a success message with session details:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "My Session" \
-  --session-type jupyter
-```
-
-The output shows the session details including:
-- Session ID
-- Session name
-- Backend type (jupyter, vscode, rstudio, spark)
-- Current status (scheduled, initialising, setup, running, paused)
-
 
 ### Datasets
 
