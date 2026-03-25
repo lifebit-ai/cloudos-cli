@@ -1250,7 +1250,7 @@ def resume_session(ctx,
         if parsed_s3_mounts:
             click.echo(f'  {len(parsed_s3_mounts)} additional folder(s) linked')
         click.echo(f'\nSession status: {response.get("status", "unknown")}')
-        click.echo(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}')
+        click.secho(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow')
     
     except BadRequestException as e:
         error_str = str(e)
