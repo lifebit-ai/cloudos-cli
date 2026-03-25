@@ -135,12 +135,12 @@ def list_sessions(ctx,
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     # Validate table columns if specified
-    
+
     valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
                      'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
-    
+
     if selected_columns:
         # Parse columns (split by comma and strip whitespace)
         col_list = [col.strip() for col in selected_columns.split(',')]
@@ -150,7 +150,7 @@ def list_sessions(ctx,
             click.secho(f'Valid columns: {", ".join(sorted(valid_columns))}', fg='yellow', err=True)
             click.secho(f'\nTip: Use --help without other options to see command help', fg='cyan', err=True)
             raise SystemExit(1)
-        
+
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
     if verbose:
@@ -161,7 +161,7 @@ def list_sessions(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print('\tSearching for interactive sessions in the following workspace: ' + f'{workspace_id}')
-    
+
     try:
         # Call the API method to get interactive sessions
         result = cl.get_interactive_session_list(
@@ -180,7 +180,7 @@ def list_sessions(ctx,
         fetch_page = lambda page_num: fetch_interactive_session_page(
             cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
         )
-        
+
         # Handle empty results
         if len(sessions) == 0:
             if filter_status:
@@ -205,7 +205,7 @@ def list_sessions(ctx,
             print(f'\tInteractive session list saved to {outfile}')        
         else:
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
-    
+
     except BadRequestException as e:
         error_str = str(e)
         # Check if the error is related to authentication
@@ -221,7 +221,7 @@ def list_sessions(ctx,
         else:
             click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
             raise SystemExit(1)
-    
+
     except Exception as e:
         error_str = str(e)
         # Check for DNS/connection errors
@@ -338,7 +338,7 @@ def create_session(ctx,
                    profile,
                    verbose):
     """Create a new interactive session."""
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)    
     # Default execution_platform to 'aws' if not specified by user or profile
     if execution_platform is None:
@@ -349,14 +349,14 @@ def create_session(ctx,
     # Set instance default based on execution_platform if not specified
     if instance is None:
         instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
-    
+
     # Validate instance type format
     is_valid, error_msg = validate_instance_type(instance, execution_platform)
     if not is_valid:
         click.secho(f'Error: {error_msg}', fg='red', err=True)
         click.secho(f'Hint: Check your instance type spelling and format for {execution_platform.upper()}.', fg='yellow', err=True)
         raise SystemExit(1)
-    
+
     # Validate Spark instance types if session type is spark
     if session_type.lower() == 'spark':
         # Spark is AWS only, so use 'aws' for validation
@@ -371,22 +371,22 @@ def create_session(ctx,
     if verbose:
         print('Executing create interactive session...')
         print('\t...Preparing objects')
-    
+
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tCreating interactive session in workspace: {workspace_id}')
-    
+
     try:
         # Resolve project name to project ID
         project_id = cl.get_project_id_from_name(workspace_id, project_name, verify=verify_ssl)
         if verbose:
             print(f'\tResolved project name "{project_name}" to ID: {project_id}')
-        
+
         # Parse session type to lowercase
         session_type_lower = session_type.lower()
-        
+
         # Map session type to backend name
         backend_type_mapping = {
             'jupyter': 'regular',
@@ -398,7 +398,7 @@ def create_session(ctx,
         if not backend_type:
             click.secho(f'Error: Invalid session type: {session_type}', fg='red', err=True)
             raise SystemExit(1)
-        
+
         # Parse shutdown duration
         shutdown_at_parsed = None
         if shutdown_in:
@@ -407,7 +407,7 @@ def create_session(ctx,
             except ValueError as e:
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Parse and resolve mounted data files (both CloudOS and S3)
         parsed_data_files = []
         parsed_s3_mounts = []  # S3 folders go into FUSE mounts
@@ -457,7 +457,7 @@ def create_session(ctx,
             except Exception as e:
                 click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Parse and add linked folders from --link (S3 or CloudOS)
         for link_path in link:
             try:
@@ -487,7 +487,7 @@ def create_session(ctx,
                     parsed_s3_mounts.append(s3_mount_item)
                     if verbose:
                         print(f'\t  ✓ Linked S3: {mount_name}')
-                
+
                 else:  # type == 'cloudos'
                     # CloudOS folder: resolve via Datasets API
                     folder_project = parsed['project_name']
@@ -514,14 +514,14 @@ def create_session(ctx,
                         }
                     }
                     parsed_s3_mounts.append(cloudos_mount_item)
-                    
+
                     if verbose:
                         print(f'\t  ✓ Linked CloudOS folder: {mount_name}')
-            
+
             except Exception as e:
                 click.secho(f'Error: Failed to link folder: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Build the session payload
         payload = build_session_payload(
             name=name,
@@ -544,7 +544,7 @@ def create_session(ctx,
         if verbose:
             print('\tPayload constructed:')
             print(json.dumps(payload, indent=2))
-        
+
         # Create the session via API
         response = cl.create_interactive_session(workspace_id, payload, verify=verify_ssl)
         session_id = response.get('_id')
@@ -567,7 +567,7 @@ def create_session(ctx,
         click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
         if verbose:
             print('\tSession creation completed successfully!')
-    
+
     except BadRequestException as e:
         error_str = str(e)
         if '401' in error_str or 'Unauthorized' in error_str:
@@ -651,7 +651,7 @@ def get_session_status(ctx,
                        ssl_cert,
                        profile):
     """Get status of an interactive session."""
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Validate session ID format
     if not validate_session_id(session_id):
@@ -674,7 +674,7 @@ def get_session_status(ctx,
     if verbose:
         print('Executable: get interactive session status...')
         print('\t...Preparing objects')
-    
+
     try:
         # Get initial status
         if verbose:
@@ -745,7 +745,7 @@ def get_session_status(ctx,
                         verify_ssl=verify_ssl,
                         verbose=False
                     )
-        
+
         # Transform and display response based on format
         if output_format.lower() == 'json':
             json_output = export_session_status_json(session_response)
@@ -763,23 +763,23 @@ def get_session_status(ctx,
         else:  # stdout (default)
             transformed_data = transform_session_response(session_response)
             format_session_status_table(transformed_data, cloudos_url=cloudos_url)
-    
+
     except ValueError as e:
         # Handle validation errors (e.g., session not found)
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-    
+
     except PermissionError as e:
         # Handle authentication/permission errors
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         if '401' in str(e) or 'Unauthorized' in str(e):
             click.secho('Please check your API credentials (apikey and cloudos-url).', fg='yellow', err=True)
         raise SystemExit(1)
-    
+
     except KeyboardInterrupt:
         click.secho('\n⚠ Watch mode interrupted by user.', fg='yellow', err=True)
         raise SystemExit(0)
-    
+
     except Exception as e:
         error_str = str(e)
         # Check for network errors
@@ -847,7 +847,7 @@ def pause_session(ctx,
                   ssl_cert,
                   profile):
     """Pause a running interactive session."""
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Validate session ID format
     if not validate_session_id(session_id):
@@ -861,7 +861,7 @@ def pause_session(ctx,
         # Check session status BEFORE prompting for confirmation
         if verbose:
             print('\t...Checking session status')
-        
+
         try:
             session_response = get_interactive_session_status(
                 cloudos_url=cloudos_url,
@@ -879,7 +879,7 @@ def pause_session(ctx,
             else:
                 click.secho(f'Error: Unable to retrieve session status: {str(e)}', fg='red', err=True)
             raise SystemExit(1)
-        
+
         # Check if session is already paused or terminated
         api_status = session_response.get('status', '')
         if api_status == 'aborted':
@@ -914,7 +914,7 @@ def pause_session(ctx,
         cl = Cloudos(cloudos_url, apikey, None)
         if verbose:
             print('\t...Sending abort request to CloudOS')
-        
+
         # Call the abort endpoint
         status_code = cl.abort_interactive_session(
             session_id=session_id,
@@ -953,30 +953,30 @@ def pause_session(ctx,
             # Show success message without waiting
             click.secho('✓ Session pause request sent successfully.', fg='green')
             click.echo(f'You can monitor the session status using: cloudos interactive-session status --session-id {session_id} --profile {profile or "default"}')
-    
+
     except ValueError as e:
         # Handle validation errors
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-    
+
     except PermissionError as e:
         # Handle authentication/permission errors
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         if '401' in str(e) or 'Unauthorized' in str(e):
             click.secho('Please check your API credentials (apikey and cloudos-url).', fg='yellow', err=True)
         raise SystemExit(1)
-    
+
     except BadRequestException as e:
         # Handle API errors with better messages
         error_str = str(e)
         # Show the original error for other bad request errors
         click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-    
+
     except KeyboardInterrupt:
         click.secho('\n⚠ Operation interrupted by user.', fg='yellow', err=True)
         raise SystemExit(0)
-    
+
     except Exception as e:
         error_str = str(e)
         # Check for network errors
@@ -1063,7 +1063,7 @@ def resume_session(ctx,
                    ssl_cert,
                    profile):
     """Resume a paused interactive session with optional configuration updates."""
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Validate session ID format
     if not validate_session_id(session_id):
@@ -1082,7 +1082,7 @@ def resume_session(ctx,
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tResuming session: {session_id}')
-    
+
     try:
         # Get current session details to determine execution platform
         try:
@@ -1104,7 +1104,7 @@ def resume_session(ctx,
             execution_platform = 'aws'
             if verbose:
                 print(f'\tCould not retrieve session details (using default platform: aws)')
-        
+
         # Parse shutdown duration if provided
         shutdown_at_parsed = None
         if shutdown_in:
@@ -1115,7 +1115,7 @@ def resume_session(ctx,
             except ValueError as e:
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Parse and resolve mounted data files
         parsed_data_files = []
         if mount:
@@ -1158,7 +1158,7 @@ def resume_session(ctx,
             except Exception as e:
                 click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Parse and add linked folders
         parsed_s3_mounts = []
         if link:
@@ -1212,7 +1212,7 @@ def resume_session(ctx,
             except Exception as e:
                 click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
-        
+
         # Build the resume payload
         payload = build_resume_payload(
             instance_type=instance,
@@ -1251,7 +1251,7 @@ def resume_session(ctx,
             click.echo(f'  {len(parsed_s3_mounts)} additional folder(s) linked')
         click.echo(f'\nSession status: {response.get("status", "unknown")}')
         click.secho(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow')
-    
+
     except BadRequestException as e:
         error_str = str(e)
         # Check for specific error patterns
@@ -1291,7 +1291,7 @@ def resume_session(ctx,
         else:
             click.secho(f'Error: Failed to resume session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-    
+
     except Exception as e:
         error_str = str(e)
         # Check for network errors

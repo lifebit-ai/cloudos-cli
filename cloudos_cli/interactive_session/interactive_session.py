@@ -17,14 +17,14 @@ from cloudos_cli.utils.requests import retry_requests_get
 
 def validate_instance_type(instance_type, execution_platform='aws'):
     """Validate instance type format for the given execution platform.
-    
+
     Parameters
     ----------
     instance_type : str
         Instance type to validate
     execution_platform : str
         'aws' or 'azure'
-    
+
     Returns
     -------
     tuple
@@ -32,7 +32,7 @@ def validate_instance_type(instance_type, execution_platform='aws'):
     """
     if not instance_type or not isinstance(instance_type, str):
         return False, "Instance type must be a non-empty string"
-    
+
     if execution_platform == 'aws':
         # AWS EC2 instance format: <family><generation>.<size>
         # Examples: c5.xlarge, m5.2xlarge, r6i.large, t3.medium, g4dn.xlarge
@@ -53,18 +53,18 @@ def validate_instance_type(instance_type, execution_platform='aws'):
     else:
         # Unknown platform - skip validation
         return True, None
-    
+
     return True, None
 
 
 def _map_session_type_to_friendly_name(session_type):
     """Map internal session type names to user-friendly display names.
-    
+
     Parameters
     ----------
     session_type : str
         Internal session type (e.g., 'awsJupyterNotebook')
-    
+
     Returns
     -------
     str
@@ -90,7 +90,7 @@ def _map_session_type_to_friendly_name(session_type):
 
 def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None):
     """Create a rich table displaying interactive sessions with interactive pagination.
-    
+
     Parameters
     ----------
     sessions : list
@@ -230,7 +230,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             'accessor': 'execution.autoShutdownAtDate'
         }
     }
-    
+
     # Determine columns to display
     if selected_columns:
         if isinstance(selected_columns, str):
@@ -266,7 +266,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             formatted_value = _format_session_field(col_name, value)
             row_data.append(formatted_value)
         rows.append(row_data)
-    
+
     # Interactive pagination - use API pagination metadata if available
     if pagination_metadata:
         # Server-side pagination
@@ -314,7 +314,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
         if total_pages > 1:
             console.print(f"[cyan]Page:[/cyan] {current_api_page} of {total_pages}")
             console.print(f"[cyan]Sessions on this page:[/cyan] {len(page_rows)}")
-        
+
         # Show error message if any
         if show_error:
             console.print(show_error)
@@ -403,7 +403,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
 
 def process_interactive_session_list(sessions, all_fields=False):
     """Process interactive sessions data into a pandas DataFrame.
-    
+
     Parameters
     ----------
     sessions : list
@@ -411,7 +411,7 @@ def process_interactive_session_list(sessions, all_fields=False):
     all_fields : bool, default=False
         If True, include all fields from the API response.
         If False, include only the most relevant fields.
-    
+
     Returns
     -------
     df : pandas.DataFrame
@@ -431,7 +431,7 @@ def process_interactive_session_list(sessions, all_fields=False):
                 first_name = user_obj.get('name', '')
                 last_name = user_obj.get('surname', '')
                 user_name = f'{first_name} {last_name}'.strip()
-            
+
             row = {
                 '_id': session.get('_id', ''),
                 'name': session.get('name', ''),
@@ -448,14 +448,14 @@ def process_interactive_session_list(sessions, all_fields=False):
 
 def _get_nested_value(obj, path):
     """Get a nested value from an object using dot notation.
-    
+
     Parameters
     ----------
     obj : dict
         The object to extract from
     path : str
         Dot-separated path (e.g., 'user.firstName')
-    
+
     Returns
     -------
     value
@@ -473,14 +473,14 @@ def _get_nested_value(obj, path):
 
 def _format_session_field(field_name, value):
     """Format a session field for display.
-    
+
     Parameters
     ----------
     field_name : str
         The name of the field
     value
         The value to format
-    
+
     Returns
     -------
     str
@@ -488,7 +488,7 @@ def _format_session_field(field_name, value):
     """
     if value == '' or value is None:
         return '-'
-    
+
     if field_name == 'status':
         # Color code status and map display values
         status_lower = str(value).lower()
@@ -603,7 +603,7 @@ def _format_session_field(field_name, value):
 
 def save_interactive_session_list_to_csv(df, outfile, count=None):
     """Save interactive session list to CSV file.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -621,14 +621,14 @@ def save_interactive_session_list_to_csv(df, outfile, count=None):
 
 def parse_shutdown_duration(duration_str):
     """Parse shutdown duration string to ISO8601 datetime string.
-    
+
     Accepts formats: 30m, 2h, 8h, 1d, 2d
-    
+
     Parameters
     ----------
     duration_str : str
         Duration string (e.g., "2h", "30m", "1d")
-    
+
     Returns
     -------
     str
@@ -650,14 +650,14 @@ def parse_shutdown_duration(duration_str):
 
 def parse_watch_timeout_duration(duration_str):
     """Parse watch timeout duration string to seconds.
-    
+
     Accepts formats: 30m, 2h, 1d, 30s
-    
+
     Parameters
     ----------
     duration_str : str
         Duration string (e.g., "30m", "2h", "1d", "30s")
-    
+
     Returns
     -------
     int
@@ -666,7 +666,7 @@ def parse_watch_timeout_duration(duration_str):
     match = re.match(r'^(\d+)([smhd])$', duration_str.lower())
     if not match:
         raise ValueError(f"Invalid duration format: {duration_str}. Use format like '30s', '30m', '2h', '1d'")
-    
+
     value = int(match.group(1))
     unit = match.group(2)
     if unit == 's':
@@ -680,29 +680,29 @@ def parse_watch_timeout_duration(duration_str):
 
 def parse_data_file(data_file_str):
     """Parse data file format: either S3 or CloudOS dataset path.
-    
+
     Supports mounting both S3 files and CloudOS dataset files into the session.
-    
+
     Parameters
     ----------
     data_file_str : str
         Format:
         - S3 file: s3://bucket_name/path/to/file.txt
         - CloudOS dataset: project_name/dataset_path or project_name > dataset_path
-        
+
         Examples:
         - s3://lifebit-featured-datasets/pipelines/phewas/data.csv
         - leila-test/Data/3_vcf_list.txt
-    
+
     Returns
     -------
     dict
         Parsed data item. For S3:
         {"type": "s3", "s3_bucket": "...", "s3_prefix": "..."}
-        
+
         For CloudOS dataset:
         {"type": "cloudos", "project_name": "...", "dataset_path": "..."}
-    
+
     Raises
     ------
     ValueError
@@ -749,11 +749,11 @@ def parse_data_file(data_file_str):
 
 def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
     """Resolve nested dataset path to actual file ID.
-    
+
     Searches across all datasets in the project to find the target file.
     This allows paths like 'Data/file.txt' to work even if 'Data' is a folder
     within a dataset (not a dataset name itself).
-    
+
     Parameters
     ----------
     datasets_api : Datasets
@@ -761,13 +761,13 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
     dataset_path : str
         Nested path to file within the project (e.g., 'Data/file.txt' or 'Folder/subfolder/file.txt')
         Can start with a dataset name or a folder name within any dataset.
-    
+
     Returns
     -------
     dict
         Data item object with resolved file ID:
         {"kind": "File", "item": "<fileId>", "name": "<fileName>"}
-    
+
     Raises
     ------
     ValueError
@@ -868,9 +868,9 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
 
 def parse_link_path(link_path_str):
     """Parse link path format: supports S3, CloudOS, or legacy colon format.
-    
+
     Links an S3 folder or CloudOS folder to the session for read/write access.
-    
+
     Parameters
     ----------
     link_path_str : str
@@ -878,7 +878,7 @@ def parse_link_path(link_path_str):
         - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)
         - CloudOS folder: project/folder_path (e.g., leila-test/Data)
         - Legacy format (deprecated): mountName:bucketName:s3Prefix
-    
+
     Returns
     -------
     dict
@@ -971,7 +971,7 @@ def build_session_payload(
     spark_workers=1
 ):
     """Build the complex session creation payload for the API.
-    
+
     Parameters
     ----------
     name : str
@@ -1006,7 +1006,7 @@ def build_session_payload(
         Spark core instance type (required for spark backend, AWS only)
     spark_workers : int
         Initial number of Spark workers (default: 1, AWS only)
-    
+
     Returns
     -------
     dict
@@ -1109,9 +1109,9 @@ def build_resume_payload(
     s3_mounts=None
 ):
     """Build the resume session payload for the API.
-    
+
     Only includes fields that have been specified (all are optional).
-    
+
     Parameters
     ----------
     instance_type : str, optional
@@ -1126,7 +1126,7 @@ def build_resume_payload(
         Additional data files to mount
     s3_mounts : list, optional
         Additional S3 mounts (AWS only)
-    
+
     Returns
     -------
     dict
@@ -1164,7 +1164,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                                   spark_master=None, spark_core=None, spark_workers=None,
                                   data_files=None, s3_mounts=None):
     """Display session creation result in table format.
-    
+
     Parameters
     ----------
     session_data : dict
@@ -1187,7 +1187,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         List of parsed data file objects to display
     s3_mounts : list, optional
         List of parsed S3 mount objects to display
-    
+
     Returns
     -------
     str
@@ -1227,7 +1227,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
             spark_config.append(f"Workers: {spark_workers}")
         if spark_config:
             table.add_row("Spark Cluster", ", ".join(spark_config))
-    
+
     # Display mounted data files
     if data_files:
         mounted_files = []
@@ -1244,7 +1244,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                     mounted_files.append(f"{name} (S3)")
         if mounted_files:
             table.add_row("Mounted Data", ", ".join(mounted_files))
-    
+
     # Display linked S3 buckets
     if s3_mounts:
         linked_s3 = []
@@ -1260,7 +1260,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                     linked_s3.append(f"s3://{bucket}/")
         if linked_s3:
             table.add_row("Linked S3", "\n".join(linked_s3))
-    
+
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
     console.print("[cyan]Next steps:[/cyan] Use 'cloudos interactive-session status' to monitor status")
@@ -1301,12 +1301,12 @@ PRE_RUNNING_STATUSES = {'setup', 'initialising', 'scheduled'}
 
 def format_duration(seconds: int) -> str:
     """Convert seconds to human-readable format.
-    
+
     Examples: "2h 15m", "45m 30s", "30s"
     """
     if not seconds or seconds <= 0:
         return "Not started"
-    
+
     seconds = int(seconds)
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
@@ -1323,7 +1323,7 @@ def format_duration(seconds: int) -> str:
 
 def map_status(api_status: str) -> str:
     """Map API status value to user-friendly display status.
-    
+
     Converts API status values (like 'ready', 'aborted') to display values
     (like 'running', 'paused') matching the list command.
     """
@@ -1332,7 +1332,7 @@ def map_status(api_status: str) -> str:
 
 def format_timestamp(iso_timestamp: str = None) -> str:
     """Convert ISO8601 timestamp to readable format.
-    
+
     Example: "2026-03-13 10:30:00"
     """
     if not iso_timestamp:
@@ -1348,7 +1348,7 @@ def format_timestamp(iso_timestamp: str = None) -> str:
 
 def format_cost(cost_value: float = None) -> str:
     """Format cost as currency.
-    
+
     Examples: "$12.50", "$0.00"
     """
     if cost_value is None:
@@ -1361,7 +1361,7 @@ def format_cost(cost_value: float = None) -> str:
 
 def format_instance_type(instance_type: str, is_cost_saving: bool = False) -> str:
     """Format instance type with spot indicator.
-    
+
     Examples: "c5.xlarge", "c5.xlarge (spot)"
     """
     if is_cost_saving:
@@ -1381,7 +1381,7 @@ class InteractiveSessionAPI:
     REQUEST_TIMEOUT = 30  # seconds
     def __init__(self, cloudos_url: str, apikey: str, verify_ssl: bool = True):
         """Initialize API client.
-        
+
         Parameters
         ----------
         cloudos_url : str
@@ -1395,7 +1395,7 @@ class InteractiveSessionAPI:
         self.apikey = apikey
         self.verify_ssl = verify_ssl
         self.session = self._create_session()
-    
+
     def _create_session(self) -> requests.Session:
         """Create requests session with retry strategy."""
         session = requests.Session()
@@ -1410,24 +1410,24 @@ class InteractiveSessionAPI:
         session.mount('http://', adapter)
         session.mount('https://', adapter)
         return session
-    
+
     def get_session_status(self, session_id: str, team_id: str) -> dict:
         """Retrieve session status from API endpoint.
-        
+
         GET /api/v2/interactive-sessions/{sessionId}?teamId={teamId}
-        
+
         Parameters
         ----------
         session_id : str
             Session ID (24-character hex)
         team_id : str
             Team/workspace ID
-        
+
         Returns
         -------
         dict
             Session status response
-        
+
         Raises
         ------
         PermissionError
@@ -1467,7 +1467,7 @@ class InteractiveSessionAPI:
                 raise RuntimeError(
                     f"API error (HTTP {response.status_code}): {response.text}"
                 )
-        
+
         except requests.exceptions.Timeout:
             raise RuntimeError(f"API request timeout after {self.REQUEST_TIMEOUT} seconds")
         except requests.exceptions.ConnectionError as e:
@@ -1476,7 +1476,7 @@ class InteractiveSessionAPI:
 
 class OutputFormatter:
     """Handles formatting output in different formats."""
-    
+
     @staticmethod
     def format_stdout(session_data: dict, cloudos_url: str) -> None:
         """Display session status as a rich table with color coding."""
@@ -1520,12 +1520,12 @@ class OutputFormatter:
         if session_data.get('r_version'):
             table.add_row("R Version", session_data.get('r_version'))
         console.print(table)
-    
+
     @staticmethod
     def format_json(raw_response: dict) -> str:
         """Return raw API response as formatted JSON."""
         return json.dumps(raw_response, indent=2, default=str)
-    
+
     @staticmethod
     def format_csv(session_data: dict) -> str:
         """Export as CSV with key fields."""
@@ -1548,11 +1548,11 @@ class OutputFormatter:
 
 class WatchModeManager:
     """Manages watch mode polling and display."""
-    
+
     def __init__(self, api_client: InteractiveSessionAPI, 
                  session_id: str, team_id: str, interval: int = 10):
         """Initialize watch mode manager.
-        
+
         Parameters
         ----------
         api_client : InteractiveSessionAPI
@@ -1569,17 +1569,17 @@ class WatchModeManager:
         self.team_id = team_id
         self.interval = interval
         self.start_time = time.time()
-    
+
     def watch(self, verbose: bool = False) -> dict:
         """Continuously poll session status until reaching terminal state.
-        
+
         Terminal states: running, paused, terminated
-        
+
         Handles Ctrl+C gracefully.
         """
         spinner_chars = ['◜', '◝', '◞', '◟']
         spinner_index = 0
-        
+
         try:
             while True:
                 # Fetch status
@@ -1615,7 +1615,7 @@ class WatchModeManager:
         except KeyboardInterrupt:
             print("\n⚠ Watch mode interrupted by user.")
             raise
-    
+
     def get_elapsed_time(self) -> str:
         """Get formatted elapsed time."""
         elapsed = int(time.time() - self.start_time)
@@ -1679,14 +1679,14 @@ def transform_session_response(api_response: dict) -> dict:
 
 def export_session_status_json(session_data: dict, output_file: str = None) -> str:
     """Export session status as JSON.
-    
+
     Parameters
     ----------
     session_data : dict
         Raw API response
     output_file : str, optional
         Path to save JSON file. If None, returns JSON string.
-    
+
     Returns
     -------
     str
@@ -1701,14 +1701,14 @@ def export_session_status_json(session_data: dict, output_file: str = None) -> s
 
 def export_session_status_csv(session_data: dict, output_file: str = None) -> str:
     """Export session status as CSV.
-    
+
     Parameters
     ----------
     session_data : dict
         Transformed session data (from transform_session_response)
     output_file : str, optional
         Path to save CSV file. If None, returns CSV string.
-    
+
     Returns
     -------
     str
@@ -1729,7 +1729,7 @@ def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: st
                                    team_id: str, verify_ssl: bool = True, 
                                    verbose: bool = False) -> dict:
     """Wrapper function to fetch session status from API.
-    
+
     Parameters
     ----------
     cloudos_url : str
@@ -1744,12 +1744,12 @@ def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: st
         Whether to verify SSL certificates
     verbose : bool
         Whether to print verbose output
-    
+
     Returns
     -------
     dict
         Raw API response
-    
+
     Raises
     ------
     ValueError
@@ -1764,13 +1764,13 @@ def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: st
         apikey=apikey,
         verify_ssl=verify_ssl
     )
-    
+
     return api_client.get_session_status(session_id, team_id)
 
 
 def format_session_status_table(session_data: dict, cloudos_url: str = None) -> None:
     """Wrapper function to display session status as a rich table.
-    
+
     Parameters
     ----------
     session_data : dict
@@ -1783,7 +1783,7 @@ def format_session_status_table(session_data: dict, cloudos_url: str = None) -> 
 
 def confirm_session_stop(session_data: dict, no_upload: bool = False, force: bool = False) -> None:
     """Display session termination confirmation details.
-    
+
     Parameters
     ----------
     session_data : dict
@@ -1819,7 +1819,7 @@ def confirm_session_stop(session_data: dict, no_upload: bool = False, force: boo
 
 def format_stop_success_output(session_data: dict, wait: bool = False) -> None:
     """Display successful session stop output.
-    
+
     Parameters
     ----------
     session_data : dict
@@ -1850,7 +1850,7 @@ def format_stop_success_output(session_data: dict, wait: bool = False) -> None:
 def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, team_id: str, 
                             max_wait: int = 300, poll_interval: int = 5, verify_ssl: bool = True) -> dict:
     """Poll session status until it reaches a terminal state.
-    
+
     Parameters
     ----------
     cloudos_url : str
@@ -1867,12 +1867,12 @@ def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, tea
         Polling interval in seconds (default: 5)
     verify_ssl : bool
         Whether to verify SSL certificates
-    
+
     Returns
     -------
     dict
         Final session status response
-    
+
     Raises
     ------
     TimeoutError
@@ -1914,7 +1914,7 @@ def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, tea
 
 def fetch_interactive_session_page(cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl):
     """Helper function to fetch a specific page of interactive sessions.
-    
+
     Parameters
     ----------
     cl : Cloudos
@@ -1933,7 +1933,7 @@ def fetch_interactive_session_page(cl, workspace_id, page_num, limit, filter_sta
         Whether to include archived sessions
     verify_ssl : bool or str
         SSL verification setting
-    
+
     Returns
     -------
     dict
