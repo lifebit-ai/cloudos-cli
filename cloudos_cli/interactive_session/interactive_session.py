@@ -5,6 +5,8 @@ import sys
 import re
 import json
 import time
+import json
+import time
 from datetime import datetime, timedelta, timezone
 from rich.table import Table
 from rich.console import Console
@@ -12,7 +14,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from cloudos_cli.utils.requests import retry_requests_get
-
 
 
 def validate_instance_type(instance_type, execution_platform='aws'):
@@ -424,7 +425,6 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             break
 
 
-
 def process_interactive_session_list(sessions, all_fields=False):
     """Process interactive sessions data into a pandas DataFrame.
     
@@ -519,11 +519,11 @@ def _format_session_field(field_name, value):
         status_lower = str(value).lower()
         # Map API statuses to display values
         # API 'ready' and 'aborted' are mapped to user-friendly names
-        display_status = 'running' if status_lower == 'ready' else ('stopped' if status_lower == 'aborted' else value)
+        display_status = 'running' if status_lower == 'ready' else ('paused' if status_lower == 'aborted' else value)
         
         if status_lower in ['ready', 'running']:
             return f'[bold green]{display_status}[/bold green]'
-        elif status_lower in ['stopped', 'aborted']:
+        elif status_lower in ['paused', 'aborted']:
             return f'[bold red]{display_status}[/bold red]'
         elif status_lower in ['setup', 'initialising', 'initializing', 'scheduled']:
             return f'[bold yellow]{display_status}[/bold yellow]'
@@ -1229,7 +1229,12 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     
     table.add_row("Session ID", session_data.get('_id', 'N/A'))
     table.add_row("Name", session_data.get('name', 'N/A'))
-    table.add_row("Backend", session_data.get('interactiveSessionType', 'N/A'))
+    
+    # Map backend type to friendly name
+    api_backend = session_data.get('interactiveSessionType', 'N/A')
+    backend_display = _map_session_type_to_friendly_name(api_backend) if api_backend != 'N/A' else 'N/A'
+    table.add_row("Backend", backend_display)
+    
     table.add_row("Status", session_data.get('status', 'N/A'))
     
     # Try to get instance type from response, fallback to provided value
@@ -1304,40 +1309,28 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
 # Interactive Session Status Helper Functions
 # ============================================================================
 
-# Backend type mapping for status display
-BACKEND_MAPPING = {
-    'awsJupyterNotebook': 'Jupyter Notebook',
-    'azureJupyterNotebook': 'Jupyter Notebook',
-    'awsVSCode': 'VS Code',
-    'azureVSCode': 'VS Code',
-    'awsJupyterSparkNotebook': 'Spark',
-    'azureJupyterSparkNotebook': 'Spark',
-    'awsRstudio': 'RStudio',
-    'azureRstudio': 'RStudio',
-}
-
 # Status color mapping for Rich terminal
 STATUS_COLORS = {
     'running': 'green',
-    'stopped': 'red',
+    'paused': 'red',
     'terminated': 'red',
     'provisioning': 'yellow',
     'scheduled': 'yellow',
 }
 
 # Terminal states where watch mode should exit
-TERMINAL_STATES = {'running', 'stopped', 'terminated'}
+TERMINAL_STATES = {'running', 'paused', 'terminated'}
 
 # Status mapping from API to user-friendly display
 API_STATUS_MAPPING = {
     'ready': 'running',      # API returns 'ready' for running sessions
-    'aborted': 'stopped',    # API returns 'aborted' for stopped sessions
+    'aborted': 'paused',     # API returns 'aborted' for paused sessions
     'setup': 'setup',
     'initialising': 'initialising',
     'initializing': 'initialising',
     'scheduled': 'scheduled',
     'running': 'running',    # Some endpoints may return 'running'
-    'stopped': 'stopped',    # Some endpoints may return 'stopped'
+    'stopped': 'paused',     # Some endpoints may return 'stopped' - map to 'paused'
     'terminated': 'terminated',
 }
 
@@ -1369,16 +1362,11 @@ def format_duration(seconds: int) -> str:
     return " ".join(parts)
 
 
-def map_backend_type(api_backend: str) -> str:
-    """Map API backend type to user-friendly display name."""
-    return BACKEND_MAPPING.get(api_backend, api_backend)
-
-
 def map_status(api_status: str) -> str:
     """Map API status value to user-friendly display status.
     
     Converts API status values (like 'ready', 'aborted') to display values
-    (like 'running', 'stopped') matching the list command.
+    (like 'running', 'paused') matching the list command.
     """
     return API_STATUS_MAPPING.get(api_status, api_status)
 
@@ -1535,7 +1523,6 @@ class InteractiveSessionAPI:
             raise RuntimeError(f"Failed to connect to CloudOS: {str(e)}")
 
 
-
 class OutputFormatter:
     """Handles formatting output in different formats."""
     
@@ -1647,7 +1634,7 @@ class WatchModeManager:
     def watch(self, verbose: bool = False) -> dict:
         """Continuously poll session status until reaching terminal state.
         
-        Terminal states: running, stopped, terminated
+        Terminal states: running, paused, terminated
         
         Handles Ctrl+C gracefully.
         """
@@ -1711,7 +1698,7 @@ def transform_session_response(api_response: dict) -> dict:
     
     # Map backend type
     api_backend = api_response.get('interactiveSessionType', '')
-    backend_type = map_backend_type(api_backend)
+    backend_type = _map_session_type_to_friendly_name(api_backend)
     
     # Extract user info
     user = api_response.get('user', {})
@@ -1874,3 +1861,158 @@ def format_session_status_table(session_data: dict, cloudos_url: str = None) -> 
         CloudOS URL for creating links
     """
     OutputFormatter.format_stdout(session_data, cloudos_url or '')
+
+
+def confirm_session_stop(session_data: dict, no_upload: bool = False, force: bool = False) -> None:
+    """Display session termination confirmation details.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Session data from API response
+    no_upload : bool
+        Whether data upload on close is disabled
+    force : bool
+        Whether force abort is enabled
+    """
+    console = Console()
+    
+    session_name = session_data.get('name', 'Unknown')
+    session_id = session_data.get('_id', 'Unknown')
+    status = map_status(session_data.get('status', 'unknown'))
+    cost_per_hour = session_data.get('costPerHour', 0)
+    
+    # Create confirmation table
+    table = Table(title=f"About to stop session: {session_name}", title_style="bold yellow")
+    table.add_column("Property", style="cyan", no_wrap=True)
+    table.add_column("Value", style="green")
+    
+    table.add_row("Session ID", session_id)
+    table.add_row("Current Status", status)
+    
+    if not no_upload:
+        table.add_row("Data Action", "Will be saved before stopping")
+    else:
+        table.add_row("Data Action", "⚠ Will NOT be saved (--no-upload)")
+    
+    if force:
+        table.add_row("Termination", "⚠ FORCED (skip graceful shutdown)")
+    else:
+        table.add_row("Termination", "Graceful shutdown")
+    
+    if cost_per_hour:
+        table.add_row("Cost/Hour", f"${cost_per_hour:.2f}")
+    
+    console.print(table)
+
+
+def format_stop_success_output(session_data: dict, wait: bool = False) -> None:
+    """Display successful session stop output.
+    
+    Parameters
+    ----------
+    session_data : dict
+        Final session data from API response
+    wait : bool
+        Whether the command waited for full termination
+    """
+    from rich.console import Console
+    from rich.panel import Panel
+    
+    console = Console()
+    session_name = session_data.get('name', 'Unknown')
+    session_id = session_data.get('_id', 'Unknown')
+    status = map_status(session_data.get('status', 'unknown'))
+    total_cost = session_data.get('totalCostInUsd', 0)
+    total_runtime = session_data.get('totalRunningTimeInSeconds', 0)
+    
+    # Format runtime
+    runtime_str = format_duration(total_runtime) if total_runtime else 'N/A'
+    
+    # Build message
+    message = f"Session paused successfully\n"
+    message += f"  Session ID: {session_id}\n"
+    message += f"  Final status: {status}\n"
+    
+    if total_cost:
+        message += f"  Total cost: ${total_cost:.2f}\n"
+    
+    if total_runtime:
+        message += f"  Total runtime: {runtime_str}"
+    
+    # Display success message
+    console.print(Panel(message, title="✓ Session Stop Complete", style="bold green"))
+
+
+def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, team_id: str, 
+                            max_wait: int = 300, poll_interval: int = 5, verify_ssl: bool = True) -> dict:
+    """Poll session status until it reaches a terminal state.
+    
+    Parameters
+    ----------
+    cloudos_url : str
+        CloudOS API URL
+    apikey : str
+        API key for authentication
+    session_id : str
+        Session ID to monitor
+    team_id : str
+        Team/workspace ID
+    max_wait : int
+        Maximum time to wait in seconds (default: 300 = 5 minutes)
+    poll_interval : int
+        Polling interval in seconds (default: 5)
+    verify_ssl : bool
+        Whether to verify SSL certificates
+    
+    Returns
+    -------
+    dict
+        Final session status response
+    
+    Raises
+    ------
+    TimeoutError
+        If session doesn't reach terminal state within max_wait
+    """
+    from rich.console import Console
+    
+    console = Console()
+    start_time = time.time()
+    previous_status = None
+    
+    with console.status("[bold yellow]Pausing session...", spinner='dots'):
+        while True:
+            elapsed = time.time() - start_time
+            
+            # Fetch current status
+            session_response = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=team_id,
+                verify_ssl=verify_ssl,
+                verbose=False
+            )
+            
+            current_status = map_status(session_response.get('status', ''))
+            
+            # Print status changes
+            if current_status != previous_status:
+                console.log(f"Status: {current_status}")
+                previous_status = current_status
+            
+            # Check if terminal state reached
+            if current_status in ['paused', 'terminated']:
+                console.print("[bold green]✓ Session paused successfully")
+                return session_response
+            
+            # Check timeout
+            if elapsed > max_wait:
+                raise TimeoutError(
+                    f"Session did not reach terminal state within {max_wait} seconds. "
+                    f"Current status: {current_status}"
+                )
+            
+            # Wait before next poll
+            time.sleep(poll_interval)

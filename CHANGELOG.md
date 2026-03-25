@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.85.0 (2026-03-20)
+
+### Feat
+
+- Adds pausing of an interactive session
+
 ## v2.84.0 (2026-03-19)
 
 ### Feat

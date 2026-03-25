@@ -66,6 +66,7 @@ Python package for interacting with CloudOS
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
       - [Get Interactive Session Status](#get-interactive-session-status)
+      - [Pause Interactive Session](#pause-interactive-session)
       - [Create Interactive Session](#create-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
@@ -1972,9 +1973,9 @@ The table displays sessions with pagination controls (press `n` for next page, `
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
 ┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ stopped │ cloudosR     │ awsRstudio         │ 69aee0dba197… │ Leila  │
-│ running │ analysis-dev │ awsJupyterNotebook │ 69ae972a18f0… │ John   │
-│ stopped │ test_session │ awsVSCode          │ 69a996c098ab… │ James  │
+│ paused  │ cloudosR     │ RStudio            │ 69aee0dba197… │ Leila  │
+│ running │ analysis-dev │ Jupyter            │ 69ae972a18f0… │ John   │
+│ paused  │ test_session │ VS Code            │ 69a996c098ab… │ James  │
 └─────────┴──────────────┴────────────────────┴───────────────┴────────┘
 
 Total sessions: 15
@@ -2012,7 +2013,7 @@ Interactive session list saved to interactive_sessions_list.json
 You can filter sessions by status and other criteria:
 
 ```bash
-# Filter by status (setup, initialising, running, scheduled, stopped)
+# Filter by status (setup, initialising, running, scheduled, paused)
 cloudos interactive-session list --profile my_profile --filter-status running
 
 # Show only your own sessions
@@ -2090,7 +2091,7 @@ Status changed: provisioning → running
 **Watch Mode Behavior**
 
 - **Pre-running sessions** (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)
-- **Running/stopped sessions**: Watch mode will show a warning and display the current status instead
+- **Running/paused sessions**: Watch mode will show a warning and display the current status instead
 
 Example with a running session:
 
@@ -2158,6 +2159,161 @@ cloudos interactive-session status --session-id <SESSION_ID> --profile my_profil
 cloudos interactive-session status --session-id <SESSION_ID> --profile my_profile --output-format csv --output-basename /tmp/session_status
 # Creates: /tmp/session_status.csv
 ```
+
+#### Pause Interactive Session
+
+You can pause and terminate a running interactive session using the `cloudos interactive-session pause` command. This command gracefully shuts down the session and optionally saves session data before termination.
+
+**Basic Usage**
+
+Pause a session with confirmation:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+```
+
+The command displays a confirmation prompt:
+
+```console
+About to pause session: 69bd11ca02326c5b3649f5c1
+Upload data before pausing: True
+Force immediate termination: False
+Continue? [y/N]: y
+
+✓ Session pause request sent successfully.
+You can monitor the session status using: cloudos interactive-session status --session-id 69bd11ca02326c5b3649f5c1
+```
+
+**Skip Confirmation Prompt**
+
+Use the `-y` or `--yes` flag to skip the confirmation prompt:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile -y
+```
+
+**Data Management Options**
+
+By default, session data is saved to S3 before pausing. Use `--no-upload` to skip data saving (use with caution):
+
+```bash
+# Save session data before pausing (default)
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+
+# Skip saving data (use with caution)
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --no-upload
+```
+
+**Termination Modes**
+
+**Graceful Shutdown (default)**
+
+Allows the session to clean up resources and save data before terminating:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile
+```
+
+**Force Immediate Termination**
+
+Bypass graceful shutdown for immediate termination (useful for stuck sessions):
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --force
+```
+
+Use `--force` with caution as it may not save session data properly.
+
+**Wait for Termination**
+
+Use the `--wait` flag to monitor the session until it reaches a terminal state:
+
+```bash
+cloudos interactive-session pause --session-id <SESSION_ID> --profile my_profile --wait
+```
+
+Output with `--wait`:
+
+```console
+Pausing session...
+Status: shutting_down
+Status: uploading_data
+Status: cleaning_up
+Status: stopped
+✓ Session paused successfully
+```
+
+**Error Handling**
+
+The command provides helpful error messages for common issues:
+
+```console
+# Trying to pause an already paused session
+Error: Cannot pause session - the session is already paused.
+Tip: Check the session status with: cloudos interactive-session status --session-id <SESSION_ID>
+
+# Trying to pause a session that is already being paused
+Error: Cannot pause session - the session is already being paused.
+Tip: Wait a moment and check status with: cloudos interactive-session status --session-id <SESSION_ID>
+```
+
+**Examples**
+
+Basic pause with confirmation:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a
+```
+
+Pause without saving data and skip confirmation:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --no-upload -y
+```
+
+Force pause and wait for termination:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --workspace-id 687fb9905c45270e09db1e9a --force -y --wait
+```
+
+Pause using profile configuration:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --profile my_profile --wait
+```
+
+Pause with verbose output:
+
+```bash
+cloudos interactive-session pause --session-id 688351ab6be610972db54a8e --profile my_profile --verbose
+```
+
+**Options Reference**
+
+The command automatically loads from profile (via `@with_profile_config` decorator):
+- **From Profile**: apikey, cloudos-url, workspace-id
+- **Command Line**: Additional options and behaviors
+
+**Required:**
+- `--session-id`: The session ID to pause (24-character hex string)
+
+**Optional Overrides from Profile:**
+- `--apikey` (optional): Override API key from profile
+- `--cloudos-url` (optional): Override CloudOS URL from profile
+- `--workspace-id` (optional): Override workspace ID from profile
+
+**Optional Behavior Flags:**
+- `--no-upload`: Don't save session data before pausing (default: saves data)
+- `--force`: Force immediate termination, skip graceful shutdown (default: graceful). **Warning:** Shows a warning message that some data may not be saved.
+- `--wait`: Wait for session to fully pause (default: return immediately after sending pause command)
+- `-y, --yes`: Skip confirmation prompt (default: show confirmation)
+- `--verbose`: Show detailed progress messages
+
+**Optional Connection:**
+- `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
+- `--ssl-cert`: Path to SSL certificate file
+- `--profile`: Profile to use from config file (default: default profile)
 
 #### Create Interactive Session
 
@@ -2293,7 +2449,7 @@ The output shows the session details including:
 - Session ID
 - Session name
 - Backend type (jupyter, vscode, rstudio, spark)
-- Current status (scheduled, initialising, setup, running, stopped)
+- Current status (scheduled, initialising, setup, running, paused)
 
 
 ### Datasets
