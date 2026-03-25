@@ -30,6 +30,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_stop_success_output,
     poll_session_termination,
     build_resume_payload,
+    fetch_interactive_session_page
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -122,23 +123,19 @@ def list_sessions(ctx,
                   ssl_cert,
                   profile):
     """List interactive sessions for a CloudOS team."""
-    # apikey, cloudos_url, and team_id are now automatically resolved by the decorator
-    
+
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
     # Validate limit parameter
     if not isinstance(limit, int) or limit < 1:
         raise ValueError('Please use a positive integer (>= 1) for the --limit parameter')
-    
     if limit > 100:
         click.secho('Error: Limit cannot exceed 100. Please use --limit with a value <= 100', fg='red', err=True)
         raise SystemExit(1)
-    
     # Validate page parameter
     if not isinstance(page, int) or page < 1:
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
-    
     # Validate table columns if specified
+    
     valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
                      'spot', 'cost_limit', 'time_left'}
@@ -148,23 +145,18 @@ def list_sessions(ctx,
         # Parse columns (split by comma and strip whitespace)
         col_list = [col.strip() for col in selected_columns.split(',')]
         invalid_cols = [col for col in col_list if col not in valid_columns]
-        
         if invalid_cols:
             click.secho(f'Error: Invalid column(s): {", ".join(invalid_cols)}', fg='red', err=True)
             click.secho(f'Valid columns: {", ".join(sorted(valid_columns))}', fg='yellow', err=True)
             click.secho(f'\nTip: Use --help without other options to see command help', fg='cyan', err=True)
             raise SystemExit(1)
-    
-    # Prepare output file if needed
+        
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
-    
     if verbose:
         print('Executing list...')
         print('\t...Preparing objects')
-    
     cl = Cloudos(cloudos_url, apikey, None)
-    
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -181,22 +173,13 @@ def list_sessions(ctx,
             include_archived=archived,
             verify=verify_ssl
         )
-        
         sessions = result.get('sessions', [])
         pagination_metadata = result.get('pagination_metadata', None)
-        
-        # Define callback function for fetching additional pages
-        def fetch_page(page_num):
-            """Fetch a specific page of interactive sessions."""
-            return cl.get_interactive_session_list(
-                workspace_id,
-                page=page_num,
-                limit=limit,
-                status=list(filter_status) if filter_status else None,
-                owner_only=filter_only_mine,
-                include_archived=archived,
-                verify=verify_ssl
-            )
+
+        # Create callback function for fetching additional pages
+        fetch_page = lambda page_num: fetch_interactive_session_page(
+            cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
+        )
         
         # Handle empty results
         if len(sessions) == 0:
@@ -209,21 +192,17 @@ def list_sessions(ctx,
                 create_interactive_session_list_table([], pagination_metadata, selected_columns, page_size=limit, fetch_page_callback=fetch_page)
             else:
                 print('A total of 0 interactive sessions collected.')
-        
         # Display results based on output format
         elif output_format == 'stdout':
             create_interactive_session_list_table(sessions, pagination_metadata, selected_columns, page_size=limit, fetch_page_callback=fetch_page)
-        
         elif output_format == 'csv':
             sessions_df = process_interactive_session_list(sessions, all_fields)
             save_interactive_session_list_to_csv(sessions_df, outfile, count=len(sessions))
-        
         elif output_format == 'json':
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
             print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
-            print(f'\tInteractive session list saved to {outfile}')
-        
+            print(f'\tInteractive session list saved to {outfile}')        
         else:
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
     
@@ -242,6 +221,7 @@ def list_sessions(ctx,
         else:
             click.secho(f'Error: Failed to retrieve interactive sessions: {e}', fg='red', err=True)
             raise SystemExit(1)
+    
     except Exception as e:
         error_str = str(e)
         # Check for DNS/connection errors
@@ -359,15 +339,13 @@ def create_session(ctx,
                    verbose):
     """Create a new interactive session."""
     
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)    
     # Default execution_platform to 'aws' if not specified by user or profile
     if execution_platform is None:
         execution_platform = 'aws'
     else:
         # Normalize to lowercase
         execution_platform = execution_platform.lower()
-    
     # Set instance default based on execution_platform if not specified
     if instance is None:
         instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
@@ -386,18 +364,15 @@ def create_session(ctx,
         if not is_valid_master:
             click.secho(f'Error: Invalid Spark master instance type: {error_msg_master}', fg='red', err=True)
             raise SystemExit(1)
-        
         is_valid_core, error_msg_core = validate_instance_type(spark_core, 'aws')
         if not is_valid_core:
             click.secho(f'Error: Invalid Spark core instance type: {error_msg_core}', fg='red', err=True)
             raise SystemExit(1)
-    
     if verbose:
         print('Executing create interactive session...')
         print('\t...Preparing objects')
     
     cl = Cloudos(cloudos_url, apikey, None)
-    
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -420,7 +395,6 @@ def create_session(ctx,
             'rstudio': 'rstudio'
         }
         backend_type = backend_type_mapping.get(session_type_lower)
-        
         if not backend_type:
             click.secho(f'Error: Invalid session type: {session_type}', fg='red', err=True)
             raise SystemExit(1)
@@ -441,17 +415,14 @@ def create_session(ctx,
             try:
                 for df in mount:
                     parsed = parse_data_file(df)
-                    
                     if parsed['type'] == 's3':
                         # S3 files are only supported on AWS
                         if execution_platform != 'aws':
                             click.secho(f'Error: S3 mounts are only supported on AWS. Use CloudOS file explorer paths for Azure.', fg='red', err=True)
                             raise SystemExit(1)
-                        
                         # S3 file: add to dataItems as S3File type
                         if verbose:
                             print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        
                         # Use the full path as the name
                         s3_file_item = {
                             "type": "S3File",
@@ -462,18 +433,14 @@ def create_session(ctx,
                             }
                         }
                         parsed_data_files.append(s3_file_item)
-                        
                         if verbose:
                             print(f'\t  ✓ Added S3 file to mount')
-                    
                     else:  # type == 'cloudos'
                         # CloudOS dataset file: resolve via Datasets API
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
-                        
                         if verbose:
                             print(f'\tResolving dataset: {data_project}/{dataset_path}')
-                        
                         # Create a Datasets API instance for this specific project
                         datasets_api = Datasets(
                             cloudos_url=cloudos_url,
@@ -483,10 +450,8 @@ def create_session(ctx,
                             verify=verify_ssl,
                             cromwell_token=None
                         )
-                        
                         resolved = resolve_data_file_id(datasets_api, dataset_path)
                         parsed_data_files.append(resolved)
-                        
                         if verbose:
                             print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
             except Exception as e:
@@ -500,19 +465,15 @@ def create_session(ctx,
                 if execution_platform == 'azure':
                     click.secho(f'Error: Linking folders is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
                     raise SystemExit(1)
-                
                 parsed = parse_link_path(link_path)
-                
                 if parsed['type'] == 's3':
                     # S3 folders are only supported on AWS (additional safeguard)
                     if execution_platform != 'aws':
                         click.secho(f'Error: S3 links are only supported on AWS execution platform.', fg='red', err=True)
                         raise SystemExit(1)
-                    
                     # S3 folder: create S3Folder FUSE mount
                     if verbose:
                         print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                    
                     # Use bucket name or mount_name if provided (legacy format)
                     mount_name = parsed.get('mount_name', f"{parsed['s3_bucket']}-mount")
                     s3_mount_item = {
@@ -524,7 +485,6 @@ def create_session(ctx,
                         }
                     }
                     parsed_s3_mounts.append(s3_mount_item)
-                    
                     if verbose:
                         print(f'\t  ✓ Linked S3: {mount_name}')
                 
@@ -532,10 +492,8 @@ def create_session(ctx,
                     # CloudOS folder: resolve via Datasets API
                     folder_project = parsed['project_name']
                     folder_path = parsed['folder_path']
-                    
                     if verbose:
                         print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
-                    
                     # Create Datasets API instance for this project
                     datasets_api = Datasets(
                         cloudos_url=cloudos_url,
@@ -545,10 +503,6 @@ def create_session(ctx,
                         verify=verify_ssl,
                         cromwell_token=None
                     )
-                    
-                    # Get folder contents to verify it exists
-                    folder_content = datasets_api.list_folder_content(folder_path)
-                    
                     # For CloudOS folders, we create a mount item
                     mount_name = folder_path.split('/')[-1] if folder_path else folder_project
                     cloudos_mount_item = {
@@ -587,19 +541,15 @@ def create_session(ctx,
             spark_core_type=spark_core,
             spark_workers=spark_workers
         )
-        
         if verbose:
             print('\tPayload constructed:')
             print(json.dumps(payload, indent=2))
         
         # Create the session via API
         response = cl.create_interactive_session(workspace_id, payload, verify=verify_ssl)
-        
         session_id = response.get('_id')
-        
         if verbose:
             print(f'\tSession created with ID: {session_id}')
-        
         # Display session creation details in table format
         format_session_creation_table(
             response,
@@ -613,10 +563,8 @@ def create_session(ctx,
             data_files=parsed_data_files,
             s3_mounts=parsed_s3_mounts
         )
-        
         # Output session link in greppable format for CI/automation
         click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
-        
         if verbose:
             print('\tSession creation completed successfully!')
     
@@ -638,7 +586,6 @@ def create_session(ctx,
         else:
             click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-
 
 
 @interactive_session.command('status')
@@ -706,29 +653,24 @@ def get_session_status(ctx,
     """Get status of an interactive session."""
     
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
     # Validate session ID format
     if not validate_session_id(session_id):
         click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
         raise SystemExit(1)
-    
     # Validate watch-interval
     if watch_interval <= 0:
         click.secho(f'Error: --watch-interval must be a positive number, got: {watch_interval}', fg='red', err=True)
         raise SystemExit(1)
-    
     # Parse and validate max-wait-time
     try:
         max_wait_time_seconds = parse_watch_timeout_duration(max_wait_time)
     except ValueError as e:
         click.secho(f'Error: Invalid --max-wait-time format: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-    
     # Validate output format
     if output_format.lower() not in ['stdout', 'csv', 'json']:
         click.secho(f'Error: Invalid output format. Must be one of: stdout, csv, json', fg='red', err=True)
         raise SystemExit(1)
-    
     if verbose:
         print('Executable: get interactive session status...')
         print('\t...Preparing objects')
@@ -737,7 +679,6 @@ def get_session_status(ctx,
         # Get initial status
         if verbose:
             print(f'\tRetrieving session status from: {cloudos_url}')
-        
         session_response = get_interactive_session_status(
             cloudos_url=cloudos_url,
             apikey=apikey,
@@ -746,14 +687,11 @@ def get_session_status(ctx,
             verify_ssl=verify_ssl,
             verbose=verbose
         )
-        
         if verbose:
             print(f'\t✓ Session retrieved successfully')
-        
         # Get mapped status for display
         api_status = session_response.get('status', '')
         display_status = map_status(api_status)
-        
         # Apply watch mode if requested
         if watch:
             # Check if watch mode is appropriate for this session status
@@ -767,25 +705,19 @@ def get_session_status(ctx,
             else:
                 # Print initial status message before starting watch
                 click.echo(f'Session {session_id} currently is in {display_status}...')
-                
                 start_time = time.time()
                 previous_status = display_status  # Track previous status to detect changes
-                
                 while True:
                     # Get current status
                     api_status = session_response.get('status', '')
                     display_status = map_status(api_status)
-                    
                     elapsed = time.time() - start_time
-                    
                     if verbose:
                         print(f'\tPolling... Status: {display_status} | Elapsed: {int(elapsed)}s')
-                    
                     # Print status change message
                     if display_status != previous_status:
                         click.echo(f'Status changed: {previous_status} → {display_status}')
                         previous_status = display_status
-                    
                     # Exit watch mode if session is ready or terminated
                     if display_status == 'running':
                         click.secho('✓ Session is now running and ready to use!', fg='green')
@@ -793,7 +725,6 @@ def get_session_status(ctx,
                     elif display_status in ['paused', 'terminated']:
                         click.secho(f'⚠ Session reached terminal state: {display_status}', fg='yellow')
                         break
-                    
                     # Check timeout AFTER evaluating current status
                     if elapsed > max_wait_time_seconds:
                         click.secho(
@@ -803,10 +734,8 @@ def get_session_status(ctx,
                             err=True
                         )
                         break
-                    
                     # Wait before next poll
                     time.sleep(watch_interval)
-                    
                     # Fetch updated status for next iteration
                     session_response = get_interactive_session_status(
                         cloudos_url=cloudos_url,
@@ -824,7 +753,6 @@ def get_session_status(ctx,
             with open(outfile, 'w') as f:
                 f.write(json_output)
             click.echo(f'Session status saved to {outfile}')
-        
         elif output_format.lower() == 'csv':
             transformed_data = transform_session_response(session_response)
             csv_output = export_session_status_csv(transformed_data)
@@ -832,7 +760,6 @@ def get_session_status(ctx,
             with open(outfile, 'w') as f:
                 f.write(csv_output)
             click.echo(f'Session status saved to {outfile}')
-        
         else:  # stdout (default)
             transformed_data = transform_session_response(session_response)
             format_session_status_table(transformed_data, cloudos_url=cloudos_url)
@@ -922,16 +849,14 @@ def pause_session(ctx,
     """Pause a running interactive session."""
     
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
     # Validate session ID format
     if not validate_session_id(session_id):
         click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
         raise SystemExit(1)
-    
     if verbose:
         print('Executing pause interactive session...')
         print('\t...Preparing objects')
-    
+
     try:
         # Check session status BEFORE prompting for confirmation
         if verbose:
@@ -957,8 +882,6 @@ def pause_session(ctx,
         
         # Check if session is already paused or terminated
         api_status = session_response.get('status', '')
-
-        
         if api_status == 'aborted':
             click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
             click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
@@ -967,17 +890,14 @@ def pause_session(ctx,
             click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
             click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             raise SystemExit(1)
-        
         if api_status == 'terminated':
             click.secho(f'Error: Session is terminated and cannot be paused.', fg='red', err=True)
             raise SystemExit(1)
-        
         # Show confirmation prompt unless --yes or --force flag is used
         if not skip_confirmation and not force:
             click.echo(f'About to pause session: {session_id}')
             click.echo(f'Upload data before pausing: {not no_upload}')
             click.echo(f'Force immediate termination: {force}')
-            
             # Get user confirmation
             try:
                 response = click.prompt('Continue? [y/N]', type=str, default='N')
@@ -987,14 +907,11 @@ def pause_session(ctx,
             except KeyboardInterrupt:
                 click.secho('\n⚠ Operation cancelled by user.', fg='yellow', err=True)
                 raise SystemExit(0)
-        
         # Prepare abort parameters
         upload_on_close = not no_upload  # Invert no_upload to get upload_on_close
         force_abort = force
-        
         # Create Cloudos client and abort session
         cl = Cloudos(cloudos_url, apikey, None)
-        
         if verbose:
             print('\t...Sending abort request to CloudOS')
         
@@ -1006,19 +923,15 @@ def pause_session(ctx,
             force_abort=force_abort,
             verify=verify_ssl
         )
-        
         if verbose:
             print(f'\t✓ Abort request sent successfully (HTTP {status_code})')
-        
         # Show force abort warning if applicable
         if force:
             click.secho('\n⚠ Warning: Session was force-aborted by the user. Some data may have not been saved.', fg='yellow', err=True)
-        
         # If --wait flag is set, poll until session is paused
         if wait:
             if verbose:
                 print('\t...Waiting for session to fully pause')
-            
             try:
                 final_response = poll_session_termination(
                     cloudos_url=cloudos_url,
@@ -1029,10 +942,8 @@ def pause_session(ctx,
                     poll_interval=5,  # Poll every 5 seconds
                     verify_ssl=verify_ssl
                 )
-                
                 # Display final status (pass raw API response, not transformed data)
                 format_stop_success_output(final_response, wait=True)
-                
             except TimeoutError as e:
                 click.secho(f'⚠ Timeout: {str(e)}', fg='yellow', err=True)
                 click.echo('The session pause command has been sent, but the session did not fully terminate within the timeout period.')
@@ -1154,23 +1065,19 @@ def resume_session(ctx,
     """Resume a paused interactive session with optional configuration updates."""
     
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    
     # Validate session ID format
     if not validate_session_id(session_id):
         click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
         raise SystemExit(1)
-    
     # Validate storage if provided
     if storage is not None and not (100 <= storage <= 5000):
         click.secho('Error: Storage size must be between 100-5000 GB', fg='red', err=True)
         raise SystemExit(1)
-    
     if verbose:
         print('Executing resume interactive session...')
         print('\t...Preparing objects')
-    
+
     cl = Cloudos(cloudos_url, apikey, None)
-    
     if verbose:
         print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
@@ -1189,7 +1096,6 @@ def resume_session(ctx,
             )
             current_config = session_data.get('interactiveSessionConfiguration', {})
             execution_platform = current_config.get('executionPlatform', 'aws')
-            
             if verbose:
                 print(f'\tCurrent session platform: {execution_platform}')
                 print(f'\tCurrent status: {session_data.get("status", "unknown")}')
@@ -1216,16 +1122,13 @@ def resume_session(ctx,
             try:
                 for df in mount:
                     parsed = parse_data_file(df)
-                    
                     if parsed['type'] == 's3':
                         # S3 files are only supported on AWS
                         if execution_platform != 'aws':
                             click.secho(f'Error: S3 mounts are only supported on AWS.', fg='red', err=True)
                             raise SystemExit(1)
-                        
                         if verbose:
                             print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        
                         s3_file_item = {
                             "type": "S3File",
                             "data": {
@@ -1235,14 +1138,11 @@ def resume_session(ctx,
                             }
                         }
                         parsed_data_files.append(s3_file_item)
-                        
                     else:  # CloudOS dataset
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
-                        
                         if verbose:
                             print(f'\tResolving dataset: {data_project}/{dataset_path}')
-                        
                         datasets_api = Datasets(
                             cloudos_url=cloudos_url,
                             apikey=apikey,
@@ -1251,10 +1151,8 @@ def resume_session(ctx,
                             verify=verify_ssl,
                             cromwell_token=None
                         )
-                        
                         resolved = resolve_data_file_id(datasets_api, dataset_path)
                         parsed_data_files.append(resolved)
-                        
                         if verbose:
                             print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
             except Exception as e:
@@ -1270,13 +1168,10 @@ def resume_session(ctx,
                     if execution_platform == 'azure':
                         click.secho(f'Error: Linking folders is not supported on Azure. Please use --mount instead.', fg='red', err=True)
                         raise SystemExit(1)
-                    
                     parsed = parse_link_path(link_path)
-                    
                     if parsed['type'] == 's3':
                         if verbose:
                             print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        
                         mount_name = parsed.get('mount_name', f"{parsed['s3_bucket']}-mount")
                         s3_mount_item = {
                             "type": "S3Folder",
@@ -1287,14 +1182,11 @@ def resume_session(ctx,
                             }
                         }
                         parsed_s3_mounts.append(s3_mount_item)
-                        
                     else:  # CloudOS folder
                         folder_project = parsed['project_name']
                         folder_path = parsed['folder_path']
-                        
                         if verbose:
                             print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
-                        
                         # Create Datasets API instance for this project
                         datasets_api = Datasets(
                             cloudos_url=cloudos_url,
@@ -1303,11 +1195,7 @@ def resume_session(ctx,
                             project_name=folder_project,
                             verify=verify_ssl,
                             cromwell_token=None
-                        )
-                        
-                        # Get folder contents to verify it exists
-                        folder_content = datasets_api.list_folder_content(folder_path)
-                        
+                        )                        
                         # AWS-only: Create S3Folder mount for CloudOS folders
                         mount_name = folder_path.split('/')[-1] if folder_path else folder_project
                         cloudos_mount_item = {
@@ -1319,7 +1207,6 @@ def resume_session(ctx,
                             }
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
-                        
                         if verbose:
                             print(f'\t  ✓ Linked CloudOS folder: {mount_name}')
             except Exception as e:
@@ -1335,20 +1222,15 @@ def resume_session(ctx,
             data_files=parsed_data_files,
             s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else None
         )
-        
         if verbose:
             print('\tResume payload constructed:')
             print(json.dumps(payload, indent=2))
-        
         # Resume the session via API
         response = cl.resume_interactive_session(session_id, workspace_id, payload, verify=verify_ssl)
-        
         if verbose:
             print(f'\tSession resumed successfully')
-        
         # Display success message
         click.secho(f'✓ Session {session_id} has been resumed successfully!', fg='green')
-        
         # Show updated configuration
         updated_config = response.get('interactiveSessionConfiguration', {})
         if instance or storage or cost_limit is not None or shutdown_at_parsed:
@@ -1363,12 +1245,10 @@ def resume_session(ctx,
             if shutdown_at_parsed:
                 exec_config = updated_config.get('execution', {})
                 click.echo(f'  Auto-shutdown: {exec_config.get("autoShutdownAtDate", shutdown_at_parsed)}')
-        
         if parsed_data_files:
             click.echo(f'\n  {len(parsed_data_files)} additional file(s) mounted')
         if parsed_s3_mounts:
             click.echo(f'  {len(parsed_s3_mounts)} additional folder(s) linked')
-        
         click.echo(f'\nSession status: {response.get("status", "unknown")}')
         click.echo(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}')
     
