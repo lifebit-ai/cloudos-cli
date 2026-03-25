@@ -29,10 +29,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     PRE_RUNNING_STATUSES,
     format_stop_success_output,
     poll_session_termination,
-<<<<<<< HEAD
     build_resume_payload,
-=======
->>>>>>> 141d65eb6210452d56f1450f04cbbdcbae508dee
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
