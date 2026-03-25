@@ -9,6 +9,7 @@ cloudos\_cli.interactive\_session.interactive\_session
    .. autosummary::
    
       build_session_payload
+      confirm_session_stop
       create_interactive_session_list_table
       export_session_status_csv
       export_session_status_json
@@ -17,14 +18,15 @@ cloudos\_cli.interactive\_session.interactive\_session
       format_instance_type
       format_session_creation_table
       format_session_status_table
+      format_stop_success_output
       format_timestamp
       get_interactive_session_status
-      map_backend_type
       map_status
       parse_data_file
       parse_link_path
       parse_shutdown_duration
       parse_watch_timeout_duration
+      poll_session_termination
       process_interactive_session_list
       resolve_data_file_id
       save_interactive_session_list_to_csv

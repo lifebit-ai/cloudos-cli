@@ -381,6 +381,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
@@ -388,7 +390,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib3.util.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retry</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_get</span>
-
 
 
 <div class="viewcode-block" id="validate_instance_type">
@@ -806,7 +807,6 @@
 
 
 
-
 <div class="viewcode-block" id="process_interactive_session_list">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">process_interactive_session_list</span><span class="p">(</span><span class="n">sessions</span><span class="p">,</span> <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -904,11 +904,11 @@
         <span class="n">status_lower</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="c1"># Map API statuses to display values</span>
         <span class="c1"># API &#39;ready&#39; and &#39;aborted&#39; are mapped to user-friendly names</span>
-        <span class="n">display_status</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;ready&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;stopped&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;aborted&#39;</span> <span class="k">else</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">display_status</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;ready&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;paused&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;aborted&#39;</span> <span class="k">else</span> <span class="n">value</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ready&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;[bold green]</span><span class="si">{</span><span class="n">display_status</span><span class="si">}</span><span class="s1">[/bold green]&#39;</span>
-        <span class="k">elif</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;stopped&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;[bold red]</span><span class="si">{</span><span class="n">display_status</span><span class="si">}</span><span class="s1">[/bold red]&#39;</span>
         <span class="k">elif</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span> <span class="s1">&#39;initializing&#39;</span><span class="p">,</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;[bold yellow]</span><span class="si">{</span><span class="n">display_status</span><span class="si">}</span><span class="s1">[/bold yellow]&#39;</span>
@@ -1637,7 +1637,12 @@
     
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
-    <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Backend&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># Map backend type to friendly name</span>
+    <span class="n">api_backend</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+    <span class="n">backend_display</span> <span class="o">=</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span> <span class="k">if</span> <span class="n">api_backend</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Backend&quot;</span><span class="p">,</span> <span class="n">backend_display</span><span class="p">)</span>
+    
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
     
     <span class="c1"># Try to get instance type from response, fallback to provided value</span>
@@ -1713,40 +1718,28 @@
 <span class="c1"># Interactive Session Status Helper Functions</span>
 <span class="c1"># ============================================================================</span>
 
-<span class="c1"># Backend type mapping for status display</span>
-<span class="n">BACKEND_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;awsJupyterNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Jupyter Notebook&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;azureJupyterNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Jupyter Notebook&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;awsVSCode&#39;</span><span class="p">:</span> <span class="s1">&#39;VS Code&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;azureVSCode&#39;</span><span class="p">:</span> <span class="s1">&#39;VS Code&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;awsJupyterSparkNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;azureJupyterSparkNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;awsRstudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;azureRstudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>
-<span class="p">}</span>
-
 <span class="c1"># Status color mapping for Rich terminal</span>
 <span class="n">STATUS_COLORS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;paused&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
     <span class="s1">&#39;terminated&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
     <span class="s1">&#39;provisioning&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
     <span class="s1">&#39;scheduled&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Terminal states where watch mode should exit</span>
-<span class="n">TERMINAL_STATES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span> <span class="s1">&#39;terminated&#39;</span><span class="p">}</span>
+<span class="n">TERMINAL_STATES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;terminated&#39;</span><span class="p">}</span>
 
 <span class="c1"># Status mapping from API to user-friendly display</span>
 <span class="n">API_STATUS_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;ready&#39;</span><span class="p">:</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span>      <span class="c1"># API returns &#39;ready&#39; for running sessions</span>
-    <span class="s1">&#39;aborted&#39;</span><span class="p">:</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span>    <span class="c1"># API returns &#39;aborted&#39; for stopped sessions</span>
+    <span class="s1">&#39;aborted&#39;</span><span class="p">:</span> <span class="s1">&#39;paused&#39;</span><span class="p">,</span>     <span class="c1"># API returns &#39;aborted&#39; for paused sessions</span>
     <span class="s1">&#39;setup&#39;</span><span class="p">:</span> <span class="s1">&#39;setup&#39;</span><span class="p">,</span>
     <span class="s1">&#39;initialising&#39;</span><span class="p">:</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span>
     <span class="s1">&#39;initializing&#39;</span><span class="p">:</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span>
     <span class="s1">&#39;scheduled&#39;</span><span class="p">:</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">,</span>
     <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span>    <span class="c1"># Some endpoints may return &#39;running&#39;</span>
-    <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span>    <span class="c1"># Some endpoints may return &#39;stopped&#39;</span>
+    <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;paused&#39;</span><span class="p">,</span>     <span class="c1"># Some endpoints may return &#39;stopped&#39; - map to &#39;paused&#39;</span>
     <span class="s1">&#39;terminated&#39;</span><span class="p">:</span> <span class="s1">&#39;terminated&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
@@ -1781,21 +1774,13 @@
 
 
 
-<div class="viewcode-block" id="map_backend_type">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.map_backend_type">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">map_backend_type</span><span class="p">(</span><span class="n">api_backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map API backend type to user-friendly display name.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">BACKEND_MAPPING</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_backend</span><span class="p">,</span> <span class="n">api_backend</span><span class="p">)</span></div>
-
-
-
 <div class="viewcode-block" id="map_status">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.map_status">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">map_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Map API status value to user-friendly display status.</span>
 <span class="sd">    </span>
 <span class="sd">    Converts API status values (like &#39;ready&#39;, &#39;aborted&#39;) to display values</span>
-<span class="sd">    (like &#39;running&#39;, &#39;stopped&#39;) matching the list command.</span>
+<span class="sd">    (like &#39;running&#39;, &#39;paused&#39;) matching the list command.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">API_STATUS_MAPPING</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_status</span><span class="p">,</span> <span class="n">api_status</span><span class="p">)</span></div>
 
@@ -1971,7 +1956,6 @@
 
 
 
-
 <div class="viewcode-block" id="OutputFormatter">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OutputFormatter</span><span class="p">:</span>
@@ -2099,7 +2083,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">watch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Continuously poll session status until reaching terminal state.</span>
 <span class="sd">        </span>
-<span class="sd">        Terminal states: running, stopped, terminated</span>
+<span class="sd">        Terminal states: running, paused, terminated</span>
 <span class="sd">        </span>
 <span class="sd">        Handles Ctrl+C gracefully.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2170,7 +2154,7 @@
     
     <span class="c1"># Map backend type</span>
     <span class="n">api_backend</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">backend_type</span> <span class="o">=</span> <span class="n">map_backend_type</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span>
+    <span class="n">backend_type</span> <span class="o">=</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span>
     
     <span class="c1"># Extract user info</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span>
@@ -2345,6 +2329,170 @@
 <span class="sd">        CloudOS URL for creating links</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">OutputFormatter</span><span class="o">.</span><span class="n">format_stdout</span><span class="p">(</span><span class="n">session_data</span><span class="p">,</span> <span class="n">cloudos_url</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="confirm_session_stop">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.confirm_session_stop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">confirm_session_stop</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">no_upload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display session termination confirmation details.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session_data : dict</span>
+<span class="sd">        Session data from API response</span>
+<span class="sd">    no_upload : bool</span>
+<span class="sd">        Whether data upload on close is disabled</span>
+<span class="sd">    force : bool</span>
+<span class="sd">        Whether force abort is enabled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+    
+    <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
+    <span class="n">cost_per_hour</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;costPerHour&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1"># Create confirmation table</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;About to stop session: </span><span class="si">{</span><span class="n">session_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">title_style</span><span class="o">=</span><span class="s2">&quot;bold yellow&quot;</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Property&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+    
+    <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Current Status&quot;</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">no_upload</span><span class="p">:</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Data Action&quot;</span><span class="p">,</span> <span class="s2">&quot;Will be saved before stopping&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Data Action&quot;</span><span class="p">,</span> <span class="s2">&quot;⚠ Will NOT be saved (--no-upload)&quot;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Termination&quot;</span><span class="p">,</span> <span class="s2">&quot;⚠ FORCED (skip graceful shutdown)&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Termination&quot;</span><span class="p">,</span> <span class="s2">&quot;Graceful shutdown&quot;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">cost_per_hour</span><span class="p">:</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Cost/Hour&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">cost_per_hour</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="format_stop_success_output">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_stop_success_output">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_stop_success_output</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display successful session stop output.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session_data : dict</span>
+<span class="sd">        Final session data from API response</span>
+<span class="sd">    wait : bool</span>
+<span class="sd">        Whether the command waited for full termination</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.panel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Panel</span>
+    
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+    <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalCostInUsd&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">total_runtime</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalRunningTimeInSeconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1"># Format runtime</span>
+    <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">format_duration</span><span class="p">(</span><span class="n">total_runtime</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_runtime</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
+    
+    <span class="c1"># Build message</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Session paused successfully</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Session ID: </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Final status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    
+    <span class="k">if</span> <span class="n">total_cost</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Total cost: $</span><span class="si">{</span><span class="n">total_cost</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    
+    <span class="k">if</span> <span class="n">total_runtime</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Total runtime: </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span>
+    
+    <span class="c1"># Display success message</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">Panel</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;✓ Session Stop Complete&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;bold green&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="poll_session_termination">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.poll_session_termination">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">poll_session_termination</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">apikey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                            <span class="n">max_wait</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span> <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Poll session status until it reaches a terminal state.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        CloudOS API URL</span>
+<span class="sd">    apikey : str</span>
+<span class="sd">        API key for authentication</span>
+<span class="sd">    session_id : str</span>
+<span class="sd">        Session ID to monitor</span>
+<span class="sd">    team_id : str</span>
+<span class="sd">        Team/workspace ID</span>
+<span class="sd">    max_wait : int</span>
+<span class="sd">        Maximum time to wait in seconds (default: 300 = 5 minutes)</span>
+<span class="sd">    poll_interval : int</span>
+<span class="sd">        Polling interval in seconds (default: 5)</span>
+<span class="sd">    verify_ssl : bool</span>
+<span class="sd">        Whether to verify SSL certificates</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Final session status response</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TimeoutError</span>
+<span class="sd">        If session doesn&#39;t reach terminal state within max_wait</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+    
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">previous_status</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">with</span> <span class="n">console</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;[bold yellow]Pausing session...&quot;</span><span class="p">,</span> <span class="n">spinner</span><span class="o">=</span><span class="s1">&#39;dots&#39;</span><span class="p">):</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            
+            <span class="c1"># Fetch current status</span>
+            <span class="n">session_response</span> <span class="o">=</span> <span class="n">get_interactive_session_status</span><span class="p">(</span>
+                <span class="n">cloudos_url</span><span class="o">=</span><span class="n">cloudos_url</span><span class="p">,</span>
+                <span class="n">apikey</span><span class="o">=</span><span class="n">apikey</span><span class="p">,</span>
+                <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+                <span class="n">team_id</span><span class="o">=</span><span class="n">team_id</span><span class="p">,</span>
+                <span class="n">verify_ssl</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            
+            <span class="n">current_status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+            
+            <span class="c1"># Print status changes</span>
+            <span class="k">if</span> <span class="n">current_status</span> <span class="o">!=</span> <span class="n">previous_status</span><span class="p">:</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status: </span><span class="si">{</span><span class="n">current_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">previous_status</span> <span class="o">=</span> <span class="n">current_status</span>
+            
+            <span class="c1"># Check if terminal state reached</span>
+            <span class="k">if</span> <span class="n">current_status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;terminated&#39;</span><span class="p">]:</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[bold green]✓ Session paused successfully&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">session_response</span>
+            
+            <span class="c1"># Check timeout</span>
+            <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&gt;</span> <span class="n">max_wait</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Session did not reach terminal state within </span><span class="si">{</span><span class="n">max_wait</span><span class="si">}</span><span class="s2"> seconds. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Current status: </span><span class="si">{</span><span class="n">current_status</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            
+            <span class="c1"># Wait before next poll</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">poll_interval</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

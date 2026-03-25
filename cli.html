@@ -1895,7 +1895,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dd><p>Filter sessions by status. Can be specified multiple times to filter by multiple statuses.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
-<dd class="field-odd"><p>setup | initialising | running | scheduled | stopped</p>
+<dd class="field-odd"><p>setup | initialising | running | scheduled | paused</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1980,6 +1980,93 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-list-profile">
 <span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-list-profile" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+</section>
+<section id="cloudos-interactive-session-pause">
+<h4>pause<a class="headerlink" href="#cloudos-interactive-session-pause" title="Link to this heading">¶</a></h4>
+<p>Pause a running interactive session.</p>
+<p class="rubric">Usage</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-session-id">
+<span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-session-id" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> The session ID to pause (24-character hex string).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-k">
+<span id="cmdoption-cloudos-interactive-session-pause-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-k" title="Link to this definition">¶</a></dt>
+<dd><p>Your CloudOS API key</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-c">
+<span id="cmdoption-cloudos-interactive-session-pause-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-c" title="Link to this definition">¶</a></dt>
+<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-workspace-id">
+<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-workspace-id" title="Link to this definition">¶</a></dt>
+<dd><p>The specific CloudOS workspace id.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-no-upload">
+<span class="sig-name descname"><span class="pre">--no-upload</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-no-upload" title="Link to this definition">¶</a></dt>
+<dd><p>Don’t save session data before pausing (use with caution).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-force">
+<span class="sig-name descname"><span class="pre">--force</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-force" title="Link to this definition">¶</a></dt>
+<dd><p>Force immediate termination and skip confirmation prompt.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-wait">
+<span class="sig-name descname"><span class="pre">--wait</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-wait" title="Link to this definition">¶</a></dt>
+<dd><p>Wait for session to fully pause.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-y">
+<span id="cmdoption-cloudos-interactive-session-pause-yes"></span><span class="sig-name descname"><span class="pre">-y</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--yes</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-y" title="Link to this definition">¶</a></dt>
+<dd><p>Skip confirmation prompt.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-verbose">
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-disable-ssl-verification">
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-disable-ssl-verification" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-ssl-cert">
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-ssl-cert" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-profile">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-profile" title="Link to this definition">¶</a></dt>
 <dd><p>Profile to use from the config file</p>
 </dd></dl>
 
@@ -4548,6 +4635,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <li><a class="reference internal" href="#cloudos-interactive-session">interactive-session</a><ul>
 <li><a class="reference internal" href="#cloudos-interactive-session-create">create</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-list">list</a></li>
+<li><a class="reference internal" href="#cloudos-interactive-session-pause">pause</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-status">status</a></li>
 </ul>
 </li>

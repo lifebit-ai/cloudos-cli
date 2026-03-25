@@ -2795,7 +2795,7 @@
         <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
             <span class="c1"># status is a list of valid status values (user-friendly names)</span>
             <span class="c1"># Include both spellings and API names for flexibility</span>
-            <span class="n">valid_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span> <span class="s1">&#39;initializing&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">,</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">]</span>
+            <span class="n">valid_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="s1">&#39;initialising&#39;</span><span class="p">,</span> <span class="s1">&#39;initializing&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">,</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">,</span> <span class="s1">&#39;stopped&#39;</span><span class="p">,</span> <span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">status</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_statuses</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid status &#39;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">&#39;. Valid values: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_statuses</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2808,6 +2808,7 @@
                 <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="s1">&#39;ready&#39;</span><span class="p">,</span>  <span class="c1"># API uses &#39;ready&#39; for running sessions</span>
                 <span class="s1">&#39;scheduled&#39;</span><span class="p">:</span> <span class="s1">&#39;scheduled&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;stopped&#39;</span><span class="p">:</span> <span class="s1">&#39;aborted&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;paused&#39;</span><span class="p">:</span> <span class="s1">&#39;aborted&#39;</span><span class="p">,</span>  <span class="c1"># &#39;paused&#39; and &#39;stopped&#39; both map to &#39;aborted&#39; API status</span>
                 <span class="s1">&#39;aborted&#39;</span><span class="p">:</span> <span class="s1">&#39;aborted&#39;</span>  <span class="c1"># Also accept &#39;aborted&#39; as input</span>
             <span class="p">}</span>
             <span class="n">mapped_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="n">status_mapping</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">status</span><span class="p">]</span>
@@ -2902,6 +2903,74 @@
         <span class="c1"># Return the full session object from response</span>
         <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">content</span></div>
+
+
+<div class="viewcode-block" id="Cloudos.abort_interactive_session">
+<a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.abort_interactive_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">abort_interactive_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">team_id</span><span class="p">,</span> <span class="n">upload_on_close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_abort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Abort and stop a running interactive session.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        session_id : string</span>
+<span class="sd">            The session ID (MongoDB ObjectId) to abort.</span>
+<span class="sd">        team_id : string</span>
+<span class="sd">            The CloudOS team id (workspace id) where the session is running.</span>
+<span class="sd">        upload_on_close : bool, optional</span>
+<span class="sd">            If True, save session data to S3 before terminating. Default=True.</span>
+<span class="sd">        force_abort : bool, optional</span>
+<span class="sd">            If True, force immediate termination (skip graceful shutdown). Default=False.</span>
+<span class="sd">        verify: [bool|string], default=True</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            HTTP status code (204 for successful abort, no content returned).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate session_id</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">session_id</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid session_id: must be a non-empty string&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate team_id</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">team_id</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">team_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid team_id: must be a non-empty string&quot;</span><span class="p">)</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Build request body</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;uploadOnClose&quot;</span><span class="p">:</span> <span class="n">upload_on_close</span><span class="p">,</span>
+            <span class="s2">&quot;forceAbort&quot;</span><span class="p">:</span> <span class="n">force_abort</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Build URL with teamId query parameter</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/interactive-sessions/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/abort?teamId=</span><span class="si">{</span><span class="n">team_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Make the API request with PUT method</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+                <span class="n">url</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+                <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to abort interactive session: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Session not found: </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        
+        <span class="c1"># Return the status code (204 No Content is success)</span>
+        <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span></div>
 </div>
 
     

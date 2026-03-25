@@ -482,6 +482,7 @@
 <ul>
 <li><p><a class="reference internal" href="#list-interactive-sessions"><span class="xref myst">List Interactive Sessions</span></a></p></li>
 <li><p><a class="reference internal" href="#get-interactive-session-status"><span class="xref myst">Get Interactive Session Status</span></a></p></li>
+<li><p><a class="reference internal" href="#pause-interactive-session"><span class="xref myst">Pause Interactive Session</span></a></p></li>
 <li><p><a class="reference internal" href="#create-interactive-session"><span class="xref myst">Create Interactive Session</span></a></p></li>
 </ul>
 </li>
@@ -2195,9 +2196,9 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="go">┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓</span>
 <span class="go">┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃</span>
 <span class="go">┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩</span>
-<span class="go">│ stopped │ cloudosR     │ awsRstudio         │ 69aee0dba197… │ Leila  │</span>
-<span class="go">│ running │ analysis-dev │ awsJupyterNotebook │ 69ae972a18f0… │ John   │</span>
-<span class="go">│ stopped │ test_session │ awsVSCode          │ 69a996c098ab… │ James  │</span>
+<span class="go">│ paused  │ cloudosR     │ RStudio            │ 69aee0dba197… │ Leila  │</span>
+<span class="go">│ running │ analysis-dev │ Jupyter            │ 69ae972a18f0… │ John   │</span>
+<span class="go">│ paused  │ test_session │ VS Code            │ 69a996c098ab… │ James  │</span>
 <span class="go">└─────────┴──────────────┴────────────────────┴───────────────┴────────┘</span>
 
 <span class="go">Total sessions: 15</span>
@@ -2225,7 +2226,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </div>
 <p><strong>Filtering Options</strong></p>
 <p>You can filter sessions by status and other criteria:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Filter by status (setup, initialising, running, scheduled, stopped)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Filter by status (setup, initialising, running, scheduled, paused)</span>
 cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-status<span class="w"> </span>running
 
 <span class="c1"># Show only your own sessions</span>
@@ -2289,7 +2290,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p><strong>Watch Mode Behavior</strong></p>
 <ul class="simple">
 <li><p><strong>Pre-running sessions</strong> (setup, initialising, scheduled): Watch mode will continuously poll and display status changes every 30 seconds (default)</p></li>
-<li><p><strong>Running/stopped sessions</strong>: Watch mode will show a warning and display the current status instead</p></li>
+<li><p><strong>Running/paused sessions</strong>: Watch mode will show a warning and display the current status instead</p></li>
 </ul>
 <p>Example with a running session:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--watch
@@ -2345,6 +2346,127 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status
 <span class="c1"># Creates: /tmp/session_status.csv</span>
 </pre></div>
 </div>
+</section>
+<section id="pause-interactive-session">
+<h4>Pause Interactive Session<a class="headerlink" href="#pause-interactive-session" title="Link to this heading">¶</a></h4>
+<p>You can pause and terminate a running interactive session using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">pause</span></code> command. This command gracefully shuts down the session and optionally saves session data before termination.</p>
+<p><strong>Basic Usage</strong></p>
+<p>Pause a session with confirmation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p>The command displays a confirmation prompt:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">About to pause session: 69bd11ca02326c5b3649f5c1</span>
+<span class="go">Upload data before pausing: True</span>
+<span class="go">Force immediate termination: False</span>
+<span class="go">Continue? [y/N]: y</span>
+
+<span class="go">✓ Session pause request sent successfully.</span>
+<span class="go">You can monitor the session status using: cloudos interactive-session status --session-id 69bd11ca02326c5b3649f5c1</span>
+</pre></div>
+</div>
+<p><strong>Skip Confirmation Prompt</strong></p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">-y</span></code> or <code class="docutils literal notranslate"><span class="pre">--yes</span></code> flag to skip the confirmation prompt:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>-y
+</pre></div>
+</div>
+<p><strong>Data Management Options</strong></p>
+<p>By default, session data is saved to S3 before pausing. Use <code class="docutils literal notranslate"><span class="pre">--no-upload</span></code> to skip data saving (use with caution):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save session data before pausing (default)</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Skip saving data (use with caution)</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--no-upload
+</pre></div>
+</div>
+<p><strong>Termination Modes</strong></p>
+<p><strong>Graceful Shutdown (default)</strong></p>
+<p>Allows the session to clean up resources and save data before terminating:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+</pre></div>
+</div>
+<p><strong>Force Immediate Termination</strong></p>
+<p>Bypass graceful shutdown for immediate termination (useful for stuck sessions):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--force
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--force</span></code> with caution as it may not save session data properly.</p>
+<p><strong>Wait for Termination</strong></p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">--wait</span></code> flag to monitor the session until it reaches a terminal state:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--wait
+</pre></div>
+</div>
+<p>Output with <code class="docutils literal notranslate"><span class="pre">--wait</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Pausing session...</span>
+<span class="go">Status: shutting_down</span>
+<span class="go">Status: uploading_data</span>
+<span class="go">Status: cleaning_up</span>
+<span class="go">Status: stopped</span>
+<span class="go">✓ Session paused successfully</span>
+</pre></div>
+</div>
+<p><strong>Error Handling</strong></p>
+<p>The command provides helpful error messages for common issues:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>Trying<span class="w"> </span>to<span class="w"> </span>pause<span class="w"> </span>an<span class="w"> </span>already<span class="w"> </span>paused<span class="w"> </span>session
+<span class="go">Error: Cannot pause session - the session is already paused.</span>
+<span class="go">Tip: Check the session status with: cloudos interactive-session status --session-id &lt;SESSION_ID&gt;</span>
+
+<span class="gp"># </span>Trying<span class="w"> </span>to<span class="w"> </span>pause<span class="w"> </span>a<span class="w"> </span>session<span class="w"> </span>that<span class="w"> </span>is<span class="w"> </span>already<span class="w"> </span>being<span class="w"> </span>paused
+<span class="go">Error: Cannot pause session - the session is already being paused.</span>
+<span class="go">Tip: Wait a moment and check status with: cloudos interactive-session status --session-id &lt;SESSION_ID&gt;</span>
+</pre></div>
+</div>
+<p><strong>Examples</strong></p>
+<p>Basic pause with confirmation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>688351ab6be610972db54a8e<span class="w"> </span>--workspace-id<span class="w"> </span>687fb9905c45270e09db1e9a
+</pre></div>
+</div>
+<p>Pause without saving data and skip confirmation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>688351ab6be610972db54a8e<span class="w"> </span>--workspace-id<span class="w"> </span>687fb9905c45270e09db1e9a<span class="w"> </span>--no-upload<span class="w"> </span>-y
+</pre></div>
+</div>
+<p>Force pause and wait for termination:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>688351ab6be610972db54a8e<span class="w"> </span>--workspace-id<span class="w"> </span>687fb9905c45270e09db1e9a<span class="w"> </span>--force<span class="w"> </span>-y<span class="w"> </span>--wait
+</pre></div>
+</div>
+<p>Pause using profile configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>688351ab6be610972db54a8e<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--wait
+</pre></div>
+</div>
+<p>Pause with verbose output:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<span class="w"> </span>--session-id<span class="w"> </span>688351ab6be610972db54a8e<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--verbose
+</pre></div>
+</div>
+<p><strong>Options Reference</strong></p>
+<p>The command automatically loads from profile (via <code class="docutils literal notranslate"><span class="pre">&#64;with_profile_config</span></code> decorator):</p>
+<ul class="simple">
+<li><p><strong>From Profile</strong>: apikey, cloudos-url, workspace-id</p></li>
+<li><p><strong>Command Line</strong>: Additional options and behaviors</p></li>
+</ul>
+<p><strong>Required:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--session-id</span></code>: The session ID to pause (24-character hex string)</p></li>
+</ul>
+<p><strong>Optional Overrides from Profile:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> (optional): Override API key from profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> (optional): Override CloudOS URL from profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code> (optional): Override workspace ID from profile</p></li>
+</ul>
+<p><strong>Optional Behavior Flags:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-upload</span></code>: Don’t save session data before pausing (default: saves data)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--force</span></code>: Force immediate termination, skip graceful shutdown (default: graceful). <strong>Warning:</strong> Shows a warning message that some data may not be saved.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--wait</span></code>: Wait for session to fully pause (default: return immediately after sending pause command)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-y,</span> <span class="pre">--yes</span></code>: Skip confirmation prompt (default: show confirmation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Show detailed progress messages</p></li>
+</ul>
+<p><strong>Optional Connection:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification (not recommended)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to SSL certificate file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from config file (default: default profile)</p></li>
+</ul>
 </section>
 <section id="create-interactive-session">
 <h4>Create Interactive Session<a class="headerlink" href="#create-interactive-session" title="Link to this heading">¶</a></h4>
@@ -2460,7 +2582,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>status
 <li><p>Session ID</p></li>
 <li><p>Session name</p></li>
 <li><p>Backend type (jupyter, vscode, rstudio, spark)</p></li>
-<li><p>Current status (scheduled, initialising, setup, running, stopped)</p></li>
+<li><p>Current status (scheduled, initialising, setup, running, paused)</p></li>
 </ul>
 </section>
 </section>
