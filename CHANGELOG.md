@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.86.0 (2026-03-23)
+
+### Feat
+
+- Adds resuming of an interactive session
+
 ## v2.85.0 (2026-03-20)
 
 ### Feat

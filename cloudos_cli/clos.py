@@ -2419,6 +2419,60 @@ class Cloudos:
         content = r.json()
         return content
 
+    def resume_interactive_session(self, session_id, team_id, payload, verify=True):
+        """Resume a stopped interactive session with optional configuration updates.
+
+        Parameters
+        ----------
+        session_id : string
+            The session ID (MongoDB ObjectId) to resume.
+        team_id : string
+            The CloudOS team id (workspace id) where the session is running.
+        payload : dict
+            Resume payload with optional dataItems and newInteractiveSessionConfiguration.
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        dict
+            Updated session object from API response.
+        """
+        # Validate inputs
+        if not session_id or not isinstance(session_id, str):
+            raise ValueError("Invalid session_id: must be a non-empty string")
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build URL with sessionId and teamId
+        url = f"{self.cloudos_url}/api/v1/interactive-sessions/{session_id}/resume?teamId={team_id}"
+        
+        # Make the API request with PUT method
+        try:
+            r = retry_requests_put(
+                url,
+                headers=headers,
+                data=json.dumps(payload),
+                verify=verify,
+                timeout=30
+            )
+        except Exception as e:
+            raise Exception(f"Failed to resume interactive session: {str(e)}")
+        
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        
+        # Return the full session object from response
+        content = r.json()
+        return content
+
     def abort_interactive_session(self, session_id, team_id, upload_on_close=True, force_abort=False, verify=True):
         """Abort and stop a running interactive session.
 
@@ -2466,7 +2520,7 @@ class Cloudos:
         
         # Make the API request with PUT method
         try:
-            r = requests.put(
+            r = retry_requests_put(
                 url,
                 headers=headers,
                 data=json.dumps(payload),

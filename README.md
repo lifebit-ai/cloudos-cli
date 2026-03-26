@@ -65,9 +65,10 @@ Python package for interacting with CloudOS
       - [Use multiple projects for files in `--parameter` option](#use-multiple-projects-for-files-in---parameter-option)
     - [Interactive Sessions](#interactive-sessions)
       - [List Interactive Sessions](#list-interactive-sessions)
+      - [Create Interactive Session](#create-interactive-session)
       - [Get Interactive Session Status](#get-interactive-session-status)
       - [Pause Interactive Session](#pause-interactive-session)
-      - [Create Interactive Session](#create-interactive-session)
+      - [Resume Interactive Session](#resume-interactive-session)
     - [Datasets](#datasets)
       - [List Files](#list-files)
       - [Move Files](#move-files)
@@ -1970,13 +1971,13 @@ The table displays sessions with pagination controls (press `n` for next page, `
 
 ```console
                           Interactive Sessions                          
-┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ paused  │ cloudosR     │ RStudio            │ 69aee0dba197… │ Leila  │
-│ running │ analysis-dev │ Jupyter            │ 69ae972a18f0… │ John   │
-│ paused  │ test_session │ VS Code            │ 69a996c098ab… │ James  │
-└─────────┴──────────────┴────────────────────┴───────────────┴────────┘
+┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Status  ┃ Name         ┃ Type           ┃ ID            ┃ Owner  ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ paused  │ cloudosR     │ RStudio        │ 69aee0dba197… │ Leila  │
+│ running │ analysis-dev │ Jupyter        │ 69ae972a18f0… │ John   │
+│ paused  │ test_session │ VS Code        │ 69a996c098ab… │ James  │
+└─────────┴──────────────┴────────────────┴───────────────┴────────┘
 
 Total sessions: 15
 Page: 1 of 3
@@ -2037,6 +2038,172 @@ cloudos interactive-session list --profile my_profile --table-columns "status,na
 
 Available columns: `backend`, `cost`, `cost_limit`, `created_at`, `id`, `instance`, `name`, `owner`, `project`, `resources`, `runtime`, `saved_at`, `spot`, `status`, `time_left`, `type`, `version`
 
+#### Create Interactive Session
+
+You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
+
+The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
+
+**Basic Usage**
+
+Create a simple Jupyter notebook session:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Analysis" \
+  --session-type jupyter
+```
+
+Create an RStudio session with specific R version:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "R Analysis" \
+  --session-type rstudio \
+  --r-version 4.4.2
+```
+
+Create a VS Code session (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Development" \
+  --session-type vscode
+```
+
+Create a Spark cluster session with custom instance types (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Spark Analysis" \
+  --session-type spark \
+  --spark-master c5.2xlarge \
+  --spark-core c5.xlarge \
+  --spark-workers 3
+```
+
+**Configuration Options**
+
+You can customize your session with various options:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Advanced Session" \
+  --session-type jupyter \
+  --instance c5.2xlarge \
+  --storage 1000 \
+  --spot \
+  --shared \
+  --cost-limit 50.0 \
+  --shutdown-in 8h
+```
+
+**Required for Each Session:**
+- `--name`: Session name (1-100 characters)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+
+**Optional Configuration:**
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
+- `--storage`: Storage in GB (default: 500, range: 100-5000)
+- `--spot`: Use spot instances (AWS only, cost-saving)
+- `--shared`: Make session accessible to workspace members
+- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
+- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
+
+**Data & Storage Management:**
+- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
+
+**Backend-Specific:**
+- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
+- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
+- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
+- `--spark-workers`: Initial worker count for Spark (default: 1)
+- `--verbose`: Show detailed progress messages
+
+
+**Data Management**
+
+CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+- you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
+- you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
+
+
+**Data Mounting Examples**
+
+Mount a file from File Explorer:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Data Analysis" \
+  --session-type jupyter \
+  --mount "my_project/training_data.csv"
+```
+
+Link an S3 bucket:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "S3 Access" \
+  --session-type jupyter \
+  --link "s3://my-results-bucket/output/"
+```
+
+Link multiple S3 buckets:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-S3 Session" \
+  --session-type jupyter \
+  --link "s3://input-bucket/data/" \
+  --link "s3://output-bucket/results/"
+```
+
+
+
+This will show progress updates like:
+
+```console
+✓ Interactive Session Created Successfully
+
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Property    ┃ Value               ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ Session ID  │ 69aee0dba197abc123  │
+│ Name        │ Ready Session       │
+│ Backend     │ awsJupyterNotebook  │
+│ Status      │ initialising        │
+└─────────────┴─────────────────────┘
+```
+```
+
+**Output Display**
+
+The session creation output displays a success message with session details:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "My Session" \
+  --session-type jupyter
+```
+
+The output shows the session details including:
+- Session ID
+- Session name
+- Backend type (jupyter, vscode, rstudio, spark)
+- Current status (scheduled, initialising, setup, running, paused)
+
+
+
 #### Get Interactive Session Status
 
 You can retrieve detailed status information for a specific interactive session using the `cloudos interactive-session status` command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.
@@ -2058,7 +2225,7 @@ The command displays session information in a formatted table:
 ║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║
 ║ Name               ║ analysis-dev (linked)                               ║
 ║ Status             ║ running                                             ║
-║ Backend            ║ awsJupyterNotebook                                  ║
+║ Backend            ║ Jupyter                                             ║
 ║ Owner              ║ John Doe                                            ║
 ║ Project            ║ research                                            ║
 ║ Instance Type      ║ c5.xlarge                                           ║
@@ -2239,7 +2406,7 @@ Pausing session...
 Status: shutting_down
 Status: uploading_data
 Status: cleaning_up
-Status: stopped
+Status: paused
 ✓ Session paused successfully
 ```
 
@@ -2315,142 +2482,61 @@ The command automatically loads from profile (via `@with_profile_config` decorat
 - `--ssl-cert`: Path to SSL certificate file
 - `--profile`: Profile to use from config file (default: default profile)
 
-#### Create Interactive Session
+#### Resume Interactive Session
 
-You can create and start a new interactive session using the `cloudos interactive-session create` command. This command provisions a new virtual environment with your specified configuration.
+Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.
 
-The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.
 
 **Basic Usage**
 
-Create a simple Jupyter notebook session:
+Resume a paused session:
 
 ```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "My Analysis" \
-  --session-type jupyter
+cloudos interactive-session resume --session-id <SESSION_ID> --profile my_profile
 ```
 
-Create an RStudio session with specific R version:
+Resume with updated instance type:
 
 ```bash
-cloudos interactive-session create \
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
   --profile my_profile \
-  --name "R Analysis" \
-  --session-type rstudio \
-  --r-version 4.4.2
+  --instance c5.2xlarge
 ```
 
-Create a VS Code session (AWS only):
+Resume with multiple updates:
 
 ```bash
-cloudos interactive-session create \
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
   --profile my_profile \
-  --name "Development" \
-  --session-type vscode
-```
-
-Create a Spark cluster session with custom instance types (AWS only):
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Spark Analysis" \
-  --session-type spark \
-  --spark-master c5.2xlarge \
-  --spark-core c5.xlarge \
-  --spark-workers 3
-```
-
-**Configuration Options**
-
-You can customize your session with various options:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "Advanced Session" \
-  --session-type jupyter \
-  --instance c5.2xlarge \
+  --instance m5.xlarge \
   --storage 1000 \
-  --spot \
-  --shared \
   --cost-limit 50.0 \
-  --shutdown-in 8h
+  --shutdown-in 12h
 ```
 
-**Required for Each Session:**
-- `--name`: Session name (1-100 characters)
-- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+**Mount Additional Data**
 
-**Optional Configuration:**
-- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
-- `--storage`: Storage in GB (default: 500, range: 100-5000)
-- `--spot`: Use spot instances (AWS only, cost-saving)
-- `--shared`: Make session accessible to workspace members
-- `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
-- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
-
-**Data & Storage Management:**
-- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
-
-**Backend-Specific:**
-- `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
-- `--spark-master`: Master instance type for Spark (default: `c5.2xlarge`)
-- `--spark-core`: Core instance type for Spark (default: `c5.xlarge`)
-- `--spark-workers`: Initial worker count for Spark (default: 1)
-- `--verbose`: Show detailed progress messages
-
-
-**Data Management**
-
-CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
-- you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
-- you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
-
-
-**Data Mounting Examples**
-
-Mount a file from File Explorer:
+Resume and mount additional files:
 
 ```bash
-cloudos interactive-session create \
+cloudos interactive-session resume \
+  --session-id <SESSION_ID> \
   --profile my_profile \
-  --name "Data Analysis" \
-  --session-type jupyter \
-  --mount "my_project/training_data.csv"
-```
-
-Link an S3 bucket:
-
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "S3 Access" \
-  --session-type jupyter \
-  --link "s3://my-results-bucket/output/"
+  --mount my-project/Data/new-dataset.csv \
+  --mount s3://my-bucket/data/file.txt
 ```
 
 
-**Output Display**
+**Configuration Updates**
 
-The session creation output displays a success message with session details:
+All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
 
-```bash
-cloudos interactive-session create \
-  --profile my_profile \
-  --name "My Session" \
-  --session-type jupyter
-```
-
-The output shows the session details including:
-- Session ID
-- Session name
-- Backend type (jupyter, vscode, rstudio, spark)
-- Current status (scheduled, initialising, setup, running, paused)
-
+- `--instance <TYPE>` - Change instance type (validated by platform)
+- `--storage <GB>` - Update storage size (100-5000 GB)
+- `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
+- `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
 
 ### Datasets
 
