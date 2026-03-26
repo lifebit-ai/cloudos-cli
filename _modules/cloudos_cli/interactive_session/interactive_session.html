@@ -381,11 +381,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rich.panel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Panel</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib3.util.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retry</span>
@@ -396,14 +395,14 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.validate_instance_type">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate_instance_type</span><span class="p">(</span><span class="n">instance_type</span><span class="p">,</span> <span class="n">execution_platform</span><span class="o">=</span><span class="s1">&#39;aws&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate instance type format for the given execution platform.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    instance_type : str</span>
 <span class="sd">        Instance type to validate</span>
 <span class="sd">    execution_platform : str</span>
 <span class="sd">        &#39;aws&#39; or &#39;azure&#39;</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    tuple</span>
@@ -411,7 +410,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">instance_type</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instance_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Instance type must be a non-empty string&quot;</span>
-    
+
     <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span><span class="p">:</span>
         <span class="c1"># AWS EC2 instance format: &lt;family&gt;&lt;generation&gt;.&lt;size&gt;</span>
         <span class="c1"># Examples: c5.xlarge, m5.2xlarge, r6i.large, t3.medium, g4dn.xlarge</span>
@@ -419,36 +418,32 @@
         <span class="c1"># Generation: digit(s) optionally followed by letter(s) for variants</span>
         <span class="c1"># Size: nano, micro, small, medium, large, xlarge, 2xlarge, 4xlarge, etc.</span>
         <span class="n">aws_pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^[a-z]{1,4}\d+[a-z]*\.(\d+)?(nano|micro|small|medium|large|xlarge|metal)$&#39;</span>
-        
         <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">aws_pattern</span><span class="p">,</span> <span class="n">instance_type</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid AWS instance type format: &#39;</span><span class="si">{</span><span class="n">instance_type</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
                           <span class="sa">f</span><span class="s2">&quot;Expected format: &lt;family&gt;&lt;generation&gt;.&lt;size&gt; (e.g., c5.xlarge, m5.2xlarge)&quot;</span><span class="p">)</span>
-    
     <span class="k">elif</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
         <span class="c1"># Azure VM format: Standard_&lt;series&gt;&lt;version&gt;_&lt;size&gt; or Basic_&lt;series&gt;&lt;version&gt;</span>
         <span class="c1"># Examples: Standard_F1s, Standard_D4as_v4, Standard_B2ms, Basic_A1</span>
         <span class="n">azure_pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^(Standard|Basic)_[A-Z]\d+[a-z]*(_v\d+)?$&#39;</span>
-        
         <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">azure_pattern</span><span class="p">,</span> <span class="n">instance_type</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid Azure instance type format: &#39;</span><span class="si">{</span><span class="n">instance_type</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
                           <span class="sa">f</span><span class="s2">&quot;Expected format: Standard_&lt;series&gt;&lt;size&gt; (e.g., Standard_F1s, Standard_D4as_v4)&quot;</span><span class="p">)</span>
-    
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Unknown platform - skip validation</span>
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
-    
+
     <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="n">session_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Map internal session type names to user-friendly display names.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_type : str</span>
 <span class="sd">        Internal session type (e.g., &#39;awsJupyterNotebook&#39;)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
@@ -466,7 +461,8 @@
         <span class="s1">&#39;azureJupyterSparkNotebook&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
         <span class="s1">&#39;azureSpark&#39;</span><span class="p">:</span> <span class="s1">&#39;Spark&#39;</span><span class="p">,</span>
         <span class="s1">&#39;awsRStudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>  <span class="c1"># Handle both capitalizations</span>
-        <span class="s1">&#39;azureRStudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span>
+        <span class="s1">&#39;azureRStudio&#39;</span><span class="p">:</span> <span class="s1">&#39;RStudio&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;awsWindowsSession&#39;</span><span class="p">:</span> <span class="s1">&#39;Windows&#39;</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">type_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session_type</span><span class="p">,</span> <span class="n">session_type</span><span class="p">)</span>
 
@@ -475,7 +471,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.create_interactive_session_list_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_interactive_session_list_table</span><span class="p">(</span><span class="n">sessions</span><span class="p">,</span> <span class="n">pagination_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selected_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fetch_page_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a rich table displaying interactive sessions with interactive pagination.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    sessions : list</span>
@@ -493,7 +489,6 @@
 <span class="sd">        Should accept page number (1-indexed) and return dict with &#39;sessions&#39; and &#39;pagination_metadata&#39; keys.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
-    
     <span class="c1"># Define all available columns with their configuration</span>
     <span class="n">all_columns</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -616,7 +611,7 @@
             <span class="s1">&#39;accessor&#39;</span><span class="p">:</span> <span class="s1">&#39;execution.autoShutdownAtDate&#39;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    
+
     <span class="c1"># Determine columns to display</span>
     <span class="k">if</span> <span class="n">selected_columns</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selected_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -633,12 +628,10 @@
             <span class="n">columns_to_show</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;instance&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;owner&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">columns_to_show</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;instance&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;owner&#39;</span><span class="p">]</span>
-    
     <span class="c1"># Handle empty results</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;[yellow]No interactive sessions found.[/yellow]&#39;</span><span class="p">)</span>
         <span class="k">return</span>
-    
     <span class="c1"># Prepare rows data</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
@@ -648,16 +641,13 @@
                 <span class="k">continue</span>
             <span class="n">col_config</span> <span class="o">=</span> <span class="n">all_columns</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span>
             <span class="n">accessor</span> <span class="o">=</span> <span class="n">col_config</span><span class="p">[</span><span class="s1">&#39;accessor&#39;</span><span class="p">]</span>
-            
             <span class="c1"># Extract value from session object</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">_get_nested_value</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">accessor</span><span class="p">)</span>
-            
             <span class="c1"># Format the value</span>
             <span class="n">formatted_value</span> <span class="o">=</span> <span class="n">_format_session_field</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="n">row_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">formatted_value</span><span class="p">)</span>
-        
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row_data</span><span class="p">)</span>
-    
+
     <span class="c1"># Interactive pagination - use API pagination metadata if available</span>
     <span class="k">if</span> <span class="n">pagination_metadata</span><span class="p">:</span>
         <span class="c1"># Server-side pagination</span>
@@ -669,9 +659,7 @@
         <span class="n">current_api_page</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">total_sessions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">)</span>
         <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">)</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
-    
     <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track error messages to display</span>
-
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="c1"># For client-side pagination, start/end are indices into the local rows array</span>
         <span class="c1"># For server-side pagination, we use the API page directly</span>
@@ -683,13 +671,10 @@
             <span class="n">start</span> <span class="o">=</span> <span class="n">current_api_page</span> <span class="o">*</span> <span class="n">page_size</span>
             <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">page_size</span>
             <span class="n">page_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
-
         <span class="c1"># Clear console first</span>
         <span class="n">console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-
         <span class="c1"># Create table</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Interactive Sessions&#39;</span><span class="p">)</span>
-        
         <span class="c1"># Add columns to table</span>
         <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">col_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_columns</span><span class="p">:</span>
@@ -700,14 +685,11 @@
                 <span class="n">style</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">),</span>
                 <span class="n">no_wrap</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;no_wrap&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="p">)</span>
-
         <span class="c1"># Add rows to table</span>
         <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">page_rows</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">)</span>
-
         <span class="c1"># Print table</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-
         <span class="c1"># Display pagination info</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total sessions:[/cyan] </span><span class="si">{</span><span class="n">total_sessions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -718,7 +700,6 @@
         <span class="k">if</span> <span class="n">show_error</span><span class="p">:</span>
             <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">show_error</span><span class="p">)</span>
             <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Reset error after displaying</span>
-
         <span class="c1"># Show pagination controls</span>
         <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># Check if we&#39;re in an interactive environment</span>
@@ -726,9 +707,7 @@
                 <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of </span><span class="si">{0}</span><span class="s2">.[/yellow]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_pages</span><span class="p">))</span>
                 <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]&quot;</span><span class="p">)</span>
                 <span class="k">break</span>
-            
             <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit&quot;</span><span class="p">)</span>
-
             <span class="c1"># Get user input for navigation</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -736,7 +715,6 @@
                 <span class="c1"># Handle non-interactive environments or user interrupt</span>
                 <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Pagination interrupted.[/yellow]&quot;</span><span class="p">)</span>
                 <span class="k">break</span>
-
             <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">):</span>
                 <span class="k">break</span>
             <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">):</span>
@@ -748,8 +726,7 @@
                             <span class="n">sessions</span> <span class="o">=</span> <span class="n">next_page_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="p">[])</span>
                             <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">next_page_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pagination_metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
                             <span class="n">current_api_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;page&#39;</span><span class="p">,</span> <span class="n">current_api_page</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                            <span class="n">total_pages</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalPages&#39;</span><span class="p">,</span> <span class="n">total_pages</span><span class="p">)</span>
-                            
+                            <span class="n">total_pages</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalPages&#39;</span><span class="p">,</span> <span class="n">total_pages</span><span class="p">)</span>                          
                             <span class="c1"># Rebuild rows for the new page</span>
                             <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
                             <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
@@ -779,7 +756,6 @@
                             <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">prev_page_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pagination_metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
                             <span class="n">current_api_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;page&#39;</span><span class="p">,</span> <span class="n">current_api_page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                             <span class="n">total_pages</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalPages&#39;</span><span class="p">,</span> <span class="n">total_pages</span><span class="p">)</span>
-                            
                             <span class="c1"># Rebuild rows for the new page</span>
                             <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
                             <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
@@ -811,7 +787,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">process_interactive_session_list</span><span class="p">(</span><span class="n">sessions</span><span class="p">,</span> <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Process interactive sessions data into a pandas DataFrame.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    sessions : list</span>
@@ -819,7 +795,7 @@
 <span class="sd">    all_fields : bool, default=False</span>
 <span class="sd">        If True, include all fields from the API response.</span>
 <span class="sd">        If False, include only the most relevant fields.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    df : pandas.DataFrame</span>
@@ -839,7 +815,7 @@
                 <span class="n">first_name</span> <span class="o">=</span> <span class="n">user_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                 <span class="n">last_name</span> <span class="o">=</span> <span class="n">user_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surname&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                 <span class="n">user_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">first_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">last_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            
+
             <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
@@ -851,21 +827,20 @@
             <span class="p">}</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
-    
     <span class="k">return</span> <span class="n">df</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_nested_value</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a nested value from an object using dot notation.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    obj : dict</span>
 <span class="sd">        The object to extract from</span>
 <span class="sd">    path : str</span>
 <span class="sd">        Dot-separated path (e.g., &#39;user.firstName&#39;)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    value</span>
@@ -883,14 +858,14 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_format_session_field</span><span class="p">(</span><span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a session field for display.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    field_name : str</span>
 <span class="sd">        The name of the field</span>
 <span class="sd">    value</span>
 <span class="sd">        The value to format</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
@@ -898,14 +873,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
-    
+
     <span class="k">if</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span>
         <span class="c1"># Color code status and map display values</span>
         <span class="n">status_lower</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="c1"># Map API statuses to display values</span>
         <span class="c1"># API &#39;ready&#39; and &#39;aborted&#39; are mapped to user-friendly names</span>
         <span class="n">display_status</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;ready&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;paused&#39;</span> <span class="k">if</span> <span class="n">status_lower</span> <span class="o">==</span> <span class="s1">&#39;aborted&#39;</span> <span class="k">else</span> <span class="n">value</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ready&#39;</span><span class="p">,</span> <span class="s1">&#39;running&#39;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;[bold green]</span><span class="si">{</span><span class="n">display_status</span><span class="si">}</span><span class="s1">[/bold green]&#39;</span>
         <span class="k">elif</span> <span class="n">status_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;aborted&#39;</span><span class="p">]:</span>
@@ -914,7 +888,6 @@
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;[bold yellow]</span><span class="si">{</span><span class="n">display_status</span><span class="si">}</span><span class="s1">[/bold yellow]&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">display_status</span><span class="p">)</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;cost&#39;</span><span class="p">:</span>
         <span class="c1"># Format cost with currency symbol</span>
         <span class="k">try</span><span class="p">:</span>
@@ -922,19 +895,16 @@
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;$</span><span class="si">{</span><span class="n">cost</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
         <span class="c1"># Return full ID without truncation (MongoDB ObjectIds are always 24 chars)</span>
         <span class="c1"># Full ID is needed for status command and other operations</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
         <span class="c1"># Truncate long names</span>
         <span class="n">value_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">25</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value_str</span><span class="p">[:</span><span class="mi">22</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;…&#39;</span>
         <span class="k">return</span> <span class="n">value_str</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;runtime&#39;</span><span class="p">:</span>
         <span class="c1"># Convert seconds to human-readable format (e.g., &quot;1h 52m 52s&quot;)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -950,7 +920,6 @@
                 <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s1">s&#39;</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;created_at&#39;</span> <span class="ow">or</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;saved_at&#39;</span><span class="p">:</span>
         <span class="c1"># Format ISO8601 datetime to readable format</span>
         <span class="k">try</span><span class="p">:</span>
@@ -958,17 +927,14 @@
             <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)[:</span><span class="mi">19</span><span class="p">]</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;version&#39;</span><span class="p">:</span>
         <span class="c1"># Version is only available for RStudio sessions</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;R </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span>
         <span class="c1"># Map internal type names to user-friendly names</span>
         <span class="k">return</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;spot&#39;</span><span class="p">:</span>
         <span class="c1"># Indicate if instance is cost-saving (spot)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
@@ -977,17 +943,14 @@
             <span class="k">return</span> <span class="s1">&#39;No&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;cost_limit&#39;</span><span class="p">:</span>
         <span class="c1"># Calculate remaining cost limit (execution object contains computeCostLimit and computeCostSpent)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">cost_limit</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;computeCostLimit&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">cost_spent</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;computeCostSpent&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            
             <span class="c1"># -1 means unlimited</span>
             <span class="k">if</span> <span class="n">cost_limit</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
                 <span class="k">return</span> <span class="s1">&#39;Unlimited&#39;</span>
-            
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">remaining</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cost_limit</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">cost_spent</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">remaining</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -996,20 +959,17 @@
             <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
                 <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
         <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
-    
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;time_left&#39;</span><span class="p">:</span>
         <span class="c1"># Calculate time until auto-shutdown</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;null&#39;</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">shutdown_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
                 <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-                
                 <span class="k">if</span> <span class="n">shutdown_time</span> <span class="o">&gt;</span> <span class="n">now</span><span class="p">:</span>
                     <span class="n">time_diff</span> <span class="o">=</span> <span class="n">shutdown_time</span> <span class="o">-</span> <span class="n">now</span>
                     <span class="n">total_seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_diff</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
                     <span class="n">hours</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">//</span> <span class="mi">3600</span>
                     <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
-                    
                     <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">24</span><span class="p">:</span>
                         <span class="n">days</span> <span class="o">=</span> <span class="n">hours</span> <span class="o">//</span> <span class="mi">24</span>
                         <span class="n">remaining_hours</span> <span class="o">=</span> <span class="n">hours</span> <span class="o">%</span> <span class="mi">24</span>
@@ -1023,7 +983,6 @@
             <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
                 <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
         <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
-    
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
@@ -1031,7 +990,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">save_interactive_session_list_to_csv</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save interactive session list to CSV file.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    df : pandas.DataFrame</span>
@@ -1052,14 +1011,14 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_shutdown_duration</span><span class="p">(</span><span class="n">duration_str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse shutdown duration string to ISO8601 datetime string.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Accepts formats: 30m, 2h, 8h, 1d, 2d</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    duration_str : str</span>
 <span class="sd">        Duration string (e.g., &quot;2h&quot;, &quot;30m&quot;, &quot;1d&quot;)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
@@ -1068,10 +1027,8 @@
     <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d+)([mhd])$&#39;</span><span class="p">,</span> <span class="n">duration_str</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid duration format: </span><span class="si">{</span><span class="n">duration_str</span><span class="si">}</span><span class="s2">. Use format like &#39;2h&#39;, &#39;30m&#39;, &#39;1d&#39;&quot;</span><span class="p">)</span>
-    
     <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">unit</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;m&#39;</span><span class="p">:</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span>
@@ -1086,14 +1043,14 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_watch_timeout_duration</span><span class="p">(</span><span class="n">duration_str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse watch timeout duration string to seconds.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Accepts formats: 30m, 2h, 1d, 30s</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    duration_str : str</span>
 <span class="sd">        Duration string (e.g., &quot;30m&quot;, &quot;2h&quot;, &quot;1d&quot;, &quot;30s&quot;)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    int</span>
@@ -1102,10 +1059,9 @@
     <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d+)([smhd])$&#39;</span><span class="p">,</span> <span class="n">duration_str</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid duration format: </span><span class="si">{</span><span class="n">duration_str</span><span class="si">}</span><span class="s2">. Use format like &#39;30s&#39;, &#39;30m&#39;, &#39;2h&#39;, &#39;1d&#39;&quot;</span><span class="p">)</span>
-    
+
     <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">unit</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;m&#39;</span><span class="p">:</span>
@@ -1120,29 +1076,29 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_data_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_data_file</span><span class="p">(</span><span class="n">data_file_str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse data file format: either S3 or CloudOS dataset path.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Supports mounting both S3 files and CloudOS dataset files into the session.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    data_file_str : str</span>
 <span class="sd">        Format:</span>
 <span class="sd">        - S3 file: s3://bucket_name/path/to/file.txt</span>
 <span class="sd">        - CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples:</span>
 <span class="sd">        - s3://lifebit-featured-datasets/pipelines/phewas/data.csv</span>
 <span class="sd">        - leila-test/Data/3_vcf_list.txt</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Parsed data item. For S3:</span>
 <span class="sd">        {&quot;type&quot;: &quot;s3&quot;, &quot;s3_bucket&quot;: &quot;...&quot;, &quot;s3_prefix&quot;: &quot;...&quot;}</span>
-<span class="sd">        </span>
+
 <span class="sd">        For CloudOS dataset:</span>
 <span class="sd">        {&quot;type&quot;: &quot;cloudos&quot;, &quot;project_name&quot;: &quot;...&quot;, &quot;dataset_path&quot;: &quot;...&quot;}</span>
-<span class="sd">    </span>
+
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
@@ -1153,19 +1109,15 @@
         <span class="c1"># Parse S3 path: s3://bucket/prefix/file</span>
         <span class="n">s3_path</span> <span class="o">=</span> <span class="n">data_file_str</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>  <span class="c1"># Remove &#39;s3://&#39;</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">s3_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        
         <span class="n">bucket</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid S3 path: </span><span class="si">{</span><span class="n">data_file_str</span><span class="si">}</span><span class="s2">. Expected: s3://bucket_name/path/to/file&quot;</span><span class="p">)</span>
-        
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;/&quot;</span>
-        
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
             <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
         <span class="p">}</span>
-    
     <span class="c1"># Otherwise, parse as CloudOS dataset path</span>
     <span class="c1"># Determine which separator to use: &gt; takes precedence over /</span>
     <span class="n">separator</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1179,12 +1131,10 @@
             <span class="sa">f</span><span class="s2">&quot;  - S3 file: s3://bucket/path/file.txt</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  - CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path&quot;</span>
         <span class="p">)</span>
-    
     <span class="c1"># Split only on the first separator to handle nested paths</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">data_file_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid data file format: </span><span class="si">{</span><span class="n">data_file_str</span><span class="si">}</span><span class="s2">. Expected: project_name/dataset_path where dataset_path can be nested&quot;</span><span class="p">)</span>
-    
     <span class="n">project_name</span><span class="p">,</span> <span class="n">dataset_path</span> <span class="o">=</span> <span class="n">parts</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;cloudos&quot;</span><span class="p">,</span>
@@ -1198,11 +1148,11 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.resolve_data_file_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_data_file_id</span><span class="p">(</span><span class="n">datasets_api</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve nested dataset path to actual file ID.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Searches across all datasets in the project to find the target file.</span>
 <span class="sd">    This allows paths like &#39;Data/file.txt&#39; to work even if &#39;Data&#39; is a folder</span>
 <span class="sd">    within a dataset (not a dataset name itself).</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    datasets_api : Datasets</span>
@@ -1210,13 +1160,13 @@
 <span class="sd">    dataset_path : str</span>
 <span class="sd">        Nested path to file within the project (e.g., &#39;Data/file.txt&#39; or &#39;Folder/subfolder/file.txt&#39;)</span>
 <span class="sd">        Can start with a dataset name or a folder name within any dataset.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Data item object with resolved file ID:</span>
 <span class="sd">        {&quot;kind&quot;: &quot;File&quot;, &quot;item&quot;: &quot;&lt;fileId&gt;&quot;, &quot;name&quot;: &quot;&lt;fileName&gt;&quot;}</span>
-<span class="sd">    </span>
+
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
@@ -1225,11 +1175,9 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">path_parts</span> <span class="o">=</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
         <span class="n">file_name</span> <span class="o">=</span> <span class="n">path_parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        
         <span class="c1"># First, try the path as-is (assuming first part is a dataset name)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">datasets_api</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
-            
             <span class="c1"># Check if it&#39;s in the files list</span>
             <span class="k">for</span> <span class="n">file_item</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                 <span class="k">if</span> <span class="n">file_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">:</span>
@@ -1242,15 +1190,12 @@
         <span class="k">except</span> <span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
             <span class="c1"># First path attempt failed, try searching across all datasets</span>
             <span class="k">pass</span>
-        
         <span class="c1"># If the quick path didn&#39;t work, search across all datasets</span>
         <span class="c1"># This handles the case where the first part is a folder, not a dataset name</span>
         <span class="n">project_content</span> <span class="o">=</span> <span class="n">datasets_api</span><span class="o">.</span><span class="n">list_project_content</span><span class="p">()</span>
         <span class="n">datasets</span> <span class="o">=</span> <span class="n">project_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;folders&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        
         <span class="k">if</span> <span class="ow">not</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No datasets found in project. Cannot locate path &#39;</span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        
         <span class="c1"># Try to find the file in each dataset</span>
         <span class="n">found_files</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
@@ -1259,7 +1204,6 @@
                 <span class="c1"># Try with the dataset name prepended to the path</span>
                 <span class="n">full_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">datasets_api</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
-                
                 <span class="c1"># Check files list</span>
                 <span class="k">for</span> <span class="n">file_item</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="k">if</span> <span class="n">file_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">:</span>
@@ -1273,14 +1217,12 @@
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># This dataset doesn&#39;t contain the path, continue</span>
                 <span class="k">continue</span>
-        
         <span class="c1"># Also try searching without dataset prefix (path is from root of datasets)</span>
         <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
                 <span class="c1"># List what&#39;s in this dataset at the top level</span>
                 <span class="n">dataset_content</span> <span class="o">=</span> <span class="n">datasets_api</span><span class="o">.</span><span class="n">list_datasets_content</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
-                
                 <span class="c1"># Check if the target file is directly in this dataset&#39;s files</span>
                 <span class="k">for</span> <span class="n">file_item</span> <span class="ow">in</span> <span class="n">dataset_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="k">if</span> <span class="n">file_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">:</span>
@@ -1289,7 +1231,6 @@
                             <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="n">file_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">),</span>
                             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">file_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
                         <span class="p">})</span>
-                
                 <span class="c1"># Check folders and navigate if needed</span>
                 <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">dataset_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;folders&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">path_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -1308,11 +1249,9 @@
                             <span class="k">continue</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">continue</span>
-        
         <span class="c1"># If we found files, return the first one</span>
         <span class="k">if</span> <span class="n">found_files</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">found_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        
         <span class="c1"># Nothing found - provide helpful error message</span>
         <span class="n">available_datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">]</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1320,7 +1259,6 @@
             <span class="sa">f</span><span class="s2">&quot;Available datasets: </span><span class="si">{</span><span class="n">available_datasets</span><span class="si">}</span><span class="s2">. &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Try using &#39;cloudos datasets ls&#39; to explore your data structure.&quot;</span>
         <span class="p">)</span>
-    
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">raise</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1332,9 +1270,9 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_link_path">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_link_path</span><span class="p">(</span><span class="n">link_path_str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse link path format: supports S3, CloudOS, or legacy colon format.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Links an S3 folder or CloudOS folder to the session for read/write access.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    link_path_str : str</span>
@@ -1342,7 +1280,7 @@
 <span class="sd">        - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)</span>
 <span class="sd">        - CloudOS folder: project/folder_path (e.g., leila-test/Data)</span>
 <span class="sd">        - Legacy format (deprecated): mountName:bucketName:s3Prefix</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
@@ -1357,49 +1295,39 @@
             <span class="sa">f</span><span class="s2">&quot;Folder linking is not supported on Azure execution platforms. &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Please use CloudOS file explorer to access your data directly.&quot;</span>
         <span class="p">)</span>
-    
     <span class="c1"># Check for S3 path</span>
     <span class="k">if</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">):</span>
         <span class="c1"># Parse S3 path: s3://bucket/prefix</span>
         <span class="n">s3_path</span> <span class="o">=</span> <span class="n">link_path_str</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>  <span class="c1"># Remove &#39;s3://&#39;</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">s3_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid S3 path: </span><span class="si">{</span><span class="n">link_path_str</span><span class="si">}</span><span class="s2">. Expected: s3://bucket_name/prefix/&quot;</span><span class="p">)</span>
-        
         <span class="n">bucket</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        
         <span class="c1"># Ensure prefix ends with / for S3 folders</span>
         <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-        
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
             <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
         <span class="p">}</span>
-    
     <span class="c1"># Check for legacy colon format</span>
     <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">link_path_str</span> <span class="ow">and</span> <span class="s1">&#39;//&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">link_path_str</span><span class="p">:</span>
         <span class="c1"># Legacy format: mountName:bucketName:s3Prefix</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid link format: </span><span class="si">{</span><span class="n">link_path_str</span><span class="si">}</span><span class="s2">. Expected: mountName:bucketName:s3Prefix&quot;</span><span class="p">)</span>
-        
         <span class="n">mount_name</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">parts</span>
-        
         <span class="c1"># Ensure prefix ends with /</span>
         <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-        
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
             <span class="s2">&quot;mount_name&quot;</span><span class="p">:</span> <span class="n">mount_name</span><span class="p">,</span>
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
             <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
         <span class="p">}</span>
-    
     <span class="c1"># Otherwise, parse as CloudOS folder path</span>
     <span class="c1"># Format: project_name/folder_path or project_name &gt; folder_path</span>
     <span class="n">separator</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1414,11 +1342,9 @@
             <span class="sa">f</span><span class="s2">&quot;  - CloudOS folder: project/folder/path</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  - Legacy format (deprecated): mountName:bucketName:prefix&quot;</span>
         <span class="p">)</span>
-    
     <span class="n">parts</span> <span class="o">=</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid link path: </span><span class="si">{</span><span class="n">link_path_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
     <span class="n">project_name</span><span class="p">,</span> <span class="n">folder_path</span> <span class="o">=</span> <span class="n">parts</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;cloudos&quot;</span><span class="p">,</span>
@@ -1450,7 +1376,7 @@
     <span class="n">spark_workers</span><span class="o">=</span><span class="mi">1</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the complex session creation payload for the API.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
@@ -1485,7 +1411,7 @@
 <span class="sd">        Spark core instance type (required for spark backend, AWS only)</span>
 <span class="sd">    spark_workers : int</span>
 <span class="sd">        Initial number of Spark workers (default: 1, AWS only)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
@@ -1494,30 +1420,22 @@
     <span class="c1"># Validate inputs</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Session name must be 1-100 characters&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">storage_size</span> <span class="o">&lt;=</span> <span class="mi">5000</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Storage size must be between 100-5000 GB&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;regular&#39;</span><span class="p">,</span> <span class="s1">&#39;vscode&#39;</span><span class="p">,</span> <span class="s1">&#39;spark&#39;</span><span class="p">,</span> <span class="s1">&#39;rstudio&#39;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid backend type&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">execution_platform</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;aws&#39;</span><span class="p">,</span> <span class="s1">&#39;azure&#39;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Execution platform must be &#39;aws&#39; or &#39;azure&#39;&quot;</span><span class="p">)</span>
-    
     <span class="c1"># Spark is AWS only</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;spark&#39;</span> <span class="ow">and</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">&#39;aws&#39;</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Spark backend is only available on AWS&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;rstudio&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r_version</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;R version (--r-version) is required for RStudio backend&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;spark&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">spark_master_type</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">spark_core_type</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Spark master and core instance types are required for Spark backend&quot;</span><span class="p">)</span>
-    
     <span class="c1"># Default shutdown to 24 hours if not provided</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">shutdown_at</span><span class="p">:</span>
         <span class="n">shutdown_at</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">))</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">)</span>
-    
     <span class="c1"># Build interactiveSessionConfiguration</span>
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
@@ -1533,15 +1451,12 @@
             <span class="s2">&quot;autoShutdownAtDate&quot;</span><span class="p">:</span> <span class="n">shutdown_at</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    
     <span class="c1"># Add backend-specific fields</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;rstudio&#39;</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;rVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_version</span>
-    
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;spark&#39;</span><span class="p">:</span>
         <span class="n">master_type</span> <span class="o">=</span> <span class="n">spark_master_type</span>
         <span class="n">core_type</span> <span class="o">=</span> <span class="n">spark_core_type</span>
-        
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;cluster&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">-cluster&quot;</span><span class="p">,</span>
             <span class="s2">&quot;releaseLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;emr-7.3.0&quot;</span><span class="p">,</span>
@@ -1578,7 +1493,6 @@
             <span class="p">},</span>
             <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="kc">None</span>
         <span class="p">}</span>
-    
     <span class="c1"># Build complete payload</span>
     <span class="c1"># For Azure, S3 mounts are not supported (fuseFileSystems should be empty)</span>
     <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
@@ -1588,7 +1502,68 @@
         <span class="s2">&quot;fuseFileSystems&quot;</span><span class="p">:</span> <span class="n">s3_mounts</span> <span class="ow">or</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span> <span class="k">else</span> <span class="p">[],</span>
         <span class="s2">&quot;projectId&quot;</span><span class="p">:</span> <span class="n">project_id</span>
     <span class="p">}</span>
-    
+    <span class="k">return</span> <span class="n">payload</span></div>
+
+
+
+<div class="viewcode-block" id="build_resume_payload">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.build_resume_payload">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_resume_payload</span><span class="p">(</span>
+    <span class="n">instance_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">storage_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cost_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">shutdown_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">data_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">s3_mounts</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the resume session payload for the API.</span>
+
+<span class="sd">    Only includes fields that have been specified (all are optional).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    instance_type : str, optional</span>
+<span class="sd">        New instance type (if changing)</span>
+<span class="sd">    storage_size : int, optional</span>
+<span class="sd">        New storage size in GB (if changing)</span>
+<span class="sd">    cost_limit : float, optional</span>
+<span class="sd">        New compute cost limit (if changing)</span>
+<span class="sd">    shutdown_at : str, optional</span>
+<span class="sd">        New auto-shutdown datetime in ISO8601 format (if changing)</span>
+<span class="sd">    data_files : list, optional</span>
+<span class="sd">        Additional data files to mount</span>
+<span class="sd">    s3_mounts : list, optional</span>
+<span class="sd">        Additional S3 mounts (AWS only)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Resume payload for API request</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;dataItems&quot;</span><span class="p">:</span> <span class="n">data_files</span> <span class="ow">or</span> <span class="p">[],</span>
+        <span class="s2">&quot;fileSystemIds&quot;</span><span class="p">:</span> <span class="p">[]</span>  <span class="c1"># Always empty (deprecated)</span>
+    <span class="p">}</span>
+    <span class="c1"># Only include newInteractiveSessionConfiguration if any config changes are specified</span>
+    <span class="n">config_updates</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">instance_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config_updates</span><span class="p">[</span><span class="s2">&quot;instanceType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance_type</span>
+    <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config_updates</span><span class="p">[</span><span class="s2">&quot;storageSizeInGb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage_size</span>
+    <span class="c1"># Build execution updates if cost_limit or shutdown_at are specified</span>
+    <span class="n">execution_updates</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">cost_limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">execution_updates</span><span class="p">[</span><span class="s2">&quot;computeCostLimit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost_limit</span>
+    <span class="k">if</span> <span class="n">shutdown_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">execution_updates</span><span class="p">[</span><span class="s2">&quot;autoShutdownAtDate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shutdown_at</span>
+    <span class="k">if</span> <span class="n">execution_updates</span><span class="p">:</span>
+        <span class="n">config_updates</span><span class="p">[</span><span class="s2">&quot;execution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">execution_updates</span>
+    <span class="c1"># Only add config updates if there are any</span>
+    <span class="k">if</span> <span class="n">config_updates</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;newInteractiveSessionConfiguration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_updates</span>
+    <span class="c1"># Add S3 mounts if provided (for AWS)</span>
+    <span class="k">if</span> <span class="n">s3_mounts</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;fuseFileSystems&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_mounts</span>
     <span class="k">return</span> <span class="n">payload</span></div>
 
 
@@ -1600,7 +1575,7 @@
                                   <span class="n">spark_master</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spark_core</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spark_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                   <span class="n">data_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">s3_mounts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Display session creation result in table format.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
@@ -1623,44 +1598,36 @@
 <span class="sd">        List of parsed data file objects to display</span>
 <span class="sd">    s3_mounts : list, optional</span>
 <span class="sd">        List of parsed S3 mount objects to display</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
 <span class="sd">        Formatted table output</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
-    
     <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;✓ Interactive Session Created Successfully&quot;</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Property&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
-    
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
-    
     <span class="c1"># Map backend type to friendly name</span>
     <span class="n">api_backend</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
     <span class="n">backend_display</span> <span class="o">=</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span> <span class="k">if</span> <span class="n">api_backend</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Backend&quot;</span><span class="p">,</span> <span class="n">backend_display</span><span class="p">)</span>
-    
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
-    
     <span class="c1"># Try to get instance type from response, fallback to provided value</span>
     <span class="n">response_instance</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resources&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instanceType&#39;</span><span class="p">)</span> <span class="ow">or</span> \
                         <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionConfiguration&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instanceType&#39;</span><span class="p">)</span>
     <span class="n">instance_display</span> <span class="o">=</span> <span class="n">response_instance</span> <span class="ow">or</span> <span class="n">instance_type</span> <span class="ow">or</span> <span class="s1">&#39;N/A&#39;</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Instance Type&quot;</span><span class="p">,</span> <span class="n">instance_display</span><span class="p">)</span>
-    
     <span class="c1"># Try to get storage size from response, fallback to provided value</span>
     <span class="n">response_storage</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resources&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storageSizeInGb&#39;</span><span class="p">)</span> <span class="ow">or</span> \
                        <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionConfiguration&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storageSizeInGb&#39;</span><span class="p">)</span>
     <span class="n">storage_display</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">response_storage</span><span class="si">}</span><span class="s2"> GB&quot;</span> <span class="k">if</span> <span class="n">response_storage</span> <span class="k">else</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB&quot;</span> <span class="k">if</span> <span class="n">storage_size</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Storage&quot;</span><span class="p">,</span> <span class="n">storage_display</span><span class="p">)</span>
-    
     <span class="c1"># Add backend-specific information</span>
     <span class="k">if</span> <span class="n">backend_type</span> <span class="o">==</span> <span class="s1">&#39;rstudio&#39;</span> <span class="ow">and</span> <span class="n">r_version</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;R Version&quot;</span><span class="p">,</span> <span class="n">r_version</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">backend_type</span> <span class="o">==</span> <span class="s1">&#39;spark&#39;</span><span class="p">:</span>
         <span class="n">spark_config</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">spark_master</span><span class="p">:</span>
@@ -1669,10 +1636,9 @@
             <span class="n">spark_config</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Core: </span><span class="si">{</span><span class="n">spark_core</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spark_workers</span><span class="p">:</span>
             <span class="n">spark_config</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workers: </span><span class="si">{</span><span class="n">spark_workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="n">spark_config</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Spark Cluster&quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spark_config</span><span class="p">))</span>
-    
+
     <span class="c1"># Display mounted data files</span>
     <span class="k">if</span> <span class="n">data_files</span><span class="p">:</span>
         <span class="n">mounted_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1687,10 +1653,9 @@
                     <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="p">{})</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
                     <span class="n">mounted_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (S3)&quot;</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="n">mounted_files</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Mounted Data&quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mounted_files</span><span class="p">))</span>
-    
+
     <span class="c1"># Display linked S3 buckets</span>
     <span class="k">if</span> <span class="n">s3_mounts</span><span class="p">:</span>
         <span class="n">linked_s3</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1704,10 +1669,9 @@
                     <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">bucket</span><span class="p">:</span>
                     <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="n">linked_s3</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Linked S3&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">linked_s3</span><span class="p">))</span>
-    
+
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.&quot;</span><span class="p">)</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[cyan]Next steps:[/cyan] Use &#39;cloudos interactive-session status&#39; to monitor status&quot;</span><span class="p">)</span></div>
@@ -1751,17 +1715,16 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_duration">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_duration</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert seconds to human-readable format.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples: &quot;2h 15m&quot;, &quot;45m 30s&quot;, &quot;30s&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">seconds</span> <span class="ow">or</span> <span class="n">seconds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;Not started&quot;</span>
-    
+
     <span class="n">seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
     <span class="n">hours</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">//</span> <span class="mi">3600</span>
     <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
     <span class="n">secs</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">%</span> <span class="mi">60</span>
-    
     <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">)</span>
@@ -1769,7 +1732,6 @@
         <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">secs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parts</span><span class="p">:</span>
         <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">secs</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
-    
     <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
 
 
@@ -1778,7 +1740,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.map_status">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">map_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Map API status value to user-friendly display status.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Converts API status values (like &#39;ready&#39;, &#39;aborted&#39;) to display values</span>
 <span class="sd">    (like &#39;running&#39;, &#39;paused&#39;) matching the list command.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1790,12 +1752,11 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_timestamp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_timestamp</span><span class="p">(</span><span class="n">iso_timestamp</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert ISO8601 timestamp to readable format.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Example: &quot;2026-03-13 10:30:00&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">iso_timestamp</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
-    
     <span class="k">try</span><span class="p">:</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span>
             <span class="n">iso_timestamp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">)</span>
@@ -1810,7 +1771,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_cost">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_cost</span><span class="p">(</span><span class="n">cost_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Format cost as currency.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples: &quot;$12.50&quot;, &quot;$0.00&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">cost_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1826,7 +1787,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_instance_type">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_instance_type</span><span class="p">(</span><span class="n">instance_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_cost_saving</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Format instance type with spot indicator.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples: &quot;c5.xlarge&quot;, &quot;c5.xlarge (spot)&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">is_cost_saving</span><span class="p">:</span>
@@ -1849,12 +1810,10 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InteractiveSessionAPI</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;API client for interactive session operations.&quot;&quot;&quot;</span>
-    
     <span class="n">REQUEST_TIMEOUT</span> <span class="o">=</span> <span class="mi">30</span>  <span class="c1"># seconds</span>
-    
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">apikey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize API client.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        cloudos_url : str</span>
@@ -1868,11 +1827,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span> <span class="o">=</span> <span class="n">apikey</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verify_ssl</span> <span class="o">=</span> <span class="n">verify_ssl</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_session</span><span class="p">()</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create requests session with retry strategy.&quot;&quot;&quot;</span>
         <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-        
         <span class="c1"># Configure retry strategy with exponential backoff</span>
         <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
             <span class="n">total</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -1880,32 +1838,30 @@
             <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
             <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">]</span>
         <span class="p">)</span>
-        
         <span class="n">adapter</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry_strategy</span><span class="p">)</span>
         <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
         <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
-        
         <span class="k">return</span> <span class="n">session</span>
-    
+
 <div class="viewcode-block" id="InteractiveSessionAPI.get_session_status">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.InteractiveSessionAPI.get_session_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_session_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve session status from API endpoint.</span>
-<span class="sd">        </span>
+
 <span class="sd">        GET /api/v2/interactive-sessions/{sessionId}?teamId={teamId}</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        session_id : str</span>
 <span class="sd">            Session ID (24-character hex)</span>
 <span class="sd">        team_id : str</span>
 <span class="sd">            Team/workspace ID</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Session status response</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        PermissionError</span>
@@ -1921,7 +1877,6 @@
             <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
             <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
         <span class="p">}</span>
-        
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span>
                 <span class="n">url</span><span class="p">,</span>
@@ -1929,7 +1884,6 @@
                 <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify_ssl</span>
             <span class="p">)</span>
-            
             <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
@@ -1947,7 +1901,7 @@
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;API error (HTTP </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-        
+
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API request timeout after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">REQUEST_TIMEOUT</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1960,7 +1914,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OutputFormatter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles formatting output in different formats.&quot;&quot;&quot;</span>
-    
+
 <div class="viewcode-block" id="OutputFormatter.format_stdout">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_stdout">[docs]</a>
     <span class="nd">@staticmethod</span>
@@ -1972,30 +1926,24 @@
             <span class="n">show_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">header_style</span><span class="o">=</span><span class="s2">&quot;bold magenta&quot;</span>
         <span class="p">)</span>
-        
         <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Property&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
-        
         <span class="c1"># Build session link and embed it in the name</span>
         <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
         <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-        
         <span class="k">if</span> <span class="n">cloudos_url</span> <span class="ow">and</span> <span class="n">session_id</span> <span class="o">!=</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span>
             <span class="n">base_url</span> <span class="o">=</span> <span class="n">cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
             <span class="n">session_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/app/data-science/interactive-analysis/view/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/&quot;</span>
             <span class="n">session_name_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">session_link</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">session_name</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">session_name_with_link</span> <span class="o">=</span> <span class="n">session_name</span>
-        
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">session_name_with_link</span><span class="p">)</span>
-        
         <span class="c1"># Status with color coding</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
         <span class="n">status_color</span> <span class="o">=</span> <span class="n">STATUS_COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">)</span>
         <span class="n">status_colored</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">status_color</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">[/</span><span class="si">{</span><span class="n">status_color</span><span class="si">}</span><span class="s2">]&quot;</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">status_colored</span><span class="p">)</span>
-        
         <span class="c1"># Add remaining fields</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Backend&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend_type&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Owner&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;owner&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
@@ -2005,19 +1953,15 @@
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Cost&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Runtime&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Created At&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;created_at&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
-        
         <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;last_saved&#39;</span><span class="p">):</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Last Saved&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;last_saved&#39;</span><span class="p">))</span>
-        
         <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_shutdown&#39;</span><span class="p">):</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Auto-Shutdown At&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_shutdown&#39;</span><span class="p">))</span>
-        
         <span class="k">if</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_version&#39;</span><span class="p">):</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;R Version&quot;</span><span class="p">,</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_version&#39;</span><span class="p">))</span>
-        
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="OutputFormatter.format_json">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_json">[docs]</a>
     <span class="nd">@staticmethod</span>
@@ -2025,7 +1969,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return raw API response as formatted JSON.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">raw_response</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="OutputFormatter.format_csv">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.OutputFormatter.format_csv">[docs]</a>
     <span class="nd">@staticmethod</span>
@@ -2042,11 +1986,9 @@
             <span class="s1">&#39;Runtime&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runtime&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
             <span class="s1">&#39;Created&#39;</span><span class="p">:</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;created_at&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
         <span class="p">}</span>
-        
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csv_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">csv_data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-        
         <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 </div>
 
@@ -2056,11 +1998,11 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WatchModeManager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages watch mode polling and display.&quot;&quot;&quot;</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_client</span><span class="p">:</span> <span class="n">InteractiveSessionAPI</span><span class="p">,</span> 
                  <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize watch mode manager.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        api_client : InteractiveSessionAPI</span>
@@ -2077,32 +2019,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">team_id</span> <span class="o">=</span> <span class="n">team_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    
+
 <div class="viewcode-block" id="WatchModeManager.watch">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager.watch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">watch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Continuously poll session status until reaching terminal state.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Terminal states: running, paused, terminated</span>
-<span class="sd">        </span>
+
 <span class="sd">        Handles Ctrl+C gracefully.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spinner_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;◜&#39;</span><span class="p">,</span> <span class="s1">&#39;◝&#39;</span><span class="p">,</span> <span class="s1">&#39;◞&#39;</span><span class="p">,</span> <span class="s1">&#39;◟&#39;</span><span class="p">]</span>
         <span class="n">spinner_index</span> <span class="o">=</span> <span class="mi">0</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="c1"># Fetch status</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_client</span><span class="o">.</span><span class="n">get_session_status</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">team_id</span>
                 <span class="p">)</span>
-                
                 <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                 <span class="n">elapsed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
-                
                 <span class="c1"># Display progress</span>
                 <span class="n">spinner</span> <span class="o">=</span> <span class="n">spinner_chars</span><span class="p">[</span><span class="n">spinner_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">spinner_chars</span><span class="p">)]</span>
-                
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="si">{</span><span class="n">spinner</span><span class="si">}</span><span class="s2"> Status: </span><span class="si">{</span><span class="n">status</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> | &quot;</span>
@@ -2110,7 +2049,6 @@
                         <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                         <span class="n">flush</span><span class="o">=</span><span class="kc">True</span>
                     <span class="p">)</span>
-                
                 <span class="c1"># Check if reached terminal state</span>
                 <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">TERMINAL_STATES</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">()</span>  <span class="c1"># New line after spinner</span>
@@ -2123,16 +2061,14 @@
                             <span class="sa">f</span><span class="s2">&quot;⚠ Session reached terminal state: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span>
                         <span class="p">)</span>
                     <span class="k">return</span> <span class="n">response</span>
-                
                 <span class="c1"># Wait before next poll</span>
                 <span class="n">spinner_index</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
-        
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠ Watch mode interrupted by user.&quot;</span><span class="p">)</span>
             <span class="k">raise</span></div>
 
-    
+
 <div class="viewcode-block" id="WatchModeManager.get_elapsed_time">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.WatchModeManager.get_elapsed_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_elapsed_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -2151,48 +2087,37 @@
     <span class="n">name</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
     <span class="n">api_status</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">api_status</span><span class="p">)</span>  <span class="c1"># Map API status to display status</span>
-    
     <span class="c1"># Map backend type</span>
     <span class="n">api_backend</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactiveSessionType&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">backend_type</span> <span class="o">=</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="n">api_backend</span><span class="p">)</span>
-    
     <span class="c1"># Extract user info</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surname&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">owner</span><span class="p">:</span>
         <span class="n">owner</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-    
     <span class="c1"># Extract project info</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">project_name</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-    
     <span class="c1"># Extract resource info</span>
     <span class="n">resources</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resources&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">instance_type</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instanceType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
     <span class="n">is_spot</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isCostSaving&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">instance_display</span> <span class="o">=</span> <span class="n">format_instance_type</span><span class="p">(</span><span class="n">instance_type</span><span class="p">,</span> <span class="n">is_spot</span><span class="p">)</span>
-    
     <span class="n">storage_size_gb</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;storageSizeInGb&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
     <span class="n">storage_display</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">storage_size_gb</span><span class="si">}</span><span class="s2"> GB&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">storage_size_gb</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
-    
     <span class="c1"># Cost and runtime</span>
     <span class="n">total_cost</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalCostInUsd&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">cost</span> <span class="o">=</span> <span class="n">format_cost</span><span class="p">(</span><span class="n">total_cost</span><span class="p">)</span>
-    
     <span class="n">total_runtime_seconds</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalRunningTimeInSeconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">runtime</span> <span class="o">=</span> <span class="n">format_duration</span><span class="p">(</span><span class="n">total_runtime_seconds</span><span class="p">)</span>
-    
     <span class="c1"># Timestamps</span>
     <span class="n">created_at</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;createdAt&#39;</span><span class="p">))</span>
     <span class="n">last_saved</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lastSavedAt&#39;</span><span class="p">))</span>
-    
     <span class="c1"># Execution info</span>
     <span class="n">execution</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">auto_shutdown</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoShutdownAtDate&#39;</span><span class="p">))</span>
-    
     <span class="c1"># R version (for RStudio)</span>
     <span class="n">r_version</span> <span class="o">=</span> <span class="n">api_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rVersion&#39;</span><span class="p">)</span>
-    
     <span class="k">return</span> <span class="p">{</span>
         <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">session_id</span><span class="p">,</span>
         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
@@ -2216,25 +2141,23 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.export_session_status_json">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">export_session_status_json</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Export session status as JSON.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
 <span class="sd">        Raw API response</span>
 <span class="sd">    output_file : str, optional</span>
 <span class="sd">        Path to save JSON file. If None, returns JSON string.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
 <span class="sd">        JSON formatted string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">session_data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
-    
     <span class="k">return</span> <span class="n">json_str</span></div>
 
 
@@ -2243,25 +2166,23 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.export_session_status_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">export_session_status_csv</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Export session status as CSV.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
 <span class="sd">        Transformed session data (from transform_session_response)</span>
 <span class="sd">    output_file : str, optional</span>
 <span class="sd">        Path to save CSV file. If None, returns CSV string.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str</span>
 <span class="sd">        CSV formatted string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">csv_str</span> <span class="o">=</span> <span class="n">OutputFormatter</span><span class="o">.</span><span class="n">format_csv</span><span class="p">(</span><span class="n">session_data</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv_str</span><span class="p">)</span>
-    
     <span class="k">return</span> <span class="n">csv_str</span></div>
 
 
@@ -2276,7 +2197,7 @@
                                    <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
                                    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper function to fetch session status from API.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
@@ -2291,12 +2212,12 @@
 <span class="sd">        Whether to verify SSL certificates</span>
 <span class="sd">    verbose : bool</span>
 <span class="sd">        Whether to print verbose output</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Raw API response</span>
-<span class="sd">    </span>
+
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
@@ -2311,7 +2232,7 @@
         <span class="n">apikey</span><span class="o">=</span><span class="n">apikey</span><span class="p">,</span>
         <span class="n">verify_ssl</span><span class="o">=</span><span class="n">verify_ssl</span>
     <span class="p">)</span>
-    
+
     <span class="k">return</span> <span class="n">api_client</span><span class="o">.</span><span class="n">get_session_status</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">team_id</span><span class="p">)</span></div>
 
 
@@ -2320,7 +2241,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_session_status_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_session_status_table</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper function to display session status as a rich table.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
@@ -2336,7 +2257,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.confirm_session_stop">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">confirm_session_stop</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">no_upload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Display session termination confirmation details.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
@@ -2347,33 +2268,26 @@
 <span class="sd">        Whether force abort is enabled</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
-    
     <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
     <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
     <span class="n">cost_per_hour</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;costPerHour&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    
     <span class="c1"># Create confirmation table</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;About to stop session: </span><span class="si">{</span><span class="n">session_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">title_style</span><span class="o">=</span><span class="s2">&quot;bold yellow&quot;</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Property&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
-    
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Session ID&quot;</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
     <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Current Status&quot;</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="ow">not</span> <span class="n">no_upload</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Data Action&quot;</span><span class="p">,</span> <span class="s2">&quot;Will be saved before stopping&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Data Action&quot;</span><span class="p">,</span> <span class="s2">&quot;⚠ Will NOT be saved (--no-upload)&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Termination&quot;</span><span class="p">,</span> <span class="s2">&quot;⚠ FORCED (skip graceful shutdown)&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Termination&quot;</span><span class="p">,</span> <span class="s2">&quot;Graceful shutdown&quot;</span><span class="p">)</span>
-    
     <span class="k">if</span> <span class="n">cost_per_hour</span><span class="p">:</span>
         <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Cost/Hour&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">cost_per_hour</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
 
 
@@ -2382,7 +2296,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.format_stop_success_output">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_stop_success_output</span><span class="p">(</span><span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Display successful session stop output.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    session_data : dict</span>
@@ -2390,30 +2304,22 @@
 <span class="sd">    wait : bool</span>
 <span class="sd">        Whether the command waited for full termination</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.panel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Panel</span>
-    
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
     <span class="n">session_name</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
     <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">))</span>
     <span class="n">total_cost</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalCostInUsd&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">total_runtime</span> <span class="o">=</span> <span class="n">session_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalRunningTimeInSeconds&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    
     <span class="c1"># Format runtime</span>
     <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">format_duration</span><span class="p">(</span><span class="n">total_runtime</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_runtime</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
-    
     <span class="c1"># Build message</span>
     <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Session paused successfully</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Session ID: </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Final status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-    
     <span class="k">if</span> <span class="n">total_cost</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Total cost: $</span><span class="si">{</span><span class="n">total_cost</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-    
     <span class="k">if</span> <span class="n">total_runtime</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Total runtime: </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span>
-    
     <span class="c1"># Display success message</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">Panel</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;✓ Session Stop Complete&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;bold green&quot;</span><span class="p">))</span></div>
 
@@ -2424,7 +2330,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">poll_session_termination</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">apikey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">team_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
                             <span class="n">max_wait</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span> <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poll session status until it reaches a terminal state.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
@@ -2441,27 +2347,23 @@
 <span class="sd">        Polling interval in seconds (default: 5)</span>
 <span class="sd">    verify_ssl : bool</span>
 <span class="sd">        Whether to verify SSL certificates</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Final session status response</span>
-<span class="sd">    </span>
+
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    TimeoutError</span>
 <span class="sd">        If session doesn&#39;t reach terminal state within max_wait</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
-    
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="n">previous_status</span> <span class="o">=</span> <span class="kc">None</span>
-    
     <span class="k">with</span> <span class="n">console</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;[bold yellow]Pausing session...&quot;</span><span class="p">,</span> <span class="n">spinner</span><span class="o">=</span><span class="s1">&#39;dots&#39;</span><span class="p">):</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
-            
             <span class="c1"># Fetch current status</span>
             <span class="n">session_response</span> <span class="o">=</span> <span class="n">get_interactive_session_status</span><span class="p">(</span>
                 <span class="n">cloudos_url</span><span class="o">=</span><span class="n">cloudos_url</span><span class="p">,</span>
@@ -2471,28 +2373,64 @@
                 <span class="n">verify_ssl</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-            
             <span class="n">current_status</span> <span class="o">=</span> <span class="n">map_status</span><span class="p">(</span><span class="n">session_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            
             <span class="c1"># Print status changes</span>
             <span class="k">if</span> <span class="n">current_status</span> <span class="o">!=</span> <span class="n">previous_status</span><span class="p">:</span>
                 <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status: </span><span class="si">{</span><span class="n">current_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">previous_status</span> <span class="o">=</span> <span class="n">current_status</span>
-            
             <span class="c1"># Check if terminal state reached</span>
             <span class="k">if</span> <span class="n">current_status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;paused&#39;</span><span class="p">,</span> <span class="s1">&#39;terminated&#39;</span><span class="p">]:</span>
                 <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[bold green]✓ Session paused successfully&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">session_response</span>
-            
             <span class="c1"># Check timeout</span>
             <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&gt;</span> <span class="n">max_wait</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Session did not reach terminal state within </span><span class="si">{</span><span class="n">max_wait</span><span class="si">}</span><span class="s2"> seconds. &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;Current status: </span><span class="si">{</span><span class="n">current_status</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-            
             <span class="c1"># Wait before next poll</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">poll_interval</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_interactive_session_page">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_interactive_session_page</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">page_num</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">filter_status</span><span class="p">,</span> <span class="n">filter_only_mine</span><span class="p">,</span> <span class="n">archived</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to fetch a specific page of interactive sessions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cl : Cloudos</span>
+<span class="sd">        CloudOS API client instance</span>
+<span class="sd">    workspace_id : str</span>
+<span class="sd">        Workspace ID</span>
+<span class="sd">    page_num : int</span>
+<span class="sd">        Page number to fetch</span>
+<span class="sd">    limit : int</span>
+<span class="sd">        Number of results per page</span>
+<span class="sd">    filter_status : tuple or None</span>
+<span class="sd">        Status filters</span>
+<span class="sd">    filter_only_mine : bool</span>
+<span class="sd">        Whether to filter only user&#39;s sessions</span>
+<span class="sd">    archived : bool</span>
+<span class="sd">        Whether to include archived sessions</span>
+<span class="sd">    verify_ssl : bool or str</span>
+<span class="sd">        SSL verification setting</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        API response with sessions and pagination metadata</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_interactive_session_list</span><span class="p">(</span>
+        <span class="n">workspace_id</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page_num</span><span class="p">,</span>
+        <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+        <span class="n">status</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">filter_status</span><span class="p">)</span> <span class="k">if</span> <span class="n">filter_status</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">owner_only</span><span class="o">=</span><span class="n">filter_only_mine</span><span class="p">,</span>
+        <span class="n">include_archived</span><span class="o">=</span><span class="n">archived</span><span class="p">,</span>
+        <span class="n">verify</span><span class="o">=</span><span class="n">verify_ssl</span>
+    <span class="p">)</span></div>
 
 </pre></div>
         </article>

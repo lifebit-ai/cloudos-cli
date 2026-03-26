@@ -2071,6 +2071,105 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </dd></dl>
 
 </section>
+<section id="cloudos-interactive-session-resume">
+<h4>resume<a class="headerlink" href="#cloudos-interactive-session-resume" title="Link to this heading">¶</a></h4>
+<p>Resume a paused interactive session with optional configuration updates.</p>
+<p class="rubric">Usage</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>resume<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-session-id">
+<span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-session-id" title="Link to this definition">¶</a></dt>
+<dd><p><strong>Required</strong> Session ID to resume.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-k">
+<span id="cmdoption-cloudos-interactive-session-resume-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-k" title="Link to this definition">¶</a></dt>
+<dd><p>Your CloudOS API key</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-c">
+<span id="cmdoption-cloudos-interactive-session-resume-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-c" title="Link to this definition">¶</a></dt>
+<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-workspace-id">
+<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-workspace-id" title="Link to this definition">¶</a></dt>
+<dd><p>The specific CloudOS workspace id.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-instance">
+<span class="sig-name descname"><span class="pre">--instance</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;instance&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-instance" title="Link to this definition">¶</a></dt>
+<dd><p>Change instance type when resuming.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-storage">
+<span class="sig-name descname"><span class="pre">--storage</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;storage&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-storage" title="Link to this definition">¶</a></dt>
+<dd><p>Update storage size in GB (100-5000).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-cost-limit">
+<span class="sig-name descname"><span class="pre">--cost-limit</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cost_limit&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-cost-limit" title="Link to this definition">¶</a></dt>
+<dd><p>Update compute cost limit in USD. Default=-1 (unlimited).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-shutdown-in">
+<span class="sig-name descname"><span class="pre">--shutdown-in</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;shutdown_in&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-shutdown-in" title="Link to this definition">¶</a></dt>
+<dd><p>Update auto-shutdown duration (e.g., 8h, 2d).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-mount">
+<span class="sig-name descname"><span class="pre">--mount</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;mount&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-mount" title="Link to this definition">¶</a></dt>
+<dd><p>Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-link">
+<span class="sig-name descname"><span class="pre">--link</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;link&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-link" title="Link to this definition">¶</a></dt>
+<dd><p>Link additional folder. Format: s3://bucket/prefix or project_name/folder_path. Can be used multiple times.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-verbose">
+<span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to print information messages or not.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-disable-ssl-verification">
+<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-disable-ssl-verification" title="Link to this definition">¶</a></dt>
+<dd><p>Disable SSL certificate verification. Please, remember that this option is not generally recommended for security reasons.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-ssl-cert">
+<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-ssl-cert" title="Link to this definition">¶</a></dt>
+<dd><p>Path to your SSL certificate file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-debug">
+<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Show detailed error information and tracebacks</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-profile">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-profile" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+</section>
 <section id="cloudos-interactive-session-status">
 <h4>status<a class="headerlink" href="#cloudos-interactive-session-status" title="Link to this heading">¶</a></h4>
 <p>Get status of an interactive session.</p>
@@ -4636,6 +4735,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <li><a class="reference internal" href="#cloudos-interactive-session-create">create</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-list">list</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-pause">pause</a></li>
+<li><a class="reference internal" href="#cloudos-interactive-session-resume">resume</a></li>
 <li><a class="reference internal" href="#cloudos-interactive-session-status">status</a></li>
 </ul>
 </li>

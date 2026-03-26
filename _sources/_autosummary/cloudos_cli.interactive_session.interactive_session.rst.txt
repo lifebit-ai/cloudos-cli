@@ -8,11 +8,13 @@ cloudos\_cli.interactive\_session.interactive\_session
 
    .. autosummary::
    
+      build_resume_payload
       build_session_payload
       confirm_session_stop
       create_interactive_session_list_table
       export_session_status_csv
       export_session_status_json
+      fetch_interactive_session_page
       format_cost
       format_duration
       format_instance_type

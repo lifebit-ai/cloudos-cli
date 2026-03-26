@@ -1415,6 +1415,30 @@ the SSL certificate file.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.resume_interactive_session">
+<span class="sig-name descname"><span class="pre">resume_interactive_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.resume_interactive_session" title="Link to this definition">¶</a></dt>
+<dd><p>Resume a stopped interactive session with optional configuration updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_id</strong> (<em>string</em>) – The session ID (MongoDB ObjectId) to resume.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) where the session is running.</p></li>
+<li><p><strong>payload</strong> (<em>dict</em>) – Resume payload with optional dataItems and newInteractiveSessionConfiguration.</p></li>
+<li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
+a string is passed, it will be interpreted as the path to
+the SSL certificate file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated session object from API response.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.save_job_list_to_csv">
 <span class="sig-name descname"><span class="pre">save_job_list_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_jobs_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'my_jobs.csv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.link.link.Link.save_job_list_to_csv" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1640,6 +1664,7 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.project_name"><code class="docutils literal notranslate"><span class="pre">Link.project_name</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.reorder_job_list"><code class="docutils literal notranslate"><span class="pre">Link.reorder_job_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.resolve_user_id"><code class="docutils literal notranslate"><span class="pre">Link.resolve_user_id()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.resume_interactive_session"><code class="docutils literal notranslate"><span class="pre">Link.resume_interactive_session()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.save_job_list_to_csv"><code class="docutils literal notranslate"><span class="pre">Link.save_job_list_to_csv()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.unarchive_jobs"><code class="docutils literal notranslate"><span class="pre">Link.unarchive_jobs()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.verify"><code class="docutils literal notranslate"><span class="pre">Link.verify</span></code></a></li>

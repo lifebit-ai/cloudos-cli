@@ -481,9 +481,10 @@
 <li><p><a class="reference internal" href="#interactive-sessions"><span class="xref myst">Interactive Sessions</span></a></p>
 <ul>
 <li><p><a class="reference internal" href="#list-interactive-sessions"><span class="xref myst">List Interactive Sessions</span></a></p></li>
+<li><p><a class="reference internal" href="#create-interactive-session"><span class="xref myst">Create Interactive Session</span></a></p></li>
 <li><p><a class="reference internal" href="#get-interactive-session-status"><span class="xref myst">Get Interactive Session Status</span></a></p></li>
 <li><p><a class="reference internal" href="#pause-interactive-session"><span class="xref myst">Pause Interactive Session</span></a></p></li>
-<li><p><a class="reference internal" href="#create-interactive-session"><span class="xref myst">Create Interactive Session</span></a></p></li>
+<li><p><a class="reference internal" href="#resume-interactive-session"><span class="xref myst">Resume Interactive Session</span></a></p></li>
 </ul>
 </li>
 <li><p><a class="reference internal" href="#datasets"><span class="std std-ref">Datasets</span></a></p>
@@ -2193,13 +2194,13 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </div>
 <p>The table displays sessions with pagination controls (press <code class="docutils literal notranslate"><span class="pre">n</span></code> for next page, <code class="docutils literal notranslate"><span class="pre">p</span></code> for previous page, or <code class="docutils literal notranslate"><span class="pre">q</span></code> to quit):</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">                          Interactive Sessions                          </span>
-<span class="go">┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓</span>
-<span class="go">┃ Status  ┃ Name         ┃ Type               ┃ ID            ┃ Owner  ┃</span>
-<span class="go">┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩</span>
-<span class="go">│ paused  │ cloudosR     │ RStudio            │ 69aee0dba197… │ Leila  │</span>
-<span class="go">│ running │ analysis-dev │ Jupyter            │ 69ae972a18f0… │ John   │</span>
-<span class="go">│ paused  │ test_session │ VS Code            │ 69a996c098ab… │ James  │</span>
-<span class="go">└─────────┴──────────────┴────────────────────┴───────────────┴────────┘</span>
+<span class="go">┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓</span>
+<span class="go">┃ Status  ┃ Name         ┃ Type           ┃ ID            ┃ Owner  ┃</span>
+<span class="go">┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩</span>
+<span class="go">│ paused  │ cloudosR     │ RStudio        │ 69aee0dba197… │ Leila  │</span>
+<span class="go">│ running │ analysis-dev │ Jupyter        │ 69ae972a18f0… │ John   │</span>
+<span class="go">│ paused  │ test_session │ VS Code        │ 69a996c098ab… │ James  │</span>
+<span class="go">└─────────┴──────────────┴────────────────┴───────────────┴────────┘</span>
 
 <span class="go">Total sessions: 15</span>
 <span class="go">Page: 1 of 3</span>
@@ -2247,6 +2248,149 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </div>
 <p>Available columns: <code class="docutils literal notranslate"><span class="pre">backend</span></code>, <code class="docutils literal notranslate"><span class="pre">cost</span></code>, <code class="docutils literal notranslate"><span class="pre">cost_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">created_at</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">instance</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">owner</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">resources</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">saved_at</span></code>, <code class="docutils literal notranslate"><span class="pre">spot</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">time_left</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code></p>
 </section>
+<section id="create-interactive-session">
+<h4>Create Interactive Session<a class="headerlink" href="#create-interactive-session" title="Link to this heading">¶</a></h4>
+<p>You can create and start a new interactive session using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">create</span></code> command. This command provisions a new virtual environment with your specified configuration.</p>
+<p>The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.</p>
+<p><strong>Basic Usage</strong></p>
+<p>Create a simple Jupyter notebook session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;My Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter
+</pre></div>
+</div>
+<p>Create an RStudio session with specific R version:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;R Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>rstudio<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--r-version<span class="w"> </span><span class="m">4</span>.4.2
+</pre></div>
+</div>
+<p>Create a VS Code session (AWS only):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Development&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>vscode
+</pre></div>
+</div>
+<p>Create a Spark cluster session with custom instance types (AWS only):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Spark Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>spark<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--spark-master<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--spark-core<span class="w"> </span>c5.xlarge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--spark-workers<span class="w"> </span><span class="m">3</span>
+</pre></div>
+</div>
+<p><strong>Configuration Options</strong></p>
+<p>You can customize your session with various options:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Advanced Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--instance<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--storage<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--spot<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--shared<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--shutdown-in<span class="w"> </span>8h
+</pre></div>
+</div>
+<p><strong>Required for Each Session:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--name</span></code>: Session name (1-100 characters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--session-type</span></code>: Type of backend - <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>, <code class="docutils literal notranslate"><span class="pre">vscode</span></code>, <code class="docutils literal notranslate"><span class="pre">rstudio</span></code>, or <code class="docutils literal notranslate"><span class="pre">spark</span></code> (platform dependent)</p></li>
+</ul>
+<p><strong>Optional Configuration:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance</span></code>: Instance type (default depends on execution platform: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code> for AWS, <code class="docutils literal notranslate"><span class="pre">Standard_F1s</span></code> for Azure)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span></code>: Storage in GB (default: 500, range: 100-5000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--spot</span></code>: Use spot instances (AWS only, cost-saving)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--shared</span></code>: Make session accessible to workspace members</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Compute cost limit in USD (default: -1 for unlimited)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--shutdown-in</span></code>: Auto-shutdown duration (e.g., <code class="docutils literal notranslate"><span class="pre">8h</span></code>, <code class="docutils literal notranslate"><span class="pre">2d</span></code>, <code class="docutils literal notranslate"><span class="pre">30m</span></code>)</p></li>
+</ul>
+<p><strong>Data &amp; Storage Management:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--mount</span></code>: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: <code class="docutils literal notranslate"><span class="pre">project_name/dataset_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/Data/file.csv</span></code>) or <code class="docutils literal notranslate"><span class="pre">s3://bucket/path/to/file</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>). Can be used multiple times.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: <code class="docutils literal notranslate"><span class="pre">s3://bucket/prefix</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) or <code class="docutils literal notranslate"><span class="pre">project_name/folder_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/AnalysesResults/analysis_id/results</span></code>). Can be used multiple times. <strong>Note:</strong> Linking is not supported on Azure. Use CloudOS file explorer for data access.</p></li>
+</ul>
+<p><strong>Backend-Specific:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--r-version</span></code>: R version for RStudio (options: <code class="docutils literal notranslate"><span class="pre">4.4.2</span></code>, <code class="docutils literal notranslate"><span class="pre">4.5.2</span></code>) - <strong>optional for rstudio</strong> (default: <code class="docutils literal notranslate"><span class="pre">4.4.2</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--spark-master</span></code>: Master instance type for Spark (default: <code class="docutils literal notranslate"><span class="pre">c5.2xlarge</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--spark-core</span></code>: Core instance type for Spark (default: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--spark-workers</span></code>: Initial worker count for Spark (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Show detailed progress messages</p></li>
+</ul>
+<p><strong>Data Management</strong></p>
+<p>CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:</p>
+<ul class="simple">
+<li><p>you can load data directly into the session (i.e. files are copied into the session’s mounted-data volume)</p></li>
+<li><p>you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments.</p></li>
+</ul>
+<p><strong>Data Mounting Examples</strong></p>
+<p>Mount a file from File Explorer:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Data Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="s2">&quot;my_project/training_data.csv&quot;</span>
+</pre></div>
+</div>
+<p>Link an S3 bucket:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;S3 Access&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://my-results-bucket/output/&quot;</span>
+</pre></div>
+</div>
+<p>Link multiple S3 buckets:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-S3 Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://input-bucket/data/&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://output-bucket/results/&quot;</span>
+</pre></div>
+</div>
+<p>This will show progress updates like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">✓ Interactive Session Created Successfully</span>
+
+<span class="go">┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓</span>
+<span class="go">┃ Property    ┃ Value               ┃</span>
+<span class="go">┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩</span>
+<span class="go">│ Session ID  │ 69aee0dba197abc123  │</span>
+<span class="go">│ Name        │ Ready Session       │</span>
+<span class="go">│ Backend     │ awsJupyterNotebook  │</span>
+<span class="go">│ Status      │ initialising        │</span>
+<span class="go">└─────────────┴─────────────────────┘</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+**Output Display**
+
+The session creation output displays a success message with session details:
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name &quot;My Session&quot; \
+  --session-type jupyter
+</pre></div>
+</div>
+<p>The output shows the session details including:</p>
+<ul class="simple">
+<li><p>Session ID</p></li>
+<li><p>Session name</p></li>
+<li><p>Backend type (jupyter, vscode, rstudio, spark)</p></li>
+<li><p>Current status (scheduled, initialising, setup, running, paused)</p></li>
+</ul>
+</section>
 <section id="get-interactive-session-status">
 <h4>Get Interactive Session Status<a class="headerlink" href="#get-interactive-session-status" title="Link to this heading">¶</a></h4>
 <p>You can retrieve detailed status information for a specific interactive session using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">status</span></code> command. This command provides comprehensive information about the session including its current state, resource allocation, costs, and more.</p>
@@ -2262,7 +2406,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="go">║ Session ID         ║ 69bc00cb1488084e5a6cae70                            ║</span>
 <span class="go">║ Name               ║ analysis-dev (linked)                               ║</span>
 <span class="go">║ Status             ║ running                                             ║</span>
-<span class="go">║ Backend            ║ awsJupyterNotebook                                  ║</span>
+<span class="go">║ Backend            ║ Jupyter                                             ║</span>
 <span class="go">║ Owner              ║ John Doe                                            ║</span>
 <span class="go">║ Project            ║ research                                            ║</span>
 <span class="go">║ Instance Type      ║ c5.xlarge                                           ║</span>
@@ -2401,7 +2545,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 <span class="go">Status: shutting_down</span>
 <span class="go">Status: uploading_data</span>
 <span class="go">Status: cleaning_up</span>
-<span class="go">Status: stopped</span>
+<span class="go">Status: paused</span>
 <span class="go">✓ Session paused successfully</span>
 </pre></div>
 </div>
@@ -2468,121 +2612,47 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 <li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from config file (default: default profile)</p></li>
 </ul>
 </section>
-<section id="create-interactive-session">
-<h4>Create Interactive Session<a class="headerlink" href="#create-interactive-session" title="Link to this heading">¶</a></h4>
-<p>You can create and start a new interactive session using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">create</span></code> command. This command provisions a new virtual environment with your specified configuration.</p>
-<p>The command automatically loads API credentials and workspace information from your profile configuration, so you only need to specify the session-specific details.</p>
+<section id="resume-interactive-session">
+<h4>Resume Interactive Session<a class="headerlink" href="#resume-interactive-session" title="Link to this heading">¶</a></h4>
+<p>Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.</p>
 <p><strong>Basic Usage</strong></p>
-<p>Create a simple Jupyter notebook session:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;My Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>jupyter
+<p>Resume a paused session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>resume<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
 </pre></div>
 </div>
-<p>Create an RStudio session with specific R version:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<p>Resume with updated instance type:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;R Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>rstudio<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--r-version<span class="w"> </span><span class="m">4</span>.4.2
+<span class="w">  </span>--instance<span class="w"> </span>c5.2xlarge
 </pre></div>
 </div>
-<p>Create a VS Code session (AWS only):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<p>Resume with multiple updates:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Development&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>vscode
-</pre></div>
-</div>
-<p>Create a Spark cluster session with custom instance types (AWS only):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Spark Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>spark<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--spark-master<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--spark-core<span class="w"> </span>c5.xlarge<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--spark-workers<span class="w"> </span><span class="m">3</span>
-</pre></div>
-</div>
-<p><strong>Configuration Options</strong></p>
-<p>You can customize your session with various options:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Advanced Session&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--instance<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--instance<span class="w"> </span>m5.xlarge<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--storage<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--spot<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--shared<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--shutdown-in<span class="w"> </span>8h
+<span class="w">  </span>--shutdown-in<span class="w"> </span>12h
 </pre></div>
 </div>
-<p><strong>Required for Each Session:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--name</span></code>: Session name (1-100 characters)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--session-type</span></code>: Type of backend - <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>, <code class="docutils literal notranslate"><span class="pre">vscode</span></code>, <code class="docutils literal notranslate"><span class="pre">rstudio</span></code>, or <code class="docutils literal notranslate"><span class="pre">spark</span></code> (platform dependent)</p></li>
-</ul>
-<p><strong>Optional Configuration:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--instance</span></code>: Instance type (default depends on execution platform: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code> for AWS, <code class="docutils literal notranslate"><span class="pre">Standard_F1s</span></code> for Azure)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span></code>: Storage in GB (default: 500, range: 100-5000)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--spot</span></code>: Use spot instances (AWS only, cost-saving)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--shared</span></code>: Make session accessible to workspace members</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Compute cost limit in USD (default: -1 for unlimited)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--shutdown-in</span></code>: Auto-shutdown duration (e.g., <code class="docutils literal notranslate"><span class="pre">8h</span></code>, <code class="docutils literal notranslate"><span class="pre">2d</span></code>, <code class="docutils literal notranslate"><span class="pre">30m</span></code>)</p></li>
-</ul>
-<p><strong>Data &amp; Storage Management:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--mount</span></code>: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: <code class="docutils literal notranslate"><span class="pre">project_name/dataset_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/Data/file.csv</span></code>) or <code class="docutils literal notranslate"><span class="pre">s3://bucket/path/to/file</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>). Can be used multiple times.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: <code class="docutils literal notranslate"><span class="pre">s3://bucket/prefix</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) or <code class="docutils literal notranslate"><span class="pre">project_name/folder_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/AnalysesResults/analysis_id/results</span></code>). Can be used multiple times. <strong>Note:</strong> Linking is not supported on Azure. Use CloudOS file explorer for data access.</p></li>
-</ul>
-<p><strong>Backend-Specific:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--r-version</span></code>: R version for RStudio (options: <code class="docutils literal notranslate"><span class="pre">4.4.2</span></code>, <code class="docutils literal notranslate"><span class="pre">4.5.2</span></code>) - <strong>optional for rstudio</strong> (default: <code class="docutils literal notranslate"><span class="pre">4.4.2</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--spark-master</span></code>: Master instance type for Spark (default: <code class="docutils literal notranslate"><span class="pre">c5.2xlarge</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--spark-core</span></code>: Core instance type for Spark (default: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--spark-workers</span></code>: Initial worker count for Spark (default: 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Show detailed progress messages</p></li>
-</ul>
-<p><strong>Data Management</strong></p>
-<p>CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:</p>
-<ul class="simple">
-<li><p>you can load data directly into the session (i.e. files are copied into the session’s mounted-data volume)</p></li>
-<li><p>you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments.</p></li>
-</ul>
-<p><strong>Data Mounting Examples</strong></p>
-<p>Mount a file from File Explorer:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<p><strong>Mount Additional Data</strong></p>
+<p>Resume and mount additional files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Data Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--mount<span class="w"> </span><span class="s2">&quot;my_project/training_data.csv&quot;</span>
+<span class="w">  </span>--mount<span class="w"> </span>my-project/Data/new-dataset.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span>s3://my-bucket/data/file.txt
 </pre></div>
 </div>
-<p>Link an S3 bucket:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;S3 Access&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://my-results-bucket/output/&quot;</span>
-</pre></div>
-</div>
-<p><strong>Output Display</strong></p>
-<p>The session creation output displays a success message with session details:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;My Session&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--session-type<span class="w"> </span>jupyter
-</pre></div>
-</div>
-<p>The output shows the session details including:</p>
+<p><strong>Configuration Updates</strong></p>
+<p>All configuration parameters are optional. If not specified, the session resumes with its previous configuration.</p>
 <ul class="simple">
-<li><p>Session ID</p></li>
-<li><p>Session name</p></li>
-<li><p>Backend type (jupyter, vscode, rstudio, spark)</p></li>
-<li><p>Current status (scheduled, initialising, setup, running, paused)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance</span> <span class="pre">&lt;TYPE&gt;</span></code> - Change instance type (validated by platform)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span> <span class="pre">&lt;GB&gt;</span></code> - Update storage size (100-5000 GB)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span> <span class="pre">&lt;USD&gt;</span></code> - Update compute cost limit (-1 for unlimited)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--shutdown-in</span> <span class="pre">&lt;DURATION&gt;</span></code> - Update auto-shutdown time (e.g., 8h, 2d)</p></li>
 </ul>
 </section>
 </section>

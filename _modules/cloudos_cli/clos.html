@@ -2905,6 +2905,63 @@
         <span class="k">return</span> <span class="n">content</span></div>
 
 
+<div class="viewcode-block" id="Cloudos.resume_interactive_session">
+<a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.resume_interactive_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resume_interactive_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">team_id</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resume a stopped interactive session with optional configuration updates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        session_id : string</span>
+<span class="sd">            The session ID (MongoDB ObjectId) to resume.</span>
+<span class="sd">        team_id : string</span>
+<span class="sd">            The CloudOS team id (workspace id) where the session is running.</span>
+<span class="sd">        payload : dict</span>
+<span class="sd">            Resume payload with optional dataItems and newInteractiveSessionConfiguration.</span>
+<span class="sd">        verify: [bool|string], default=True</span>
+<span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
+<span class="sd">            a string is passed, it will be interpreted as the path to</span>
+<span class="sd">            the SSL certificate file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Updated session object from API response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate inputs</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">session_id</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid session_id: must be a non-empty string&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">team_id</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">team_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid team_id: must be a non-empty string&quot;</span><span class="p">)</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Build URL with sessionId and teamId</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/interactive-sessions/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/resume?teamId=</span><span class="si">{</span><span class="n">team_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Make the API request with PUT method</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span>
+                <span class="n">url</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+                <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to resume interactive session: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        
+        <span class="c1"># Return the full session object from response</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">content</span></div>
+
+
 <div class="viewcode-block" id="Cloudos.abort_interactive_session">
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.abort_interactive_session">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">abort_interactive_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">team_id</span><span class="p">,</span> <span class="n">upload_on_close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_abort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -2954,7 +3011,7 @@
         
         <span class="c1"># Make the API request with PUT method</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span>
                 <span class="n">url</span><span class="p">,</span>
                 <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
