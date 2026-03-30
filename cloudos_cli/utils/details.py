@@ -657,7 +657,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
 
     # Interactive pagination mode
     import sys
-    current_page = pagination_metadata.get('Pagination-Page', 1)
+    current_page = pagination_metadata.get('Pagination-Page', 1) or 1  # Ensure never None
     total_jobs = pagination_metadata.get('Pagination-Count', 0)
     page_size_value = pagination_metadata.get('Pagination-Limit', 10)
     total_pages = (total_jobs + page_size_value - 1) // page_size_value if total_jobs > 0 else 1

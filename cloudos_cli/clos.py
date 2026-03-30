@@ -1263,7 +1263,7 @@ class Cloudos:
         if filter_queue and last_pagination_metadata:
             last_pagination_metadata = {
                 'Pagination-Count': len(all_jobs),  # Total filtered jobs collected
-                'Pagination-Page': page,  # The page the user requested
+                'Pagination-Page': current_page,  # Use current_page (guaranteed to be int) instead of page
                 'Pagination-Limit': current_page_size  # Page size
             }
 
