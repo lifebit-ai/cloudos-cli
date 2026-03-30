@@ -1155,6 +1155,71 @@ def job_details(ctx,
     create_job_details(json.loads(j_details.content), job_id, output_format, output_basename, parameters, cloudos_url)
 
 
+def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived, verify_ssl,
+                   filter_status, filter_job_name, filter_project, filter_workflow,
+                   filter_job_id, filter_only_mine, filter_owner, filter_queue, last):
+    """Helper function to fetch a specific page of jobs.
+    
+    Parameters
+    ----------
+    cl : Cloudos
+        CloudOS API client instance
+    workspace_id : str
+        The CloudOS workspace ID
+    page_num : int
+        Page number to fetch (1-indexed)
+    page_size : int
+        Number of jobs per page
+    last_n_jobs : int or None
+        Last N jobs parameter (should be None for pagination mode)
+    archived : bool
+        Whether to include archived jobs
+    verify_ssl : bool or str
+        SSL verification setting
+    filter_status : str or None
+        Status filter
+    filter_job_name : str or None
+        Job name filter
+    filter_project : str or None
+        Project filter
+    filter_workflow : str or None
+        Workflow filter
+    filter_job_id : str or None
+        Job ID filter
+    filter_only_mine : bool
+        Filter for user's own jobs
+    filter_owner : str or None
+        Owner filter
+    filter_queue : str or None
+        Queue filter
+    last : bool
+        Use latest workflow for duplicates
+        
+    Returns
+    -------
+    dict
+        Dictionary with 'jobs' list and 'pagination_metadata' dict
+    """
+    result = cl.get_job_list(
+        workspace_id,
+        last_n_jobs=last_n_jobs,
+        page=page_num,
+        page_size=page_size,
+        archived=archived,
+        verify=verify_ssl,
+        filter_status=filter_status,
+        filter_job_name=filter_job_name,
+        filter_project=filter_project,
+        filter_workflow=filter_workflow,
+        filter_job_id=filter_job_id,
+        filter_only_mine=filter_only_mine,
+        filter_owner=filter_owner,
+        filter_queue=filter_queue,
+        last=last
+    )
+    return result
+
+
 @job.command('list')
 @click.option('-k',
               '--apikey',
@@ -1335,7 +1400,13 @@ def list_jobs(ctx,
         ])
         if output_format == 'stdout':
             # For stdout, always show a user-friendly message
-            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns)
+            # Create callback for interactive pagination
+            fetch_page = lambda page_num: fetch_job_page(
+                cl, workspace_id, page_num, page_size, None, archived, verify_ssl,
+                filter_status, filter_job_name, filter_project, filter_workflow,
+                filter_job_id, filter_only_mine, filter_owner, filter_queue, last
+            )
+            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns, fetch_page_callback=fetch_page)
         else:
             if filters_used:
                 print('A total of 0 jobs collected.')
@@ -1347,8 +1418,14 @@ def list_jobs(ctx,
                       'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                       'using --page parameter.')
     elif output_format == 'stdout':
-        # Display as table
-        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns)
+        # Display as table with interactive pagination
+        # Create callback for interactive pagination
+        fetch_page = lambda page_num: fetch_job_page(
+            cl, workspace_id, page_num, page_size, None, archived, verify_ssl,
+            filter_status, filter_job_name, filter_project, filter_workflow,
+            filter_job_id, filter_only_mine, filter_owner, filter_queue, last
+        )
+        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns, fetch_page_callback=fetch_page)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         cl.save_job_list_to_csv(my_jobs, outfile)
