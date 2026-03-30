@@ -147,7 +147,7 @@ class Queue(Cloudos):
         if len(available_queues) == 0:
             raise Exception(f'There are no available job queues for {workflow_type} ' +
                             'workflows. Consider creating one using CloudOS UI.')
-        default_queue = [q for q in available_queues if q['isDefault']]
+        default_queue = [q for q in available_queues if q.get('isDefault', False)]
         if len(default_queue) > 0:
             default_queue_id = default_queue[0]['id']
             default_queue_name = default_queue[0]['label']
