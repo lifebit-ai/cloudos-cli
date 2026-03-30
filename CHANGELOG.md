@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.87.0 (2026-03-30)
+
+### Feat
+
+- Adds system queues
+
 ## v2.86.0 (2026-03-23)
 
 ### Feat
