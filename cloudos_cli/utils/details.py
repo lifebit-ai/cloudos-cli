@@ -337,9 +337,9 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         print(f"\tJob details have been saved to '{output_basename}.csv'")
 
 
-def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_columns=None):
+def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_columns=None, fetch_page_callback=None):
     """
-    Creates a formatted job list table for stdout output with responsive design.
+    Creates a formatted job list table for stdout output with responsive design and interactive pagination.
 
     The table automatically adapts to terminal width by showing different column sets:
     - Very narrow (<60 chars): Essential columns only (status, name, pipeline, id)
@@ -373,6 +373,10 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         - List: List of column names
         Valid columns: 'status', 'name', 'project', 'owner', 'pipeline', 'id',
         'submit_time', 'end_time', 'run_time', 'commit', 'cost', 'resources', 'storage_type'
+    fetch_page_callback : callable, optional
+        Callback function to fetch a specific page of results for interactive pagination.
+        Should accept page number (1-indexed) and return dict with 'jobs' and 'pagination_metadata' keys.
+        If provided, enables interactive navigation (n=next, p=previous, q=quit).
 
     Returns
     -------
@@ -637,16 +641,371 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         row_values = [column_values[col] for col in columns_to_show]
         table.add_row(*row_values)
 
-    console.print(table)
+    # If no fetch_page_callback, display static table
+    if not fetch_page_callback or not pagination_metadata:
+        console.print(table)
+        
+        # Display pagination info at the bottom
+        if pagination_metadata:
+            total_jobs = pagination_metadata.get('Pagination-Count', 0)
+            current_page = pagination_metadata.get('Pagination-Page', 1)
+            page_size = pagination_metadata.get('Pagination-Limit', 10)
+            total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
 
-    # Display pagination info at the bottom
-    if pagination_metadata:
-        total_jobs = pagination_metadata.get('Pagination-Count', 0)
-        current_page = pagination_metadata.get('Pagination-Page', 1)
-        page_size = pagination_metadata.get('Pagination-Limit', 10)
-        total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
+            console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")
+        return
 
-        console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")
+    # Interactive pagination mode
+    import sys
+    current_page = pagination_metadata.get('Pagination-Page', 1) or 1  # Ensure never None
+    total_jobs = pagination_metadata.get('Pagination-Count', 0)
+    page_size_value = pagination_metadata.get('Pagination-Limit', 10)
+    total_pages = (total_jobs + page_size_value - 1) // page_size_value if total_jobs > 0 else 1
+    
+    show_error = None
+    
+    while True:
+        # Clear console and display table
+        console.clear()
+        console.print(table)
+        
+        # Display pagination info
+        console.print(f"\n[cyan]Total jobs:[/cyan] {total_jobs}")
+        if total_pages > 1:
+            console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
+            console.print(f"[cyan]Jobs on this page:[/cyan] {len(jobs)}")
+        
+        # Show error message if any
+        if show_error:
+            console.print(show_error)
+            show_error = None
+        
+        # Show pagination controls only if there are multiple pages
+        if total_pages > 1:
+            # Check if we're in an interactive environment
+            if not sys.stdin.isatty():
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
+                break
+            
+            console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
+            
+            # Get user input for navigation
+            try:
+                choice = input(">>> ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[yellow]Pagination interrupted.[/yellow]")
+                break
+            
+            if choice in ("q", "quit"):
+                break
+            elif choice in ("n", "next"):
+                if current_page < total_pages:
+                    try:
+                        result = fetch_page_callback(current_page + 1)
+                        jobs = result.get('jobs', [])
+                        pagination_metadata = result.get('pagination_metadata', {})
+                        current_page = pagination_metadata.get('Pagination-Page', current_page + 1)
+                        total_pages = pagination_metadata.get('totalPages',
+                                                             (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
+                                                             if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
+                        
+                        # Rebuild table with new jobs
+                        table = Table(title="Job List")
+                        for col_key in columns_to_show:
+                            col_config = all_columns[col_key]
+                            table.add_column(
+                                col_config["header"],
+                                style=col_config.get("style"),
+                                no_wrap=col_config.get("no_wrap", False),
+                                overflow=col_config.get("overflow"),
+                                min_width=col_config.get("min_width"),
+                                max_width=col_config.get("max_width")
+                            )
+                        
+                        # Rebuild rows
+                        for job in jobs:
+                            # (Rebuild the same row logic - will reference the variables from above)
+                            status_raw = str(job.get("status", "N/A"))
+                            status_symbol_map = {
+                                "completed": "[bold green]✓[/bold green]",
+                                "running": "[bold bright_black]◐[/bold bright_black]",
+                                "failed": "[bold red]✗[/bold red]",
+                                "aborted": "[bold orange3]■[/bold orange3]",
+                                "initialising": "[bold bright_black]○[/bold bright_black]",
+                                "N/A": "[bold bright_black]?[/bold bright_black]"
+                            }
+                            status = status_symbol_map.get(status_raw.lower(), status_raw)
+                            
+                            name = str(job.get("name", "N/A"))
+                            project = str(job.get("project", {}).get("name", "N/A"))
+                            
+                            user_info = job.get("user", {})
+                            name_part = user_info.get('name', '')
+                            surname_part = user_info.get('surname', '')
+                            if terminal_width < 90:
+                                if name_part and surname_part:
+                                    owner = f"{name_part[0]}.{surname_part[0]}."
+                                elif name_part or surname_part:
+                                    owner = (name_part or surname_part)[:8]
+                                else:
+                                    owner = "N/A"
+                            else:
+                                if name_part and surname_part:
+                                    owner = f"{name_part}\n{surname_part}"
+                                elif name_part or surname_part:
+                                    owner = name_part or surname_part
+                                else:
+                                    owner = "N/A"
+                            
+                            pipeline = str(job.get("workflow", {}).get("name", "N/A")).split('\n')[0].strip()
+                            if len(pipeline) > 25:
+                                pipeline = pipeline[:22] + "..."
+                            
+                            job_id = str(job.get("_id", "N/A"))
+                            job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
+                            job_id_with_link = f"[link={job_url}]{job_id}[/link]"
+                            
+                            created_at = job.get("createdAt")
+                            if created_at:
+                                try:
+                                    dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                                    submit_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                                except:
+                                    submit_time = "N/A"
+                            else:
+                                submit_time = "N/A"
+                            
+                            end_time_raw = job.get("endTime")
+                            if end_time_raw:
+                                try:
+                                    dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                                    end_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                                except:
+                                    end_time = "N/A"
+                            else:
+                                end_time = "N/A"
+                            
+                            start_time_raw = job.get("startTime")
+                            if start_time_raw and end_time_raw:
+                                try:
+                                    start_dt = datetime.fromisoformat(start_time_raw.replace('Z','+00:00'))
+                                    end_dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                                    duration = end_dt - start_dt
+                                    total_seconds = int(duration.total_seconds())
+                                    hours = total_seconds // 3600
+                                    minutes = (total_seconds % 3600) // 60
+                                    seconds = total_seconds % 60
+                                    if hours > 0:
+                                        run_time = f"{hours}h {minutes}m {seconds}s"
+                                    elif minutes > 0:
+                                        run_time = f"{minutes}m {seconds}s"
+                                    else:
+                                        run_time = f"{seconds}s"
+                                except:
+                                    run_time = "N/A"
+                            else:
+                                run_time = "N/A"
+                            
+                            revision = job.get("revision", {})
+                            if job.get("jobType") == "dockerAWS":
+                                commit = str(revision.get("digest", "N/A"))
+                            else:
+                                commit = str(revision.get("commit", "N/A"))
+                            if commit != "N/A" and len(commit) > 7:
+                                commit = commit[:7]
+                            
+                            cost_raw = job.get("computeCostSpent") or job.get("realInstancesExecutionCost")
+                            if cost_raw is not None:
+                                try:
+                                    cost = f"${float(cost_raw) / 100:.4f}"
+                                except:
+                                    cost = "N/A"
+                            else:
+                                cost = "N/A"
+                            
+                            master_instance = job.get("masterInstance", {})
+                            used_instance = master_instance.get("usedInstance", {})
+                            instance_type = used_instance.get("type", "N/A")
+                            resources = instance_type if instance_type else "N/A"
+                            
+                            storage_mode = job.get("storageMode", "N/A")
+                            if storage_mode == "regular":
+                                storage_type = "Regular"
+                            elif storage_mode == "lustre":
+                                storage_type = "Lustre"
+                            else:
+                                storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
+                            
+                            column_values = {
+                                'status': status, 'name': name, 'project': project, 'owner': owner,
+                                'pipeline': pipeline, 'id': job_id_with_link, 'submit_time': submit_time,
+                                'end_time': end_time, 'run_time': run_time, 'commit': commit,
+                                'cost': cost, 'resources': resources, 'storage_type': storage_type
+                            }
+                            
+                            row_values = [column_values[col] for col in columns_to_show]
+                            table.add_row(*row_values)
+                            
+                    except Exception as e:
+                        show_error = f"[red]Error fetching page: {str(e)}[/red]"
+                else:
+                    show_error = "[yellow]Already on last page[/yellow]"
+            elif choice in ("p", "prev", "previous"):
+                if current_page > 1:
+                    try:
+                        result = fetch_page_callback(current_page - 1)
+                        jobs = result.get('jobs', [])
+                        pagination_metadata = result.get('pagination_metadata', {})
+                        current_page = pagination_metadata.get('Pagination-Page', current_page - 1)
+                        total_pages = pagination_metadata.get('totalPages',
+                                                             (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
+                                                             if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
+                        
+                        # Rebuild table (same logic as next)
+                        table = Table(title="Job List")
+                        for col_key in columns_to_show:
+                            col_config = all_columns[col_key]
+                            table.add_column(
+                                col_config["header"],
+                                style=col_config.get("style"),
+                                no_wrap=col_config.get("no_wrap", False),
+                                overflow=col_config.get("overflow"),
+                                min_width=col_config.get("min_width"),
+                                max_width=col_config.get("max_width")
+                            )
+                        
+                        # Rebuild rows with same logic
+                        for job in jobs:
+                            status_raw = str(job.get("status", "N/A"))
+                            status_symbol_map = {
+                                "completed": "[bold green]✓[/bold green]",
+                                "running": "[bold bright_black]◐[/bold bright_black]",
+                                "failed": "[bold red]✗[/bold red]",
+                                "aborted": "[bold orange3]■[/bold orange3]",
+                                "initialising": "[bold bright_black]○[/bold bright_black]",
+                                "N/A": "[bold bright_black]?[/bold bright_black]"
+                            }
+                            status = status_symbol_map.get(status_raw.lower(), status_raw)
+                            name = str(job.get("name", "N/A"))
+                            project = str(job.get("project", {}).get("name", "N/A"))
+                            
+                            user_info = job.get("user", {})
+                            name_part = user_info.get('name', '')
+                            surname_part = user_info.get('surname', '')
+                            if terminal_width < 90:
+                                if name_part and surname_part:
+                                    owner = f"{name_part[0]}.{surname_part[0]}."
+                                elif name_part or surname_part:
+                                    owner = (name_part or surname_part)[:8]
+                                else:
+                                    owner = "N/A"
+                            else:
+                                if name_part and surname_part:
+                                    owner = f"{name_part}\n{surname_part}"
+                                elif name_part or surname_part:
+                                    owner = name_part or surname_part
+                                else:
+                                    owner = "N/A"
+                            
+                            pipeline = str(job.get("workflow", {}).get("name", "N/A")).split('\n')[0].strip()
+                            if len(pipeline) > 25:
+                                pipeline = pipeline[:22] + "..."
+                            
+                            job_id = str(job.get("_id", "N/A"))
+                            job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
+                            job_id_with_link = f"[link={job_url}]{job_id}[/link]"
+                            
+                            created_at = job.get("createdAt")
+                            if created_at:
+                                try:
+                                    dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                                    submit_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                                except:
+                                    submit_time = "N/A"
+                            else:
+                                submit_time = "N/A"
+                            
+                            end_time_raw = job.get("endTime")
+                            if end_time_raw:
+                                try:
+                                    dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                                    end_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+                                except:
+                                    end_time = "N/A"
+                            else:
+                                end_time = "N/A"
+                            
+                            start_time_raw = job.get("startTime")
+                            if start_time_raw and end_time_raw:
+                                try:
+                                    start_dt = datetime.fromisoformat(start_time_raw.replace('Z', '+00:00'))
+                                    end_dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
+                                    duration = end_dt - start_dt
+                                    total_seconds = int(duration.total_seconds())
+                                    hours = total_seconds // 3600
+                                    minutes = (total_seconds % 3600) // 60
+                                    seconds = total_seconds % 60
+                                    if hours > 0:
+                                        run_time = f"{hours}h {minutes}m {seconds}s"
+                                    elif minutes > 0:
+                                        run_time = f"{minutes}m {seconds}s"
+                                    else:
+                                        run_time = f"{seconds}s"
+                                except:
+                                    run_time = "N/A"
+                            else:
+                                run_time = "N/A"
+                            
+                            revision = job.get("revision", {})
+                            if job.get("jobType") == "dockerAWS":
+                                commit = str(revision.get("digest", "N/A"))
+                            else:
+                                commit = str(revision.get("commit", "N/A"))
+                            if commit != "N/A" and len(commit) > 7:
+                                commit = commit[:7]
+                            
+                            cost_raw = job.get("computeCostSpent") or job.get("realInstancesExecutionCost")
+                            if cost_raw is not None:
+                                try:
+                                    cost = f"${float(cost_raw) / 100:.4f}"
+                                except:
+                                    cost = "N/A"
+                            else:
+                                cost = "N/A"
+                            
+                            master_instance = job.get("masterInstance", {})
+                            used_instance = master_instance.get("usedInstance", {})
+                            instance_type = used_instance.get("type", "N/A")
+                            resources = instance_type if instance_type else "N/A"
+                            
+                            storage_mode = job.get("storageMode", "N/A")
+                            if storage_mode == "regular":
+                                storage_type = "Regular"
+                            elif storage_mode == "lustre":
+                                storage_type = "Lustre"
+                            else:
+                                storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
+                            
+                            column_values = {
+                                'status': status, 'name': name, 'project': project, 'owner': owner,
+                                'pipeline': pipeline, 'id': job_id_with_link, 'submit_time': submit_time,
+                                'end_time': end_time, 'run_time': run_time, 'commit': commit,
+                                'cost': cost, 'resources': resources, 'storage_type': storage_type
+                            }
+                            
+                            row_values = [column_values[col] for col in columns_to_show]
+                            table.add_row(*row_values)
+                            
+                    except Exception as e:
+                        show_error = f"[red]Error fetching page: {str(e)}[/red]"
+                else:
+                    show_error = "[yellow]Already on first page[/yellow]"
+            else:
+                show_error = "[yellow]Invalid choice. Use 'n' (next), 'p' (previous), or 'q' (quit)[/yellow]"
+        else:
+            # Only one page, exit after displaying
+            break
 
 
 def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.ai", page_size=10):

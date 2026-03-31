@@ -1257,6 +1257,16 @@ class Cloudos:
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
             all_jobs = all_jobs[:target_job_count]
 
+        # --- Adjust pagination metadata for client-side filtering ---
+        # When filter_queue is applied, we've fetched multiple API pages but we're showing
+        # the filtered results. Reset pagination to reflect the filtered view.
+        if filter_queue and last_pagination_metadata:
+            last_pagination_metadata = {
+                'Pagination-Count': len(all_jobs),  # Total filtered jobs collected
+                'Pagination-Page': current_page,  # Use current_page (guaranteed to be int) instead of page
+                'Pagination-Limit': current_page_size  # Page size
+            }
+
         return {'jobs': all_jobs, 'pagination_metadata': last_pagination_metadata}
 
     @staticmethod
