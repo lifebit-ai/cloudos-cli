@@ -218,7 +218,7 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
-        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy_azure.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
@@ -577,7 +577,7 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         WORKFLOW: "GH-rnatoy"
-        JOB_CONFIG: "cloudos_cli/examples/rnatoy.config"
+        JOB_CONFIG: "cloudos_cli/examples/rnatoy_azure.config"
         JOB_NAME_BASE: "cloudos-cli-CI-test-abort"
         COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
@@ -667,7 +667,7 @@ jobs:
           CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
           PROJECT_NAME: "cloudos-cli-tests"
           WORKFLOW: "GH-rnatoy"
-          PARAMS_FILE: "Data/rnatoy_params.json"
+          PARAMS_FILE: "Data/rnatoy_azure_params.json"
           JOB_NAME_BASE: "cloudos_cli_CI_test_params_file"
           COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number || 'manual' }}
