@@ -4,19 +4,19 @@
             "prefix": "--",
             "name": "reads",
             "parameterKind": "textValue",
-            "textValue": "s3://eu-west-2-lb-featured-datasets/pipelines/rnatoy-data"
+            "textValue": "s3://lifebit-featured-datasets/pipelines/rnatoy-data"
         },
         {
             "prefix": "--",
             "name": "genome",
             "parameterKind": "textValue",
-            "textValue": "s3://eu-west-2-lb-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+            "textValue": "s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
         },
         {
             "prefix": "--",
             "name": "annot",
             "parameterKind": "textValue",
-            "textValue": "s3://eu-west-2-lb-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff"
+            "textValue": "s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff"
         }
     ],
     "project": "6054754029b82f0112762b9c",
