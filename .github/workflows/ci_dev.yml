@@ -225,7 +225,7 @@ jobs:
         INSTANCE_TYPE: "m4.xlarge"
       run: |
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
-        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --resumable --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --nextflow-version 22.10.8 --job-config $JOB_CONFIG --job-name "$JOB_NAME" --wait-completion --resumable --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
         cloudos job status --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
@@ -782,7 +782,7 @@ jobs:
       run: |
         # Step 1: Run job (without --wait-completion so it doesn't wait until completion)
         JOB_NAME="$JOB_NAME_BASE""|GitHubCommit:""${COMMIT_HASH:0:6}""|PR-NUMBER:""$PR_NUMBER"
-        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
+        cloudos job run --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --workflow-name "$WORKFLOW" --nextflow-version 22.10.8 --job-config $JOB_CONFIG --job-name "$JOB_NAME" --instance-type $INSTANCE_TYPE 2>&1 | tee out.txt
         JOB_ID=$(grep -e "Your assigned job id is:" out.txt | rev | cut -f1 -d " " | rev)
         echo "Job ID: $JOB_ID"
 
@@ -899,6 +899,7 @@ jobs:
             --workspace-id $CLOUDOS_WORKSPACE_ID \
             --project-name "$PROJECT_NAME" \
             --workflow-name "$WORKFLOW" \
+            --nextflow-version 22.10.8 \
             --job-name "$JOB_NAME_BASE|GitHubCommit:${COMMIT_HASH:0:6}|PR-NUMBER:$PR_NUMBER" \
             --instance-type m4.xlarge \
             --params-file "$PARAMS_FILE" \
