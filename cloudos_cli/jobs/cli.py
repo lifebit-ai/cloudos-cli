@@ -83,9 +83,9 @@ def job():
                     'to use with your job.'))
 @click.option('--nextflow-version',
               help=('Nextflow version to use when executing the workflow in CloudOS. ' +
-                    'Default=22.10.8.'),
-              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']),
-              default='22.10.8')
+                    'Defaults to 22.10.8 for Platform Workflows or 24.04.4 for user-imported Workflows.'),
+              type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']),
+              default=None)
 @click.option('--git-commit',
               help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -293,6 +293,26 @@ def run(ctx,
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
     workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl, last)
     is_module = cl.is_module(workflow_name, workspace_id, verify_ssl, last)
+    
+    # Set dynamic default for Nextflow version based on execution platform and workflow type
+    if nextflow_version is None:
+        if execution_platform == 'azure':
+            nextflow_version = '22.11.1-edge'  # Azure has fixed Nextflow version
+            if verbose:
+                print('\t...Using default Nextflow version 22.11.1-edge for Azure')
+        elif execution_platform == 'hpc':
+            nextflow_version = '22.10.8'  # HPC has fixed Nextflow version
+            if verbose:
+                print('\t...Using default Nextflow version 22.10.8 for HPC')
+        elif is_module:
+            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS)
+            if verbose:
+                print('\t...Using default Nextflow version 22.10.8 for Platform Workflow')
+        else:
+            nextflow_version = '24.04.4'  # User-imported workflows (AWS only)
+            if verbose:
+                print('\t...Using default Nextflow version 24.04.4 for user-imported workflow')
+    
     if execution_platform == 'hpc' and workflow_type == 'wdl':
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
@@ -343,11 +363,19 @@ def run(ctx,
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
-        if nextflow_version != '22.10.8':
-            print(f'The selected worflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. CloudOS modules only work with ' +
-                  'Nextflow version 22.10.8. Switching to use 22.10.8')
-        nextflow_version = '22.10.8'
+        # Platform workflows have fixed Nextflow versions per execution platform
+        if execution_platform == 'azure':
+            if nextflow_version != '22.11.1-edge':
+                print(f'The selected workflow \'{workflow_name}\' ' +
+                      'is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
+                      'Nextflow version 22.11.1-edge. Switching to use 22.11.1-edge')
+            nextflow_version = '22.11.1-edge'
+        else:
+            if nextflow_version != '22.10.8':
+                print(f'The selected workflow \'{workflow_name}\' ' +
+                      'is a CloudOS Platform Workflow. Platform Workflows only work with ' +
+                      'Nextflow version 22.10.8. Switching to use 22.10.8')
+            nextflow_version = '22.10.8'
         if execution_platform == 'azure':
             print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
@@ -389,19 +417,28 @@ def run(ctx,
               f'latest version available on CloudOS: {nextflow_version}.')
     if execution_platform == 'aws':
         if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            print('For execution platform \'aws\', the workflow will use the default ' +
-                  '\'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
+            available_versions = ', '.join(AWS_NEXTFLOW_VERSIONS)
+            raise click.BadParameter(
+                f'Unsupported Nextflow version \'{nextflow_version}\' for AWS execution platform. '
+                f'Supported versions are: {available_versions}.'
+            )
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            print('For execution platform \'azure\', the workflow will use the \'22.11.1-edge\' ' +
-                  'version on CloudOS.')
-            nextflow_version = '22.11.1-edge'
+            available_versions = ', '.join(AZURE_NEXTFLOW_VERSIONS)
+            click.secho(
+                f'Warning: Nextflow version \'{nextflow_version}\' is not supported for Azure execution platform. '
+                f'Azure only supports: {available_versions}. Switching to use {AZURE_NEXTFLOW_LATEST}.',
+                fg='yellow', bold=True
+            )
+            nextflow_version = AZURE_NEXTFLOW_LATEST
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            print('For execution platform \'hpc\', the workflow will use the \'22.10.8\' version on CloudOS.')
-            nextflow_version = '22.10.8'
-    if nextflow_version != '22.10.8' and nextflow_version != '22.11.1-edge':
+            available_versions = ', '.join(HPC_NEXTFLOW_VERSIONS)
+            raise click.BadParameter(
+                f'Unsupported Nextflow version \'{nextflow_version}\' for HPC execution platform. '
+                f'HPC only supports: {available_versions}.'
+            )
+    if nextflow_version not in ['22.10.8', '22.11.1-edge']:
         click.secho(f'You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
               'to be written in DSL2 and does not support DSL1.', fg='yellow', bold=True)
     print('\nExecuting run...')
@@ -1704,7 +1741,7 @@ def archive_unarchive_jobs(ctx,
 @click.option('--nextflow-version',
               help=('Nextflow version to use when executing the workflow in CloudOS. ' +
                     'Default=22.10.8.'),
-              type=click.Choice(['22.10.8', '24.04.4', '22.11.1-edge', 'latest']))
+              type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']))
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
