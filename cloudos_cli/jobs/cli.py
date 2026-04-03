@@ -294,14 +294,18 @@ def run(ctx,
     workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl, last)
     is_module = cl.is_module(workflow_name, workspace_id, verify_ssl, last)
     
-    # Set dynamic default for Nextflow version based on workflow type
+    # Set dynamic default for Nextflow version based on execution platform and workflow type
     if nextflow_version is None:
-        if is_module:
-            nextflow_version = '22.10.8'  # Lifebit Platform workflows
+        if execution_platform == 'azure':
+            nextflow_version = '22.11.1-edge'  # Azure has fixed Nextflow version
+            if verbose:
+                print('\t...Using default Nextflow version 22.11.1-edge for Azure')
+        elif is_module:
+            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS/HPC)
             if verbose:
                 print('\t...Using default Nextflow version 22.10.8 for Platform Workflow')
         else:
-            nextflow_version = '24.04.4'  # User-imported workflows
+            nextflow_version = '24.04.4'  # User-imported workflows (AWS/HPC)
             if verbose:
                 print('\t...Using default Nextflow version 24.04.4 for user-imported workflow')
     
@@ -355,11 +359,19 @@ def run(ctx,
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
-        if nextflow_version != '22.10.8':
-            print(f'The selected workflow \'{workflow_name}\' ' +
-                  'is a CloudOS Platform Workflow. Platform Workflows only work with ' +
-                  'Nextflow version 22.10.8. Switching to use 22.10.8')
-        nextflow_version = '22.10.8'
+        # Platform workflows have fixed Nextflow versions per execution platform
+        if execution_platform == 'azure':
+            if nextflow_version != '22.11.1-edge':
+                print(f'The selected workflow \'{workflow_name}\' ' +
+                      'is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
+                      'Nextflow version 22.11.1-edge. Switching to use 22.11.1-edge')
+            nextflow_version = '22.11.1-edge'
+        else:
+            if nextflow_version != '22.10.8':
+                print(f'The selected workflow \'{workflow_name}\' ' +
+                      'is a CloudOS Platform Workflow. Platform Workflows only work with ' +
+                      'Nextflow version 22.10.8. Switching to use 22.10.8')
+            nextflow_version = '22.10.8'
         if execution_platform == 'azure':
             print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
@@ -409,10 +421,12 @@ def run(ctx,
     if execution_platform == 'azure':
         if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
             available_versions = ', '.join(AZURE_NEXTFLOW_VERSIONS)
-            raise click.BadParameter(
-                f'Unsupported Nextflow version \'{nextflow_version}\' for Azure execution platform. '
-                f'Azure only supports: {available_versions}.'
+            click.secho(
+                f'Warning: Nextflow version \'{nextflow_version}\' is not supported for Azure execution platform. '
+                f'Azure only supports: {available_versions}. Switching to use {AZURE_NEXTFLOW_LATEST}.',
+                fg='yellow', bold=True
             )
+            nextflow_version = AZURE_NEXTFLOW_LATEST
     if execution_platform == 'hpc':
         if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
             available_versions = ', '.join(HPC_NEXTFLOW_VERSIONS)
