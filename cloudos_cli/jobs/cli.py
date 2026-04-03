@@ -300,12 +300,16 @@ def run(ctx,
             nextflow_version = '22.11.1-edge'  # Azure has fixed Nextflow version
             if verbose:
                 print('\t...Using default Nextflow version 22.11.1-edge for Azure')
+        elif execution_platform == 'hpc':
+            nextflow_version = '22.10.8'  # HPC has fixed Nextflow version
+            if verbose:
+                print('\t...Using default Nextflow version 22.10.8 for HPC')
         elif is_module:
-            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS/HPC)
+            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS)
             if verbose:
                 print('\t...Using default Nextflow version 22.10.8 for Platform Workflow')
         else:
-            nextflow_version = '24.04.4'  # User-imported workflows (AWS/HPC)
+            nextflow_version = '24.04.4'  # User-imported workflows (AWS only)
             if verbose:
                 print('\t...Using default Nextflow version 24.04.4 for user-imported workflow')
     
