@@ -1222,7 +1222,7 @@ def job_details(ctx,
               help='Filter to show only jobs belonging to the current user.',
               is_flag=True)
 @click.option('--filter-queue',
-              help='Filter jobs by queue name . Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
+              help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
 @click.option('--filter-owner',
               help='Filter jobs by owner username.')
 @click.option('--verbose',
