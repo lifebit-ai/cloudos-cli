@@ -1732,7 +1732,6 @@ def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived,
                    filter_status, filter_job_name, filter_project, filter_workflow,
                    filter_job_id, filter_only_mine, filter_owner, filter_queue, last):
     """Helper function to fetch a specific page of jobs.
-    
     Parameters
     ----------
     cl : Cloudos
@@ -1767,7 +1766,6 @@ def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived,
         Queue filter
     last : bool
         Use latest workflow for duplicates
-        
     Returns
     -------
     dict
@@ -1791,7 +1789,6 @@ def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived,
         last=last
     )
     return result
-
 
 def create_api_pagination_callback(cl, workspace_id, page_size, archived, verify_ssl,
                                     filter_status, filter_job_name, filter_project, filter_workflow,

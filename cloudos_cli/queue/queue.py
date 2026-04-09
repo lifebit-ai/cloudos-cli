@@ -52,9 +52,7 @@ class Queue(Cloudos):
                          headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
-        
         queues = json.loads(r.content)
-        
         # By default, include system queues unless excluded
         if not exclude_system_queues:
             system_queues = self.get_system_job_queues()
