@@ -1792,3 +1792,91 @@ def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived,
     )
     return result
 
+
+def create_api_pagination_callback(cl, workspace_id, page_size, archived, verify_ssl,
+                                    filter_status, filter_job_name, filter_project, filter_workflow,
+                                    filter_job_id, filter_only_mine, filter_owner, filter_queue, last):
+    """Create a pagination callback that fetches pages from the API.
+    
+    Parameters
+    ----------
+    cl : Cloudos
+        CloudOS API client instance
+    workspace_id : str
+        The CloudOS workspace ID
+    page_size : int
+        Number of jobs per page
+    archived : bool
+        Whether to include archived jobs
+    verify_ssl : bool or str
+        SSL verification setting
+    filter_status : str or None
+        Status filter
+    filter_job_name : str or None
+        Job name filter
+    filter_project : str or None
+        Project filter
+    filter_workflow : str or None
+        Workflow filter
+    filter_job_id : str or None
+        Job ID filter
+    filter_only_mine : bool
+        Filter for user's own jobs
+    filter_owner : str or None
+        Owner filter
+    filter_queue : str or None
+        Queue filter
+    last : bool
+        Use latest workflow for duplicates
+        
+    Returns
+    -------
+    callable
+        Callback function that takes page_num and returns job page data
+    """
+    def api_fetch_callback(page_num):
+        return fetch_job_page(
+            cl, workspace_id, page_num, page_size, None, archived, verify_ssl,
+            filter_status, filter_job_name, filter_project, filter_workflow,
+            filter_job_id, filter_only_mine, filter_owner, filter_queue, last
+        )
+    return api_fetch_callback
+
+
+def create_client_pagination_callback(all_jobs, page_size):
+    """Create a pagination callback that paginates already-fetched jobs client-side.
+    
+    Used when jobs have been pre-filtered client-side (e.g., by queue) and we
+    want to paginate through the cached results.
+    
+    Parameters
+    ----------
+    all_jobs : list
+        List of all jobs to paginate through
+    page_size : int
+        Number of jobs per page
+        
+    Returns
+    -------
+    callable
+        Callback function that takes page_num and returns job page data
+    """
+    def client_fetch_callback(page_num):
+        """Paginate client-side filtered results"""
+        start_idx = (page_num - 1) * page_size
+        end_idx = start_idx + page_size
+        page_jobs = all_jobs[start_idx:end_idx]
+        
+        # Return with updated pagination metadata
+        return {
+            'jobs': page_jobs,
+            'pagination_metadata': {
+                'Pagination-Count': len(all_jobs),
+                'Pagination-Page': page_num,
+                'Pagination-Limit': page_size,
+                '_client_filtered': True
+            }
+        }
+    return client_fetch_callback
+
+

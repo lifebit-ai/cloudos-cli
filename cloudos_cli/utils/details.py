@@ -658,16 +658,6 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
 
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
-        # Still show pagination info even when no jobs
-        if pagination_metadata:
-            total_jobs = pagination_metadata.get('Pagination-Count', 0)
-            current_page = pagination_metadata.get('Pagination-Page', 1)
-            page_size = pagination_metadata.get('Pagination-Limit', 10)
-            total_pages = (total_jobs + page_size - 1) // page_size if total_jobs > 0 else 1
-
-            console.print(f"\n[cyan]Total jobs matching filter:[/cyan] {total_jobs}")
-            console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
-            console.print(f"[cyan]Jobs on this page:[/cyan] {len(jobs)}")
         return
 
     # Create table using helper function
