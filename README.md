@@ -656,7 +656,7 @@ The default Nextflow version is automatically selected based on your workflow ty
 
 - **Azure Platform**: Always uses `22.11.1-edge` regardless of workflow type
 - **Platform Workflows** (AWS/HPC): Uses `22.10.8` (Lifebit provided workflows and modules)
-- **User-Imported Workflows** (AWS/HPC): Uses `24.04.4`
+- **User-Imported Workflows** (AWS/HPC): Uses `22.10.8`
 
 **Specifying a Custom Version:**
 
