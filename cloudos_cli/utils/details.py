@@ -959,6 +959,8 @@ def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
             resource_type = "N/A"
         elif resource_type == "teamBatchJobQueue":
             resource_type = "Batch Queues"
+        elif resource_type == "systemBatchJobQueue":
+            resource_type = "System Queue"
 
         # Status with checkmark/X icons
         status_raw = str(queue.get("status", "N/A"))
