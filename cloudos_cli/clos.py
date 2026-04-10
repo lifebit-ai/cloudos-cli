@@ -1239,20 +1239,7 @@ class Cloudos:
                 if target_job_count != 'all' and len(all_jobs) >= target_job_count:
                     break
             else:
-                # In direct mode (page/page_size), only get one page unless filter_queue is used
-                # When filter_queue is used, continue fetching pages to collect ALL filtered results
-                # (users want to see all matching jobs, not just the first 100)
-                if filter_queue:
-                    # For filtered results, keep fetching until we run out of API pages
-                    # The check "if not page_jobs: break" above will stop us when API has no more results
-                    pass  # Continue to next API page
-                else:
-                    # For non-filtered results, just get the requested page
-                    if len(all_jobs) >= current_page_size:
                 if not filter_queue and len(all_jobs) >= current_page_size:
-                    # For filtered results, keep fetching until we run out of API pages
-                    # The check "if not page_jobs: break" above will stop us when API has no more results
-                    # For non-filtered results, just get the requested page
                     break
 
             # Check if we reached the last page (fewer jobs than requested page size)
