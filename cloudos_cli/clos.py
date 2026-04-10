@@ -1249,7 +1249,11 @@ class Cloudos:
                 else:
                     # For non-filtered results, just get the requested page
                     if len(all_jobs) >= current_page_size:
-                        break
+                if not filter_queue and len(all_jobs) >= current_page_size:
+                    # For filtered results, keep fetching until we run out of API pages
+                    # The check "if not page_jobs: break" above will stop us when API has no more results
+                    # For non-filtered results, just get the requested page
+                    break
 
             # Check if we reached the last page (fewer jobs than requested page size)
             # Note: For queue filter, we check the unfiltered page_jobs count from the API
