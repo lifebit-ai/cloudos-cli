@@ -162,4 +162,53 @@ def test_filter_by_queue(mock_get_queues):
     assert isinstance(jobs, list)
     assert len(jobs) == 1
     assert jobs[0]["_id"] == "job1"
+    # Verify that get_job_queues was called (system queues included by default)
+    mock_get_queues.assert_called_once()
+
+
+@responses.activate
+@mock.patch('cloudos_cli.queue.queue.Queue.get_job_queues')
+def test_filter_by_system_queue(mock_get_queues):
+    """Test filtering by system queue name"""
+    system_queue_id = 'sys_queue_id'
+    system_queue_name = 'system-v41'
+    
+    # Include a system queue in the mock list
+    mock_get_queues.return_value = MOCK_QUEUE_LIST + [
+        {"id": system_queue_id, "name": system_queue_name, "label": system_queue_name, "resourceType": "system"}
+    ]
+    
+    # Mock job list with a job using system queue
+    mock_job_with_system_queue = {
+        "jobs": [
+            {
+                "_id": "job3",
+                "name": "test-job-3",
+                "status": "running",
+                "user": {"id": USER_ID, "name": "Test User"},
+                "project": {"id": PROJECT_ID, "name": "test-project"},
+                "workflow": {"id": WORKFLOW_ID, "name": "test-workflow"},
+                "batch": {"jobQueue": {"id": system_queue_id, "name": system_queue_name}}
+            }
+        ]
+    }
+    
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        json=mock_job_with_system_queue,
+        status=200
+    )
+    clos = setup_clos()
+    result = clos.get_job_list(WORKSPACE_ID, filter_queue=system_queue_name, page=1, page_size=10)
+    assert isinstance(result, dict)
+    assert 'jobs' in result
+    jobs = result['jobs']
+    assert isinstance(jobs, list)
+    assert len(jobs) == 1
+    assert jobs[0]["_id"] == "job3"
+    assert jobs[0]["batch"]["jobQueue"]["id"] == system_queue_id
+    # Verify that get_job_queues was called (system queues included by default)
+    mock_get_queues.assert_called_once()
+
 

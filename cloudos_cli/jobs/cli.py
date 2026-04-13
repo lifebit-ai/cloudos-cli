@@ -2,6 +2,11 @@
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
+from cloudos_cli.jobs.job import (
+    fetch_job_page,
+    create_api_pagination_callback,
+    create_client_pagination_callback
+)
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
@@ -1372,7 +1377,13 @@ def list_jobs(ctx,
         ])
         if output_format == 'stdout':
             # For stdout, always show a user-friendly message
-            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns)
+            # Create callback for interactive pagination using helper function
+            fetch_page = create_api_pagination_callback(
+                cl, workspace_id, page_size, archived, verify_ssl,
+                filter_status, filter_job_name, filter_project, filter_workflow,
+                filter_job_id, filter_only_mine, filter_owner, filter_queue, last
+            )
+            create_job_list_table([], cloudos_url, pagination_metadata, selected_columns, fetch_page_callback=fetch_page)
         else:
             if filters_used:
                 print('A total of 0 jobs collected.')
@@ -1384,8 +1395,32 @@ def list_jobs(ctx,
                       'does not exist. Please, try a smaller number for --page or collect all the jobs by not ' +
                       'using --page parameter.')
     elif output_format == 'stdout':
-        # Display as table
-        create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns)
+        # Display as table with interactive pagination
+        
+        # Check if results are client-side filtered (e.g., by queue)
+        is_client_filtered = pagination_metadata and pagination_metadata.get('_client_filtered', False)
+        
+        if is_client_filtered:
+            # For client-filtered results, we have all jobs already
+            # Create a callback that paginates them client-side using helper function
+            fetch_page = create_client_pagination_callback(my_jobs_r, page_size)
+            
+            # Show first page of filtered results
+            first_page_jobs = my_jobs_r[:page_size]
+            first_page_metadata = {
+                'Pagination-Count': len(my_jobs_r),
+                'Pagination-Page': 1,
+                'Pagination-Limit': page_size
+            }
+            create_job_list_table(first_page_jobs, cloudos_url, first_page_metadata, selected_columns, fetch_page_callback=fetch_page)
+        else:
+            # For normal (non-filtered) results, use API pagination with helper function
+            fetch_page = create_api_pagination_callback(
+                cl, workspace_id, page_size, archived, verify_ssl,
+                filter_status, filter_job_name, filter_project, filter_workflow,
+                filter_job_id, filter_only_mine, filter_owner, filter_queue, last
+            )
+            create_job_list_table(my_jobs_r, cloudos_url, pagination_metadata, selected_columns, fetch_page_callback=fetch_page)
     elif output_format == 'csv':
         my_jobs = cl.process_job_list(my_jobs_r, all_fields)
         cl.save_job_list_to_csv(my_jobs, outfile)

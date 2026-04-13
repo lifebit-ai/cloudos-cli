@@ -47,6 +47,9 @@ def queue():
                     'just the preconfigured selected fields. Only applicable ' +
                     'when --output-format=csv'),
               is_flag=True)
+@click.option('--exclude-system-queues',
+              help='Exclude system job queues from the list.',
+              is_flag=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -63,6 +66,7 @@ def list_queues(ctx,
                 output_basename,
                 output_format,
                 all_fields,
+                exclude_system_queues,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
@@ -72,7 +76,7 @@ def list_queues(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     print('Executing list...')
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
-    my_queues = j_queue.get_job_queues()
+    my_queues = j_queue.get_job_queues(exclude_system_queues=exclude_system_queues)
     if len(my_queues) == 0:
         raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS batch queues')
     if output_format == 'stdout':
