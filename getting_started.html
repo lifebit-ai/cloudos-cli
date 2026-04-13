@@ -796,7 +796,7 @@ cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w
 </div></blockquote>
 <section id="list-queues">
 <h4>List Queues<a class="headerlink" href="#list-queues" title="Link to this heading">¶</a></h4>
-<p>This command allows you to view available computational queues and their configurations. You can get a summary of all available workspace job queues in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
+<p>This command allows you to view available computational queues and their configurations. By default, both regular workspace queues and system queues are displayed. You can get a summary of all available job queues in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
 <ul class="simple">
 <li><p><strong>stdout</strong> (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting</p></li>
 <li><p><strong>csv</strong>: Saves queue data to a CSV file with a selection of available queue information, or all information using the <code class="docutils literal notranslate"><span class="pre">--all-fields</span></code> flag</p></li>
@@ -806,6 +806,10 @@ cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile
 <span class="c1"># or explicitly:</span>
 cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>stdout
+</pre></div>
+</div>
+<p>To exclude system queues and show only workspace queues:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--exclude-system-queues
 </pre></div>
 </div>
 <p>To save all available job queues in JSON format:</p>
@@ -825,7 +829,7 @@ cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w">
 <div><p>NOTE: The queue name that is visible in CloudOS and must be used with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter is the one in the <code class="docutils literal notranslate"><span class="pre">label</span></code> field.</p>
 </div></blockquote>
 <p><strong>Job queues for platform workflows</strong></p>
-<p>Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues. Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are “System Tools” and “Data Factory” workflows.</p>
+<p>Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are “System Tools” and “Data Factory” workflows.</p>
 </section>
 </section>
 <section id="workflow">
@@ -1165,7 +1169,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-job-id</span></code></strong>: Filter jobs by specific job ID (exact match required)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-only-mine</span></code></strong>: Show only jobs belonging to the current user</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-owner</span></code></strong>: Show only jobs for the specified owner (exact match required, e.g., “John Doe”)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-queue</span></code></strong>: Filter jobs by queue name (only applies to batch jobs)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--filter-queue</span></code></strong>: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs)</p></li>
 </ul>
 <p><strong>Filtering Examples</strong></p>
 <p>Using pagination approach (default):</p>

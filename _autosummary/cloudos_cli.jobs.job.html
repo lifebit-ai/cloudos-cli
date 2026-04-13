@@ -383,6 +383,22 @@
           <section id="module-cloudos_cli.jobs.job">
 <span id="cloudos-cli-jobs-job"></span><h1>cloudos_cli.jobs.job<a class="headerlink" href="#module-cloudos_cli.jobs.job" title="Link to this heading">¶</a></h1>
 <p>This is the main class to create jobs.</p>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.jobs.job.create_api_pagination_callback" title="cloudos_cli.jobs.job.create_api_pagination_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_api_pagination_callback</span></code></a>(cl, ...)</p></td>
+<td><p>Create a pagination callback that fetches pages from the API.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.jobs.job.create_client_pagination_callback" title="cloudos_cli.jobs.job.create_client_pagination_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_client_pagination_callback</span></code></a>(all_jobs, ...)</p></td>
+<td><p>Create a pagination callback that paginates already-fetched jobs client-side.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.jobs.job.fetch_job_page" title="cloudos_cli.jobs.job.fetch_job_page"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_job_page</span></code></a>(cl, workspace_id, page_num, ...)</p></td>
+<td><p>Helper function to fetch a specific page of jobs.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -1932,6 +1948,106 @@ the SSL certificate file.</p></li>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.create_api_pagination_callback">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">create_api_pagination_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#create_api_pagination_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.create_api_pagination_callback" title="Link to this definition">¶</a></dt>
+<dd><p>Create a pagination callback that fetches pages from the API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cl</strong> (<a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><em>Cloudos</em></a>) – CloudOS API client instance</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – Number of jobs per page</p></li>
+<li><p><strong>archived</strong> (<em>bool</em>) – Whether to include archived jobs</p></li>
+<li><p><strong>verify_ssl</strong> (<em>bool</em><em> or </em><em>str</em>) – SSL verification setting</p></li>
+<li><p><strong>filter_status</strong> (<em>str</em><em> or </em><em>None</em>) – Status filter</p></li>
+<li><p><strong>filter_job_name</strong> (<em>str</em><em> or </em><em>None</em>) – Job name filter</p></li>
+<li><p><strong>filter_project</strong> (<em>str</em><em> or </em><em>None</em>) – Project filter</p></li>
+<li><p><strong>filter_workflow</strong> (<em>str</em><em> or </em><em>None</em>) – Workflow filter</p></li>
+<li><p><strong>filter_job_id</strong> (<em>str</em><em> or </em><em>None</em>) – Job ID filter</p></li>
+<li><p><strong>filter_only_mine</strong> (<em>bool</em>) – Filter for user’s own jobs</p></li>
+<li><p><strong>filter_owner</strong> (<em>str</em><em> or </em><em>None</em>) – Owner filter</p></li>
+<li><p><strong>filter_queue</strong> (<em>str</em><em> or </em><em>None</em>) – Queue filter</p></li>
+<li><p><strong>last</strong> (<em>bool</em>) – Use latest workflow for duplicates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Callback function that takes page_num and returns job page data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.create_client_pagination_callback">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">create_client_pagination_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#create_client_pagination_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.create_client_pagination_callback" title="Link to this definition">¶</a></dt>
+<dd><p>Create a pagination callback that paginates already-fetched jobs client-side.</p>
+<p>Used when jobs have been pre-filtered client-side (e.g., by queue) and we
+want to paginate through the cached results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_jobs</strong> (<em>list</em>) – List of all jobs to paginate through</p></li>
+<li><p><strong>page_size</strong> (<em>int</em>) – Number of jobs per page</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Callback function that takes page_num and returns job page data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.fetch_job_page">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">fetch_job_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_n_jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#fetch_job_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.fetch_job_page" title="Link to this definition">¶</a></dt>
+<dd><p>Helper function to fetch a specific page of jobs.
+:param cl: CloudOS API client instance
+:type cl: Cloudos
+:param workspace_id: The CloudOS workspace ID
+:type workspace_id: str
+:param page_num: Page number to fetch (1-indexed)
+:type page_num: int
+:param page_size: Number of jobs per page
+:type page_size: int
+:param last_n_jobs: Last N jobs parameter (should be None for pagination mode)
+:type last_n_jobs: int or None
+:param archived: Whether to include archived jobs
+:type archived: bool
+:param verify_ssl: SSL verification setting
+:type verify_ssl: bool or str
+:param filter_status: Status filter
+:type filter_status: str or None
+:param filter_job_name: Job name filter
+:type filter_job_name: str or None
+:param filter_project: Project filter
+:type filter_project: str or None
+:param filter_workflow: Workflow filter
+:type filter_workflow: str or None
+:param filter_job_id: Job ID filter
+:type filter_job_id: str or None
+:param filter_only_mine: Filter for user’s own jobs
+:type filter_only_mine: bool
+:param filter_owner: Owner filter
+:type filter_owner: str or None
+:param filter_queue: Queue filter
+:type filter_queue: str or None
+:param last: Use latest workflow for duplicates
+:type last: bool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with ‘jobs’ list and ‘pagination_metadata’ dict</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -2061,6 +2177,9 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.workspace_id"><code class="docutils literal notranslate"><span class="pre">Job.workspace_id</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.create_api_pagination_callback"><code class="docutils literal notranslate"><span class="pre">create_api_pagination_callback()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.create_client_pagination_callback"><code class="docutils literal notranslate"><span class="pre">create_client_pagination_callback()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.fetch_job_page"><code class="docutils literal notranslate"><span class="pre">fetch_job_page()</span></code></a></li>
 </ul>
 </li>
 </ul>

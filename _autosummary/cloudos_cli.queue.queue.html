@@ -798,14 +798,17 @@ Non-batch jobs are preserved in results as they don’t use queues.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.queue.queue.Queue.get_job_queues">
-<span class="sig-name descname"><span class="pre">get_job_queues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/queue/queue.html#Queue.get_job_queues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.queue.queue.Queue.get_job_queues" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_job_queues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exclude_system_queues</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/queue/queue.html#Queue.get_job_queues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.queue.queue.Queue.get_job_queues" title="Link to this definition">¶</a></dt>
 <dd><p>Get all the job queues from a CloudOS workspace.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>r</strong> – A list of dicts, each corresponding to a job queue.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exclude_system_queues</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to exclude system job queues from the result.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>r</strong> – A list of dicts, each corresponding to a job queue.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -968,6 +971,20 @@ using an API key and requires valid parameters such as the workspace ID and path
 <li><p><a class="reference internal" href="cloudos_cli.utils.errors.html#cloudos_cli.utils.errors.BadRequestException" title="cloudos_cli.utils.errors.BadRequestException"><strong>BadRequestException</strong></a> – If the request to retrieve the contents fails with a</p></li>
 <li><p><strong>status code indicating an error.</strong> – </p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.queue.queue.Queue.get_system_job_queues">
+<span class="sig-name descname"><span class="pre">get_system_job_queues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/queue/queue.html#Queue.get_system_job_queues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.queue.queue.Queue.get_system_job_queues" title="Link to this definition">¶</a></dt>
+<dd><p>Get all the system job queues from CloudOS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>r</strong> – A list of dicts, each corresponding to a system job queue.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1477,6 +1494,7 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_project_list"><code class="docutils literal notranslate"><span class="pre">Queue.get_project_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_results_deletion_status"><code class="docutils literal notranslate"><span class="pre">Queue.get_results_deletion_status()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_storage_contents"><code class="docutils literal notranslate"><span class="pre">Queue.get_storage_contents()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_system_job_queues"><code class="docutils literal notranslate"><span class="pre">Queue.get_system_job_queues()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_user_info"><code class="docutils literal notranslate"><span class="pre">Queue.get_user_info()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_workdir_deletion_status"><code class="docutils literal notranslate"><span class="pre">Queue.get_workdir_deletion_status()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.queue.queue.Queue.get_workflow_content"><code class="docutils literal notranslate"><span class="pre">Queue.get_workflow_content()</span></code></a></li>

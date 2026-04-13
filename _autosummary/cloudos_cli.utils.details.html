@@ -390,7 +390,7 @@
 <td><p>Creates formatted job details output from job data in multiple formats.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_job_list_table" title="cloudos_cli.utils.details.create_job_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_job_list_table</span></code></a>(jobs, cloudos_url[, ...])</p></td>
-<td><p>Creates a formatted job list table for stdout output with responsive design.</p></td>
+<td><p>Creates a formatted job list table for stdout output with responsive design and interactive pagination.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.utils.details.create_project_list_table" title="cloudos_cli.utils.details.create_project_list_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_project_list_table</span></code></a>(projects[, ...])</p></td>
 <td><p>Display projects in a rich formatted table with pagination.</p></td>
@@ -485,8 +485,8 @@ to human-readable duration strings.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.utils.details.create_job_list_table">
-<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagination_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_list_table" title="Link to this definition">¶</a></dt>
-<dd><p>Creates a formatted job list table for stdout output with responsive design.</p>
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.details.</span></span><span class="sig-name descname"><span class="pre">create_job_list_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagination_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_page_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/details.html#create_job_list_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.details.create_job_list_table" title="Link to this definition">¶</a></dt>
+<dd><p>Creates a formatted job list table for stdout output with responsive design and interactive pagination.</p>
 <p>The table automatically adapts to terminal width by showing different column sets:
 - Very narrow (&lt;60 chars): Essential columns only (status, name, pipeline, id)
 - Narrow (&lt;90 chars): + Important columns (project, owner, run_time, cost)
@@ -514,6 +514,9 @@ to human-readable duration strings.</p>
 - List: List of column names
 Valid columns: ‘status’, ‘name’, ‘project’, ‘owner’, ‘pipeline’, ‘id’,
 ‘submit_time’, ‘end_time’, ‘run_time’, ‘commit’, ‘cost’, ‘resources’, ‘storage_type’</p></li>
+<li><p><strong>fetch_page_callback</strong> (<em>callable</em><em>, </em><em>optional</em>) – Callback function to fetch a specific page of results for interactive pagination.
+Should accept page number (1-indexed) and return dict with ‘jobs’ and ‘pagination_metadata’ keys.
+If provided, enables interactive navigation (n=next, p=previous, q=quit).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

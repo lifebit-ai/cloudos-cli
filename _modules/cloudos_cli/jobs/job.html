@@ -2157,6 +2157,166 @@
 </div>
 
 
+
+<div class="viewcode-block" id="fetch_job_page">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.fetch_job_page">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_job_page</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">page_num</span><span class="p">,</span> <span class="n">page_size</span><span class="p">,</span> <span class="n">last_n_jobs</span><span class="p">,</span> <span class="n">archived</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span>
+                   <span class="n">filter_status</span><span class="p">,</span> <span class="n">filter_job_name</span><span class="p">,</span> <span class="n">filter_project</span><span class="p">,</span> <span class="n">filter_workflow</span><span class="p">,</span>
+                   <span class="n">filter_job_id</span><span class="p">,</span> <span class="n">filter_only_mine</span><span class="p">,</span> <span class="n">filter_owner</span><span class="p">,</span> <span class="n">filter_queue</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to fetch a specific page of jobs.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cl : Cloudos</span>
+<span class="sd">        CloudOS API client instance</span>
+<span class="sd">    workspace_id : str</span>
+<span class="sd">        The CloudOS workspace ID</span>
+<span class="sd">    page_num : int</span>
+<span class="sd">        Page number to fetch (1-indexed)</span>
+<span class="sd">    page_size : int</span>
+<span class="sd">        Number of jobs per page</span>
+<span class="sd">    last_n_jobs : int or None</span>
+<span class="sd">        Last N jobs parameter (should be None for pagination mode)</span>
+<span class="sd">    archived : bool</span>
+<span class="sd">        Whether to include archived jobs</span>
+<span class="sd">    verify_ssl : bool or str</span>
+<span class="sd">        SSL verification setting</span>
+<span class="sd">    filter_status : str or None</span>
+<span class="sd">        Status filter</span>
+<span class="sd">    filter_job_name : str or None</span>
+<span class="sd">        Job name filter</span>
+<span class="sd">    filter_project : str or None</span>
+<span class="sd">        Project filter</span>
+<span class="sd">    filter_workflow : str or None</span>
+<span class="sd">        Workflow filter</span>
+<span class="sd">    filter_job_id : str or None</span>
+<span class="sd">        Job ID filter</span>
+<span class="sd">    filter_only_mine : bool</span>
+<span class="sd">        Filter for user&#39;s own jobs</span>
+<span class="sd">    filter_owner : str or None</span>
+<span class="sd">        Owner filter</span>
+<span class="sd">    filter_queue : str or None</span>
+<span class="sd">        Queue filter</span>
+<span class="sd">    last : bool</span>
+<span class="sd">        Use latest workflow for duplicates</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary with &#39;jobs&#39; list and &#39;pagination_metadata&#39; dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span>
+        <span class="n">workspace_id</span><span class="p">,</span>
+        <span class="n">last_n_jobs</span><span class="o">=</span><span class="n">last_n_jobs</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page_num</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">archived</span><span class="o">=</span><span class="n">archived</span><span class="p">,</span>
+        <span class="n">verify</span><span class="o">=</span><span class="n">verify_ssl</span><span class="p">,</span>
+        <span class="n">filter_status</span><span class="o">=</span><span class="n">filter_status</span><span class="p">,</span>
+        <span class="n">filter_job_name</span><span class="o">=</span><span class="n">filter_job_name</span><span class="p">,</span>
+        <span class="n">filter_project</span><span class="o">=</span><span class="n">filter_project</span><span class="p">,</span>
+        <span class="n">filter_workflow</span><span class="o">=</span><span class="n">filter_workflow</span><span class="p">,</span>
+        <span class="n">filter_job_id</span><span class="o">=</span><span class="n">filter_job_id</span><span class="p">,</span>
+        <span class="n">filter_only_mine</span><span class="o">=</span><span class="n">filter_only_mine</span><span class="p">,</span>
+        <span class="n">filter_owner</span><span class="o">=</span><span class="n">filter_owner</span><span class="p">,</span>
+        <span class="n">filter_queue</span><span class="o">=</span><span class="n">filter_queue</span><span class="p">,</span>
+        <span class="n">last</span><span class="o">=</span><span class="n">last</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="create_api_pagination_callback">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.create_api_pagination_callback">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_api_pagination_callback</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">page_size</span><span class="p">,</span> <span class="n">archived</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span>
+                                    <span class="n">filter_status</span><span class="p">,</span> <span class="n">filter_job_name</span><span class="p">,</span> <span class="n">filter_project</span><span class="p">,</span> <span class="n">filter_workflow</span><span class="p">,</span>
+                                    <span class="n">filter_job_id</span><span class="p">,</span> <span class="n">filter_only_mine</span><span class="p">,</span> <span class="n">filter_owner</span><span class="p">,</span> <span class="n">filter_queue</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a pagination callback that fetches pages from the API.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cl : Cloudos</span>
+<span class="sd">        CloudOS API client instance</span>
+<span class="sd">    workspace_id : str</span>
+<span class="sd">        The CloudOS workspace ID</span>
+<span class="sd">    page_size : int</span>
+<span class="sd">        Number of jobs per page</span>
+<span class="sd">    archived : bool</span>
+<span class="sd">        Whether to include archived jobs</span>
+<span class="sd">    verify_ssl : bool or str</span>
+<span class="sd">        SSL verification setting</span>
+<span class="sd">    filter_status : str or None</span>
+<span class="sd">        Status filter</span>
+<span class="sd">    filter_job_name : str or None</span>
+<span class="sd">        Job name filter</span>
+<span class="sd">    filter_project : str or None</span>
+<span class="sd">        Project filter</span>
+<span class="sd">    filter_workflow : str or None</span>
+<span class="sd">        Workflow filter</span>
+<span class="sd">    filter_job_id : str or None</span>
+<span class="sd">        Job ID filter</span>
+<span class="sd">    filter_only_mine : bool</span>
+<span class="sd">        Filter for user&#39;s own jobs</span>
+<span class="sd">    filter_owner : str or None</span>
+<span class="sd">        Owner filter</span>
+<span class="sd">    filter_queue : str or None</span>
+<span class="sd">        Queue filter</span>
+<span class="sd">    last : bool</span>
+<span class="sd">        Use latest workflow for duplicates</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    callable</span>
+<span class="sd">        Callback function that takes page_num and returns job page data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">api_fetch_callback</span><span class="p">(</span><span class="n">page_num</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">fetch_job_page</span><span class="p">(</span>
+            <span class="n">cl</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">page_num</span><span class="p">,</span> <span class="n">page_size</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">archived</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span>
+            <span class="n">filter_status</span><span class="p">,</span> <span class="n">filter_job_name</span><span class="p">,</span> <span class="n">filter_project</span><span class="p">,</span> <span class="n">filter_workflow</span><span class="p">,</span>
+            <span class="n">filter_job_id</span><span class="p">,</span> <span class="n">filter_only_mine</span><span class="p">,</span> <span class="n">filter_owner</span><span class="p">,</span> <span class="n">filter_queue</span><span class="p">,</span> <span class="n">last</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">api_fetch_callback</span></div>
+
+
+
+<div class="viewcode-block" id="create_client_pagination_callback">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.create_client_pagination_callback">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_client_pagination_callback</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">,</span> <span class="n">page_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a pagination callback that paginates already-fetched jobs client-side.</span>
+<span class="sd">    </span>
+<span class="sd">    Used when jobs have been pre-filtered client-side (e.g., by queue) and we</span>
+<span class="sd">    want to paginate through the cached results.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    all_jobs : list</span>
+<span class="sd">        List of all jobs to paginate through</span>
+<span class="sd">    page_size : int</span>
+<span class="sd">        Number of jobs per page</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    callable</span>
+<span class="sd">        Callback function that takes page_num and returns job page data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">client_fetch_callback</span><span class="p">(</span><span class="n">page_num</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Paginate client-side filtered results&quot;&quot;&quot;</span>
+        <span class="n">start_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">page_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">page_size</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">page_size</span>
+        <span class="n">page_jobs</span> <span class="o">=</span> <span class="n">all_jobs</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+        
+        <span class="c1"># Return with updated pagination metadata</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;jobs&#39;</span><span class="p">:</span> <span class="n">page_jobs</span><span class="p">,</span>
+            <span class="s1">&#39;pagination_metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;Pagination-Count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">),</span>
+                <span class="s1">&#39;Pagination-Page&#39;</span><span class="p">:</span> <span class="n">page_num</span><span class="p">,</span>
+                <span class="s1">&#39;Pagination-Limit&#39;</span><span class="p">:</span> <span class="n">page_size</span><span class="p">,</span>
+                <span class="s1">&#39;_client_filtered&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="n">client_fetch_callback</span></div>
+
+
+
 </pre></div>
         </article>
       </div>

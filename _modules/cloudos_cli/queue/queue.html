@@ -413,8 +413,13 @@
 
 <div class="viewcode-block" id="Queue.get_job_queues">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_job_queues">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_system_queues</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the job queues from a CloudOS workspace.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        exclude_system_queues : bool, default=False</span>
+<span class="sd">            Whether to exclude system job queues from the result.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -424,6 +429,31 @@
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/job-queues?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
                                                                               <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">),</span>
+                         <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">queues</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="c1"># By default, include system queues unless excluded</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exclude_system_queues</span><span class="p">:</span>
+            <span class="n">system_queues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_system_job_queues</span><span class="p">()</span>
+            <span class="n">queues</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">system_queues</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">queues</span></div>
+
+
+<div class="viewcode-block" id="Queue.get_system_job_queues">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_system_job_queues">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_system_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the system job queues from CloudOS.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        r : list</span>
+<span class="sd">            A list of dicts, each corresponding to a system job queue.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/system-job-queues?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+                                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">),</span>
                          <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
@@ -504,7 +534,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_queues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There are no available job queues for </span><span class="si">{</span><span class="n">workflow_type</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
                             <span class="s1">&#39;workflows. Consider creating one using CloudOS UI.&#39;</span><span class="p">)</span>
-        <span class="n">default_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="s1">&#39;isDefault&#39;</span><span class="p">]]</span>
+        <span class="n">default_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isDefault&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>

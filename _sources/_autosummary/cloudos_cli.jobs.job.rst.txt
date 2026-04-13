@@ -4,6 +4,14 @@ cloudos\_cli.jobs.job
 .. automodule:: cloudos_cli.jobs.job
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      create_api_pagination_callback
+      create_client_pagination_callback
+      fetch_job_page
+   
    .. rubric:: Classes
 
    .. autosummary::

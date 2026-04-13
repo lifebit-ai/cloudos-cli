@@ -1658,9 +1658,7 @@
                 <span class="k">if</span> <span class="n">target_job_count</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">target_job_count</span><span class="p">:</span>
                     <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># In direct mode (page/page_size), only get one page unless filter_queue is used</span>
-                <span class="c1"># When filter_queue is used, continue fetching pages until we have enough filtered results</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_queue</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">current_page_size</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_queue</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">current_page_size</span><span class="p">:</span>
                     <span class="k">break</span>
 
             <span class="c1"># Check if we reached the last page (fewer jobs than requested page size)</span>
@@ -1675,6 +1673,18 @@
         <span class="c1"># --- Apply limit after all filtering ---</span>
         <span class="k">if</span> <span class="n">use_pagination_mode</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_job_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target_job_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">all_jobs</span> <span class="o">=</span> <span class="n">all_jobs</span><span class="p">[:</span><span class="n">target_job_count</span><span class="p">]</span>
+
+        <span class="c1"># --- Adjust pagination metadata for client-side filtering ---</span>
+        <span class="c1"># When filter_queue is applied, we&#39;ve fetched multiple API pages and filtered them.</span>
+        <span class="c1"># We need to return all filtered jobs so the CLI can handle pagination client-side.</span>
+        <span class="k">if</span> <span class="n">filter_queue</span> <span class="ow">and</span> <span class="n">last_pagination_metadata</span><span class="p">:</span>
+            <span class="c1"># Mark this as client-filtered so the CLI knows to handle pagination differently</span>
+            <span class="n">last_pagination_metadata</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;Pagination-Count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_jobs</span><span class="p">),</span>  <span class="c1"># Total filtered jobs collected  </span>
+                <span class="s1">&#39;Pagination-Page&#39;</span><span class="p">:</span> <span class="n">page</span><span class="p">,</span>  <span class="c1"># The initial page requested</span>
+                <span class="s1">&#39;Pagination-Limit&#39;</span><span class="p">:</span> <span class="n">current_page_size</span><span class="p">,</span>  <span class="c1"># Page size</span>
+                <span class="s1">&#39;_client_filtered&#39;</span><span class="p">:</span> <span class="kc">True</span>  <span class="c1"># Flag indicating client-side pagination needed</span>
+            <span class="p">}</span>
 
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;jobs&#39;</span><span class="p">:</span> <span class="n">all_jobs</span><span class="p">,</span> <span class="s1">&#39;pagination_metadata&#39;</span><span class="p">:</span> <span class="n">last_pagination_metadata</span><span class="p">}</span></div>
 

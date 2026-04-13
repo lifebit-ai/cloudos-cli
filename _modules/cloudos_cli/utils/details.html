@@ -719,11 +719,219 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_job_row_values</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to build row values for a single job.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    job : dict</span>
+<span class="sd">        Job dictionary from CloudOS API</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        CloudOS service URL for generating job links</span>
+<span class="sd">    terminal_width : int</span>
+<span class="sd">        Current terminal width for responsive formatting</span>
+<span class="sd">    columns_to_show : list</span>
+<span class="sd">        List of column keys to include</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Row values in the order of columns_to_show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Status with colored and bold ANSI symbols</span>
+    <span class="n">status_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+    <span class="n">status_symbol_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;completed&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold green]✓[/bold green]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;running&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]◐[/bold bright_black]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;failed&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold red]✗[/bold red]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;aborted&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold orange3]■[/bold orange3]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;initialising&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]○[/bold bright_black]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;N/A&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]?[/bold bright_black]&quot;</span>
+    <span class="p">}</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">status_symbol_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status_raw</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">status_raw</span><span class="p">)</span>
+
+    <span class="c1"># Name</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Project</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Owner (compact format for small terminals)</span>
+    <span class="n">user_info</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">name_part</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">surname_part</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surname&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name_part</span> <span class="ow">and</span> <span class="n">surname_part</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">surname_part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="k">elif</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="p">(</span><span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name_part</span> <span class="ow">and</span> <span class="n">surname_part</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_part</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">surname_part</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Pipeline</span>
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">25</span><span class="p">:</span>
+        <span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">[:</span><span class="mi">22</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span>
+
+    <span class="c1"># ID with hyperlink</span>
+    <span class="n">job_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+    <span class="n">job_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">job_id_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">job_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+
+    <span class="c1"># Submit time (compact format for small terminals)</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;createdAt&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">created_at</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created_at</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+            <span class="n">submit_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span> <span class="k">else</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">submit_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">submit_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># End time (compact format for small terminals)</span>
+    <span class="n">end_time_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;endTime&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">end_time_raw</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">end_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span> <span class="k">else</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Run time (calculate from startTime and endTime)</span>
+    <span class="n">start_time_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;startTime&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">start_time_raw</span> <span class="ow">and</span> <span class="n">end_time_raw</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">start_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+            <span class="n">end_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">end_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">end_dt</span> <span class="o">-</span> <span class="n">start_dt</span>
+            <span class="n">total_seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">duration</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+            <span class="n">hours</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">//</span> <span class="mi">3600</span>
+            <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
+            <span class="n">seconds</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">60</span>
+            <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+            <span class="k">elif</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">run_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">run_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Commit</span>
+    <span class="n">revision</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobType&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dockerAWS&quot;</span><span class="p">:</span>
+        <span class="n">commit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;digest&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">commit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;commit&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">commit</span> <span class="o">!=</span> <span class="s2">&quot;N/A&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">commit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">commit</span> <span class="o">=</span> <span class="n">commit</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span>
+
+    <span class="c1"># Cost</span>
+    <span class="n">cost_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;computeCostSpent&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;realInstancesExecutionCost&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cost_raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cost_raw</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Resources (instance type only)</span>
+    <span class="n">master_instance</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;masterInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">used_instance</span> <span class="o">=</span> <span class="n">master_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;usedInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">instance_type</span> <span class="o">=</span> <span class="n">used_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
+    <span class="n">resources</span> <span class="o">=</span> <span class="n">instance_type</span> <span class="k">if</span> <span class="n">instance_type</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Storage type</span>
+    <span class="n">storage_mode</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;storageMode&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;regular&quot;</span><span class="p">:</span>
+        <span class="n">storage_type</span> <span class="o">=</span> <span class="s2">&quot;Regular&quot;</span>
+    <span class="k">elif</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;lustre&quot;</span><span class="p">:</span>
+        <span class="n">storage_type</span> <span class="o">=</span> <span class="s2">&quot;Lustre&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">storage_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">storage_mode</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">!=</span> <span class="s2">&quot;N/A&quot;</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="c1"># Map column keys to their values</span>
+    <span class="n">column_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+        <span class="s1">&#39;owner&#39;</span><span class="p">:</span> <span class="n">owner</span><span class="p">,</span>
+        <span class="s1">&#39;pipeline&#39;</span><span class="p">:</span> <span class="n">pipeline</span><span class="p">,</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">job_id_with_link</span><span class="p">,</span>
+        <span class="s1">&#39;submit_time&#39;</span><span class="p">:</span> <span class="n">submit_time</span><span class="p">,</span>
+        <span class="s1">&#39;end_time&#39;</span><span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
+        <span class="s1">&#39;run_time&#39;</span><span class="p">:</span> <span class="n">run_time</span><span class="p">,</span>
+        <span class="s1">&#39;commit&#39;</span><span class="p">:</span> <span class="n">commit</span><span class="p">,</span>
+        <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="n">cost</span><span class="p">,</span>
+        <span class="s1">&#39;resources&#39;</span><span class="p">:</span> <span class="n">resources</span><span class="p">,</span>
+        <span class="s1">&#39;storage_type&#39;</span><span class="p">:</span> <span class="n">storage_type</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Return row values in the order of columns_to_show</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">column_values</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_job_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">,</span> <span class="n">all_columns</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to build a complete job table.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jobs : list</span>
+<span class="sd">        List of job dictionaries from CloudOS API</span>
+<span class="sd">    cloudos_url : str</span>
+<span class="sd">        CloudOS service URL for generating job links</span>
+<span class="sd">    terminal_width : int</span>
+<span class="sd">        Current terminal width for responsive formatting</span>
+<span class="sd">    columns_to_show : list</span>
+<span class="sd">        List of column keys to include</span>
+<span class="sd">    all_columns : dict</span>
+<span class="sd">        Dictionary of all column configurations</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Table</span>
+<span class="sd">        Rich Table object populated with job rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Job List&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Add columns to table</span>
+    <span class="k">for</span> <span class="n">col_key</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">:</span>
+        <span class="n">col_config</span> <span class="o">=</span> <span class="n">all_columns</span><span class="p">[</span><span class="n">col_key</span><span class="p">]</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span>
+            <span class="n">col_config</span><span class="p">[</span><span class="s2">&quot;header&quot;</span><span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">),</span>
+            <span class="n">no_wrap</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;no_wrap&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">overflow</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;overflow&quot;</span><span class="p">),</span>
+            <span class="n">min_width</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min_width&quot;</span><span class="p">),</span>
+            <span class="n">max_width</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_width&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Add rows for each job</span>
+    <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+        <span class="n">row_values</span> <span class="o">=</span> <span class="n">_build_job_row_values</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="o">*</span><span class="n">row_values</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">table</span>
+
+
 <div class="viewcode-block" id="create_job_list_table">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.details.html#cloudos_cli.utils.details.create_job_list_table">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_job_list_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">pagination_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selected_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_job_list_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">pagination_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selected_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fetch_page_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a formatted job list table for stdout output with responsive design.</span>
+<span class="sd">    Creates a formatted job list table for stdout output with responsive design and interactive pagination.</span>
 
 <span class="sd">    The table automatically adapts to terminal width by showing different column sets:</span>
 <span class="sd">    - Very narrow (&lt;60 chars): Essential columns only (status, name, pipeline, id)</span>
@@ -757,6 +965,10 @@
 <span class="sd">        - List: List of column names</span>
 <span class="sd">        Valid columns: &#39;status&#39;, &#39;name&#39;, &#39;project&#39;, &#39;owner&#39;, &#39;pipeline&#39;, &#39;id&#39;,</span>
 <span class="sd">        &#39;submit_time&#39;, &#39;end_time&#39;, &#39;run_time&#39;, &#39;commit&#39;, &#39;cost&#39;, &#39;resources&#39;, &#39;storage_type&#39;</span>
+<span class="sd">    fetch_page_callback : callable, optional</span>
+<span class="sd">        Callback function to fetch a specific page of results for interactive pagination.</span>
+<span class="sd">        Should accept page number (1-indexed) and return dict with &#39;jobs&#39; and &#39;pagination_metadata&#39; keys.</span>
+<span class="sd">        If provided, enables interactive navigation (n=next, p=previous, q=quit).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -830,207 +1042,109 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">jobs</span><span class="p">:</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]No jobs found matching the criteria.[/yellow]&quot;</span><span class="p">)</span>
-        <span class="c1"># Still show pagination info even when no jobs</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Create table using helper function</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_build_job_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">,</span> <span class="n">all_columns</span><span class="p">)</span>
+
+    <span class="c1"># If no fetch_page_callback, display static table</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fetch_page_callback</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">pagination_metadata</span><span class="p">:</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        
+        <span class="c1"># Display pagination info at the bottom</span>
         <span class="k">if</span> <span class="n">pagination_metadata</span><span class="p">:</span>
             <span class="n">total_jobs</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">current_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Page&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">page_size</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Limit&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
             <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_jobs</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="n">total_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
 
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total jobs matching filter:[/cyan] </span><span class="si">{</span><span class="n">total_jobs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Page:[/cyan] </span><span class="si">{</span><span class="n">current_page</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Jobs on this page:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Showing </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_jobs</span><span class="si">}</span><span class="s2"> total jobs | Page </span><span class="si">{</span><span class="n">current_page</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">[/cyan]&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
-    <span class="c1"># Create table</span>
-    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Job List&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Add columns to table</span>
-    <span class="k">for</span> <span class="n">col_key</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">:</span>
-        <span class="n">col_config</span> <span class="o">=</span> <span class="n">all_columns</span><span class="p">[</span><span class="n">col_key</span><span class="p">]</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span>
-            <span class="n">col_config</span><span class="p">[</span><span class="s2">&quot;header&quot;</span><span class="p">],</span>
-            <span class="n">style</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">),</span>
-            <span class="n">no_wrap</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;no_wrap&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-            <span class="n">overflow</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;overflow&quot;</span><span class="p">),</span>
-            <span class="n">min_width</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min_width&quot;</span><span class="p">),</span>
-            <span class="n">max_width</span><span class="o">=</span><span class="n">col_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_width&quot;</span><span class="p">)</span>
-        <span class="p">)</span>
-
-    <span class="c1"># Process each job</span>
-    <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
-        <span class="c1"># Status with colored and bold ANSI symbols</span>
-        <span class="n">status_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-        <span class="n">status_symbol_map</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;completed&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold green]✓[/bold green]&quot;</span><span class="p">,</span>      <span class="c1"># Green check mark</span>
-            <span class="s2">&quot;running&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]◐[/bold bright_black]&quot;</span><span class="p">,</span>       <span class="c1"># Grey half-filled circle</span>
-            <span class="s2">&quot;failed&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold red]✗[/bold red]&quot;</span><span class="p">,</span>             <span class="c1"># Red X mark</span>
-            <span class="s2">&quot;aborted&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold orange3]■[/bold orange3]&quot;</span><span class="p">,</span>    <span class="c1"># Orange square</span>
-            <span class="s2">&quot;initialising&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]○[/bold bright_black]&quot;</span><span class="p">,</span>  <span class="c1"># Grey circle</span>
-            <span class="s2">&quot;N/A&quot;</span><span class="p">:</span> <span class="s2">&quot;[bold bright_black]?[/bold bright_black]&quot;</span>            <span class="c1"># Grey question mark</span>
-        <span class="p">}</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">status_symbol_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status_raw</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">status_raw</span><span class="p">)</span>
-
-        <span class="c1"># Name</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-
-        <span class="c1"># Project</span>
-        <span class="n">project</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-
-        <span class="c1"># Owner (compact format for small terminals)</span>
-        <span class="n">user_info</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">name_part</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">surname_part</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surname&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
-            <span class="c1"># Compact format: just first name or first letter of each</span>
-            <span class="k">if</span> <span class="n">name_part</span> <span class="ow">and</span> <span class="n">surname_part</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">surname_part</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="k">elif</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="p">(</span><span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span>
+    <span class="c1"># Interactive pagination mode</span>
+    <span class="n">current_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Page&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span>  <span class="c1"># Ensure never None</span>
+    <span class="n">total_jobs</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">page_size_value</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Limit&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_jobs</span> <span class="o">+</span> <span class="n">page_size_value</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size_value</span> <span class="k">if</span> <span class="n">total_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+    
+    <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Clear console and display table</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        
+        <span class="c1"># Display pagination info</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Total jobs:[/cyan] </span><span class="si">{</span><span class="n">total_jobs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Page:[/cyan] </span><span class="si">{</span><span class="n">current_page</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[cyan]Jobs on this page:[/cyan] </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Show error message if any</span>
+        <span class="k">if</span> <span class="n">show_error</span><span class="p">:</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">show_error</span><span class="p">)</span>
+            <span class="n">show_error</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Show pagination controls only if there are multiple pages</span>
+        <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Check if we&#39;re in an interactive environment</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">isatty</span><span class="p">():</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of </span><span class="si">{0}</span><span class="s2">.[/yellow]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_pages</span><span class="p">))</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Get user input for navigation</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">EOFError</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Pagination interrupted.[/yellow]&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            
+            <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&lt;</span> <span class="n">total_pages</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">fetch_page_callback</span><span class="p">(</span><span class="n">current_page</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">jobs</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                        <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pagination_metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                        <span class="n">current_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Page&#39;</span><span class="p">,</span> <span class="n">current_page</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">total_pages</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalPages&#39;</span><span class="p">,</span>
+                                                             <span class="p">(</span><span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">page_size_value</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size_value</span>
+                                                             <span class="k">if</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                        
+                        <span class="c1"># Rebuild table with new jobs using helper function</span>
+                        <span class="n">table</span> <span class="o">=</span> <span class="n">_build_job_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">,</span> <span class="n">all_columns</span><span class="p">)</span>
+                            
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">show_error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[red]Error fetching page: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">[/red]&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[yellow]Already on last page[/yellow]&quot;</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;prev&quot;</span><span class="p">,</span> <span class="s2">&quot;previous&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">current_page</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">fetch_page_callback</span><span class="p">(</span><span class="n">current_page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">jobs</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                        <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pagination_metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                        <span class="n">current_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Page&#39;</span><span class="p">,</span> <span class="n">current_page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">total_pages</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;totalPages&#39;</span><span class="p">,</span>
+                                                             <span class="p">(</span><span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">page_size_value</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size_value</span>
+                                                             <span class="k">if</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                        
+                        <span class="c1"># Rebuild table with new jobs using helper function</span>
+                        <span class="n">table</span> <span class="o">=</span> <span class="n">_build_job_table</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="p">,</span> <span class="n">terminal_width</span><span class="p">,</span> <span class="n">columns_to_show</span><span class="p">,</span> <span class="n">all_columns</span><span class="p">)</span>
+                            
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">show_error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[red]Error fetching page: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">[/red]&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[yellow]Already on first page[/yellow]&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+                <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[yellow]Invalid choice. Use &#39;n&#39; (next), &#39;p&#39; (previous), or &#39;q&#39; (quit)[/yellow]&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Full format for wider terminals</span>
-            <span class="k">if</span> <span class="n">name_part</span> <span class="ow">and</span> <span class="n">surname_part</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_part</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">surname_part</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="n">name_part</span> <span class="ow">or</span> <span class="n">surname_part</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Pipeline</span>
-        <span class="n">pipeline</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-        <span class="c1"># Only show the first line if pipeline name contains newlines</span>
-        <span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="c1"># Truncate to 25 chars with ellipsis if longer</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">25</span><span class="p">:</span>
-            <span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">[:</span><span class="mi">22</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span>
-
-        <span class="c1"># ID with hyperlink</span>
-        <span class="n">job_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-        <span class="n">job_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">job_id_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">job_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
-
-        <span class="c1"># Submit time (compact format for small terminals)</span>
-        <span class="n">created_at</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;createdAt&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">created_at</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">created_at</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
-                    <span class="c1"># Compact format: MM-DD HH:MM</span>
-                    <span class="n">submit_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M&#39;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Full format</span>
-                    <span class="n">submit_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M:%S&#39;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="n">submit_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">submit_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># End time (compact format for small terminals)</span>
-        <span class="n">end_time_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;endTime&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">end_time_raw</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">end_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">terminal_width</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
-                    <span class="c1"># Compact format: MM-DD HH:MM</span>
-                    <span class="n">end_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M&#39;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Full format</span>
-                    <span class="n">end_time</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="se">\n</span><span class="s1">%H:%M:%S&#39;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Run time (calculate from startTime and endTime)</span>
-        <span class="n">start_time_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;startTime&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">start_time_raw</span> <span class="ow">and</span> <span class="n">end_time_raw</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">start_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">start_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-                <span class="n">end_dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">end_time_raw</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-                <span class="n">duration</span> <span class="o">=</span> <span class="n">end_dt</span> <span class="o">-</span> <span class="n">start_dt</span>
-                <span class="n">total_seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">duration</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
-                <span class="n">hours</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">//</span> <span class="mi">3600</span>
-                <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
-                <span class="n">seconds</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">60</span>
-                <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="k">elif</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">run_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="n">run_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">run_time</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Commit</span>
-        <span class="n">revision</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobType&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dockerAWS&quot;</span><span class="p">:</span>
-            <span class="n">commit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;digest&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">commit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;commit&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
-        <span class="c1"># Truncate commit to 7 characters if it&#39;s longer</span>
-        <span class="k">if</span> <span class="n">commit</span> <span class="o">!=</span> <span class="s2">&quot;N/A&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">commit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">:</span>
-            <span class="n">commit</span> <span class="o">=</span> <span class="n">commit</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span>
-
-        <span class="c1"># Cost</span>
-        <span class="n">cost_raw</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;computeCostSpent&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;realInstancesExecutionCost&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cost_raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">cost</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cost_raw</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="n">cost</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cost</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Resources (instance type only)</span>
-        <span class="n">master_instance</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;masterInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">used_instance</span> <span class="o">=</span> <span class="n">master_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;usedInstance&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">instance_type</span> <span class="o">=</span> <span class="n">used_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
-        <span class="n">resources</span> <span class="o">=</span> <span class="n">instance_type</span> <span class="k">if</span> <span class="n">instance_type</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Storage type</span>
-        <span class="n">storage_mode</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;storageMode&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;regular&quot;</span><span class="p">:</span>
-            <span class="n">storage_type</span> <span class="o">=</span> <span class="s2">&quot;Regular&quot;</span>
-        <span class="k">elif</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;lustre&quot;</span><span class="p">:</span>
-            <span class="n">storage_type</span> <span class="o">=</span> <span class="s2">&quot;Lustre&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">storage_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">storage_mode</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">!=</span> <span class="s2">&quot;N/A&quot;</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
-
-        <span class="c1"># Map column keys to their values</span>
-        <span class="n">column_values</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-            <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
-            <span class="s1">&#39;owner&#39;</span><span class="p">:</span> <span class="n">owner</span><span class="p">,</span>
-            <span class="s1">&#39;pipeline&#39;</span><span class="p">:</span> <span class="n">pipeline</span><span class="p">,</span>
-            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">job_id_with_link</span><span class="p">,</span>
-            <span class="s1">&#39;submit_time&#39;</span><span class="p">:</span> <span class="n">submit_time</span><span class="p">,</span>
-            <span class="s1">&#39;end_time&#39;</span><span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
-            <span class="s1">&#39;run_time&#39;</span><span class="p">:</span> <span class="n">run_time</span><span class="p">,</span>
-            <span class="s1">&#39;commit&#39;</span><span class="p">:</span> <span class="n">commit</span><span class="p">,</span>
-            <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="n">cost</span><span class="p">,</span>
-            <span class="s1">&#39;resources&#39;</span><span class="p">:</span> <span class="n">resources</span><span class="p">,</span>
-            <span class="s1">&#39;storage_type&#39;</span><span class="p">:</span> <span class="n">storage_type</span>
-        <span class="p">}</span>
-
-        <span class="c1"># Add row to table with only selected columns</span>
-        <span class="n">row_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">column_values</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">]</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="o">*</span><span class="n">row_values</span><span class="p">)</span>
-
-    <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-
-    <span class="c1"># Display pagination info at the bottom</span>
-    <span class="k">if</span> <span class="n">pagination_metadata</span><span class="p">:</span>
-        <span class="n">total_jobs</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">current_page</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Page&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">page_size</span> <span class="o">=</span> <span class="n">pagination_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pagination-Limit&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-        <span class="n">total_pages</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_jobs</span> <span class="o">+</span> <span class="n">page_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">page_size</span> <span class="k">if</span> <span class="n">total_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
-
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[cyan]Showing </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_jobs</span><span class="si">}</span><span class="s2"> total jobs | Page </span><span class="si">{</span><span class="n">current_page</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">[/cyan]&quot;</span><span class="p">)</span></div>
+            <span class="c1"># Only one page, exit after displaying</span>
+            <span class="k">break</span></div>
 
 
 
@@ -1235,6 +1349,8 @@
             <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
         <span class="k">elif</span> <span class="n">resource_type</span> <span class="o">==</span> <span class="s2">&quot;teamBatchJobQueue&quot;</span><span class="p">:</span>
             <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;Batch Queues&quot;</span>
+        <span class="k">elif</span> <span class="n">resource_type</span> <span class="o">==</span> <span class="s2">&quot;systemBatchJobQueue&quot;</span><span class="p">:</span>
+            <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;System Queue&quot;</span>
 
         <span class="c1"># Status with checkmark/X icons</span>
         <span class="n">status_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;N/A&quot;</span><span class="p">))</span>
