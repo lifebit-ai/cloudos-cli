@@ -1239,9 +1239,7 @@ class Cloudos:
                 if target_job_count != 'all' and len(all_jobs) >= target_job_count:
                     break
             else:
-                # In direct mode (page/page_size), only get one page unless filter_queue is used
-                # When filter_queue is used, continue fetching pages until we have enough filtered results
-                if not filter_queue or len(all_jobs) >= current_page_size:
+                if not filter_queue and len(all_jobs) >= current_page_size:
                     break
 
             # Check if we reached the last page (fewer jobs than requested page size)
@@ -1256,6 +1254,18 @@ class Cloudos:
         # --- Apply limit after all filtering ---
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
             all_jobs = all_jobs[:target_job_count]
+
+        # --- Adjust pagination metadata for client-side filtering ---
+        # When filter_queue is applied, we've fetched multiple API pages and filtered them.
+        # We need to return all filtered jobs so the CLI can handle pagination client-side.
+        if filter_queue and last_pagination_metadata:
+            # Mark this as client-filtered so the CLI knows to handle pagination differently
+            last_pagination_metadata = {
+                'Pagination-Count': len(all_jobs),  # Total filtered jobs collected  
+                'Pagination-Page': page,  # The initial page requested
+                'Pagination-Limit': current_page_size,  # Page size
+                '_client_filtered': True  # Flag indicating client-side pagination needed
+            }
 
         return {'jobs': all_jobs, 'pagination_metadata': last_pagination_metadata}
 
