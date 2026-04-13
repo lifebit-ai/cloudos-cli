@@ -2331,8 +2331,8 @@ class Cloudos:
             # The API uses various names: 'ready' and 'aborted' but we display them as 'running' and 'stopped' to users
             status_mapping = {
                 'setup': 'setup',
-                'initialising': 'initialising',
-                'initializing': 'initialising',  # Accept both spellings
+                'initialising': 'initializing',
+                'initializing': 'initializing',  # Accept both spellings
                 'running': 'ready',  # API uses 'ready' for running sessions
                 'scheduled': 'scheduled',
                 'stopped': 'aborted',

@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.87.1 (2026-03-30)
+
+### Fix
+
+- fix for when api returns initializing instead of initialising
+
 ## v2.87.0 (2026-03-30)
 
 ### Feat

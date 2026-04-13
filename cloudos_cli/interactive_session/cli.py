@@ -163,22 +163,12 @@ def list_sessions(ctx,
         print('\tSearching for interactive sessions in the following workspace: ' + f'{workspace_id}')
 
     try:
-        # Normalize filter_status - convert 'initializing' (American) to 'initialising' (British) for API consistency
-        normalized_status = []
-        for status in filter_status:
-            # Handle case-insensitive comparison
-            status_lower = status.lower() if status else status
-            if status_lower == 'initializing':
-                normalized_status.append('initialising')
-            else:
-                normalized_status.append(status_lower)
-        
         # Call the API method to get interactive sessions
         result = cl.get_interactive_session_list(
             workspace_id,
             page=page,
             limit=limit,
-            status=normalized_status if normalized_status else None,
+            status=list(filter_status) if filter_status else None,
             owner_only=filter_only_mine,
             include_archived=archived,
             verify=verify_ssl
