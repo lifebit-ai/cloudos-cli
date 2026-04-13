@@ -1296,7 +1296,8 @@ API_STATUS_MAPPING = {
 }
 
 # Pre-running statuses (watch mode only valid for these)
-PRE_RUNNING_STATUSES = {'setup', 'initialising', 'scheduled'}
+# Includes both British (initialising) and American (initializing) spellings
+PRE_RUNNING_STATUSES = {'setup', 'initialising', 'initializing', 'scheduled'}
 
 
 def format_duration(seconds: int) -> str:
