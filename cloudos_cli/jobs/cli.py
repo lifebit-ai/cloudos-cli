@@ -1774,8 +1774,7 @@ def archive_unarchive_jobs(ctx,
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
 @click.option('--nextflow-version',
-              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
-                    'Default=22.10.8.'),
+              help=('Nextflow version to use when executing the workflow in CloudOS.'),
               type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']))
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
