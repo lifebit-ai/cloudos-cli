@@ -7,7 +7,9 @@ from cloudos_cli.constants import (
     HPC_NEXTFLOW_VERSIONS,
     AWS_NEXTFLOW_LATEST,
     AZURE_NEXTFLOW_LATEST,
-    HPC_NEXTFLOW_LATEST
+    HPC_NEXTFLOW_LATEST,
+    PLATFORM_WORKFLOW_NEXTFLOW_VERSION,
+    USER_WORKFLOW_NEXTFLOW_VERSION
 )
 
 
@@ -44,21 +46,21 @@ def resolve_nextflow_version(
     # Step 1: Set dynamic default if no version specified
     if nextflow_version is None:
         if execution_platform == 'azure':
-            nextflow_version = '22.11.1-edge'  # Azure has fixed Nextflow version
+            nextflow_version = AZURE_NEXTFLOW_LATEST  # Azure has fixed Nextflow version
             if verbose:
-                print('\t...Using default Nextflow version 22.11.1-edge for Azure')
+                print(f'\t...Using default Nextflow version {AZURE_NEXTFLOW_LATEST} for Azure')
         elif execution_platform == 'hpc':
-            nextflow_version = '22.10.8'  # HPC has fixed Nextflow version
+            nextflow_version = HPC_NEXTFLOW_LATEST  # HPC has fixed Nextflow version
             if verbose:
-                print('\t...Using default Nextflow version 22.10.8 for HPC')
+                print(f'\t...Using default Nextflow version {HPC_NEXTFLOW_LATEST} for HPC')
         elif is_module:
-            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS)
+            nextflow_version = PLATFORM_WORKFLOW_NEXTFLOW_VERSION  # Lifebit Platform workflows (AWS)
             if verbose:
-                print('\t...Using default Nextflow version 22.10.8 for Platform Workflow')
+                print(f'\t...Using default Nextflow version {PLATFORM_WORKFLOW_NEXTFLOW_VERSION} for Platform Workflow')
         else:
-            nextflow_version = '24.04.4'  # User-imported workflows (AWS only)
+            nextflow_version = USER_WORKFLOW_NEXTFLOW_VERSION  # User-imported workflows (AWS only)
             if verbose:
-                print('\t...Using default Nextflow version 24.04.4 for user-imported workflow')
+                print(f'\t...Using default Nextflow version {USER_WORKFLOW_NEXTFLOW_VERSION} for user-imported workflow')
     
     # Step 2: Resolve 'latest' to actual version
     if nextflow_version == 'latest':
@@ -75,19 +77,19 @@ def resolve_nextflow_version(
     # Step 3: Force correct version for Platform workflows
     if is_module:
         if execution_platform == 'azure':
-            if nextflow_version != '22.11.1-edge':
+            if nextflow_version != AZURE_NEXTFLOW_LATEST:
                 workflow_msg = f' \'{workflow_name}\'' if workflow_name else ''
                 print(f'The selected workflow{workflow_msg} ' +
                       'is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
-                      'Nextflow version 22.11.1-edge. Switching to use 22.11.1-edge')
-            nextflow_version = '22.11.1-edge'
+                      f'Nextflow version {AZURE_NEXTFLOW_LATEST}. Switching to use {AZURE_NEXTFLOW_LATEST}')
+            nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
-            if nextflow_version != '22.10.8':
+            if nextflow_version != PLATFORM_WORKFLOW_NEXTFLOW_VERSION:
                 workflow_msg = f' \'{workflow_name}\'' if workflow_name else ''
                 print(f'The selected workflow{workflow_msg} ' +
                       'is a CloudOS Platform Workflow. Platform Workflows only work with ' +
-                      'Nextflow version 22.10.8. Switching to use 22.10.8')
-            nextflow_version = '22.10.8'
+                      f'Nextflow version {PLATFORM_WORKFLOW_NEXTFLOW_VERSION}. Switching to use {PLATFORM_WORKFLOW_NEXTFLOW_VERSION}')
+            nextflow_version = PLATFORM_WORKFLOW_NEXTFLOW_VERSION
     
     # Step 4: Validate version for execution platform
     if execution_platform == 'aws':
@@ -115,7 +117,8 @@ def resolve_nextflow_version(
             )
     
     # Step 5: Warn about DSL2 requirement for newer versions
-    if nextflow_version not in ['22.10.8', '22.11.1-edge']:
+    legacy_versions = [PLATFORM_WORKFLOW_NEXTFLOW_VERSION, AZURE_NEXTFLOW_LATEST]
+    if nextflow_version not in legacy_versions:
         click.secho(
             f'The Nextflow version being used is: {nextflow_version}. This version requires the pipeline ' +
             'to be written in DSL2 and does not support DSL1.',

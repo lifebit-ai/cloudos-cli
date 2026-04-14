@@ -4,97 +4,105 @@ import pytest
 import rich_click as click
 from unittest.mock import patch
 from cloudos_cli.utils.nextflow_version import resolve_nextflow_version
+from cloudos_cli.constants import (
+    AWS_NEXTFLOW_LATEST,
+    AZURE_NEXTFLOW_LATEST,
+    HPC_NEXTFLOW_LATEST,
+    PLATFORM_WORKFLOW_NEXTFLOW_VERSION,
+    USER_WORKFLOW_NEXTFLOW_VERSION,
+    AWS_NEXTFLOW_VERSIONS
+)
 
 
 class TestResolveNextflowVersion:
     """Test cases for resolve_nextflow_version function."""
     
     def test_default_azure_version(self):
-        """Test that Azure always defaults to 22.11.1-edge."""
+        """Test that Azure always defaults to AZURE_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version=None,
             execution_platform='azure',
             is_module=False
         )
-        assert result == '22.11.1-edge'
+        assert result == AZURE_NEXTFLOW_LATEST
     
     def test_default_hpc_version(self):
-        """Test that HPC always defaults to 22.10.8."""
+        """Test that HPC always defaults to HPC_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version=None,
             execution_platform='hpc',
             is_module=False
         )
-        assert result == '22.10.8'
+        assert result == HPC_NEXTFLOW_LATEST
     
     def test_default_aws_platform_workflow(self):
-        """Test that AWS Platform workflows default to 22.10.8."""
+        """Test that AWS Platform workflows default to PLATFORM_WORKFLOW_NEXTFLOW_VERSION."""
         result = resolve_nextflow_version(
             nextflow_version=None,
             execution_platform='aws',
             is_module=True
         )
-        assert result == '22.10.8'
+        assert result == PLATFORM_WORKFLOW_NEXTFLOW_VERSION
     
     def test_default_aws_user_workflow(self):
-        """Test that AWS user-imported workflows default to 24.04.4."""
+        """Test that AWS user-imported workflows default to USER_WORKFLOW_NEXTFLOW_VERSION."""
         result = resolve_nextflow_version(
             nextflow_version=None,
             execution_platform='aws',
             is_module=False
         )
-        assert result == '24.04.4'
+        assert result == USER_WORKFLOW_NEXTFLOW_VERSION
     
     def test_latest_resolution_aws(self):
-        """Test that 'latest' resolves to correct version for AWS."""
+        """Test that 'latest' resolves to AWS_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version='latest',
             execution_platform='aws',
             is_module=False
         )
-        assert result == '25.10.4'  # AWS_NEXTFLOW_LATEST
+        assert result == AWS_NEXTFLOW_LATEST
     
     def test_latest_resolution_azure(self):
-        """Test that 'latest' resolves to correct version for Azure."""
+        """Test that 'latest' resolves to AZURE_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version='latest',
             execution_platform='azure',
             is_module=False
         )
-        assert result == '22.11.1-edge'  # AZURE_NEXTFLOW_LATEST
+        assert result == AZURE_NEXTFLOW_LATEST
     
     def test_latest_resolution_hpc(self):
-        """Test that 'latest' resolves to correct version for HPC."""
+        """Test that 'latest' resolves to HPC_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version='latest',
             execution_platform='hpc',
             is_module=False
         )
-        assert result == '22.10.8'  # HPC_NEXTFLOW_LATEST
+        assert result == HPC_NEXTFLOW_LATEST
     
     def test_platform_workflow_forces_azure_version(self):
-        """Test that Platform workflows on Azure are forced to 22.11.1-edge."""
+        """Test that Platform workflows on Azure are forced to AZURE_NEXTFLOW_LATEST."""
         result = resolve_nextflow_version(
             nextflow_version='24.04.4',  # User tries different version
             execution_platform='azure',
             is_module=True,
             workflow_name='test-workflow'
         )
-        assert result == '22.11.1-edge'
+        assert result == AZURE_NEXTFLOW_LATEST
     
     def test_platform_workflow_forces_aws_version(self):
-        """Test that Platform workflows on AWS are forced to 22.10.8."""
+        """Test that Platform workflows on AWS are forced to PLATFORM_WORKFLOW_NEXTFLOW_VERSION."""
         result = resolve_nextflow_version(
             nextflow_version='24.04.4',  # User tries different version
             execution_platform='aws',
             is_module=True,
             workflow_name='test-workflow'
         )
-        assert result == '22.10.8'
+        assert result == PLATFORM_WORKFLOW_NEXTFLOW_VERSION
     
     def test_valid_aws_version_accepted(self):
         """Test that valid AWS versions are accepted."""
-        for version in ['22.10.8', '24.04.4', '25.04.8', '25.10.4']:
+        for version in AWS_NEXTFLOW_VERSIONS:
             result = resolve_nextflow_version(
                 nextflow_version=version,
                 execution_platform='aws',
@@ -128,7 +136,7 @@ class TestResolveNextflowVersion:
                 execution_platform='azure',
                 is_module=False
             )
-            assert result == '22.11.1-edge'
+            assert result == AZURE_NEXTFLOW_LATEST
             # Verify warning was displayed
             mock_secho.assert_called_once()
             assert 'Warning' in mock_secho.call_args[0][0]
@@ -148,7 +156,7 @@ class TestResolveNextflowVersion:
         """Test that DSL2 warning is displayed for newer versions."""
         with patch('cloudos_cli.utils.nextflow_version.click.secho') as mock_secho:
             resolve_nextflow_version(
-                nextflow_version='24.04.4',
+                nextflow_version=USER_WORKFLOW_NEXTFLOW_VERSION,
                 execution_platform='aws',
                 is_module=False
             )
@@ -160,26 +168,10 @@ class TestResolveNextflowVersion:
         """Test that no DSL2 warning for legacy versions."""
         with patch('cloudos_cli.utils.nextflow_version.click.secho') as mock_secho:
             resolve_nextflow_version(
-                nextflow_version='22.10.8',
+                nextflow_version=PLATFORM_WORKFLOW_NEXTFLOW_VERSION,
                 execution_platform='aws',
                 is_module=False
             )
             # Should not have any warnings
             mock_secho.assert_not_called()
 
-
-# Example usage for mocking in integration tests
-class TestJobSubmissionMocking:
-    """Examples of how to mock the function in job submission tests."""
-    
-    @patch('cloudos_cli.jobs.cli.resolve_nextflow_version')
-    def test_job_submission_with_mocked_version(self, mock_resolve):
-        """Example: Mock the entire version resolution logic."""
-        # Set up the mock to return a specific version
-        mock_resolve.return_value = '24.04.4'
-        
-        # Now you can test the job submission without worrying about
-        # all the complex version resolution logic
-        # ... your job submission test code here ...
-        
-        assert mock_resolve.return_value == '24.04.4'
