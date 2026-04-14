@@ -117,7 +117,7 @@ def resolve_nextflow_version(
     # Step 5: Warn about DSL2 requirement for newer versions
     if nextflow_version not in ['22.10.8', '22.11.1-edge']:
         click.secho(
-            f'You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
+            f'The Nextflow version being used is: {nextflow_version}. This version requires the pipeline ' +
             'to be written in DSL2 and does not support DSL1.',
             fg='yellow', bold=True
         )
