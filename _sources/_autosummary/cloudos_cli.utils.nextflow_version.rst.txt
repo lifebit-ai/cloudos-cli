@@ -1,0 +1,12 @@
+cloudos\_cli.utils.nextflow\_version
+====================================
+
+.. automodule:: cloudos_cli.utils.nextflow_version
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_nextflow_version
+   

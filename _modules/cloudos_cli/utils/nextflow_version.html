@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>cloudos_cli.utils.cli_helpers - CloudOS CLI Documentation</title>
+        <title>cloudos_cli.utils.nextflow_version - CloudOS CLI Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -375,105 +375,137 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for cloudos_cli.utils.cli_helpers</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;CLI helper utilities for debug mode and exception handling.&quot;&quot;&quot;</span>
+          <h1>Source code for cloudos_cli.utils.nextflow_version</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Nextflow version resolution and validation utilities.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">rich_click</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">click</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.logging.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.constants</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AWS_NEXTFLOW_VERSIONS</span><span class="p">,</span>
+    <span class="n">AZURE_NEXTFLOW_VERSIONS</span><span class="p">,</span>
+    <span class="n">HPC_NEXTFLOW_VERSIONS</span><span class="p">,</span>
+    <span class="n">AWS_NEXTFLOW_LATEST</span><span class="p">,</span>
+    <span class="n">AZURE_NEXTFLOW_LATEST</span><span class="p">,</span>
+    <span class="n">HPC_NEXTFLOW_LATEST</span><span class="p">,</span>
+    <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="p">,</span>
+    <span class="n">USER_WORKFLOW_NEXTFLOW_VERSION</span>
+<span class="p">)</span>
 
-<span class="c1"># Global debug state</span>
-<span class="n">_global_debug</span> <span class="o">=</span> <span class="kc">False</span>
 
-
-<div class="viewcode-block" id="custom_exception_handler">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.custom_exception_handler">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">custom_exception_handler</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom exception handler that respects debug mode&quot;&quot;&quot;</span>
-    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">stderr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># Initialise logger</span>
-    <span class="n">debug_mode</span> <span class="o">=</span> <span class="s1">&#39;--debug&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-    <span class="n">setup_logging</span><span class="p">(</span><span class="n">debug_mode</span><span class="p">)</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CloudOS&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">get_debug_mode</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">exc_value</span><span class="p">)</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Debug mode: showing full traceback[/yellow]&quot;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Extract a clean error message</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">exc_value</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">):</span>
-            <span class="n">error_msg</span> <span class="o">=</span> <span class="n">exc_value</span><span class="o">.</span><span class="n">message</span>
-        <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">):</span>
-            <span class="n">error_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
+<div class="viewcode-block" id="resolve_nextflow_version">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.nextflow_version.html#cloudos_cli.utils.nextflow_version.resolve_nextflow_version">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_nextflow_version</span><span class="p">(</span>
+    <span class="n">nextflow_version</span><span class="p">,</span>
+    <span class="n">execution_platform</span><span class="p">,</span>
+    <span class="n">is_module</span><span class="p">,</span>
+    <span class="n">workflow_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve and validate the Nextflow version for a job submission.</span>
+<span class="sd">    </span>
+<span class="sd">    This function handles:</span>
+<span class="sd">    - Dynamic defaults based on execution platform and workflow type</span>
+<span class="sd">    - &#39;latest&#39; version resolution</span>
+<span class="sd">    - Platform workflow version forcing</span>
+<span class="sd">    - Platform-specific version validation with appropriate warnings/errors</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        nextflow_version (str or None): The requested Nextflow version, or None for default</span>
+<span class="sd">        execution_platform (str): The execution platform (&#39;aws&#39;, &#39;azure&#39;, or &#39;hpc&#39;)</span>
+<span class="sd">        is_module (bool): Whether the workflow is a Platform workflow (module)</span>
+<span class="sd">        workflow_name (str, optional): The workflow name for informative messages</span>
+<span class="sd">        verbose (bool, optional): Whether to print verbose messages</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The resolved and validated Nextflow version</span>
+<span class="sd">    </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        click.BadParameter: If an unsupported version is specified for AWS or HPC platforms</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Step 1: Set dynamic default if no version specified</span>
+    <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span>  <span class="c1"># Azure has fixed Nextflow version</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...Using default Nextflow version </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1"> for Azure&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;hpc&#39;</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">HPC_NEXTFLOW_LATEST</span>  <span class="c1"># HPC has fixed Nextflow version</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...Using default Nextflow version </span><span class="si">{</span><span class="n">HPC_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1"> for HPC&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_module</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span>  <span class="c1"># Lifebit Platform workflows (AWS)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...Using default Nextflow version </span><span class="si">{</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1"> for Platform Workflow&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[bold red]Error: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">[/bold red]&quot;</span><span class="p">)</span>
-
-        <span class="c1"># For network errors, give helpful context</span>
-        <span class="k">if</span> <span class="s1">&#39;HTTPSConnectionPool&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;Max retries exceeded&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">):</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="pass_debug_to_subcommands">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.pass_debug_to_subcommands">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">pass_debug_to_subcommands</span><span class="p">(</span><span class="n">group_cls</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">RichGroup</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom Group class that passes --debug option to all subcommands&quot;&quot;&quot;</span>
-
-    <span class="k">class</span><span class="w"> </span><span class="nc">DebugGroup</span><span class="p">(</span><span class="n">group_cls</span><span class="p">):</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">add_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-            <span class="c1"># Add debug option to the command if it doesn&#39;t already have it</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">Command</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">)):</span>
-                <span class="n">has_debug</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;debug&#39;</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">cmd</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">has_debug</span><span class="p">:</span>
-                    <span class="n">debug_option</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-                        <span class="p">[</span><span class="s1">&#39;--debug&#39;</span><span class="p">],</span> 
-                        <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Show detailed error information and tracebacks&#39;</span><span class="p">,</span>
-                        <span class="n">is_eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">expose_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug_callback</span>
-                    <span class="p">)</span>
-                    <span class="n">cmd</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">debug_option</span><span class="p">)</span>  <span class="c1"># Insert at the end for precedence</span>
-
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">_debug_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Callback to handle debug flag&quot;&quot;&quot;</span>
-            <span class="k">global</span> <span class="n">_global_debug</span>
-            <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-                <span class="n">_global_debug</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">return</span> <span class="n">value</span>
-
-    <span class="k">return</span> <span class="n">DebugGroup</span></div>
-
-
-
-<div class="viewcode-block" id="get_debug_mode">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.get_debug_mode">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_debug_mode</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get current debug mode state&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_global_debug</span></div>
-
-
-
-<div class="viewcode-block" id="setup_debug">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.setup_debug">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">setup_debug</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Setup debug mode globally and in context&quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">_global_debug</span>
-    <span class="n">_global_debug</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="n">value</span></div>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">USER_WORKFLOW_NEXTFLOW_VERSION</span>  <span class="c1"># User-imported workflows (AWS only)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...Using default Nextflow version </span><span class="si">{</span><span class="n">USER_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1"> for user-imported workflow&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Step 2: Resolve &#39;latest&#39; to actual version</span>
+    <span class="k">if</span> <span class="n">nextflow_version</span> <span class="o">==</span> <span class="s1">&#39;latest&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AWS_NEXTFLOW_LATEST</span>
+        <span class="k">elif</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">HPC_NEXTFLOW_LATEST</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;You have specified Nextflow version </span><span class="se">\&#39;</span><span class="s1">latest</span><span class="se">\&#39;</span><span class="s1"> for execution platform &#39;</span> <span class="o">+</span>
+              <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="si">{</span><span class="n">execution_platform</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">. The workflow will use the &#39;</span> <span class="o">+</span>
+              <span class="sa">f</span><span class="s1">&#39;latest version available on CloudOS: </span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Step 3: Force correct version for Platform workflows</span>
+    <span class="k">if</span> <span class="n">is_module</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">nextflow_version</span> <span class="o">!=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span><span class="p">:</span>
+                <span class="n">workflow_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">workflow_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">workflow_name</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The selected workflow</span><span class="si">{</span><span class="n">workflow_msg</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with &#39;</span> <span class="o">+</span>
+                      <span class="sa">f</span><span class="s1">&#39;Nextflow version </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1">. Switching to use </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">nextflow_version</span> <span class="o">!=</span> <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="p">:</span>
+                <span class="n">workflow_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">workflow_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">workflow_name</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The selected workflow</span><span class="si">{</span><span class="n">workflow_msg</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;is a CloudOS Platform Workflow. Platform Workflows only work with &#39;</span> <span class="o">+</span>
+                      <span class="sa">f</span><span class="s1">&#39;Nextflow version </span><span class="si">{</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1">. Switching to use </span><span class="si">{</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span>
+    
+    <span class="c1"># Step 4: Validate version for execution platform</span>
+    <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AWS_NEXTFLOW_VERSIONS</span><span class="p">:</span>
+            <span class="n">available_versions</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">AWS_NEXTFLOW_VERSIONS</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">BadParameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Unsupported Nextflow version </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> for AWS execution platform. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Supported versions are: </span><span class="si">{</span><span class="n">available_versions</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AZURE_NEXTFLOW_VERSIONS</span><span class="p">:</span>
+            <span class="n">available_versions</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">AZURE_NEXTFLOW_VERSIONS</span><span class="p">)</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Warning: Nextflow version </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> is not supported for Azure execution platform. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Azure only supports: </span><span class="si">{</span><span class="n">available_versions</span><span class="si">}</span><span class="s1">. Switching to use </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span>
+    <span class="k">elif</span> <span class="n">execution_platform</span> <span class="o">==</span> <span class="s1">&#39;hpc&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HPC_NEXTFLOW_VERSIONS</span><span class="p">:</span>
+            <span class="n">available_versions</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HPC_NEXTFLOW_VERSIONS</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">BadParameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Unsupported Nextflow version </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> for HPC execution platform. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;HPC only supports: </span><span class="si">{</span><span class="n">available_versions</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+    
+    <span class="c1"># Step 5: Warn about DSL2 requirement for newer versions</span>
+    <span class="n">legacy_versions</span> <span class="o">=</span> <span class="p">[</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="p">,</span> <span class="n">AZURE_NEXTFLOW_LATEST</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">nextflow_version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legacy_versions</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;The Nextflow version being used is: </span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="s1">. This version requires the pipeline &#39;</span> <span class="o">+</span>
+            <span class="s1">&#39;to be written in DSL2 and does not support DSL1.&#39;</span><span class="p">,</span>
+            <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">nextflow_version</span></div>
 
 </pre></div>
         </article>

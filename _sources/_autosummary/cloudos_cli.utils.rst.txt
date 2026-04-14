@@ -16,5 +16,6 @@ cloudos\_cli.utils
    details
    errors
    last_wf
+   nextflow_version
    requests
    resources
