@@ -652,6 +652,29 @@ When there are duplicate `--workflow-name` in the platform, you can add the `--l
 
 _For example, the pipeline `lifebit-process` was imported on May 23 2025 and again on May 30 2025; with the `--last` flag, it will use the import of May 30, 2025._
 
+**Nextflow Version Support**
+
+CloudOS CLI supports multiple Nextflow versions, with intelligent defaults based on your workflow type and execution platform.
+
+**Default Version Behavior:**
+
+The default Nextflow version is automatically selected based on your workflow type and execution platform:
+
+- **Azure Platform**: Always uses `22.11.1-edge` regardless of workflow type
+- **Platform Workflows** (AWS/HPC): Uses `22.10.8` (Lifebit provided workflows and modules)
+- **User-Imported Workflows** (AWS/HPC): AWS uses `24.04.4`; HPC uses `22.10.8`
+
+**Specifying a Custom Version:**
+
+You can override the default by using the `--nextflow-version` parameter:
+
+```bash
+cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos_cli/examples/rnatoy.config --nextflow-version 25.04.8 --resumable
+```
+
+> [!NOTE]
+> **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
+
 **AWS Executor Support**
 
 CloudOS supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.
@@ -670,6 +693,7 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 CloudOS can also be configured to use Microsoft Azure compute platforms. If your CloudOS is configured to use Azure, you will need to take into consideration the following:
 
 - When sending jobs to CloudOS using `cloudos job run` command, please use the option `--execution-platform azure`
+- Azure only supports Nextflow version `22.11.1-edge`. If you specify a different version, CloudOS CLI will display a warning and automatically use `22.11.1-edge` instead
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:

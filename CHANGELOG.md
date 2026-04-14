@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.88.0 (2026-04-03)
+
+### Feat
+
+- Adds support for nextflow versions '25.04.8' and '25.10.4'
+- Updates nextflow versions defaults for user imported pipelines and lifebit-owned pipelines
+
 ## v2.87.1 (2026-03-30)
 
 ### Fix
