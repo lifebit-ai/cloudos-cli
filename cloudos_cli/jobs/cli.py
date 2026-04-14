@@ -6,6 +6,7 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.utils.details import create_job_details, create_job_list_table
+from cloudos_cli.utils.nextflow_version import resolve_nextflow_version
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.related_analyses.related_analyses import related_analyses
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
@@ -13,12 +14,6 @@ from cloudos_cli.link import Link
 from cloudos_cli.constants import (
     JOB_COMPLETED,
     REQUEST_INTERVAL_CROMWELL,
-    AWS_NEXTFLOW_VERSIONS,
-    AZURE_NEXTFLOW_VERSIONS,
-    HPC_NEXTFLOW_VERSIONS,
-    AWS_NEXTFLOW_LATEST,
-    AZURE_NEXTFLOW_LATEST,
-    HPC_NEXTFLOW_LATEST,
     ABORT_JOB_STATES
 )
 import json
@@ -294,24 +289,14 @@ def run(ctx,
     workflow_type = cl.detect_workflow(workflow_name, workspace_id, verify_ssl, last)
     is_module = cl.is_module(workflow_name, workspace_id, verify_ssl, last)
     
-    # Set dynamic default for Nextflow version based on execution platform and workflow type
-    if nextflow_version is None:
-        if execution_platform == 'azure':
-            nextflow_version = '22.11.1-edge'  # Azure has fixed Nextflow version
-            if verbose:
-                print('\t...Using default Nextflow version 22.11.1-edge for Azure')
-        elif execution_platform == 'hpc':
-            nextflow_version = '22.10.8'  # HPC has fixed Nextflow version
-            if verbose:
-                print('\t...Using default Nextflow version 22.10.8 for HPC')
-        elif is_module:
-            nextflow_version = '22.10.8'  # Lifebit Platform workflows (AWS)
-            if verbose:
-                print('\t...Using default Nextflow version 22.10.8 for Platform Workflow')
-        else:
-            nextflow_version = '24.04.4'  # User-imported workflows (AWS only)
-            if verbose:
-                print('\t...Using default Nextflow version 24.04.4 for user-imported workflow')
+    # Resolve and validate Nextflow version
+    nextflow_version = resolve_nextflow_version(
+        nextflow_version=nextflow_version,
+        execution_platform=execution_platform,
+        is_module=is_module,
+        workflow_name=workflow_name,
+        verbose=verbose
+    )
     
     if execution_platform == 'hpc' and workflow_type == 'wdl':
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
@@ -363,19 +348,6 @@ def run(ctx,
                   f'Platform Workflow "{workflow_name}". Platform Workflows ' +
                   'use their own predetermined queues.')
         job_queue_id = None
-        # Platform workflows have fixed Nextflow versions per execution platform
-        if execution_platform == 'azure':
-            if nextflow_version != '22.11.1-edge':
-                print(f'The selected workflow \'{workflow_name}\' ' +
-                      'is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
-                      'Nextflow version 22.11.1-edge. Switching to use 22.11.1-edge')
-            nextflow_version = '22.11.1-edge'
-        else:
-            if nextflow_version != '22.10.8':
-                print(f'The selected workflow \'{workflow_name}\' ' +
-                      'is a CloudOS Platform Workflow. Platform Workflows only work with ' +
-                      'Nextflow version 22.10.8. Switching to use 22.10.8')
-            nextflow_version = '22.10.8'
         if execution_platform == 'azure':
             print(f'The selected worflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
@@ -405,42 +377,7 @@ def run(ctx,
             docker_login = True
     else:
         docker_login = False
-    if nextflow_version == 'latest':
-        if execution_platform == 'aws':
-            nextflow_version = AWS_NEXTFLOW_LATEST
-        elif execution_platform == 'azure':
-            nextflow_version = AZURE_NEXTFLOW_LATEST
-        else:
-            nextflow_version = HPC_NEXTFLOW_LATEST
-        print('You have specified Nextflow version \'latest\' for execution platform ' +
-              f'\'{execution_platform}\'. The workflow will use the ' +
-              f'latest version available on CloudOS: {nextflow_version}.')
-    if execution_platform == 'aws':
-        if nextflow_version not in AWS_NEXTFLOW_VERSIONS:
-            available_versions = ', '.join(AWS_NEXTFLOW_VERSIONS)
-            raise click.BadParameter(
-                f'Unsupported Nextflow version \'{nextflow_version}\' for AWS execution platform. '
-                f'Supported versions are: {available_versions}.'
-            )
-    if execution_platform == 'azure':
-        if nextflow_version not in AZURE_NEXTFLOW_VERSIONS:
-            available_versions = ', '.join(AZURE_NEXTFLOW_VERSIONS)
-            click.secho(
-                f'Warning: Nextflow version \'{nextflow_version}\' is not supported for Azure execution platform. '
-                f'Azure only supports: {available_versions}. Switching to use {AZURE_NEXTFLOW_LATEST}.',
-                fg='yellow', bold=True
-            )
-            nextflow_version = AZURE_NEXTFLOW_LATEST
-    if execution_platform == 'hpc':
-        if nextflow_version not in HPC_NEXTFLOW_VERSIONS:
-            available_versions = ', '.join(HPC_NEXTFLOW_VERSIONS)
-            raise click.BadParameter(
-                f'Unsupported Nextflow version \'{nextflow_version}\' for HPC execution platform. '
-                f'HPC only supports: {available_versions}.'
-            )
-    if nextflow_version not in ['22.10.8', '22.11.1-edge']:
-        click.secho(f'You have specified Nextflow version {nextflow_version}. This version requires the pipeline ' +
-              'to be written in DSL2 and does not support DSL1.', fg='yellow', bold=True)
+    
     print('\nExecuting run...')
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
