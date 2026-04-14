@@ -401,7 +401,7 @@ Job queues are required for running jobs using AWS batch executor. The available
 
 #### List Queues
 
-This command allows you to view available computational queues and their configurations. You can get a summary of all available workspace job queues in three different output formats using the `--output-format` option:
+This command allows you to view available computational queues and their configurations. By default, both regular workspace queues and system queues are displayed. You can get a summary of all available job queues in three different output formats using the `--output-format` option:
 
 - **stdout** (default): Displays a rich formatted table directly in the terminal with pagination and visual formatting
 - **csv**: Saves queue data to a CSV file with a selection of available queue information, or all information using the `--all-fields` flag
@@ -413,6 +413,12 @@ To display queues as a formatted table in the terminal:
 cloudos queue list --profile my_profile
 # or explicitly:
 cloudos queue list --profile my_profile --output-format stdout
+```
+
+To exclude system queues and show only workspace queues:
+
+```bash
+cloudos queue list --profile my_profile --exclude-system-queues
 ```
 
 To save all available job queues in JSON format:
@@ -437,7 +443,7 @@ cloudos queue list --profile my_profile --output-format csv
 
 **Job queues for platform workflows**
 
-Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues. Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the `--job-queue` parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
+Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the `--job-queue` parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
 
 
 ### Workflow
@@ -875,7 +881,7 @@ You can find specific jobs within your workspace using the filtering options. Fi
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
 - **`--filter-owner`**: Show only jobs for the specified owner (exact match required, e.g., "John Doe")
-- **`--filter-queue`**: Filter jobs by queue name (only applies to batch jobs)
+- **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs)
 
 **Filtering Examples**
 

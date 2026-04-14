@@ -19,6 +19,11 @@ with open("tests/test_data/queue/queues.json") as f:
     QUEUES_JSON_STR = f.read()
     QUEUES_JSON_DICT = json.loads(QUEUES_JSON_STR)
 
+# Load test system queue data
+with open("tests/test_data/queue/system_queues.json") as f:
+    SYSTEM_QUEUES_JSON_STR = f.read()
+    SYSTEM_QUEUES_JSON_DICT = json.loads(SYSTEM_QUEUES_JSON_STR)
+
 
 def test_queue_list_command_exists():
     """Test that the queue list command exists in the queue group."""
@@ -63,6 +68,12 @@ def test_queue_list_csv_output():
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
             text=QUEUES_JSON_STR,
+            status_code=200
+        )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
             status_code=200
         )
         
@@ -110,6 +121,12 @@ def test_queue_list_json_output():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = os.path.join(tmpdir, 'test_queues.json')
@@ -145,6 +162,12 @@ def test_queue_list_stdout_output():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         result = runner.invoke(run_cloudos_cli, [
             'queue', 'list',
@@ -171,6 +194,12 @@ def test_queue_list_default_output_is_stdout():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         result = runner.invoke(run_cloudos_cli, [
             'queue', 'list',
@@ -195,6 +224,12 @@ def test_queue_list_empty_queues():
         # Mock the queue list API endpoint with empty response
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
+            json=empty_response,
+            status_code=200
+        )
+        # Mock the system queues API endpoint with empty response
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
             json=empty_response,
             status_code=200
         )
@@ -258,6 +293,12 @@ def test_queue_list_with_all_fields():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         with tempfile.TemporaryDirectory() as tmpdir:
             output_file = os.path.join(tmpdir, 'test_queues_full.csv')
@@ -295,6 +336,12 @@ def test_queue_list_with_profile():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         result = runner.invoke(run_cloudos_cli, [
             'queue', 'list',
@@ -318,6 +365,12 @@ def test_queue_list_custom_output_basename():
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
             text=QUEUES_JSON_STR,
+            status_code=200
+        )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
             status_code=200
         )
         
@@ -350,6 +403,12 @@ def test_queue_list_with_ssl_options():
             text=QUEUES_JSON_STR,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         # Test with --disable-ssl-verification
         result = runner.invoke(run_cloudos_cli, [
@@ -374,6 +433,12 @@ def test_queue_list_all_output_formats(output_format):
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
             text=QUEUES_JSON_STR,
+            status_code=200
+        )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
             status_code=200
         )
         
@@ -445,6 +510,12 @@ def test_queue_list_multiple_queues():
             json=multiple_queues,
             status_code=200
         )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
+            status_code=200
+        )
         
         result = runner.invoke(run_cloudos_cli, [
             'queue', 'list',
@@ -486,6 +557,12 @@ def test_queue_list_table_formatting():
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
             json=test_queues,
+            status_code=200
+        )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
             status_code=200
         )
         
@@ -534,6 +611,12 @@ def test_queue_list_status_icons():
         m.get(
             f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues",
             json=test_queues,
+            status_code=200
+        )
+        # Mock the system queues API endpoint
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues",
+            text=SYSTEM_QUEUES_JSON_STR,
             status_code=200
         )
         

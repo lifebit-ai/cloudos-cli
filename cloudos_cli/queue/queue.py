@@ -33,8 +33,13 @@ class Queue(Cloudos):
     workspace_id: str
     verify: Union[bool, str] = True
 
-    def get_job_queues(self):
+    def get_job_queues(self, exclude_system_queues=False):
         """Get all the job queues from a CloudOS workspace.
+
+        Parameters
+        ----------
+        exclude_system_queues : bool, default=False
+            Whether to exclude system job queues from the result.
 
         Returns
         -------
@@ -44,6 +49,28 @@ class Queue(Cloudos):
         headers = {"apikey": self.apikey}
         r = requests.get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
                                                                               self.workspace_id),
+                         headers=headers, verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        queues = json.loads(r.content)
+        # By default, include system queues unless excluded
+        if not exclude_system_queues:
+            system_queues = self.get_system_job_queues()
+            queues.extend(system_queues)
+        
+        return queues
+
+    def get_system_job_queues(self):
+        """Get all the system job queues from CloudOS.
+
+        Returns
+        -------
+        r : list
+            A list of dicts, each corresponding to a system job queue.
+        """
+        headers = {"apikey": self.apikey}
+        r = requests.get("{}/api/v1/teams/aws/v2/system-job-queues?teamId={}".format(self.cloudos_url,
+                                                                                       self.workspace_id),
                          headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
@@ -118,7 +145,7 @@ class Queue(Cloudos):
         if len(available_queues) == 0:
             raise Exception(f'There are no available job queues for {workflow_type} ' +
                             'workflows. Consider creating one using CloudOS UI.')
-        default_queue = [q for q in available_queues if q['isDefault']]
+        default_queue = [q for q in available_queues if q.get('isDefault', False)]
         if len(default_queue) > 0:
             default_queue_id = default_queue[0]['id']
             default_queue_name = default_queue[0]['label']

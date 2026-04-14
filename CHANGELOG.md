@@ -7,6 +7,18 @@
 - Adds support for nextflow versions '25.04.8' and '25.10.4'
 - Updates nextflow versions defaults for user imported pipelines and lifebit-owned pipelines
 
+## v2.87.1 (2026-03-30)
+
+### Fix
+
+- fix for when api returns initializing instead of initialising
+
+## v2.87.0 (2026-03-30)
+
+### Feat
+
+- Adds system queues
+
 ## v2.86.0 (2026-03-23)
 
 ### Feat

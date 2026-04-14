@@ -5,6 +5,7 @@ from cloudos_cli.queue import Queue
 from tests.functions_for_pytest import load_json_file
 
 INPUT = 'tests/test_data/queue/queues.json'
+SYSTEM_QUEUES_INPUT = 'tests/test_data/queue/system_queues.json'
 APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'http://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
@@ -31,16 +32,24 @@ def test_fetch_job_queue_id_batch_true_job_queue_none():
     should fall back to the default one.
     """
     create_json = load_json_file(INPUT)
+    system_json = load_json_file(SYSTEM_QUEUES_INPUT)
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    # mock GET method with the .json
+    # mock GET method for regular queues
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
         body=create_json,
+        headers=header,
+        status=200)
+    # mock GET method for system queues
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+        body=system_json,
         headers=header,
         status=200)
     # Initialise Queue
@@ -59,16 +68,24 @@ def test_fetch_job_queue_id_batch_true_job_queue_correct():
     Tests fetch_job_queue_id when batch=True and a correct job_queue is provided.
     """
     create_json = load_json_file(INPUT)
+    system_json = load_json_file(SYSTEM_QUEUES_INPUT)
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    # mock GET method with the .json
+    # mock GET method for regular queues
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
         body=create_json,
+        headers=header,
+        status=200)
+    # mock GET method for system queues
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+        body=system_json,
         headers=header,
         status=200)
     # Initialise Queue
@@ -88,16 +105,24 @@ def test_fetch_job_queue_id_batch_true_job_queue_wrong():
     it will fall back to the default one.
     """
     create_json = load_json_file(INPUT)
+    system_json = load_json_file(SYSTEM_QUEUES_INPUT)
     header = {
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
         "apikey": APIKEY
     }
-    # mock GET method with the .json
+    # mock GET method for regular queues
     responses.add(
         responses.GET,
         url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
         body=create_json,
+        headers=header,
+        status=200)
+    # mock GET method for system queues
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+        body=system_json,
         headers=header,
         status=200)
     # Initialise Queue

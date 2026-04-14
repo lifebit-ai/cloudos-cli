@@ -58,8 +58,8 @@ def interactive_session():
               required=True)
 @click.option('--filter-status',
               multiple=True,
-              type=click.Choice(['setup', 'initialising', 'running', 'scheduled', 'paused'], case_sensitive=False),
-              help='Filter sessions by status. Can be specified multiple times to filter by multiple statuses.')
+              type=click.Choice(['setup', 'initialising', 'initializing', 'running', 'scheduled', 'paused'], case_sensitive=False),
+              help='Filter sessions by status. Can be specified multiple times to filter by multiple statuses. (Supports both initialising and initializing spellings)')
 @click.option('--limit',
               type=int,
               default=10,
