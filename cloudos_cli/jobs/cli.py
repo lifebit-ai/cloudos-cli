@@ -382,7 +382,7 @@ def run(ctx,
                       'Nextflow version 22.10.8. Switching to use 22.10.8')
             nextflow_version = '22.10.8'
         if execution_platform == 'azure':
-            print(f'The selected worflow \'{workflow_name}\' ' +
+            print(f'The selected workflow \'{workflow_name}\' ' +
                   'is a CloudOS module. For these workflows, worker nodes ' +
                   'are managed internally. For this reason, the options ' +
                   'azure-worker-instance-type, azure-worker-instance-disk and ' +
