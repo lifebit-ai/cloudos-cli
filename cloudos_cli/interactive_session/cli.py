@@ -276,7 +276,8 @@ def list_sessions(ctx,
               help='Cost limit in USD. Default=-1 (unlimited).',
               default=-1)
 @click.option('--shutdown-in',
-              help='Auto-shutdown duration (e.g., 8h, 2d).')
+              help='Auto-shutdown duration (e.g., 8h, 2d).',
+              default='12h')
 @click.option('--mount',
               multiple=True,
               help='Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
@@ -1028,7 +1029,7 @@ def pause_session(ctx,
               default=None)
 @click.option('--shutdown-in',
               help='Update auto-shutdown duration (e.g., 8h, 2d).',
-              default=None)
+              default='12h')
 @click.option('--mount',
               multiple=True,
               help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
