@@ -1162,7 +1162,7 @@ def build_resume_payload(
 def format_session_creation_table(session_data, instance_type=None, storage_size=None,
                                   backend_type=None, r_version=None,
                                   spark_master=None, spark_core=None, spark_workers=None,
-                                  data_files=None, s3_mounts=None):
+                                  data_files=None, s3_mounts=None, shutdown_in=None):
     """Display session creation result in table format.
 
     Parameters
@@ -1187,6 +1187,8 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         List of parsed data file objects to display
     s3_mounts : list, optional
         List of parsed S3 mount objects to display
+    shutdown_in : str, optional
+        Shutdown duration value (e.g., '12h', '2d') that was requested
 
     Returns
     -------
@@ -1214,6 +1216,9 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                        session_data.get('interactiveSessionConfiguration', {}).get('storageSizeInGb')
     storage_display = f"{response_storage} GB" if response_storage else (f"{storage_size} GB" if storage_size else "N/A")
     table.add_row("Storage", storage_display)
+    # Display shutdown duration
+    if shutdown_in:
+        table.add_row("Auto-Shutdown", shutdown_in)
     # Add backend-specific information
     if backend_type == 'rstudio' and r_version:
         table.add_row("R Version", r_version)

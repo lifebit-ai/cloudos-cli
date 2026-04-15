@@ -276,7 +276,7 @@ def list_sessions(ctx,
               help='Cost limit in USD. Default=-1 (unlimited).',
               default=-1)
 @click.option('--shutdown-in',
-              help='Auto-shutdown duration (e.g., 8h, 2d).',
+              help='Auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
               default='12h')
 @click.option('--mount',
               multiple=True,
@@ -562,7 +562,8 @@ def create_session(ctx,
             spark_core=spark_core,
             spark_workers=spark_workers,
             data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts
+            s3_mounts=parsed_s3_mounts,
+            shutdown_in=shutdown_in
         )
         # Output session link in greppable format for CI/automation
         click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
@@ -1028,7 +1029,7 @@ def pause_session(ctx,
               help='Update compute cost limit in USD. Default=-1 (unlimited).',
               default=None)
 @click.option('--shutdown-in',
-              help='Update auto-shutdown duration (e.g., 8h, 2d).',
+              help='Update auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
               default='12h')
 @click.option('--mount',
               multiple=True,
