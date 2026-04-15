@@ -276,7 +276,8 @@ def list_sessions(ctx,
               help='Cost limit in USD. Default=-1 (unlimited).',
               default=-1)
 @click.option('--shutdown-in',
-              help='Auto-shutdown duration (e.g., 8h, 2d).')
+              help='Auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
+              default='12h')
 @click.option('--mount',
               multiple=True,
               help='Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
@@ -561,7 +562,8 @@ def create_session(ctx,
             spark_core=spark_core,
             spark_workers=spark_workers,
             data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts
+            s3_mounts=parsed_s3_mounts,
+            shutdown_in=shutdown_in
         )
         # Output session link in greppable format for CI/automation
         click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")

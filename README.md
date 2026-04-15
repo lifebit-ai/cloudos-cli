@@ -2143,7 +2143,7 @@ cloudos interactive-session create \
 - `--spot`: Use spot instances (AWS only, cost-saving)
 - `--shared`: Make session accessible to workspace members
 - `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
-- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`)
+- `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`, default: `12h`)
 
 **Data & Storage Management:**
 - `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.

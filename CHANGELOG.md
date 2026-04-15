@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.88.1 (2026-04-14)
+
+### Patch
+
+- Add default time limit for Interactive Analysis
+
 ## v2.88.0 (2026-04-03)
 
 ### Feat
