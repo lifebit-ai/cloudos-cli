@@ -1029,8 +1029,8 @@ def pause_session(ctx,
               help='Update compute cost limit in USD. Default=-1 (unlimited).',
               default=None)
 @click.option('--shutdown-in',
-              help='Update auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
-              default='12h')
+              help='Update auto-shutdown duration (e.g., 8h, 2d).',
+              default=None)
 @click.option('--mount',
               multiple=True,
               help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
