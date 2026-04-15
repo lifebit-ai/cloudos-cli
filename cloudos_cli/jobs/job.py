@@ -1353,12 +1353,19 @@ class Job(Cloudos):
                     param['columnIndex'] = int(param['columnIndex'])
                 except ValueError:
                     raise ValueError(f"Invalid columnIndex value '{param['columnIndex']}' for parameter '{param.get('name')}'")
+        # The textValue, as the name indicates, needs to be a string
+        for param in cloned_payload.get('parameters', []):
+            if param.get('parameterKind') == 'textValue':
+                try:
+                    param['textValue'] = str(param['textValue'])
+                except ValueError:
+                    raise ValueError(f"Invalid textValue value '{param['textValue']}' for parameter '{param.get('name')}'")
 
         if parameters:
             cloned_parameters = cloned_payload.get('parameters', [])
             for param_override in parameters:
                 param_name, param_value = param_override.split('=', 1)
-                param_name = param_name.lstrip('-') # Remove leading dashes
+                param_name = param_name.lstrip('-')  # Remove leading dashes
                 if not self.update_parameter_value(cloned_parameters, param_name, param_value):
                     # Parameter not found, add as new parameter
                     # Determine workflow type to set proper prefix and format
@@ -1401,10 +1408,11 @@ class Job(Cloudos):
     def fix_boolean_strings(self, obj):
         """
         Recursively convert string booleans ('True', 'False') into real booleans
-        inside dicts, lists, or nested structures.
+        inside dicts, lists, or nested structures. It excludes 'textValues' as they
+        have to remain as text even if the text is 'true'.
         """
         if isinstance(obj, dict):
-            return {k: self.fix_boolean_strings(v) for k, v in obj.items()}
+            return {k: self.fix_boolean_strings(v) if k != 'textValue' else v for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self.fix_boolean_strings(v) for v in obj]
         elif isinstance(obj, str):
