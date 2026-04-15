@@ -718,9 +718,8 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 Please note that HPC execution does not support the following parameters and all of them will be ignored:
 
 - `--job-queue`
-- `--resumable | --do-not-save-logs`
+- `--resumable` | `--do-not-save-logs`
 - `--instance-type` | `--instance-disk` | `--cost-limit`
-- `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 
 #### Check Job Status
@@ -882,27 +881,7 @@ You can find specific jobs within your workspace using the filtering options. Fi
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
 - **`--filter-owner`**: Show only jobs for the specified owner (exact match required, e.g., "John Doe")
 - **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs)
-
-**Filtering Examples**
-
-Using pagination approach (default):
-
-```bash
-# Get completed jobs from page 1 (default 10 jobs)
-cloudos job list --profile my_profile --filter-status completed
-
-# Get completed jobs from page 2 with 20 jobs per page
-cloudos job list --profile my_profile --page 2 --page-size 20 --filter-status completed
-```
-
-Using last-n-jobs approach:
-
-```bash
-# Get all completed jobs from the last 50 jobs
-cloudos job list --profile my_profile --last-n-jobs 50 --filter-status completed
-```
-
-Find jobs with "analysis" in the name from a specific project:
+h "analysis" in the name from a specific project:
 
 ```bash
 # Using pagination (gets first 10 matching jobs)

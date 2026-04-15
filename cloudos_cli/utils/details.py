@@ -140,7 +140,6 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     - 'textValue': Simple text parameters
     - 'arrayFileColumn': Column-based array parameters
     - 'globPattern': File pattern matching parameters
-    - 'lustreFileSystem': Lustre filesystem parameters
     - 'dataItem': Data file/object parameters
 
     Time calculations assume UTC timezone and convert ISO format timestamps
@@ -166,10 +165,9 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
             'textValue': 'textValue',
             'arrayFileColumn': 'columnName',
             'globPattern': 'globPattern',
-            'lustreFileSystem': 'fileSystem',
             'dataItem': 'dataItem'
         }
-        # there are different types of parameters, arrayFileColumn, globPattern, lustreFileSystem
+        # there are different types of parameters, arrayFileColumn, globPattern
         # get first the type of parameter, then the value based on the parameter kind
         concats = []
         for param in j_details_h["parameters"]:
@@ -476,8 +474,6 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     storage_mode = job.get("storageMode", "N/A")
     if storage_mode == "regular":
         storage_type = "Regular"
-    elif storage_mode == "lustre":
-        storage_type = "Lustre"
     else:
         storage_type = str(storage_mode).capitalize() if storage_mode != "N/A" else "N/A"
 

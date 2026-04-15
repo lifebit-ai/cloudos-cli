@@ -34,8 +34,6 @@
         "computeCostLimit": -1,
         "optim": "test"
     },
-    "lusterFsxStorageSizeInGb": 1200,
-    "storageMode": "regular",
     "instanceType": "c5.xlarge",
     "masterInstance": {
         "requestedInstance": {

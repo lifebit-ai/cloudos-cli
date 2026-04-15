@@ -309,8 +309,6 @@ class Job(Cloudos):
                                  nextflow_version,
                                  instance_type,
                                  instance_disk,
-                                 storage_mode,
-                                 lustre_size,
                                  execution_platform,
                                  hpc_id,
                                  workflow_type,
@@ -381,12 +379,6 @@ class Job(Cloudos):
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
             The disk space of the master node instance, in GB.
-        storage_mode : string
-            Either 'lustre' or 'regular'. Indicates if the user wants to select regular
-            or lustre storage.
-        lustre_size : int
-            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
-            a multiple of it.
         execution_platform : string ['aws'|'azure'|'hpc']
             The execution platform implemented in your CloudOS.
         hpc_id : string
@@ -511,15 +503,6 @@ class Job(Cloudos):
         if len(example_parameters) > 0:
             for example_param in example_parameters:
                 workflow_params.append(example_param)
-        if storage_mode == "lustre":
-            click.secho('\nLustre storage has been selected. Please, be sure that this kind of ' +
-                  'storage is available in your CloudOS workspace.\n', fg='yellow', bold=True)
-            if lustre_size % 1200:
-                raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
-                                 f'{lustre_size} is not a valid number.')
-        if storage_mode not in ['lustre', 'regular']:
-            raise ValueError('Please, use either \'lustre\' or \'regular\' for --storage-mode ' +
-                             f'{storage_mode} is not allowed')
         params = {
             "parameters": workflow_params,
             "project": project_id,
@@ -534,8 +517,6 @@ class Job(Cloudos):
                 "computeCostLimit": cost_limit,
                 "optim": "test"
             },
-            "lusterFsxStorageSizeInGb": lustre_size,
-            "storageMode": storage_mode,
             "instanceType": instance_type,
             "usesFusionFileSystem": use_mountpoints,
             "accelerateSavingResults": accelerate_saving_results
@@ -610,8 +591,6 @@ class Job(Cloudos):
                  nextflow_version='22.10.8',
                  instance_type='c5.xlarge',
                  instance_disk=500,
-                 storage_mode='regular',
-                 lustre_size=1200,
                  execution_platform='aws',
                  hpc_id=None,
                  workflow_type='nextflow',
@@ -676,12 +655,6 @@ class Job(Cloudos):
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
             The disk space of the master node instance, in GB.
-        storage_mode : string
-            Either 'lustre' or 'regular'. Indicates if the user wants to select regular
-            or lustre storage.
-        lustre_size : int
-            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
-            a multiple of it.
         execution_platform : string ['aws'|'azure'|'hpc']
             The execution platform implemented in your CloudOS.
         hpc_id : string
@@ -751,8 +724,6 @@ class Job(Cloudos):
                                                nextflow_version,
                                                instance_type,
                                                instance_disk,
-                                               storage_mode,
-                                               lustre_size,
                                                execution_platform,
                                                hpc_id,
                                                workflow_type,
