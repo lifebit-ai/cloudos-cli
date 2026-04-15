@@ -876,7 +876,8 @@ the SSL certificate file.</p></li>
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.fix_boolean_strings">
 <span class="sig-name descname"><span class="pre">fix_boolean_strings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.fix_boolean_strings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.fix_boolean_strings" title="Link to this definition">¶</a></dt>
 <dd><p>Recursively convert string booleans (‘True’, ‘False’) into real booleans
-inside dicts, lists, or nested structures.</p>
+inside dicts, lists, or nested structures. It excludes ‘textValues’ as they
+have to remain as text even if the text is ‘true’.</p>
 </dd></dl>
 
 <dl class="py method">
