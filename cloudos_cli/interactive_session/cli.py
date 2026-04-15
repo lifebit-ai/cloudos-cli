@@ -3,7 +3,6 @@
 import rich_click as click
 import json
 import time
-import time as time_module
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
 from cloudos_cli.utils.errors import BadRequestException
@@ -820,9 +819,6 @@ def get_session_status(ctx,
 @click.option('--wait',
               is_flag=True,
               help='Wait for session to fully pause.')
-@click.option('--wait-ready',
-              is_flag=True,
-              help='Wait for session to reach running state before attempting to pause (useful for CI/automation after session creation).')
 @click.option('--yes', '-y',
               'skip_confirmation',
               is_flag=True,
@@ -847,7 +843,6 @@ def pause_session(ctx,
                   no_upload,
                   force,
                   wait,
-                  wait_ready,
                   skip_confirmation,
                   verbose,
                   disable_ssl_verification,
@@ -865,28 +860,6 @@ def pause_session(ctx,
         print('\t...Preparing objects')
 
     try:
-        # If --wait-ready flag is set, poll until session is running
-        if wait_ready:
-            if verbose:
-                print('\t...Waiting for session to reach running state')
-            try:
-                session_response = poll_session_termination(
-                    cloudos_url=cloudos_url,
-                    apikey=apikey,
-                    session_id=session_id,
-                    team_id=workspace_id,
-                    max_wait=600,  # 10 minutes timeout
-                    poll_interval=5,  # Poll every 5 seconds
-                    verify_ssl=verify_ssl
-                )
-                if verbose:
-                    print(f'\t✓ Session reached running state')
-            except TimeoutError as e:
-                click.secho(f'Error: Timeout waiting for session to reach running state: {str(e)}', fg='red', err=True)
-                click.echo(f'You can check the session status using: cloudos interactive-session status --session-id {session_id}'
-                          f' --profile {profile or "default"}')
-                raise SystemExit(1)
-        
         # Check session status BEFORE prompting for confirmation
         if verbose:
             print('\t...Checking session status')
@@ -1058,9 +1031,6 @@ def pause_session(ctx,
 @click.option('--shutdown-in',
               help='Update auto-shutdown duration (e.g., 8h, 2d).',
               default=None)
-@click.option('--wait-ready',
-              is_flag=True,
-              help='Wait for session to reach paused state before attempting to resume (useful for CI/automation after session pause).')
 @click.option('--mount',
               multiple=True,
               help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
@@ -1088,7 +1058,6 @@ def resume_session(ctx,
                    storage,
                    cost_limit,
                    shutdown_in,
-                   wait_ready,
                    mount,
                    link,
                    verbose,
@@ -1117,50 +1086,6 @@ def resume_session(ctx,
         print(f'\tResuming session: {session_id}')
 
     try:
-        # If --wait-ready flag is set, poll until session is paused
-        if wait_ready:
-            if verbose:
-                print('\t...Waiting for session to reach paused state')
-            start_time = time.time()
-            max_wait = 600  # 10 minutes timeout
-            poll_interval = 5  # Poll every 5 seconds
-            
-            while True:
-                try:
-                    session_data = get_interactive_session_status(
-                        cloudos_url=cloudos_url,
-                        apikey=apikey,
-                        session_id=session_id,
-                        team_id=workspace_id,
-                        verify_ssl=verify_ssl,
-                        verbose=False
-                    )
-                    current_status = session_data.get('status', '').lower()
-                    if current_status in ['paused', 'aborted']:  # Both mean paused
-                        if verbose:
-                            print(f'\t✓ Session reached paused state')
-                        break
-                    elif current_status in ['aborting']:  # Still transitioning
-                        if verbose:
-                            print(f'\t...Session is aborting, waiting...')
-                    elif current_status in ['running', 'scheduled', 'setup', 'initialising', 'initializing']:
-                        if verbose:
-                            print(f'\t...Session is {current_status}, waiting for pause to complete...')
-                    
-                    if time.time() - start_time > max_wait:
-                        click.secho(f'Error: Timeout waiting for session to reach paused state (waited {max_wait}s)', fg='red', err=True)
-                        click.echo(f'You can check the session status using: cloudos interactive-session status --session-id {session_id}'
-                                  f' --profile {profile or "default"}')
-                        raise SystemExit(1)
-                    
-                    time.sleep(poll_interval)
-                except Exception as e:
-                    if 'not found' in str(e).lower() or '404' in str(e):
-                        click.secho(f'Error: Session ID not found: {session_id}', fg='red', err=True)
-                    else:
-                        click.secho(f'Error: Unable to retrieve session status: {str(e)}', fg='red', err=True)
-                    raise SystemExit(1)
-        
         # Get current session details to determine execution platform
         try:
             session_data = get_interactive_session_status(
