@@ -41,7 +41,13 @@ def get_path(param, param_kind_map, execution_platform, storage_provider, mode="
         - For 'globPattern' on AWS Batch: "s3BucketName/s3Prefix/globPattern".
         - For 'globPattern' on other platforms: "blobStorageAccountName/blobContainerName/blobPrefix/globPattern".
     """
-    value = param[param_kind_map[param['parameterKind']]]
+    # Handle unsupported parameter kinds (e.g., legacy 'lustreFileSystem' from historical jobs)
+    parameter_kind = param['parameterKind']
+    if parameter_kind not in param_kind_map:
+        # Return the parameterKind as-is to indicate an unsupported/legacy parameter type
+        return f"<unsupported parameter type: {parameter_kind}>"
+    
+    value = param[param_kind_map[parameter_kind]]
     if param['parameterKind'] == 'dataItem':
         if execution_platform == "Batch AWS":
             s3_object_key = value['item'].get('s3ObjectKey', None) if value['item'].get('s3Prefix', None) is None else value['item'].get('s3Prefix', None)
