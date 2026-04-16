@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.88.2 (2026-04-15)
+
+### Patch
+
+- Fixes job resume for bool parameters. If the user has something like `--my_param true`, now it
+  is correctly passed as string and not as a bool (the platform only accepts strings for user params).
+
 ## v2.88.1 (2026-04-14)
 
 ### Patch
