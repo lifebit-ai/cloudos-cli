@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.89.1 (2026-04-17)
+
+### Patch
+
+- Fixes job list table to be more dynamically responsive.
+
 ## v2.88.2 (2026-04-15)
 
 ### Patch
