@@ -568,11 +568,42 @@ def _calculate_table_width(column_list, col_configs):
     return borders_and_separators + column_widths + buffer
 
 
-def _fit_columns_to_terminal(cols, terminal_w, col_configs):
-    """Build column list progressively, only adding columns that fit completely."""
+def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False):
+    """Build column list progressively, only adding columns that fit completely.
+    
+    Parameters
+    ----------
+    cols : list
+        List of column keys to fit
+    terminal_w : int
+        Terminal width to fit columns into
+    col_configs : dict
+        Column configuration dictionary
+    preserve_order : bool
+        If True, preserve the order of cols. If False, reorder by priority.
+        
+    Returns
+    -------
+    list
+        Columns that fit in the terminal, in appropriate order
+    """
     if len(cols) == 0:
         return cols
 
+    if preserve_order:
+        # User explicitly specified column order - preserve it
+        result = []
+        for col in cols:
+            test_list = result + [col]
+            width = _calculate_table_width(test_list, col_configs)
+            if width <= terminal_w:
+                result.append(col)
+            else:
+                # Stop adding columns once we exceed width
+                break
+        return result
+    
+    # Auto-selection mode: reorder by priority for better UX
     essential_priority = ['status', 'id', 'name', 'pipeline']
     additional_priority = [
         'project', 'owner', 'run_time', 'cost',
@@ -605,7 +636,9 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs):
         width = _calculate_table_width(test_list, col_configs)
         if width <= terminal_w:
             result.append(col)
-        # If it doesn't fit, stop - don't add any more columns
+        else:
+            # If it doesn't fit, stop - don't add any more columns
+            break
     
     return result
 
@@ -677,7 +710,9 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
 
     effective_width = terminal_width - 5
     console = Console(width=terminal_width)
-    columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, all_columns)
+    # Preserve user-specified column order; auto-selected columns are reordered by priority
+    preserve_order = selected_columns is not None
+    columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, all_columns, preserve_order)
 
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
