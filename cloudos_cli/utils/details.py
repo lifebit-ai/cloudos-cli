@@ -374,24 +374,16 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     # Project
     project = str(job.get("project", {}).get("name", "N/A"))
 
-    # Owner (compact format for small terminals)
+    # Owner (single-line format, no wrapping)
     user_info = job.get("user", {})
     name_part = user_info.get('name', '')
     surname_part = user_info.get('surname', '')
-    if terminal_width < 90:
-        if name_part and surname_part:
-            owner = f"{name_part[0]}.{surname_part[0]}."
-        elif name_part or surname_part:
-            owner = (name_part or surname_part)[:8]
-        else:
-            owner = "N/A"
+    if name_part and surname_part:
+        owner = f"{name_part} {surname_part}"
+    elif name_part or surname_part:
+        owner = name_part or surname_part
     else:
-        if name_part and surname_part:
-            owner = f"{name_part}\n{surname_part}"
-        elif name_part or surname_part:
-            owner = name_part or surname_part
-        else:
-            owner = "N/A"
+        owner = "N/A"
 
     # Pipeline
     pipeline = str(job.get("workflow", {}).get("name", "N/A")).split('\n')[0].strip()
@@ -403,23 +395,23 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     job_url = f"{cloudos_url}/app/advanced-analytics/analyses/{job_id}"
     job_id_with_link = f"[link={job_url}]{job_id}[/link]"
 
-    # Submit time (compact format for small terminals)
+    # Submit time (single-line format)
     created_at = job.get("createdAt")
     if created_at:
         try:
             dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-            submit_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+            submit_time = dt.strftime('%m-%d %H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d %H:%M')
         except (ValueError, TypeError):
             submit_time = "N/A"
     else:
         submit_time = "N/A"
 
-    # End time (compact format for small terminals)
+    # End time (single-line format)
     end_time_raw = job.get("endTime")
     if end_time_raw:
         try:
             dt = datetime.fromisoformat(end_time_raw.replace('Z', '+00:00'))
-            end_time = dt.strftime('%m-%d\n%H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d\n%H:%M:%S')
+            end_time = dt.strftime('%m-%d %H:%M') if terminal_width < 90 else dt.strftime('%Y-%m-%d %H:%M')
         except (ValueError, TypeError):
             end_time = "N/A"
     else:
@@ -502,6 +494,25 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     return [column_values[col] for col in columns_to_show]
 
 
+def _create_status_legend():
+    """Create a formatted legend for job status symbols.
+    
+    Returns
+    -------
+    str
+        Formatted legend string with status symbols and their meanings.
+    """
+    legend_items = [
+        "[bold green]✓[/bold green] = Completed",
+        "[bold bright_black]◐[/bold bright_black] = Running",
+        "[bold red]✗[/bold red] = Failed",
+        "[bold orange3]■[/bold orange3] = Aborted",
+        "[bold bright_black]○[/bold bright_black] = Initialising",
+        "[bold bright_black]?[/bold bright_black] = Unknown"
+    ]
+    return "[cyan]Legend:[/cyan] " + "  |  ".join(legend_items)
+
+
 def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_columns):
     """Helper function to build a complete job table.
     
@@ -523,7 +534,7 @@ def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_col
     Table
         Rich Table object populated with job rows
     """
-    table = Table(title="Job List")
+    table = Table()
 
     # Add columns to table
     for col_key in columns_to_show:
@@ -545,59 +556,67 @@ def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_col
     return table
 
 
+def _calculate_table_width(column_list, col_configs):
+    """Calculate total table width including all overhead."""
+    borders_and_separators = 2 + (len(column_list) - 1)
+    column_widths = sum(
+        col_configs[col].get('max_width', col_configs[col].get('min_width', 10)) + 2
+        for col in column_list
+    )
+    buffer = 15
+    return borders_and_separators + column_widths + buffer
+
+
+def _fit_columns_to_terminal(cols, terminal_w, col_configs):
+    """Build column list progressively, only adding columns that fit completely."""
+    if len(cols) == 0:
+        return cols
+
+    essential_priority = ['status', 'id', 'pipeline', 'name']
+    additional_priority = [
+        'project', 'owner', 'run_time', 'cost',
+        'submit_time', 'end_time', 'commit', 'resources', 'storage_type'
+    ]
+    
+    essential_requested = [col for col in essential_priority if col in cols]
+    additional_requested = [col for col in cols if col not in essential_priority]
+
+    additional_ordered = [col for col in additional_priority if col in additional_requested]
+    additional_ordered.extend([col for col in additional_requested if col not in additional_priority])
+
+    result = []
+    for col in essential_requested:
+        test_list = result + [col]
+        width = _calculate_table_width(test_list, col_configs)
+        if width <= terminal_w:
+            result.append(col)
+        else:
+            # If even essential column doesn't fit, we have a problem
+            # Only add it if this is the first column (always show at least status)
+            if len(result) == 0 and col == 'status':
+                result.append(col)
+            # Otherwise stop - this terminal is too narrow
+            break
+    
+    # Try to add additional columns one by one
+    for col in additional_ordered:
+        test_list = result + [col]
+        width = _calculate_table_width(test_list, col_configs)
+        if width <= terminal_w:
+            result.append(col)
+        # If it doesn't fit, stop - don't add any more columns
+    
+    return result
+
+
 def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_columns=None, fetch_page_callback=None):
-    """
-    Creates a formatted job list table for stdout output with responsive design and interactive pagination.
-
-    The table automatically adapts to terminal width by showing different column sets:
-    - Very narrow (<60 chars): Essential columns only (status, name, pipeline, id)
-    - Narrow (<90 chars): + Important columns (project, owner, run_time, cost)
-    - Medium (<120 chars): + Useful columns (submit_time, end_time, commit)
-    - Wide (≥120 chars): + Extended columns (resources, storage_type)
-
-    Status symbols are displayed with colors:
-    - Green ✓ for completed jobs
-    - Grey ◐ for running jobs
-    - Red ✗ for failed jobs
-    - Orange ■ for aborted jobs
-    - Grey ○ for initialising jobs
-    - Grey ? for unknown status
-
-    Parameters
-    ----------
-    jobs : list
-        List of job dictionaries from the CloudOS API.
-    cloudos_url : str
-        The CloudOS service URL for generating job links.
-    pagination_metadata : dict, optional
-        Pagination metadata from the API response containing:
-        - 'Pagination-Count': Total number of jobs matching the filter
-        - 'Pagination-Page': Current page number
-        - 'Pagination-Limit': Page size
-    selected_columns : str or list, optional
-        Column names to display. Can be:
-        - None: Auto-responsive based on terminal width
-        - String: Comma-separated column names (e.g., "status,name,cost")
-        - List: List of column names
-        Valid columns: 'status', 'name', 'project', 'owner', 'pipeline', 'id',
-        'submit_time', 'end_time', 'run_time', 'commit', 'cost', 'resources', 'storage_type'
-    fetch_page_callback : callable, optional
-        Callback function to fetch a specific page of results for interactive pagination.
-        Should accept page number (1-indexed) and return dict with 'jobs' and 'pagination_metadata' keys.
-        If provided, enables interactive navigation (n=next, p=previous, q=quit).
-
-    Returns
-    -------
-    None
-        Prints the formatted table to console with pagination information.
-
-    Raises
-    ------
-    ValueError
-        If invalid column names are provided in selected_columns.
-    """
-    console = Console()
-
+    """Creates a formatted job list table with responsive design and pagination."""
+    # Get terminal width for responsive design
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except OSError:
+        terminal_width = 80  # Default fallback
+    
     # Get terminal width for responsive design
     try:
         terminal_width = os.get_terminal_size().columns
@@ -612,41 +631,37 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         'extended': [ 'resources', 'storage_type']  # +30 chars
     }
 
-    # Define all available columns with their configurations
     all_columns = {
-        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
-        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "min_width": 6, "max_width": 20},
-        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "min_width": 6, "max_width": 15},
-        'owner': {"header": "Owner", "style": "blue", "overflow": "ellipsis", "min_width": 6, "max_width": 12},
-        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "min_width": 6, "max_width": 15},
-        'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "min_width": 6, "max_width": 12},
-        'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 10, "max_width": 16},
-        'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 10, "max_width": 16},
-        'run_time': {"header": "Runtime", "style": "green", "no_wrap": True, "min_width": 5, "max_width": 10},
-        'commit': {"header": "Commit", "style": "magenta", "no_wrap": True, "min_width": 7, "max_width": 8},
-        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True, "min_width": 6, "max_width": 10},
-        'resources': {"header": "Resources", "style": "blue", "overflow": "ellipsis", "min_width": 3, "max_width": 15},
-        'storage_type': {"header": "Storage", "style": "white", "no_wrap": True, "min_width": 3, "max_width": 8}
+        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 8, "max_width": 8},
+        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 20},
+        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 18},
+        'owner': {"header": "Owner", "style": "blue", "overflow": "crop", "no_wrap": True, "min_width": 4, "max_width": 14},
+        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 20},
+        'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "no_wrap": True, "min_width": 24, "max_width": 24},
+        'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
+        'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
+        'run_time': {"header": "Runtime", "style": "green", "no_wrap": True, "min_width": 8, "max_width": 12},
+        'commit': {"header": "Commit", "style": "magenta", "no_wrap": True, "min_width": 9, "max_width": 10},
+        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True, "min_width": 8, "max_width": 12},
+        'resources': {"header": "Resources", "style": "blue", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 16},
+        'storage_type': {"header": "Storage", "style": "white", "no_wrap": True, "min_width": 8, "max_width": 10}
     }
 
-    # Validate and process selected_columns
     if selected_columns is None:
-        # Auto-select columns based on terminal width if none specified
-        if terminal_width < 60:
+        if terminal_width < 100:
             columns_to_show = priority_columns['essential']
-        elif terminal_width < 90:
+        elif terminal_width < 150:
             columns_to_show = priority_columns['essential'] + priority_columns['important']
-        elif terminal_width < 130:
-            columns_to_show = (priority_columns['essential'] + 
-                             priority_columns['important'] + 
+        elif terminal_width < 180:
+            columns_to_show = (priority_columns['essential'] +
+                             priority_columns['important'] +
                              priority_columns['useful'])
-        else:  # terminal_width >= 130
-            columns_to_show = (priority_columns['essential'] + 
-                             priority_columns['important'] + 
+        else:
+            columns_to_show = (priority_columns['essential'] +
+                             priority_columns['important'] +
                              priority_columns['useful'] +
                              priority_columns['extended'])
     else:
-        # Accept either a comma-separated string or a list
         if isinstance(selected_columns, str):
             selected_columns = [col.strip().lower() for col in selected_columns.split(',')]
         valid_columns = list(all_columns.keys())
@@ -654,20 +669,23 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         if invalid_cols:
             raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
                            f"Valid columns are: {', '.join(valid_columns)}")
-        columns_to_show = selected_columns  # Preserve user-specified order
+        columns_to_show = selected_columns
+
+    effective_width = terminal_width - 5
+    console = Console(width=terminal_width)
+    columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, all_columns)
 
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
         return
 
-    # Create table using helper function
-    table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_columns)
+    table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
 
-    # If no fetch_page_callback, display static table
     if not fetch_page_callback or not pagination_metadata:
         console.print(table)
-        
-        # Display pagination info at the bottom
+        legend = _create_status_legend()
+        console.print(f"\n{legend}\n")
+
         if pagination_metadata:
             total_jobs = pagination_metadata.get('Pagination-Count', 0)
             current_page = pagination_metadata.get('Pagination-Page', 1)
@@ -677,20 +695,17 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             console.print(f"\n[cyan]Showing {len(jobs)} of {total_jobs} total jobs | Page {current_page} of {total_pages}[/cyan]")
         return
 
-    # Interactive pagination mode
-    current_page = pagination_metadata.get('Pagination-Page', 1) or 1  # Ensure never None
+    current_page = pagination_metadata.get('Pagination-Page', 1) or 1
     total_jobs = pagination_metadata.get('Pagination-Count', 0)
     page_size_value = pagination_metadata.get('Pagination-Limit', 10)
     total_pages = (total_jobs + page_size_value - 1) // page_size_value if total_jobs > 0 else 1
-    
     show_error = None
-    
+
     while True:
-        # Clear console and display table
         console.clear()
         console.print(table)
-        
-        # Display pagination info
+        legend = _create_status_legend()
+        console.print(f"{legend}\n")
         console.print(f"\n[cyan]Total jobs:[/cyan] {total_jobs}")
         if total_pages > 1:
             console.print(f"[cyan]Page:[/cyan] {current_page} of {total_pages}")
@@ -703,21 +718,19 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         
         # Show pagination controls only if there are multiple pages
         if total_pages > 1:
-            # Check if we're in an interactive environment
             if not sys.stdin.isatty():
                 console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
                 console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
                 break
-            
+
             console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
-            
-            # Get user input for navigation
+
             try:
                 choice = input(">>> ").strip().lower()
             except (EOFError, KeyboardInterrupt):
                 console.print("\n[yellow]Pagination interrupted.[/yellow]")
                 break
-            
+
             if choice in ("q", "quit"):
                 break
             elif choice in ("n", "next"):
@@ -730,10 +743,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        
-                        # Rebuild table with new jobs using helper function
-                        table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_columns)
-                            
+                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
@@ -748,10 +758,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        
-                        # Rebuild table with new jobs using helper function
-                        table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_columns)
-                            
+                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
@@ -759,7 +766,6 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
             else:
                 show_error = "[yellow]Invalid choice. Use 'n' (next), 'p' (previous), or 'q' (quit)[/yellow]"
         else:
-            # Only one page, exit after displaying
             break
 
 
