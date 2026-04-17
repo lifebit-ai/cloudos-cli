@@ -563,7 +563,8 @@ def _calculate_table_width(column_list, col_configs):
         col_configs[col].get('max_width', col_configs[col].get('min_width', 10)) + 2
         for col in column_list
     )
-    buffer = 15
+    buffer = 2
+
     return borders_and_separators + column_widths + buffer
 
 
@@ -572,7 +573,7 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs):
     if len(cols) == 0:
         return cols
 
-    essential_priority = ['status', 'id', 'pipeline', 'name']
+    essential_priority = ['status', 'id', 'name', 'pipeline']
     additional_priority = [
         'project', 'owner', 'run_time', 'cost',
         'submit_time', 'end_time', 'commit', 'resources', 'storage_type'
@@ -625,18 +626,19 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
 
     # Define column priority groups for small terminals
     priority_columns = {
-        'essential': ['status', 'name', 'pipeline', 'id'],  # ~40 chars minimum
-        'important': ['project', 'owner', 'run_time', 'cost'],  # +30 chars
-        'useful': [ 'submit_time', 'end_time', 'commit'],  # +50 chars
-        'extended': [ 'resources', 'storage_type']  # +30 chars
+        'minimal': ['status', 'id', 'name'],
+        'essential': ['status', 'id', 'name', 'pipeline'], 
+        'important': [ 'project', 'owner', 'run_time', 'cost'],
+        'useful': [ 'submit_time', 'end_time', 'commit'],
+        'extended': [ 'resources', 'storage_type']
     }
 
     all_columns = {
-        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 8, "max_width": 8},
-        'name': {"header": "Name", "style": "green", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 20},
-        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 18},
+        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
+        'name': {"header": "Name", "style": "green", "overflow": "fold", "no_wrap": False, "min_width": 6, "max_width": 14},
+        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "no_wrap": True, "min_width": 6, "max_width": 18},
         'owner': {"header": "Owner", "style": "blue", "overflow": "crop", "no_wrap": True, "min_width": 4, "max_width": 14},
-        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 20},
+        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 14},
         'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "no_wrap": True, "min_width": 24, "max_width": 24},
         'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
         'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
@@ -648,7 +650,9 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     }
 
     if selected_columns is None:
-        if terminal_width < 100:
+        if terminal_width < 80:
+            columns_to_show = priority_columns['minimal']
+        elif terminal_width <= 100:
             columns_to_show = priority_columns['essential']
         elif terminal_width < 150:
             columns_to_show = priority_columns['essential'] + priority_columns['important']
