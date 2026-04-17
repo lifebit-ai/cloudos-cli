@@ -2,7 +2,7 @@
 
 [![CI_tests](https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml)
 
-Python package for interacting with CloudOS
+Python package for interacting with Lifebit Platform
 
 ---
 
@@ -94,7 +94,7 @@ Python package for interacting with CloudOS
 
 ## Requirements
 
-CloudOS CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.
+Lifebit Platform CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.
 
 ```
 click>=8.0.1
@@ -108,7 +108,7 @@ rich_click>=1.8.2
 
 ## Installation
 
-CloudOS CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.
+Lifebit Platform CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.
 
 ### From PyPI
 
@@ -118,7 +118,7 @@ The repository is also available from [PyPI](https://pypi.org/project/cloudos-cl
 pip install cloudos-cli
 ```
 
-To update CloudOS CLI to the latest version using pip, you can run:
+To update Lifebit Platform CLI to the latest version using pip, you can run:
 
 ```bash
 pip install --upgrade cloudos-cli
@@ -160,7 +160,7 @@ pip install .
 
 ## Usage
 
-CloudOS CLI can be used both as a command-line interface tool for interactive work and as a Python package for scripting and automation.
+Lifebit Platform CLI can be used both as a command-line interface tool for interactive work and as a Python package for scripting and automation.
 
 To get general information about the tool:
 
@@ -171,7 +171,7 @@ cloudos --help
                                                                                                                         
  Usage: cloudos [OPTIONS] COMMAND [ARGS]...                                                                             
                                                                                                                         
- CloudOS python package: a package for interacting with CloudOS.                                                        
+ Lifebit Platform python package: a package for interacting with Lifebit Platform.                                                        
                                                                                                                         
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --debug        Show detailed error information and tracebacks                                                        │
@@ -179,15 +179,15 @@ cloudos --help
 │ --help         Show this message and exit.                                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ bash               CloudOS bash functionality.                                                                       │
-│ configure          CloudOS configuration.                                                                            │
+│ bash               Lifebit Platform bash functionality.                                                                       │
+│ configure          Lifebit Platform configuration.                                                                            │
 │ cromwell           Cromwell server functionality: check status, start and stop.                                      │
-│ datasets           CloudOS datasets functionality.                                                                   │
-│ job                CloudOS job functionality: run, check and abort jobs in CloudOS.                                  │
-│ procurement        CloudOS procurement functionality.                                                                │
-│ project            CloudOS project functionality: list and create projects in CloudOS.                               │
-│ queue              CloudOS job queue functionality.                                                                  │
-│ workflow           CloudOS workflow functionality: list and import workflows.                                        │
+│ datasets           Lifebit Platform datasets functionality.                                                                   │
+│ job                Lifebit Platform job functionality: run, check and abort jobs in Lifebit Platform.                                  │
+│ procurement        Lifebit Platform procurement functionality.                                                                │
+│ project            Lifebit Platform project functionality: list and create projects in Lifebit Platform.                               │
+│ queue              Lifebit Platform job queue functionality.                                                                  │
+│ workflow           Lifebit Platform workflow functionality: list and import workflows.                                        │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -198,14 +198,14 @@ cloudos job list --help
 ```
 ```console                                                                                                      Usage: cloudos job list [OPTIONS]                                                                          
                                                                                                             
- Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     
+ Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.                                     
                                                                                                             
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --apikey                    -k  TEXT        Your CloudOS API key [required]                           │
-│ *  --cloudos-url               -c  TEXT        The CloudOS url you are trying to access to.              │
+│ *  --apikey                    -k  TEXT        Your Lifebit Platform API key [required]                           │
+│ *  --cloudos-url               -c  TEXT        The Lifebit Platform url you are trying to access to.              │
 │                                                Default=https://cloudos.lifebit.ai.                       │
 │                                                [required]                                                │
-│ *  --workspace-id                  TEXT        The specific CloudOS workspace id. [required]             │
+│ *  --workspace-id                  TEXT        The specific Lifebit Platform workspace id. [required]             │
 │    --output-basename               TEXT        Output file base name to save jobs list. Default=joblist  │
 │    --output-format                 [csv|json]  The desired file format (file extension) for the output.  │
 │                                                For json option --all-fields will be automatically set to │
@@ -251,7 +251,7 @@ In the same way, each implemented command has its own subcommands with its own `
 
 ## Configuration
 
-CloudOS CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple CloudOS environments.
+Lifebit Platform CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple Lifebit Platform environments.
 
 Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named `.cloudos` will be created, with files `credentials` and `config` also being created. The structure will look like:
 
@@ -285,8 +285,8 @@ cloudos configure --profile {profile-name}
 The same prompts will appear, including the execution platform (aws or azure). If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.
 
 When configuring a profile, you can specify:
-- **API Key**: Your CloudOS API credentials
-- **CloudOS URL**: The CloudOS instance URL  
+- **API Key**: Your Lifebit Platform API credentials
+- **Platform URL**: The Lifebit Platform instance URL  
 - **Project Name**: Default project for commands
 - **Execution Platform**: `aws` (default) or `azure` - determines default instance types and available features
 - **Repository Platform**: Version control system (github, gitlab, etc.)
@@ -333,13 +333,13 @@ cloudos configure remove-profile --profile second-profile
 
 ### Configure
 
-See [Configuration](#configuration) section above for detailed information on setting up profiles and managing your CloudOS CLI configuration.
+See [Configuration](#configuration) section above for detailed information on setting up profiles and managing your Lifebit Platform CLI configuration.
 
 
 
 ### Project
 
-Projects in CloudOS provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.
+Projects in Lifebit Platform provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.
 
 #### List Projects
 
@@ -379,7 +379,7 @@ cloudos project list --profile my_profile --output-format json
 
 #### Create Projects
 
-You can create a new project in your CloudOS workspace using the `project create` command. This command requires the name of the new project and will return the project ID upon successful creation.
+You can create a new project in your Lifebit Platform workspace using the `project create` command. This command requires the name of the new project and will return the project ID upon successful creation.
 
 ```bash
 cloudos project create --profile my_profile --new-project "My New Project"
@@ -394,10 +394,10 @@ The expected output is something similar to:
 
 ### Queue
 
-Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the "Compute Resources" section in "Settings".
+Job queues are required for running jobs using AWS batch executor. The available job queues in your Lifebit Platform workspace are listed in the "Compute Resources" section in "Settings".
 
 > [!NOTE]
-> **Azure Platform**: Queue listing is not available for CloudOS workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.
+> **Azure Platform**: Queue listing is not available for Lifebit Platform workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.
 
 #### List Queues
 
@@ -439,11 +439,11 @@ To save queue data to a CSV file:
 cloudos queue list --profile my_profile --output-format csv
 ```
 
-> NOTE: The queue name that is visible in CloudOS and must be used with the `--job-queue` parameter is the one in the `label` field.
+> NOTE: The queue name that is visible in Lifebit Platform and must be used with the `--job-queue` parameter is the one in the `label` field.
 
 **Job queues for platform workflows**
 
-Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the `--job-queue` parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
+Platform workflows (those provided by Lifebit Platform in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, Lifebit Platform will automatically assign the valid queue and you should not specify any queue using the `--job-queue` parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are "System Tools" and "Data Factory" workflows.
 
 
 ### Workflow
@@ -490,19 +490,19 @@ Executing list...
 	Workflow list saved to workflow_list.json
 ```
 
-The collected workflows are those that can be found in the "WORKSPACE TOOLS" section in CloudOS.
+The collected workflows are those that can be found in the "WORKSPACE TOOLS" section in Lifebit Platform.
 
 #### Import a Nextflow Workflow
 
-You can import new workflows to your CloudOS workspaces. The requirements are:
+You can import new workflows to your Lifebit Platform workspaces. The requirements are:
 
 - The workflow must be a Nextflow pipeline
 - The workflow repository must be located at GitHub, GitLab or BitBucket Server (specified by the `--repository-platform` option. Available options: `github`, `gitlab` and `bitbucketServer`)
-- If your repository is private, you must have access to the repository and have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS
+- If your repository is private, you must have access to the repository and have linked your GitHub, Gitlab or Bitbucket server accounts to Lifebit Platform
 
 **Usage of the workflow import command**
 
-To import GitHub workflows to CloudOS:
+To import GitHub workflows to Lifebit Platform:
 
 ```bash
 # Example workflow to import: https://github.com/lifebit-ai/DeepVariant
@@ -512,7 +512,7 @@ cloudos workflow import --profile my_profile --workflow-url "https://github.com/
 The expected output will be:
 
 ```console
-CloudOS workflow functionality: list and import workflows.
+Lifebit Platform workflow functionality: list and import workflows.
 
 Executing workflow import...
 
@@ -527,16 +527,16 @@ Optionally, you can add a link to your workflow documentation by providing the U
 cloudos workflow import --profile my_profile --workflow-url "https://github.com/lifebit-ai/DeepVariant" --workflow-name "new_name_for_the_github_workflow" --workflow-docs-link "https://github.com/lifebit-ai/DeepVariant/blob/master/README.md" --repository-platform github
 ```
 
-> NOTE: Importing workflows using cloudos-cli is not yet available in all CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
+> NOTE: Importing workflows using cloudos-cli is not yet available in all Lifebit Platform workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: `It seems your API key is not authorised. Please check if your workspace has support for importing workflows using cloudos-cli`.
 
 
 ### Nextflow Jobs
 
-The job commands allow you to submit, monitor, and manage computational workflows on CloudOS. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.
+The job commands allow you to submit, monitor, and manage computational workflows on Lifebit Platform. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.
 
 #### Submit a Job
 
-You can submit Nextflow workflows to CloudOS using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameters, etc.
+You can submit Nextflow workflows to Lifebit Platform using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameters, etc.
 
 First, configure your local environment to ease parameter input. We will try to submit a small toy example already available:
 
@@ -616,7 +616,7 @@ If everything went well, you should see something like:
 
 ```console
 Executing run...
-	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355
+	Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355
 	Your assigned job id is: 62c83a1191fe06013b7ef355
 	Your current job status is: initializing
 	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or use the following command:
@@ -640,7 +640,7 @@ If the job takes less than `--wait-time` (3600 seconds by default), the previous
 
 ```console
 Executing run...
-	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363
+	Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363
 	Your assigned job id is: 62c83a6191fe06013b7ef363
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.
@@ -654,7 +654,7 @@ _For example, the pipeline `lifebit-process` was imported on May 23 2025 and aga
 
 **Nextflow Version Support**
 
-CloudOS CLI supports multiple Nextflow versions, with intelligent defaults based on your workflow type and execution platform.
+Lifebit Platform CLI supports multiple Nextflow versions, with intelligent defaults based on your workflow type and execution platform.
 
 **Default Version Behavior:**
 
@@ -673,11 +673,11 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 ```
 
 > [!NOTE]
-> **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
+> **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), Lifebit Platform CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
 
 **AWS Executor Support**
 
-CloudOS supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.
+Lifebit Platform supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.
 You can specify the AWS batch queue to use from the ones available in your workspace (see [here](#list-job-queues)) by specifying its name with the `--job-queue` parameter. If none is specified, the most recent suitable queue in your workspace will be selected by default.
 
 Example command:
@@ -686,14 +686,14 @@ Example command:
 cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos_cli/examples/rnatoy.config --resumable
 ```
 
-> Note: From cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite) executor is being removed progressively from CloudOS, so most likely will not be available in your CloudOS. Cloudos-cli still supports ignite during this period by adding the `--ignite` flag to the `cloudos job run` command. Please note that if you use the `--ignite` flag in a CloudOS without ignite support, the command will fail.
+> Note: From cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache [ignite](https://www.nextflow.io/docs/latest/ignite.html#apache-ignite) executor is being removed progressively from Lifebit Platform, so most likely will not be available in your Lifebit Platform. Cloudos-cli still supports ignite during this period by adding the `--ignite` flag to the `cloudos job run` command. Please note that if you use the `--ignite` flag in a Lifebit Platform without ignite support, the command will fail.
 
 **Azure Execution Platform Support**
 
-CloudOS can also be configured to use Microsoft Azure compute platforms. If your CloudOS is configured to use Azure, you will need to take into consideration the following:
+Lifebit Platform can also be configured to use Microsoft Azure compute platforms. If your Lifebit Platform is configured to use Azure, you will need to take into consideration the following:
 
-- When sending jobs to CloudOS using `cloudos job run` command, please use the option `--execution-platform azure`
-- Azure only supports Nextflow version `22.11.1-edge`. If you specify a different version, CloudOS CLI will display a warning and automatically use `22.11.1-edge` instead
+- When sending jobs to Lifebit Platform using `cloudos job run` command, please use the option `--execution-platform azure`
+- Azure only supports Nextflow version `22.11.1-edge`. If you specify a different version, Lifebit Platform CLI will display a warning and automatically use `22.11.1-edge` instead
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:
@@ -704,7 +704,7 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 
 **HPC Execution Support**
 
-CloudOS is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using `cloudos job run` command:
+Lifebit Platform is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using `cloudos job run` command:
 
 - Use the following parameter: `--execution-platform hpc`
 - Indicate the HPC ID using: `--hpc-id XXXX`
@@ -746,7 +746,7 @@ View your workspace jobs in a clean, formatted table directly in your terminal. 
 
 **Output Formats**
 
-CloudOS CLI provides three output formats for job listings:
+Lifebit Platform CLI provides three output formats for job listings:
 
 - **Table (default)**: Rich formatted table displayed in the terminal with pagination information
 - **CSV**: Tabular format with predefined or all available columns using `--all-fields`
@@ -789,11 +789,11 @@ Jobs are displayed with colored visual status indicators:
 
 **Clickable Job IDs**
 
-Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in CloudOS.
+Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in Lifebit Platform.
 
 **Job Listing Control Options**
 
-CloudOS CLI provides two ways to control the number of jobs retrieved:
+Lifebit Platform CLI provides two ways to control the number of jobs retrieved:
 
 1. **Pagination Control (Default)**: Use `--page` and `--page-size` for precise pagination
 2. **Last N Jobs**: Use `--last-n-jobs` for retrieving the most recent jobs
@@ -930,7 +930,7 @@ cloudos job list --profile my_profile --last-n-jobs all --filter-workflow rnatoy
 
 #### Get Job Results
 
-The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
+The following command allows you to get the path where Lifebit Platform stores the output files for a job. This can be used only on your user's jobs and for jobs with "completed" status.
 
 Example:
 ```bash
@@ -1062,7 +1062,7 @@ cloudos job resume \
 
 #### Abort Jobs
 
-Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
+Aborts jobs in the Lifebit Platform workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the `--job-ids` parameter.
 
 ##### Basic Usage
 
@@ -1091,9 +1091,9 @@ Job 680a3cf80e56949775c02f16 aborted successfully.
 
 ##### Additional Options
 
-- `--workspace-id`: The CloudOS workspace ID (can be set in profile)
-- `--apikey`: Your CloudOS API key (can be set in profile)
-- `--cloudos-url`: The CloudOS URL (default: https://cloudos.lifebit.ai)
+- `--workspace-id`: The Lifebit Platform workspace ID (can be set in profile)
+- `--apikey`: Your Lifebit Platform API key (can be set in profile)
+- `--cloudos-url`: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)
 - `--verbose`: Print detailed information messages
 - `--disable-ssl-verification`: Disable SSL certificate verification (not recommended)
 - `--ssl-cert`: Path to your SSL certificate file
@@ -1172,7 +1172,7 @@ This file can later be used when running a job with `cloudos job run --job-confi
 
 #### Get Job Workdir
 
-To get the working directory of a job submitted to CloudOS:
+To get the working directory of a job submitted to Lifebit Platform:
 
 ```shell
 cloudos job workdir \
@@ -1183,7 +1183,7 @@ cloudos job workdir \
 The output should be something similar to:
 
 ```console
-CloudOS job functionality: run, check and abort jobs in CloudOS.
+Lifebit Platform job functionality: run, check and abort jobs in Lifebit Platform.
 
 Finding working directory path...
 Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work
@@ -1261,9 +1261,9 @@ cloudos job logs --profile my_profile --job-id "12345678910" --link --session-id
 
 #### Get Job Costs
 
-You can retrieve detailed cost information for any job in your CloudOS workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.
+You can retrieve detailed cost information for any job in your Lifebit Platform workspace using the `job cost` command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.
 
-The cost information is retrieved from CloudOS and can be displayed in multiple formats:
+The cost information is retrieved from Lifebit Platform and can be displayed in multiple formats:
 
 - **Console display**: Rich formatted tables with pagination for easy viewing
 - **CSV**: Structured data for analysis and reporting
@@ -1408,9 +1408,9 @@ cat 62c83a1191fe06013b7ef355_costs.json
 
 #### Get Job Related Analyses
 
-You can view related jobs that share the same working directory in a CloudOS workspace by using the `job related` command. This feature helps track job lineages, resume workflows, and understand job relationships.
+You can view related jobs that share the same working directory in a Lifebit Platform workspace by using the `job related` command. This feature helps track job lineages, resume workflows, and understand job relationships.
 
-The information is retrieved from CloudOS and can be displayed in multiple formats:
+The information is retrieved from Lifebit Platform and can be displayed in multiple formats:
 
 - **Console display**: Rich formatted tables with pagination
 - **JSON**: Complete job data for programmatic processing
@@ -1448,7 +1448,7 @@ The table displays key information for each related job:
 - **Status**: Current job state (initializing, running, completed, aborting, aborted, failed)
 - **Name**: Job name assigned when submitted
 - **Owner**: User who submitted the job (first name and last name)
-- **ID**: Job identifier in CloudOS
+- **ID**: Job identifier in Lifebit Platform
 - **Submit time**: When the job was submitted (formatted as YYYY-MM-DD HH:MM:SS)
 - **Run time**: Actual execution time (formatted as hours, minutes, seconds)
 - **Total Cost**: Compute cost in USD
@@ -1516,7 +1516,7 @@ Related analyses are particularly useful for:
 
 #### Delete Job Results
 
-CloudOS allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.
+Lifebit Platform allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.
 
 > [!WARNING]
 > Deleting job results is **irreversible**. All data and backups will be permanently removed and cannot be recovered. Use this feature with caution.
@@ -1592,7 +1592,7 @@ For bulk deletion of job results and working directories across multiple jobs in
 
 #### Archive Jobs
 
-CloudOS allows you to archive completed jobs to organize and manage your analysis history.
+Lifebit Platform allows you to archive completed jobs to organize and manage your analysis history.
 
 > [!NOTE]
 > Archiving jobs does not delete any data or results. It simply adds metadata to mark jobs as archived for organizational purposes.
@@ -1677,14 +1677,14 @@ Job 'valid_job' archived successfully.
 - `--verbose`: Display detailed information about the archiving process
 - `--profile`: Use a specific configuration profile
 - `--workspace-id`: Specify the workspace ID (if not using profiles)
-- `--apikey`: Your CloudOS API key (if not using profiles)
+- `--apikey`: Your Lifebit Platform API key (if not using profiles)
 
 > [!TIP]
 > Use the `cloudos job list` command to identify jobs you want to archive. You can filter by status, project, or other criteria to find specific jobs for archiving.
 
 #### Unarchive Jobs
 
-CloudOS allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.
+Lifebit Platform allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.
 
 > [!NOTE]
 > Unarchiving jobs does not modify any data or results. It simply removes the archived metadata flag, making jobs appear as regular (non-archived) jobs again.
@@ -1769,7 +1769,7 @@ Job 'valid_job' unarchived successfully.
 - `--verbose`: Display detailed information about the unarchiving process
 - `--profile`: Use a specific configuration profile
 - `--workspace-id`: Specify the workspace ID (if not using profiles)
-- `--apikey`: Your CloudOS API key (if not using profiles)
+- `--apikey`: Your Lifebit Platform API key (if not using profiles)
 
 **Managing Job Lifecycle**
 
@@ -1783,12 +1783,12 @@ Use the archive and unarchive commands together to manage your job organization:
 > Archived jobs remain fully accessible - archiving is purely for organizational purposes. Use `cloudos job list` with appropriate filters to view and manage both archived and active jobs.
 
 ### Bash Jobs
-Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
+Execute bash scripts on Lifebit Platform for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.
 
 #### Send Array Job
 
 
-A bash job can be sent to CloudOS using the command `bash` and the subcommand `job`. In this case, the `--workflow-name` must be a bash job already present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).
+A bash job can be sent to Lifebit Platform using the command `bash` and the subcommand `job`. In this case, the `--workflow-name` must be a bash job already present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).
 
 ```bash
 cloudos bash job \
@@ -1812,9 +1812,9 @@ Each `--parameter` can have a different prefix, either '--', '-', or '', dependi
 If everything went well, you should see something like:
 
 ```console
-CloudOS bash functionality.
+Lifebit Platform bash functionality.
 
-        Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334
+        Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334
         Your assigned job id is: 682622d09f305de717327334
 
         Your current job status is: initializing
@@ -2146,8 +2146,8 @@ cloudos interactive-session create \
 - `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`, default: `12h`)
 
 **Data & Storage Management:**
-- `--mount`: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use CloudOS file explorer for data access.
+- `--mount`: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and Lifebit Platform folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use Lifebit Platform file explorer for data access.
 
 **Backend-Specific:**
 - `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
@@ -2159,7 +2159,7 @@ cloudos interactive-session create \
 
 **Data Management**
 
-CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+Lifebit Platform CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
 - you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
 - you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
 
@@ -2497,7 +2497,7 @@ The command automatically loads from profile (via `@with_profile_config` decorat
 
 **Optional Overrides from Profile:**
 - `--apikey` (optional): Override API key from profile
-- `--cloudos-url` (optional): Override CloudOS URL from profile
+- `--cloudos-url` (optional): Override Lifebit Platform URL from profile
 - `--workspace-id` (optional): Override workspace ID from profile
 
 **Optional Behavior Flags:**
@@ -2570,11 +2570,11 @@ All configuration parameters are optional. If not specified, the session resumes
 
 ### Datasets
 
-Manage files and folders within your CloudOS File Explorer programmatically. These commands provide comprehensive file management capabilities for organizing research data and results.
+Manage files and folders within your Lifebit Platform File Explorer programmatically. These commands provide comprehensive file management capabilities for organizing research data and results.
 
 #### List Files
 
-Browse files and folders within your CloudOS projects. Use the `--details` flag to get comprehensive information about file ownership, sizes, and modification dates.
+Browse files and folders within your Lifebit Platform projects. Use the `--details` flag to get comprehensive information about file ownership, sizes, and modification dates.
 
 ```bash
 cloudos datasets ls <path> --profile <profile>
@@ -2734,7 +2734,7 @@ cloudos datasets mkdir <new_folder_path> --profile my_profile
 
 #### Remove Files or Folders
 
-Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from CloudOS but not from underlying cloud storage.
+Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from Lifebit Platform but not from underlying cloud storage.
 
 > [!NOTE]
 > Files and folders can be removed in the `Data` datasets and its subfolders. 
@@ -2783,12 +2783,12 @@ cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID>
 **Command options:**
 
 - `PATH`: S3 path to link (positional argument, required if `--job-id` is not provided)
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL (default: https://cloudos.lifebit.ai)
-- `--workspace-id`: The specific CloudOS workspace ID (required)
-- `--session-id`: The specific CloudOS interactive session ID (required)
-- `--job-id`: The job ID in CloudOS (links results, workdir, and logs by default)
-- `--project-name`: CloudOS project name (required for File Explorer paths)
+- `--apikey` / `-k`: Your Lifebit Platform API key (required)
+- `--cloudos-url` / `-c`: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)
+- `--workspace-id`: The specific Lifebit Platform workspace ID (required)
+- `--session-id`: The specific Lifebit Platform interactive session ID (required)
+- `--job-id`: The job ID in Lifebit Platform (links results, workdir, and logs by default)
+- `--project-name`: Lifebit Platform project name (required for File Explorer paths)
 - `--results`: Link only results folder (only works with `--job-id`)
 - `--workdir`: Link only working directory (only works with `--job-id`)
 - `--logs`: Link only logs folder (only works with `--job-id`)
@@ -2832,7 +2832,7 @@ The command provides clear error messages for common scenarios:
 
 ### Procurement
 
-CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
+Lifebit Platform supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.
 
 #### List Procurement Images
 
@@ -2848,9 +2848,9 @@ cloudos procurement images ls \
 
 **Command options:**
 
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--apikey` / `-k`: Your Lifebit Platform API key (required)
+- `--cloudos-url` / `-c`: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific Lifebit Platform procurement ID (required)
 - `--page`: The response page number (default: 1)
 - `--limit`: The page size limit (default: 10)
 - `--disable-ssl-verification`: Disable SSL certificate verification
@@ -2884,7 +2884,7 @@ This is particularly useful for understanding what container images are availabl
 
 #### Set Procurement Organization Image
 
-You can set a custom image ID or name for an organization within a procurement using the `cloudos procurement images set` command. This allows you to override the default CloudOS images with your own custom images for specific organizations.
+You can set a custom image ID or name for an organization within a procurement using the `cloudos procurement images set` command. This allows you to override the default Lifebit Platform images with your own custom images for specific organizations.
 
 To set a custom image for an organization, use the following command:
 
@@ -2894,11 +2894,11 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 
 **Set command options:**
 
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--apikey` / `-k`: Your Lifebit Platform API key (required)
+- `--cloudos-url` / `-c`: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific Lifebit Platform procurement ID (required)
 - `--organisation-id`: The organization ID where the change will be applied (required)
-- `--image-type`: The CloudOS resource image type (required). Possible values:
+- `--image-type`: The Lifebit Platform resource image type (required). Possible values:
   - `RegularInteractiveSessions`
   - `SparkInteractiveSessions`
   - `RStudioInteractiveSessions`
@@ -2923,7 +2923,7 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 
 #### Reset Procurement Organization Image
 
-You can reset an organization's image configuration back to CloudOS defaults using the `cloudos procurement images reset` command. This removes any custom image configurations and restores the original CloudOS defaults.
+You can reset an organization's image configuration back to Lifebit Platform defaults using the `cloudos procurement images reset` command. This removes any custom image configurations and restores the original Lifebit Platform defaults.
 
 To reset an organization's image to defaults, use the following command:
 
@@ -2933,11 +2933,11 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 
 **Reset command options:**
 
-- `--apikey` / `-k`: Your CloudOS API key (required)
-- `--cloudos-url` / `-c`: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)
-- `--procurement-id`: The specific CloudOS procurement ID (required)
+- `--apikey` / `-k`: Your Lifebit Platform API key (required)
+- `--cloudos-url` / `-c`: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--procurement-id`: The specific Lifebit Platform procurement ID (required)
 - `--organisation-id`: The organization ID where the change will be applied (required)
-- `--image-type`: The CloudOS resource image type (required). Same values as for `set` command
+- `--image-type`: The Lifebit Platform resource image type (required). Same values as for `set` command
 - `--provider`: The cloud provider (required). Currently only `aws` is supported
 - `--region`: The cloud region (required). Currently only AWS regions are supported
 - `--disable-ssl-verification`: Disable SSL certificate verification
@@ -2947,7 +2947,7 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 **Reset command example:**
 
 ```bash
-# Reset image configuration to CloudOS defaults
+# Reset image configuration to Lifebit Platform defaults
 cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
 ```
 
@@ -2956,7 +2956,7 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 
 #### Manage Cromwell Server
 
-In order to run WDL pipelines, a Cromwell server in CloudOS should be running. This server can be accessed to check its status, restart it or stop it, using the following commands:
+In order to run WDL pipelines, a Cromwell server in Lifebit Platform should be running. This server can be accessed to check its status, restart it or stop it, using the following commands:
 
 ```bash
 # Check Cromwell status
@@ -2994,7 +2994,7 @@ Stopping Cromwell server...
 
 To run WDL workflows, `cloudos job run` command can be used normally, but adding two extra parameters:
 
-- `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the CloudOS workflow.
+- `--wdl-mainfile`: name of the mainFile (*.wdl) file used by the Lifebit Platform workflow.
 - `--wdl-importsfile` [Optional]: name of the workflow imported file (importsFile, *.zip).
 
 All the rest of the `cloudos job run` functionality is available.
@@ -3043,7 +3043,7 @@ Executing run...
         --workspace-id $WORKSPACE_ID
     *******************************************************************************
 
-	Job successfully launched to CloudOS, please check the following link: ****
+	Job successfully launched to Lifebit Platform, please check the following link: ****
 	Your assigned job id is: ****
 	Please, wait until job completion or max wait time of 3600 seconds is reached.
 	Your current job status is: initializing.

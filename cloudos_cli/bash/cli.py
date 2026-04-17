@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS bash job management."""
+"""CLI commands for Lifebit Platform bash job management."""
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
@@ -14,31 +14,31 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 @click.group(cls=pass_debug_to_subcommands())
 def bash():
-    """CloudOS bash-specific job functionality."""
+    """Lifebit Platform bash-specific job functionality."""
     print(bash.__doc__ + '\n')
 
 
 @bash.command('job')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
               help='The command to run in the bash job.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
+              help='The name of a Lifebit Platform project.',
               required=True)
 @click.option('--workflow-name',
-              help='The name of a CloudOS workflow or pipeline.',
+              help='The name of a Lifebit Platform workflow or pipeline.',
               required=True)
 @click.option('--last',
               help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
@@ -96,7 +96,7 @@ def bash():
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
-              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
               default='aws')
 @click.option('--cost-limit',
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
@@ -148,7 +148,7 @@ def run_bash_job(ctx,
                  disable_ssl_verification,
                  ssl_cert,
                  profile):
-    """Run a bash job in CloudOS."""
+    """Run a bash job in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -238,23 +238,23 @@ def run_bash_job(ctx,
 @bash.command('array-job')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
               help='The command to run in the bash job.')
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
+              help='The name of a Lifebit Platform project.',
               required=True)
 @click.option('--workflow-name',
-              help='The name of a CloudOS workflow or pipeline.',
+              help='The name of a Lifebit Platform workflow or pipeline.',
               required=True)
 @click.option('--last',
               help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
@@ -317,7 +317,7 @@ def run_bash_job(ctx,
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
-              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
               type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
 @click.option('--cost-limit',
@@ -411,7 +411,7 @@ def run_bash_array_job(ctx,
                        array_parameter,
                        custom_script_path,
                        custom_script_project):
-    """Run a bash array job in CloudOS."""
+    """Run a bash array job in Lifebit Platform."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     if not list_columns and not (command or custom_script_path):

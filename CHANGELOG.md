@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.88.3 (2026-04-16)
+
+### Patch
+
+- Updated all user-facing references from "CloudOS" to "Lifebit Platform" in README and CLI help messages
+- Technical identifiers (command names, package names, URLs) remain unchanged for backward compatibility
+
 ## v2.88.2 (2026-04-15)
 
 ### Patch

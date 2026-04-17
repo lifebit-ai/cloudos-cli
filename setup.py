@@ -9,7 +9,7 @@ setuptools.setup(
     version=__version__,
     author="David Piñeyro",
     author_email="david.pineyro@lifebit.ai",
-    description="Python package for interacting with CloudOS",
+    description="Python package for interacting with the Lifebit Platform",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/lifebit-ai/cloudos-cli",

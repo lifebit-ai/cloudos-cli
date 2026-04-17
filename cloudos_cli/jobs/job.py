@@ -25,17 +25,17 @@ class Job(Cloudos):
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     cromwell_token : string
         Cromwell server token.
     workspace_id : string
         The specific Cloudos workspace id.
     project_name : string
-        The name of a CloudOS project.
+        The name of a Lifebit Platform project.
     workflow_name : string
-        The name of a CloudOS workflow or pipeline.
+        The name of a Lifebit Platform workflow or pipeline.
     verify: [bool|string]
         Whether to use SSL verification or not. Alternatively, if
         a string is passed, it will be interpreted as the path to
@@ -49,9 +49,9 @@ class Job(Cloudos):
     repository_platform : string
         The name of the repository platform of the workflow.
     project_id : string
-        The CloudOS project id for a given project name.
+        The Lifebit Platform project id for a given project name.
     workflow_id : string
-        The CloudOS workflow id for a given workflow_name.
+        The Lifebit Platform workflow id for a given workflow_name.
     """
     workspace_id: str
     project_name: str
@@ -120,15 +120,15 @@ class Job(Cloudos):
         Parameters
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         resource : string
             The resource you want to fetch from. E.g.: projects.
         workspace_id : string
             The specific Cloudos workspace id.
         name : string
-            The name of a CloudOS resource element.
+            The name of a Lifebit Platform resource element.
         mainfile : string
             The name of the mainFile used by the workflow. Only used when resource == 'workflows'.
             Required for WDL pipelines as different mainFiles could be loaded for a single
@@ -146,7 +146,7 @@ class Job(Cloudos):
         Returns
         -------
         project_id : string
-            The CloudOS project id for a given project name.
+            The Lifebit Platform project id for a given project name.
         """
         allowed_resources = ['projects', 'workflows']
         if resource not in allowed_resources:
@@ -360,9 +360,9 @@ class Job(Cloudos):
             The branch of the pipeline to use. If not specified, the last
             commit of the default branch will be used.
         project_id : string
-            The CloudOS project id for a given project name.
+            The Lifebit Platform project id for a given project name.
         workflow_id : string
-            The CloudOS workflow id for a given workflow_name.
+            The Lifebit Platform workflow id for a given workflow_name.
         job_name : string.
             The name to assign to the job.
         resumable: bool
@@ -376,7 +376,7 @@ class Job(Cloudos):
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         nextflow_version: string
-            Nextflow version to use when executing the workflow in CloudOS.
+            Nextflow version to use when executing the workflow in Lifebit Platform.
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
@@ -388,9 +388,9 @@ class Job(Cloudos):
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
         execution_platform : string ['aws'|'azure'|'hpc']
-            The execution platform implemented in your CloudOS.
+            The execution platform implemented in your Lifebit Platform.
         hpc_id : string
-            The ID of your HPC in CloudOS.
+            The ID of your HPC in Lifebit Platform.
         workflow_type : str
             The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
@@ -513,7 +513,7 @@ class Job(Cloudos):
                 workflow_params.append(example_param)
         if storage_mode == "lustre":
             click.secho('\nLustre storage has been selected. Please, be sure that this kind of ' +
-                  'storage is available in your CloudOS workspace.\n', fg='yellow', bold=True)
+                  'storage is available in your Lifebit Platform workspace.\n', fg='yellow', bold=True)
             if lustre_size % 1200:
                 raise ValueError('Please, specify a lustre storage size of 1200 or a multiple of it. ' +
                                  f'{lustre_size} is not a valid number.')
@@ -627,7 +627,7 @@ class Job(Cloudos):
                  command=None,
                  cpus=1,
                  memory=4):
-        """Send a job to CloudOS.
+        """Send a job to Lifebit Platform.
 
         Parameters
         ----------
@@ -671,7 +671,7 @@ class Job(Cloudos):
         nextflow_profile: string
             A comma separated string with the profiles to be used.
         nextflow_version: string
-            Nextflow version to use when executing the workflow in CloudOS.
+            Nextflow version to use when executing the workflow in Lifebit Platform.
         instance_type : string
             Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge
         instance_disk : int
@@ -683,9 +683,9 @@ class Job(Cloudos):
             The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or
             a multiple of it.
         execution_platform : string ['aws'|'azure'|'hpc']
-            The execution platform implemented in your CloudOS.
+            The execution platform implemented in your Lifebit Platform.
         hpc_id : string
-            The ID of your HPC in CloudOS.
+            The ID of your HPC in Lifebit Platform.
         workflow_type : str
             The type of workflow to run. It could be 'nextflow', 'wdl' or 'docker'.
         cromwell_id : str
@@ -718,14 +718,14 @@ class Job(Cloudos):
         Returns
         -------
         j_id : string
-            The CloudOS job id of the job just launched.
+            The Lifebit Platform job id of the job just launched.
         """
         apikey = self.apikey
         cloudos_url = self.cloudos_url
         workspace_id = self.workspace_id
         workflow_id = self.workflow_id
         project_id = self.project_id
-        # Prepare api request for CloudOS to run a job
+        # Prepare api request for Lifebit Platform to run a job
         headers = {
             "Content-type": "application/json",
             "apikey": apikey
@@ -773,7 +773,7 @@ class Job(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         j_id = json.loads(r.content)["jobId"]
-        print('\tJob successfully launched to CloudOS, please check the ' +
+        print('\tJob successfully launched to Lifebit Platform, please check the ' +
               f'following link: {cloudos_url}/app/advanced-analytics/analyses/{j_id}')
         return j_id
 
@@ -1051,7 +1051,7 @@ class Job(Cloudos):
         Parameters
         ----------
         job_id : str
-            The CloudOS job ID to get the payload for.
+            The Lifebit Platform job ID to get the payload for.
         verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1115,7 +1115,7 @@ class Job(Cloudos):
         Parameters
         ----------
         job_id : str
-            The CloudOS job ID to get the resume work directory for.
+            The Lifebit Platform job ID to get the resume work directory for.
         verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1162,7 +1162,7 @@ class Job(Cloudos):
         Parameters
         ----------
         source_job_id : str
-            The CloudOS job ID to clone/resume from.
+            The Lifebit Platform job ID to clone/resume from.
         queue_name : str, optional
             Name of the job queue to use.
         cost_limit : float, optional
@@ -1201,7 +1201,7 @@ class Job(Cloudos):
         Returns
         -------
         str
-            The CloudOS job ID of the cloned/resumed job.
+            The Lifebit Platform job ID of the cloned/resumed job.
         """
 
         # Get the original job payload
@@ -1401,7 +1401,7 @@ class Job(Cloudos):
             raise BadRequestException(r)
 
         j_id = json.loads(r.content)["jobId"]
-        print(f'\tJob successfully {mode}d and launched to CloudOS, please check the ' +
+        print(f'\tJob successfully {mode}d and launched to Lifebit Platform, please check the ' +
               f"following link: {self.cloudos_url}/app/advanced-analytics/analyses/{j_id}\n")
         return j_id
 
@@ -1434,7 +1434,7 @@ class Job(Cloudos):
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         workdir_folder_id : str
             The working directory folder ID to filter jobs by.
         limit : int
@@ -1539,7 +1539,7 @@ class Job(Cloudos):
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         folder_id : str
             The ID of the folder whose parent job is to be retrieved.
         verify : [bool | str], optional
@@ -1593,7 +1593,7 @@ class Job(Cloudos):
         Parameters
         ----------
         job_id : str
-            The CloudOS job ID whose results folder is to be deleted.
+            The Lifebit Platform job ID whose results folder is to be deleted.
         mode : str
             The mode to use for deletion (e.g., "analysisResults" or "workDirectory").
         verify : [bool|string]
@@ -1665,7 +1665,7 @@ class Job(Cloudos):
         owner : str
             The owner of the repository (e.g., 'lifebit-ai').
         workflow_owner_id : str
-            The workflow owner ID in CloudOS.
+            The workflow owner ID in Lifebit Platform.
         strategy : str, optional
             The repository strategy/platform (default is 'github').
         branch_name : str, optional
@@ -1743,9 +1743,9 @@ def fetch_job_page(cl, workspace_id, page_num, page_size, last_n_jobs, archived,
     Parameters
     ----------
     cl : Cloudos
-        CloudOS API client instance
+        Lifebit Platform API client instance
     workspace_id : str
-        The CloudOS workspace ID
+        The Lifebit Platform workspace ID
     page_num : int
         Page number to fetch (1-indexed)
     page_size : int
@@ -1807,9 +1807,9 @@ def create_api_pagination_callback(cl, workspace_id, page_size, archived, verify
     Parameters
     ----------
     cl : Cloudos
-        CloudOS API client instance
+        Lifebit Platform API client instance
     workspace_id : str
-        The CloudOS workspace ID
+        The Lifebit Platform workspace ID
     page_size : int
         Number of jobs per page
     archived : bool

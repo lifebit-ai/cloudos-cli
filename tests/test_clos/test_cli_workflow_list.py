@@ -27,7 +27,7 @@ def test_workflow_list_command_exists():
     result = runner.invoke(run_cloudos_cli, ['workflow', '--help'])
     assert result.exit_code == 0
     assert 'list' in result.output
-    assert 'Collect and display workflows from a CloudOS workspace' in result.output
+    assert 'Collect and display workflows from a Lifebit Platform workspace' in result.output
 
 
 def test_workflow_list_help():

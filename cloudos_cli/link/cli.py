@@ -10,24 +10,24 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 @click.argument('path', required=False)
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--session-id',
-              help='The specific CloudOS interactive session id.',
+              help='The specific Lifebit Platform interactive session id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS. When provided, links results, workdir and logs by default.',
+              help='The job id in Lifebit Platform. When provided, links results, workdir and logs by default.',
               required=False)
 @click.option('--project-name',
-              help='The name of a CloudOS project. Required for File Explorer paths.',
+              help='The name of a Lifebit Platform project. Required for File Explorer paths.',
               required=False)
 @click.option('--results',
               help='Link only results folder (only works with --job-id).',
@@ -94,7 +94,7 @@ def link(ctx,
         cloudos link s3://bucket/folder --session-id abc123
 
     """
-    print('CloudOS link functionality: link s3 folders to interactive analysis sessions.\n')
+    print('Lifebit Platform link functionality: link s3 folders to interactive analysis sessions.\n')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -117,7 +117,7 @@ def link(ctx,
 
     if verbose:
         print('Using the following parameters:')
-        print(f'\tCloudOS url: {cloudos_url}')
+        print(f'\tLifebit Platform url: {cloudos_url}')
         print(f'\tWorkspace ID: {workspace_id}')
         print(f'\tSession ID: {session_id}')
         if job_id:

@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS datasets management."""
+"""CLI commands for Lifebit Platform datasets management."""
 
 import rich_click as click
 import csv
@@ -17,7 +17,7 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 @click.group(cls=pass_debug_to_subcommands())
 @click.pass_context
 def datasets(ctx):
-    """CloudOS datasets functionality."""
+    """Lifebit Platform datasets functionality."""
     update_command_context_from_click(ctx)
     if ctx.args and ctx.args[0] != 'ls':
         print(datasets.__doc__ + '\n')
@@ -27,15 +27,15 @@ def datasets(ctx):
 @click.argument("path", required=False, nargs=1)
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
+              help='Your Lifebit Platform API key.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
@@ -44,7 +44,7 @@ def datasets(ctx):
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
+              help='The name of a Lifebit Platform project.',
               required=True)
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.option('--details',
@@ -76,7 +76,7 @@ def list_files(ctx,
                details,
                output_format,
                output_basename):
-    """List contents of a path within a CloudOS workspace dataset."""
+    """List contents of a path within a Lifebit Platform workspace dataset."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     datasets = Datasets(
@@ -235,9 +235,9 @@ def list_files(ctx,
 @datasets.command(name="mv")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
 @click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False,
               help='The destination project name. Defaults to the source project.')
@@ -250,7 +250,7 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
                project_name, destination_project_name,
                disable_ssl_verification, ssl_cert, profile):
     """
-    Move a file or folder from a source path to a destination path within or across CloudOS projects.
+    Move a file or folder from a source path to a destination path within or across Lifebit Platform projects.
 
     SOURCE_PATH [path]: the full path to the file or folder to move. It must be a 'Data' folder path.
      E.g.: 'Data/folderA/file.txt'\n
@@ -357,9 +357,9 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 @datasets.command(name="rename")
 @click.argument("source_path", required=True)
 @click.argument("new_name", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
 @click.option('--project-name', required=True, help='The project name.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
@@ -377,7 +377,7 @@ def renaming_item(ctx,
                   ssl_cert,
                   profile):
     """
-    Rename a file or folder in a CloudOS project.
+    Rename a file or folder in a Lifebit Platform project.
 
     SOURCE_PATH [path]: the full path to the file or folder to rename. It must be a 'Data' folder path.
      E.g.: 'Data/folderA/old_name.txt'\n
@@ -440,9 +440,9 @@ def renaming_item(ctx,
 @datasets.command(name="cp")
 @click.argument("source_path", required=True)
 @click.argument("destination_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
 @click.option('--project-name', required=True, help='The source project name.')
 @click.option('--destination-project-name', required=False, help='The destination project name. Defaults to the source project.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
@@ -551,9 +551,9 @@ def copy_item_cli(ctx,
 
 @datasets.command(name="mkdir")
 @click.argument("new_folder_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
 @click.option('--project-name', required=True, help='The project name.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
@@ -570,7 +570,7 @@ def mkdir_item(ctx,
                ssl_cert,
                profile):
     """
-    Create a virtual folder in a CloudOS project.
+    Create a virtual folder in a Lifebit Platform project.
 
     NEW_FOLDER_PATH [path]: Full path to the new folder including its name. Must start with 'Data'.
     """
@@ -640,9 +640,9 @@ def mkdir_item(ctx,
 
 @datasets.command(name="rm")
 @click.argument("target_path", required=True)
-@click.option('-k', '--apikey', required=True, help='Your CloudOS API key.')
-@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The CloudOS URL.')
-@click.option('--workspace-id', required=True, help='The CloudOS workspace ID.')
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
 @click.option('--project-name', required=True, help='The project name.')
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
@@ -661,7 +661,7 @@ def rm_item(ctx,
             profile,
             force):
     """
-    Delete a file or folder in a CloudOS project.
+    Delete a file or folder in a Lifebit Platform project.
 
     TARGET_PATH [path]: the full path to the file or folder to delete. Must start with 'Data'. \n
     E.g.: 'Data/folderA/file.txt' or 'Data/my_analysis/results/folderB'
@@ -729,15 +729,15 @@ def rm_item(ctx,
 
 @datasets.command(name="link")
 @click.argument("path", required=True)
-@click.option('-k', '--apikey', help='Your CloudOS API key', required=True)
+@click.option('-k', '--apikey', help='Your Lifebit Platform API key', required=True)
 @click.option('-c', '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
+              help='The name of a Lifebit Platform project.',
               required=False)
-@click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
-@click.option('--session-id', help='The specific CloudOS interactive session id.', required=True)
+@click.option('--workspace-id', help='The specific Lifebit Platform workspace id.', required=True)
+@click.option('--session-id', help='The specific Lifebit Platform interactive session id.', required=True)
 @click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
 @click.option('--ssl-cert', help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default='default')
