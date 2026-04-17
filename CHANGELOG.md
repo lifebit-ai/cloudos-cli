@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.88.3 (2026-04-16)
+## v2.89.1 (2026-04-17)
 
 ### Patch
 
