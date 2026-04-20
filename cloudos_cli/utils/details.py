@@ -629,12 +629,10 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False
         if width <= terminal_w:
             result.append(col)
         else:
-            # If even essential column doesn't fit, we have a problem
-            # Only add it if this is the first column (always show at least status)
+            # Column doesn't fit - continue trying remaining columns
+            # Special case: always show at least status on very narrow terminals
             if len(result) == 0 and col == 'status':
                 result.append(col)
-            # Otherwise stop - this terminal is too narrow
-            break
     
     # Try to add additional columns one by one
     for col in additional_ordered:
@@ -642,9 +640,7 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False
         width = _calculate_table_width(test_list, col_configs)
         if width <= terminal_w:
             result.append(col)
-        else:
-            # If it doesn't fit, stop - don't add any more columns
-            break
+        # Continue trying remaining columns even if this one doesn't fit
     
     return result
 
