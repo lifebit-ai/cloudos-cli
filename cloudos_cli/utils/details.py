@@ -601,6 +601,12 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False
             else:
                 # Stop adding columns once we exceed width
                 break
+        
+        # Ensure at least one column is shown, even if terminal is very narrow
+        if len(result) == 0 and len(cols) > 0:
+            # Force the first requested column to display
+            result.append(cols[0])
+        
         return result
     
     # Auto-selection mode: reorder by priority for better UX
@@ -713,6 +719,13 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     # Preserve user-specified column order; auto-selected columns are reordered by priority
     preserve_order = selected_columns is not None
     columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, all_columns, preserve_order)
+
+    # Warn if user-requested columns were truncated due to narrow terminal
+    if preserve_order and selected_columns:
+        original_count = len(selected_columns) if isinstance(selected_columns, list) else len([c.strip() for c in selected_columns.split(',')])
+        if len(columns_to_show) < original_count:
+            console.print(f"[yellow]Warning: Terminal too narrow. Showing {len(columns_to_show)} of {original_count} requested columns.[/yellow]")
+            console.print(f"[yellow]Increase terminal width to see all columns.[/yellow]\n")
 
     if not jobs:
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
