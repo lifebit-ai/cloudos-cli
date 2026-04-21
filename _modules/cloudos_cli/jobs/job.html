@@ -697,8 +697,6 @@
                                  <span class="n">nextflow_version</span><span class="p">,</span>
                                  <span class="n">instance_type</span><span class="p">,</span>
                                  <span class="n">instance_disk</span><span class="p">,</span>
-                                 <span class="n">storage_mode</span><span class="p">,</span>
-                                 <span class="n">lustre_size</span><span class="p">,</span>
                                  <span class="n">execution_platform</span><span class="p">,</span>
                                  <span class="n">hpc_id</span><span class="p">,</span>
                                  <span class="n">workflow_type</span><span class="p">,</span>
@@ -769,12 +767,6 @@
 <span class="sd">            Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</span>
 <span class="sd">        instance_disk : int</span>
 <span class="sd">            The disk space of the master node instance, in GB.</span>
-<span class="sd">        storage_mode : string</span>
-<span class="sd">            Either &#39;lustre&#39; or &#39;regular&#39;. Indicates if the user wants to select regular</span>
-<span class="sd">            or lustre storage.</span>
-<span class="sd">        lustre_size : int</span>
-<span class="sd">            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or</span>
-<span class="sd">            a multiple of it.</span>
 <span class="sd">        execution_platform : string [&#39;aws&#39;|&#39;azure&#39;|&#39;hpc&#39;]</span>
 <span class="sd">            The execution platform implemented in your CloudOS.</span>
 <span class="sd">        hpc_id : string</span>
@@ -899,15 +891,6 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">example_parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">example_param</span> <span class="ow">in</span> <span class="n">example_parameters</span><span class="p">:</span>
                 <span class="n">workflow_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">example_param</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">storage_mode</span> <span class="o">==</span> <span class="s2">&quot;lustre&quot;</span><span class="p">:</span>
-            <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Lustre storage has been selected. Please, be sure that this kind of &#39;</span> <span class="o">+</span>
-                  <span class="s1">&#39;storage is available in your CloudOS workspace.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">lustre_size</span> <span class="o">%</span> <span class="mi">1200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, specify a lustre storage size of 1200 or a multiple of it. &#39;</span> <span class="o">+</span>
-                                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">lustre_size</span><span class="si">}</span><span class="s1"> is not a valid number.&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">storage_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lustre&#39;</span><span class="p">,</span> <span class="s1">&#39;regular&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please, use either </span><span class="se">\&#39;</span><span class="s1">lustre</span><span class="se">\&#39;</span><span class="s1"> or </span><span class="se">\&#39;</span><span class="s1">regular</span><span class="se">\&#39;</span><span class="s1"> for --storage-mode &#39;</span> <span class="o">+</span>
-                             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">storage_mode</span><span class="si">}</span><span class="s1"> is not allowed&#39;</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">workflow_params</span><span class="p">,</span>
             <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
@@ -922,8 +905,6 @@
                 <span class="s2">&quot;computeCostLimit&quot;</span><span class="p">:</span> <span class="n">cost_limit</span><span class="p">,</span>
                 <span class="s2">&quot;optim&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span>
             <span class="p">},</span>
-            <span class="s2">&quot;lusterFsxStorageSizeInGb&quot;</span><span class="p">:</span> <span class="n">lustre_size</span><span class="p">,</span>
-            <span class="s2">&quot;storageMode&quot;</span><span class="p">:</span> <span class="n">storage_mode</span><span class="p">,</span>
             <span class="s2">&quot;instanceType&quot;</span><span class="p">:</span> <span class="n">instance_type</span><span class="p">,</span>
             <span class="s2">&quot;usesFusionFileSystem&quot;</span><span class="p">:</span> <span class="n">use_mountpoints</span><span class="p">,</span>
             <span class="s2">&quot;accelerateSavingResults&quot;</span><span class="p">:</span> <span class="n">accelerate_saving_results</span>
@@ -1001,8 +982,6 @@
                  <span class="n">nextflow_version</span><span class="o">=</span><span class="s1">&#39;22.10.8&#39;</span><span class="p">,</span>
                  <span class="n">instance_type</span><span class="o">=</span><span class="s1">&#39;c5.xlarge&#39;</span><span class="p">,</span>
                  <span class="n">instance_disk</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-                 <span class="n">storage_mode</span><span class="o">=</span><span class="s1">&#39;regular&#39;</span><span class="p">,</span>
-                 <span class="n">lustre_size</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
                  <span class="n">execution_platform</span><span class="o">=</span><span class="s1">&#39;aws&#39;</span><span class="p">,</span>
                  <span class="n">hpc_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">workflow_type</span><span class="o">=</span><span class="s1">&#39;nextflow&#39;</span><span class="p">,</span>
@@ -1067,12 +1046,6 @@
 <span class="sd">            Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</span>
 <span class="sd">        instance_disk : int</span>
 <span class="sd">            The disk space of the master node instance, in GB.</span>
-<span class="sd">        storage_mode : string</span>
-<span class="sd">            Either &#39;lustre&#39; or &#39;regular&#39;. Indicates if the user wants to select regular</span>
-<span class="sd">            or lustre storage.</span>
-<span class="sd">        lustre_size : int</span>
-<span class="sd">            The lustre storage to be used when --storage-mode=lustre, in GB. It should be 1200 or</span>
-<span class="sd">            a multiple of it.</span>
 <span class="sd">        execution_platform : string [&#39;aws&#39;|&#39;azure&#39;|&#39;hpc&#39;]</span>
 <span class="sd">            The execution platform implemented in your CloudOS.</span>
 <span class="sd">        hpc_id : string</span>
@@ -1142,8 +1115,6 @@
                                                <span class="n">nextflow_version</span><span class="p">,</span>
                                                <span class="n">instance_type</span><span class="p">,</span>
                                                <span class="n">instance_disk</span><span class="p">,</span>
-                                               <span class="n">storage_mode</span><span class="p">,</span>
-                                               <span class="n">lustre_size</span><span class="p">,</span>
                                                <span class="n">execution_platform</span><span class="p">,</span>
                                                <span class="n">hpc_id</span><span class="p">,</span>
                                                <span class="n">workflow_type</span><span class="p">,</span>
