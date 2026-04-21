@@ -61,9 +61,9 @@ ADDITIONAL_COLUMN_PRIORITY = [
 COLUMN_CONFIGS = {
     'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
     'name': {"header": "Name", "style": "green", "overflow": "fold", "no_wrap": False, "min_width": 6, "max_width": 14},
-    'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "no_wrap": False, "min_width": 6, "max_width": 18},
-    'owner': {"header": "Owner", "style": "blue", "overflow": "crop", "no_wrap": False, "min_width": 4, "max_width": 14},
-    'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "no_wrap": False, "min_width": 8, "max_width": 14},
+    'project': {"header": "Project", "style": "magenta", "overflow": "fold", "no_wrap": False, "min_width": 6, "max_width": 18},
+    'owner': {"header": "Owner", "style": "blue", "overflow": "fold", "no_wrap": False, "min_width": 4, "max_width": 14},
+    'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "fold", "no_wrap": False, "min_width": 8, "max_width": 14},
     'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "no_wrap": True, "min_width": 24, "max_width": 24},
     'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
     'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
