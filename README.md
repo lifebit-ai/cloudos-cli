@@ -718,9 +718,8 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 Please note that HPC execution does not support the following parameters and all of them will be ignored:
 
 - `--job-queue`
-- `--resumable | --do-not-save-logs`
+- `--resumable` | `--do-not-save-logs`
 - `--instance-type` | `--instance-disk` | `--cost-limit`
-- `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 
 #### Check Job Status

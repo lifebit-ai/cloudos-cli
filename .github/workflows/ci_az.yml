@@ -789,6 +789,7 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
       run: |
+        sleep 60 # wait for session to be fully up and running before pausing
         cloudos interactive-session pause --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --yes
   interactive_session_resume:
     needs: [interactive_session_pause, interactive_session_create]
@@ -814,6 +815,7 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
       run: |
+        sleep 60 # wait for session to be fully paused before resuming
         cloudos interactive-session resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --shutdown-in 1m
 
 
