@@ -670,6 +670,9 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         if isinstance(selected_columns, str):
             selected_columns = [col.strip().lower() for col in selected_columns.split(',')]
         
+        # Store original count before deduplication (for accurate warning message)
+        original_column_count = len(selected_columns)
+        
         # Check for duplicates
         duplicates = [col for col in selected_columns if selected_columns.count(col) > 1]
         if duplicates:
@@ -702,7 +705,8 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
 
     # Warn if user-requested columns were truncated due to narrow terminal
     if preserve_order and selected_columns:
-        original_count = len(selected_columns)
+        # Use original count before deduplication for accurate message
+        original_count = original_column_count if 'original_column_count' in locals() else len(selected_columns)
         if len(columns_to_show) < original_count:
             console.print(f"[yellow]Warning: Terminal too narrow. Showing {len(columns_to_show)} of {original_count} requested columns.[/yellow]")
             console.print(f"[yellow]Increase terminal width to see all columns.[/yellow]\n")
@@ -711,7 +715,8 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
         return
 
-    table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
+    # Use actual terminal_width (not effective_width) for date formatting logic
+    table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, COLUMN_CONFIGS)
 
     if not fetch_page_callback or not pagination_metadata:
         console.print(table)

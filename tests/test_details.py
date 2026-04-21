@@ -456,3 +456,121 @@ class TestColumnValidation:
             
         finally:
             sys.stdout = sys.__stdout__
+
+
+class TestBugFixes:
+    """Test cases for bug fixes identified by AI agent review."""
+    
+    def test_bug8_date_format_uses_actual_terminal_width(self):
+        """
+        Bug #8: Date format regression with effective_width.
+        
+        Issue: effective_width = terminal_width - 5 was passed to date formatting,
+        causing terminals with 90-94 chars to show short dates (no year).
+        
+        Fix: Pass actual terminal_width (not effective_width) to _build_job_row_values.
+        """
+        job = {
+            '_id': 'test-id',
+            'name': 'test-job',
+            'status': 'completed',
+            'project': {'name': 'test'},
+            'user': {'name': 'User', 'surname': 'Name'},
+            'workflow': {'name': 'pipeline'},
+            'createdAt': '2026-04-16T07:16:30Z',
+            'startTime': '2026-04-16T07:16:45Z',
+            'endTime': '2026-04-16T07:20:51Z',
+            'revision': {'commit': 'abc'},
+            'masterInstance': {'usedInstance': {'type': 't3.small'}},
+            'storageMode': 'regular',
+            'jobType': 'nextflow'
+        }
+        
+        # Terminal width 92 should show FULL dates with year (not short format)
+        row_values = _build_job_row_values(
+            job, 
+            'https://cloudos.lifebit.ai', 
+            92,  # Pass actual terminal width
+            ['submit_time', 'end_time']
+        )
+        
+        # Should show full date format with year (YYYY-mm-dd HH:MM)
+        assert '2026' in row_values[0], "Submit time should include year for 92-char terminal"
+        assert '2026' in row_values[1], "End time should include year for 92-char terminal"
+        
+        # Terminal width 89 should show SHORT dates (no year)
+        row_values = _build_job_row_values(
+            job, 
+            'https://cloudos.lifebit.ai', 
+            89,
+            ['submit_time', 'end_time']
+        )
+        
+        # Should show short date format (mm-dd HH:MM)
+        assert '2026' not in row_values[0], "Submit time should NOT include year for 89-char terminal"
+        assert '2026' not in row_values[1], "End time should NOT include year for 89-char terminal"
+    
+    def test_bug9_truncation_warning_uses_original_column_count(self):
+        """
+        Bug #9: Misleading truncation warning after deduplication.
+        
+        Issue: When user requests duplicate columns (e.g., 'status,name,status,id,owner'),
+        deduplication happens first, then the truncation warning uses the deduplicated
+        count instead of the original request count, confusing users.
+        
+        Fix: Store original_column_count before deduplication and use it in warning.
+        """
+        from cloudos_cli.utils.details import create_job_list_table
+        import io
+        import sys
+        
+        job = {
+            '_id': 'test-id',
+            'name': 'test-job',
+            'status': 'completed',
+            'project': {'name': 'test'},
+            'user': {'name': 'User', 'surname': 'Name'},
+            'workflow': {'name': 'pipeline'},
+            'createdAt': '2026-04-16T07:16:30Z',
+            'startTime': '2026-04-16T07:16:45Z',
+            'endTime': '2026-04-16T07:20:51Z',
+            'revision': {'commit': 'abc'},
+            'masterInstance': {'usedInstance': {'type': 't3.small'}},
+            'storageMode': 'regular',
+            'jobType': 'nextflow'
+        }
+        
+        pagination_metadata = {
+            'Pagination-Count': 1,
+            'Pagination-Page': 1,
+            'Pagination-Limit': 10
+        }
+        
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        
+        try:
+            # Mock narrow terminal (40 chars)
+            import os
+            original_fn = os.get_terminal_size
+            os.get_terminal_size = lambda fd=0: os.terminal_size((40, 24))
+            
+            # User requests 5 columns with 1 duplicate
+            # After dedup: 4 columns; Terminal fits: 2 columns
+            create_job_list_table(
+                [job],
+                'https://cloudos.lifebit.ai',
+                pagination_metadata,
+                selected_columns='status,name,status,id,owner'  # 5 columns, 1 duplicate
+            )
+            
+            os.get_terminal_size = original_fn
+            
+            output = captured_output.getvalue()
+            
+            # Should show original count (5), not deduplicated count (4)
+            assert 'of 5' in output, "Warning should show original count (5) not deduplicated (4)"
+            assert 'of 4' not in output, "Warning should NOT show deduplicated count"
+            
+        finally:
+            sys.stdout = sys.__stdout__
