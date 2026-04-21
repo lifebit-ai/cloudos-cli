@@ -51,7 +51,7 @@ class TestFitColumnsToTerminal:
         result = _fit_columns_to_terminal(cols, terminal_w, COLUMN_CONFIGS, preserve_order=True)
         
         assert len(result) == 1
-        assert result[0] == 'id'  # First requested column forced
+        assert result[0] == 'name'  # Narrowest requested column chosen as fallback
     
     def test_auto_selection_reorders_by_priority(self):
         """Test that auto-selection reorders columns by priority."""
@@ -305,3 +305,154 @@ class TestStatusSymbols:
         for status, symbol in JOB_STATUS_SYMBOLS.items():
             assert '[bold' in symbol, f"Status '{status}' symbol should have bold markup"
             assert '[/bold' in symbol, f"Status '{status}' symbol should close bold markup"
+
+
+class TestColumnValidation:
+    """Test cases for column validation in create_job_list_table."""
+    
+    def test_duplicate_columns_are_deduplicated(self):
+        """Test that duplicate column names are automatically deduplicated."""
+        from cloudos_cli.utils.details import create_job_list_table
+        import io
+        import sys
+        
+        # Create a test job
+        job = {
+            '_id': 'test-id',
+            'name': 'test-job',
+            'status': 'completed',
+            'project': {'name': 'test'},
+            'user': {'name': 'User', 'surname': 'Name'},
+            'workflow': {'name': 'pipeline'},
+            'createdAt': '2026-04-16T07:16:30Z',
+            'startTime': '2026-04-16T07:16:45Z',
+            'endTime': '2026-04-16T07:20:51Z',
+            'revision': {'commit': 'abc'},
+            'computeCostSpent': 2700,
+            'masterInstance': {'usedInstance': {'type': 't3.small'}},
+            'storageMode': 'regular',
+            'jobType': 'nextflow'
+        }
+        
+        pagination_metadata = {
+            'Pagination-Count': 1,
+            'Pagination-Page': 1,
+            'Pagination-Limit': 10
+        }
+        
+        # Capture output
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        
+        try:
+            # Test with duplicate columns
+            create_job_list_table(
+                [job],
+                'https://cloudos.lifebit.ai',
+                pagination_metadata,
+                selected_columns='status,name,status'  # 'status' appears twice
+            )
+            
+            output = captured_output.getvalue()
+            
+            # Should show warning about duplicates
+            assert 'Warning: Duplicate columns removed' in output or 'Duplicate' in output
+            
+            # Should only show 2 columns in the table (status and name, not status twice)
+            # Count occurrences of "Status" header - should be 1, not 2
+            # Note: This is a basic check; full validation would require parsing Rich output
+            
+        finally:
+            sys.stdout = sys.__stdout__
+    
+    def test_multiple_duplicates_are_handled(self):
+        """Test that multiple different duplicate columns are handled correctly."""
+        from cloudos_cli.utils.details import create_job_list_table
+        import io
+        import sys
+        
+        job = {
+            '_id': 'test-id',
+            'name': 'test-job',
+            'status': 'completed',
+            'project': {'name': 'test'},
+            'user': {'name': 'User', 'surname': 'Name'},
+            'workflow': {'name': 'pipeline'},
+            'createdAt': '2026-04-16T07:16:30Z',
+            'revision': {'commit': 'abc'},
+            'masterInstance': {'usedInstance': {'type': 't3.small'}},
+            'storageMode': 'regular',
+            'jobType': 'nextflow'
+        }
+        
+        pagination_metadata = {
+            'Pagination-Count': 1,
+            'Pagination-Page': 1,
+            'Pagination-Limit': 10
+        }
+        
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        
+        try:
+            # Test with multiple different duplicates
+            create_job_list_table(
+                [job],
+                'https://cloudos.lifebit.ai',
+                pagination_metadata,
+                selected_columns='status,name,status,name'  # Both duplicated
+            )
+            
+            output = captured_output.getvalue()
+            
+            # Should show warning
+            assert 'Duplicate' in output or 'Warning' in output
+            
+        finally:
+            sys.stdout = sys.__stdout__
+    
+    def test_no_warning_when_no_duplicates(self):
+        """Test that no warning is shown when there are no duplicate columns."""
+        from cloudos_cli.utils.details import create_job_list_table
+        import io
+        import sys
+        
+        job = {
+            '_id': 'test-id',
+            'name': 'test-job',
+            'status': 'completed',
+            'project': {'name': 'test'},
+            'user': {'name': 'User', 'surname': 'Name'},
+            'workflow': {'name': 'pipeline'},
+            'createdAt': '2026-04-16T07:16:30Z',
+            'revision': {'commit': 'abc'},
+            'masterInstance': {'usedInstance': {'type': 't3.small'}},
+            'storageMode': 'regular',
+            'jobType': 'nextflow'
+        }
+        
+        pagination_metadata = {
+            'Pagination-Count': 1,
+            'Pagination-Page': 1,
+            'Pagination-Limit': 10
+        }
+        
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        
+        try:
+            # Test with no duplicates
+            create_job_list_table(
+                [job],
+                'https://cloudos.lifebit.ai',
+                pagination_metadata,
+                selected_columns='status,name,cost'  # All unique
+            )
+            
+            output = captured_output.getvalue()
+            
+            # Should NOT show duplicate warning
+            assert 'Duplicate columns removed' not in output
+            
+        finally:
+            sys.stdout = sys.__stdout__

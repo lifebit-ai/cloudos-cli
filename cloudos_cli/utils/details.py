@@ -505,13 +505,13 @@ def _create_status_legend():
         Formatted legend string with status symbols and their meanings.
     """
     legend_items = [
-        "[bold green]✓[/bold green] = Completed",
-        "[bold bright_black]◐[/bold bright_black] = Running",
-        "[bold red]✗[/bold red] = Failed",
-        "[bold orange3]■[/bold orange3] = Aborted",
-        "[bold orange3]⊡[/bold orange3] = Aborting",
-        "[bold bright_black]○[/bold bright_black] = Initialising",
         "[bold cyan]◷[/bold cyan] = Scheduled",
+        "[bold bright_black]○[/bold bright_black] = Initialising",
+        "[bold bright_black]◐[/bold bright_black] = Running",
+        "[bold green]✓[/bold green] = Completed",
+        "[bold red]✗[/bold red] = Failed",
+        "[bold orange3]⊡[/bold orange3] = Aborting",
+        "[bold orange3]■[/bold orange3] = Aborted",
         "[bold bright_black]?[/bold bright_black] = Unknown"
     ]
     return "[cyan]Legend:[/cyan] " + "  |  ".join(legend_items)
@@ -602,14 +602,13 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False
             width = _calculate_table_width(test_list, col_configs)
             if width <= terminal_w:
                 result.append(col)
-            else:
-                # Stop adding columns once we exceed width
-                break
+            # Continue evaluating remaining columns even if this one doesn't fit
         
         # Ensure at least one column is shown, even if terminal is very narrow
         if len(result) == 0 and len(cols) > 0:
-            # Force the first requested column to display
-            result.append(cols[0])
+            # Find the narrowest column that was requested
+            narrowest_col = min(cols, key=lambda c: col_configs[c].get('max_width', col_configs[c].get('min_width', 10)))
+            result.append(narrowest_col)
         
         return result
     
@@ -670,6 +669,24 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     else:
         if isinstance(selected_columns, str):
             selected_columns = [col.strip().lower() for col in selected_columns.split(',')]
+        
+        # Check for duplicates
+        duplicates = [col for col in selected_columns if selected_columns.count(col) > 1]
+        if duplicates:
+            # Deduplicate while preserving order
+            seen = set()
+            deduplicated = []
+            for col in selected_columns:
+                if col not in seen:
+                    seen.add(col)
+                    deduplicated.append(col)
+            selected_columns = deduplicated
+            
+            # Warn user about deduplication
+            unique_duplicates = list(dict.fromkeys(duplicates))  # Remove duplicates from duplicates list
+            console = Console()
+            console.print(f"[yellow]Warning: Duplicate columns removed: {', '.join(unique_duplicates)}[/yellow]")
+        
         valid_columns = list(COLUMN_CONFIGS.keys())
         invalid_cols = [col for col in selected_columns if col not in valid_columns]
         if invalid_cols:
