@@ -780,7 +780,8 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
+                        # Use terminal_width (not effective_width) for consistent date formatting
+                        table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, COLUMN_CONFIGS)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
@@ -795,7 +796,8 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
+                        # Use terminal_width (not effective_width) for consistent date formatting
+                        table = _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, COLUMN_CONFIGS)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
