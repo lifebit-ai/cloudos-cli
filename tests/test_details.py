@@ -1,15 +1,53 @@
 """Tests for job list table utilities in details.py."""
 
+import io
+import os
+import sys
+from unittest import mock
+
 import pytest
+
 from cloudos_cli.utils.details import (
     _fit_columns_to_terminal,
     _calculate_table_width,
-    _build_job_row_values
+    _build_job_row_values,
+    create_job_list_table
 )
 from cloudos_cli.constants import (
     JOB_STATUS_SYMBOLS,
     COLUMN_CONFIGS
 )
+
+
+@pytest.fixture
+def sample_job():
+    """Fixture providing a standard test job object."""
+    return {
+        '_id': 'test-id',
+        'name': 'test-job',
+        'status': 'completed',
+        'project': {'name': 'test'},
+        'user': {'name': 'User', 'surname': 'Name'},
+        'workflow': {'name': 'pipeline'},
+        'createdAt': '2026-04-16T07:16:30Z',
+        'startTime': '2026-04-16T07:16:45Z',
+        'endTime': '2026-04-16T07:20:51Z',
+        'revision': {'commit': 'abc'},
+        'computeCostSpent': 2700,
+        'masterInstance': {'usedInstance': {'type': 't3.small'}},
+        'storageMode': 'regular',
+        'jobType': 'nextflow'
+    }
+
+
+@pytest.fixture
+def pagination_metadata():
+    """Fixture providing standard pagination metadata."""
+    return {
+        'Pagination-Count': 1,
+        'Pagination-Page': 1,
+        'Pagination-Limit': 10
+    }
 
 
 class TestFitColumnsToTerminal:
@@ -290,36 +328,8 @@ class TestBuildJobRowValues:
 class TestColumnValidation:
     """Test cases for column validation in create_job_list_table."""
     
-    def test_duplicate_columns_are_deduplicated(self):
+    def test_duplicate_columns_are_deduplicated(self, sample_job, pagination_metadata):
         """Test that duplicate column names are automatically deduplicated."""
-        from cloudos_cli.utils.details import create_job_list_table
-        import io
-        import sys
-        
-        # Create a test job
-        job = {
-            '_id': 'test-id',
-            'name': 'test-job',
-            'status': 'completed',
-            'project': {'name': 'test'},
-            'user': {'name': 'User', 'surname': 'Name'},
-            'workflow': {'name': 'pipeline'},
-            'createdAt': '2026-04-16T07:16:30Z',
-            'startTime': '2026-04-16T07:16:45Z',
-            'endTime': '2026-04-16T07:20:51Z',
-            'revision': {'commit': 'abc'},
-            'computeCostSpent': 2700,
-            'masterInstance': {'usedInstance': {'type': 't3.small'}},
-            'storageMode': 'regular',
-            'jobType': 'nextflow'
-        }
-        
-        pagination_metadata = {
-            'Pagination-Count': 1,
-            'Pagination-Page': 1,
-            'Pagination-Limit': 10
-        }
-        
         # Capture output
         captured_output = io.StringIO()
         sys.stdout = captured_output
@@ -327,7 +337,7 @@ class TestColumnValidation:
         try:
             # Test with duplicate columns
             create_job_list_table(
-                [job],
+                [sample_job],
                 'https://cloudos.lifebit.ai',
                 pagination_metadata,
                 selected_columns='status,name,status'  # 'status' appears twice
@@ -345,39 +355,15 @@ class TestColumnValidation:
         finally:
             sys.stdout = sys.__stdout__
     
-    def test_no_warning_when_no_duplicates(self):
+    def test_no_warning_when_no_duplicates(self, sample_job, pagination_metadata):
         """Test that no warning is shown when there are no duplicate columns."""
-        from cloudos_cli.utils.details import create_job_list_table
-        import io
-        import sys
-        
-        job = {
-            '_id': 'test-id',
-            'name': 'test-job',
-            'status': 'completed',
-            'project': {'name': 'test'},
-            'user': {'name': 'User', 'surname': 'Name'},
-            'workflow': {'name': 'pipeline'},
-            'createdAt': '2026-04-16T07:16:30Z',
-            'revision': {'commit': 'abc'},
-            'masterInstance': {'usedInstance': {'type': 't3.small'}},
-            'storageMode': 'regular',
-            'jobType': 'nextflow'
-        }
-        
-        pagination_metadata = {
-            'Pagination-Count': 1,
-            'Pagination-Page': 1,
-            'Pagination-Limit': 10
-        }
-        
         captured_output = io.StringIO()
         sys.stdout = captured_output
         
         try:
             # Test with no duplicates
             create_job_list_table(
-                [job],
+                [sample_job],
                 'https://cloudos.lifebit.ai',
                 pagination_metadata,
                 selected_columns='status,name,cost'  # All unique
@@ -392,36 +378,21 @@ class TestColumnValidation:
             sys.stdout = sys.__stdout__
 
 
-class TestBugFixes:
+class TestDateFormatting:
+    """Test cases for date formatting behavior based on terminal width."""
     
-    def test_bug8_date_format_uses_actual_terminal_width(self):
+    def test_date_format_uses_terminal_width(self, sample_job):
+        """Test that date formatting threshold is based on actual terminal width.
+        
+        Date formatting uses a 90-character threshold:
+        - >= 90 chars: Full format (YYYY-mm-dd HH:MM)
+        - < 90 chars: Short format (mm-dd HH:MM)
+        
+        This ensures consistent date display regardless of column fitting logic.
         """
-        Bug #8: Date format regression with effective_width.
-        
-        Issue: effective_width = terminal_width - 5 was passed to date formatting,
-        causing terminals with 90-94 chars to show short dates (no year).
-        
-        Fix: Pass actual terminal_width (not effective_width) to _build_job_row_values.
-        """
-        job = {
-            '_id': 'test-id',
-            'name': 'test-job',
-            'status': 'completed',
-            'project': {'name': 'test'},
-            'user': {'name': 'User', 'surname': 'Name'},
-            'workflow': {'name': 'pipeline'},
-            'createdAt': '2026-04-16T07:16:30Z',
-            'startTime': '2026-04-16T07:16:45Z',
-            'endTime': '2026-04-16T07:20:51Z',
-            'revision': {'commit': 'abc'},
-            'masterInstance': {'usedInstance': {'type': 't3.small'}},
-            'storageMode': 'regular',
-            'jobType': 'nextflow'
-        }
-        
         # Terminal width 92 should show FULL dates with year (not short format)
         row_values = _build_job_row_values(
-            job, 
+            sample_job, 
             'https://cloudos.lifebit.ai', 
             92,  # Pass actual terminal width
             ['submit_time', 'end_time']
@@ -433,7 +404,7 @@ class TestBugFixes:
         
         # Terminal width 89 should show SHORT dates (no year)
         row_values = _build_job_row_values(
-            job, 
+            sample_job, 
             'https://cloudos.lifebit.ai', 
             89,
             ['submit_time', 'end_time']
@@ -443,52 +414,21 @@ class TestBugFixes:
         assert '2026' not in row_values[0], "Submit time should NOT include year for 89-char terminal"
         assert '2026' not in row_values[1], "End time should NOT include year for 89-char terminal"
     
-    def test_bug9_truncation_warning_uses_original_column_count(self):
+    def test_truncation_warning_shows_original_column_count(self, sample_job, pagination_metadata):
+        """Test that column truncation warning reflects user's original request count.
+        
+        When duplicate columns are removed before truncation, the warning should still
+        show how many columns the user originally requested, not the deduplicated count.
+        This prevents user confusion about what they actually specified.
         """
-        Bug #9: Misleading truncation warning after deduplication.
-        
-        Issue: When user requests duplicate columns (e.g., 'status,name,status,id,owner'),
-        deduplication happens first, then the truncation warning uses the deduplicated
-        count instead of the original request count, confusing users.
-        
-        Fix: Store original_column_count before deduplication and use it in warning.
-        """
-        from cloudos_cli.utils.details import create_job_list_table
-        import io
-        import sys
-        
-        job = {
-            '_id': 'test-id',
-            'name': 'test-job',
-            'status': 'completed',
-            'project': {'name': 'test'},
-            'user': {'name': 'User', 'surname': 'Name'},
-            'workflow': {'name': 'pipeline'},
-            'createdAt': '2026-04-16T07:16:30Z',
-            'startTime': '2026-04-16T07:16:45Z',
-            'endTime': '2026-04-16T07:20:51Z',
-            'revision': {'commit': 'abc'},
-            'masterInstance': {'usedInstance': {'type': 't3.small'}},
-            'storageMode': 'regular',
-            'jobType': 'nextflow'
-        }
-        
-        pagination_metadata = {
-            'Pagination-Count': 1,
-            'Pagination-Page': 1,
-            'Pagination-Limit': 10
-        }
-        
         captured_output = io.StringIO()
         sys.stdout = captured_output
         
         try:
             # Mock narrow terminal (40 chars)
-            import os
-            original_fn = os.get_terminal_size
-            with unittest.mock.patch('os.get_terminal_size', return_value=os.terminal_size((40, 24))):
+            with mock.patch('os.get_terminal_size', return_value=os.terminal_size((40, 24))):
                 create_job_list_table(
-                    [job],
+                    [sample_job],
                     'https://cloudos.lifebit.ai',
                     pagination_metadata,
                     selected_columns='status,name,status,id,owner'  # 5 columns, 1 duplicate
