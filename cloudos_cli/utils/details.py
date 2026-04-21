@@ -652,12 +652,6 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         terminal_width = os.get_terminal_size().columns
     except OSError:
         terminal_width = 80  # Default fallback
-    
-    # Get terminal width for responsive design
-    try:
-        terminal_width = os.get_terminal_size().columns
-    except OSError:
-        terminal_width = 80  # Default fallback
 
     # Define column priority groups for small terminals
     priority_columns = {
