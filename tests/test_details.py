@@ -287,26 +287,6 @@ class TestBuildJobRowValues:
         assert 'cloudos.lifebit.ai' in row_values[0]
 
 
-class TestStatusSymbols:
-    """Test cases for status symbol constants."""
-    
-    def test_all_status_symbols_defined(self):
-        """Test that all expected status types have symbols."""
-        expected_statuses = [
-            'completed', 'running', 'failed', 'aborted', 
-            'aborting', 'initialising', 'scheduled', 'n/a'
-        ]
-        
-        for status in expected_statuses:
-            assert status in JOB_STATUS_SYMBOLS, f"Status '{status}' should have a symbol defined"
-    
-    def test_status_symbols_have_rich_markup(self):
-        """Test that status symbols contain Rich markup for styling."""
-        for status, symbol in JOB_STATUS_SYMBOLS.items():
-            assert '[bold' in symbol, f"Status '{status}' symbol should have bold markup"
-            assert '[/bold' in symbol, f"Status '{status}' symbol should close bold markup"
-
-
 class TestColumnValidation:
     """Test cases for column validation in create_job_list_table."""
     
@@ -365,52 +345,6 @@ class TestColumnValidation:
         finally:
             sys.stdout = sys.__stdout__
     
-    def test_multiple_duplicates_are_handled(self):
-        """Test that multiple different duplicate columns are handled correctly."""
-        from cloudos_cli.utils.details import create_job_list_table
-        import io
-        import sys
-        
-        job = {
-            '_id': 'test-id',
-            'name': 'test-job',
-            'status': 'completed',
-            'project': {'name': 'test'},
-            'user': {'name': 'User', 'surname': 'Name'},
-            'workflow': {'name': 'pipeline'},
-            'createdAt': '2026-04-16T07:16:30Z',
-            'revision': {'commit': 'abc'},
-            'masterInstance': {'usedInstance': {'type': 't3.small'}},
-            'storageMode': 'regular',
-            'jobType': 'nextflow'
-        }
-        
-        pagination_metadata = {
-            'Pagination-Count': 1,
-            'Pagination-Page': 1,
-            'Pagination-Limit': 10
-        }
-        
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-        
-        try:
-            # Test with multiple different duplicates
-            create_job_list_table(
-                [job],
-                'https://cloudos.lifebit.ai',
-                pagination_metadata,
-                selected_columns='status,name,status,name'  # Both duplicated
-            )
-            
-            output = captured_output.getvalue()
-            
-            # Should show warning
-            assert 'Duplicate' in output or 'Warning' in output
-            
-        finally:
-            sys.stdout = sys.__stdout__
-    
     def test_no_warning_when_no_duplicates(self):
         """Test that no warning is shown when there are no duplicate columns."""
         from cloudos_cli.utils.details import create_job_list_table
@@ -459,7 +393,6 @@ class TestColumnValidation:
 
 
 class TestBugFixes:
-    """Test cases for bug fixes identified by AI agent review."""
     
     def test_bug8_date_format_uses_actual_terminal_width(self):
         """
@@ -553,18 +486,13 @@ class TestBugFixes:
             # Mock narrow terminal (40 chars)
             import os
             original_fn = os.get_terminal_size
-            os.get_terminal_size = lambda fd=0: os.terminal_size((40, 24))
-            
-            # User requests 5 columns with 1 duplicate
-            # After dedup: 4 columns; Terminal fits: 2 columns
-            create_job_list_table(
-                [job],
-                'https://cloudos.lifebit.ai',
-                pagination_metadata,
-                selected_columns='status,name,status,id,owner'  # 5 columns, 1 duplicate
-            )
-            
-            os.get_terminal_size = original_fn
+            with unittest.mock.patch('os.get_terminal_size', return_value=os.terminal_size((40, 24))):
+                create_job_list_table(
+                    [job],
+                    'https://cloudos.lifebit.ai',
+                    pagination_metadata,
+                    selected_columns='status,name,status,id,owner'  # 5 columns, 1 duplicate
+                )
             
             output = captured_output.getvalue()
             

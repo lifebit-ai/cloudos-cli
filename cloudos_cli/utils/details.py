@@ -706,7 +706,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     # Warn if user-requested columns were truncated due to narrow terminal
     if preserve_order and selected_columns:
         # Use original count before deduplication for accurate message
-        original_count = original_column_count if 'original_column_count' in locals() else len(selected_columns)
+        original_count = original_column_count
         if len(columns_to_show) < original_count:
             console.print(f"[yellow]Warning: Terminal too narrow. Showing {len(columns_to_show)} of {original_count} requested columns.[/yellow]")
             console.print(f"[yellow]Increase terminal width to see all columns.[/yellow]\n")
