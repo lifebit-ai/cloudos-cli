@@ -6,6 +6,14 @@ import csv
 import os
 import sys
 
+from cloudos_cli.constants import (
+    JOB_STATUS_SYMBOLS,
+    COLUMN_PRIORITY_GROUPS,
+    ESSENTIAL_COLUMN_PRIORITY,
+    ADDITIONAL_COLUMN_PRIORITY,
+    COLUMN_CONFIGS
+)
+
 
 def get_path(param, param_kind_map, execution_platform, storage_provider, mode="parameters"):
     """
@@ -358,15 +366,7 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     """
     # Status with colored and bold ANSI symbols
     status_raw = str(job.get("status", "N/A"))
-    status_symbol_map = {
-        "completed": "[bold green]✓[/bold green]",
-        "running": "[bold bright_black]◐[/bold bright_black]",
-        "failed": "[bold red]✗[/bold red]",
-        "aborted": "[bold orange3]■[/bold orange3]",
-        "initialising": "[bold bright_black]○[/bold bright_black]",
-        "N/A": "[bold bright_black]?[/bold bright_black]"
-    }
-    status = status_symbol_map.get(status_raw.lower(), status_raw)
+    status = JOB_STATUS_SYMBOLS.get(status_raw.lower(), status_raw)
 
     # Name
     name = str(job.get("name", "N/A"))
@@ -507,13 +507,15 @@ def _create_status_legend():
         "[bold bright_black]◐[/bold bright_black] = Running",
         "[bold red]✗[/bold red] = Failed",
         "[bold orange3]■[/bold orange3] = Aborted",
+        "[bold orange3]⊡[/bold orange3] = Aborting",
         "[bold bright_black]○[/bold bright_black] = Initialising",
+        "[bold cyan]◷[/bold cyan] = Scheduled",
         "[bold bright_black]?[/bold bright_black] = Unknown"
     ]
     return "[cyan]Legend:[/cyan] " + "  |  ".join(legend_items)
 
 
-def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_columns):
+def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, column_configs):
     """Helper function to build a complete job table.
     
     Parameters
@@ -526,7 +528,7 @@ def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_col
         Current terminal width for responsive formatting
     columns_to_show : list
         List of column keys to include
-    all_columns : dict
+    column_configs : dict
         Dictionary of all column configurations
         
     Returns
@@ -538,7 +540,7 @@ def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, all_col
 
     # Add columns to table
     for col_key in columns_to_show:
-        col_config = all_columns[col_key]
+        col_config = column_configs[col_key]
         table.add_column(
             col_config["header"],
             style=col_config.get("style"),
@@ -610,17 +612,11 @@ def _fit_columns_to_terminal(cols, terminal_w, col_configs, preserve_order=False
         return result
     
     # Auto-selection mode: reorder by priority for better UX
-    essential_priority = ['status', 'id', 'name', 'pipeline']
-    additional_priority = [
-        'project', 'owner', 'run_time', 'cost',
-        'submit_time', 'end_time', 'commit', 'resources', 'storage_type'
-    ]
-    
-    essential_requested = [col for col in essential_priority if col in cols]
-    additional_requested = [col for col in cols if col not in essential_priority]
+    essential_requested = [col for col in ESSENTIAL_COLUMN_PRIORITY if col in cols]
+    additional_requested = [col for col in cols if col not in ESSENTIAL_COLUMN_PRIORITY]
 
-    additional_ordered = [col for col in additional_priority if col in additional_requested]
-    additional_ordered.extend([col for col in additional_requested if col not in additional_priority])
+    additional_ordered = [col for col in ADDITIONAL_COLUMN_PRIORITY if col in additional_requested]
+    additional_ordered.extend([col for col in additional_requested if col not in ADDITIONAL_COLUMN_PRIORITY])
 
     result = []
     for col in essential_requested:
@@ -653,51 +649,26 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     except OSError:
         terminal_width = 80  # Default fallback
 
-    # Define column priority groups for small terminals
-    priority_columns = {
-        'minimal': ['status', 'id', 'name'],
-        'essential': ['status', 'id', 'name', 'pipeline'], 
-        'important': [ 'project', 'owner', 'run_time', 'cost'],
-        'useful': [ 'submit_time', 'end_time', 'commit'],
-        'extended': [ 'resources', 'storage_type']
-    }
-
-    all_columns = {
-        'status': {"header": "Status", "style": "cyan", "no_wrap": True, "min_width": 6, "max_width": 6},
-        'name': {"header": "Name", "style": "green", "overflow": "fold", "no_wrap": False, "min_width": 6, "max_width": 14},
-        'project': {"header": "Project", "style": "magenta", "overflow": "ellipsis", "no_wrap": True, "min_width": 6, "max_width": 18},
-        'owner': {"header": "Owner", "style": "blue", "overflow": "crop", "no_wrap": True, "min_width": 4, "max_width": 14},
-        'pipeline': {"header": "Pipeline", "style": "yellow", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 14},
-        'id': {"header": "ID", "style": "white", "overflow": "ellipsis", "no_wrap": True, "min_width": 24, "max_width": 24},
-        'submit_time': {"header": "Submit", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
-        'end_time': {"header": "End", "style": "cyan", "no_wrap": True, "min_width": 12, "max_width": 16},
-        'run_time': {"header": "Runtime", "style": "green", "no_wrap": True, "min_width": 8, "max_width": 12},
-        'commit': {"header": "Commit", "style": "magenta", "no_wrap": True, "min_width": 9, "max_width": 10},
-        'cost': {"header": "Cost", "style": "yellow", "no_wrap": True, "min_width": 8, "max_width": 12},
-        'resources': {"header": "Resources", "style": "blue", "overflow": "ellipsis", "no_wrap": True, "min_width": 8, "max_width": 16},
-        'storage_type': {"header": "Storage", "style": "white", "no_wrap": True, "min_width": 8, "max_width": 10}
-    }
-
     if selected_columns is None:
         if terminal_width < 80:
-            columns_to_show = priority_columns['minimal']
+            columns_to_show = COLUMN_PRIORITY_GROUPS['minimal']
         elif terminal_width <= 100:
-            columns_to_show = priority_columns['essential']
+            columns_to_show = COLUMN_PRIORITY_GROUPS['essential']
         elif terminal_width < 150:
-            columns_to_show = priority_columns['essential'] + priority_columns['important']
+            columns_to_show = COLUMN_PRIORITY_GROUPS['essential'] + COLUMN_PRIORITY_GROUPS['important']
         elif terminal_width < 180:
-            columns_to_show = (priority_columns['essential'] +
-                             priority_columns['important'] +
-                             priority_columns['useful'])
+            columns_to_show = (COLUMN_PRIORITY_GROUPS['essential'] +
+                             COLUMN_PRIORITY_GROUPS['important'] +
+                             COLUMN_PRIORITY_GROUPS['useful'])
         else:
-            columns_to_show = (priority_columns['essential'] +
-                             priority_columns['important'] +
-                             priority_columns['useful'] +
-                             priority_columns['extended'])
+            columns_to_show = (COLUMN_PRIORITY_GROUPS['essential'] +
+                             COLUMN_PRIORITY_GROUPS['important'] +
+                             COLUMN_PRIORITY_GROUPS['useful'] +
+                             COLUMN_PRIORITY_GROUPS['extended'])
     else:
         if isinstance(selected_columns, str):
             selected_columns = [col.strip().lower() for col in selected_columns.split(',')]
-        valid_columns = list(all_columns.keys())
+        valid_columns = list(COLUMN_CONFIGS.keys())
         invalid_cols = [col for col in selected_columns if col not in valid_columns]
         if invalid_cols:
             raise ValueError(f"Invalid column names: {', '.join(invalid_cols)}. "
@@ -708,7 +679,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
     console = Console(width=terminal_width)
     # Preserve user-specified column order; auto-selected columns are reordered by priority
     preserve_order = selected_columns is not None
-    columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, all_columns, preserve_order)
+    columns_to_show = _fit_columns_to_terminal(columns_to_show, effective_width, COLUMN_CONFIGS, preserve_order)
 
     # Warn if user-requested columns were truncated due to narrow terminal
     if preserve_order and selected_columns:
@@ -721,7 +692,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         console.print("\n[yellow]No jobs found matching the criteria.[/yellow]")
         return
 
-    table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
+    table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
 
     if not fetch_page_callback or not pagination_metadata:
         console.print(table)
@@ -785,7 +756,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
+                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
@@ -800,7 +771,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
                         total_pages = pagination_metadata.get('totalPages',
                                                              (pagination_metadata.get('Pagination-Count', 0) + page_size_value - 1) // page_size_value
                                                              if pagination_metadata.get('Pagination-Count', 0) > 0 else 1)
-                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, all_columns)
+                        table = _build_job_table(jobs, cloudos_url, effective_width, columns_to_show, COLUMN_CONFIGS)
                     except Exception as e:
                         show_error = f"[red]Error fetching page: {str(e)}[/red]"
                 else:
