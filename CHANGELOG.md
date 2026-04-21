@@ -6,6 +6,12 @@
 
 - Fixes job list table to be more dynamically responsive.
 
+## v2.89.0 (2026-04-16)
+
+### Feat
+
+- Removes support for lustre file system
+
 ## v2.88.2 (2026-04-15)
 
 ### Patch
