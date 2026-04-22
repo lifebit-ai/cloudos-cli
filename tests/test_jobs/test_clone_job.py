@@ -9,7 +9,7 @@ It covers:
 - Error handling for API failures
 - Direct testing of get_job_request_payload method
 
-The tests use mocked API responses to simulate CloudOS server interactions without 
+The tests use mocked API responses to simulate Lifebit Platform server interactions without 
 requiring actual server connections.
 """
 import json

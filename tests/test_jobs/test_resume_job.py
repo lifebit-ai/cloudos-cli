@@ -9,7 +9,7 @@ It covers:
 - Error handling for API failures
 - Direct testing of get_field_from_jobs_endpoint method
 
-The tests use mocked API responses to simulate CloudOS server interactions without 
+The tests use mocked API responses to simulate Lifebit Platform server interactions without 
 requiring actual server connections. The main difference from clone tests is that
 resume calls the additional get_field_from_jobs_endpoint() method which hits the 'api/v1/jobs' endpoint.
 """

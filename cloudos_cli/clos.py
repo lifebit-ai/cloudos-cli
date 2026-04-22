@@ -21,9 +21,9 @@ class Cloudos:
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     cromwell_token : string
         Cromwell server token. If None, apikey will be used instead.
     """
@@ -32,14 +32,14 @@ class Cloudos:
     cromwell_token: str
 
     def get_job_status(self, j_id, workspace_id=None, verify=True):
-        """Get job status from CloudOS.
+        """Get job status from Lifebit Platform.
 
         Parameters
         ----------
         j_id : string
-            The CloudOS job id of the job just launched.
+            The Lifebit Platform job id of the job just launched.
         workspace_id : string
-            The CloudOS workspace id from to check the job status.
+            The Lifebit Platform workspace id from to check the job status.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -69,14 +69,14 @@ class Cloudos:
 
     def wait_job_completion(self, job_id, workspace_id, wait_time=3600, request_interval=30, verbose=False,
                             verify=True):
-        """Checks job status from CloudOS and wait for its complation.
+        """Checks job status from Lifebit Platform and wait for its complation.
 
         Parameters
         ----------
         job_id : string
-            The CloudOS job id of the job just launched.
+            The Lifebit Platform job id of the job just launched.
         workspace_id : string
-            The CloudOS workspace id from to check the job status.
+            The Lifebit Platform workspace id from to check the job status.
         wait_time : int
             Max time to wait (in seconds) to job completion.
         request_interval : int
@@ -541,9 +541,9 @@ class Cloudos:
         Parameters
         ----------
         folder_id : str
-            The CloudOS folder ID.
+            The Lifebit Platform folder ID.
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         verify : [bool | str], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -587,9 +587,9 @@ class Cloudos:
         Parameters
         ----------
         job_id : str
-            The CloudOS job ID.
+            The Lifebit Platform job ID.
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         verify : [bool | str], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -740,9 +740,9 @@ class Cloudos:
         Parameters
         ----------
         folder_id : str
-            The CloudOS folder ID.
+            The Lifebit Platform folder ID.
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         verify : [bool | str], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -787,9 +787,9 @@ class Cloudos:
         Parameters
         ----------
         job_id : str
-            The CloudOS job ID.
+            The Lifebit Platform job ID.
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         verify : [bool | str], optional
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -901,7 +901,7 @@ class Cloudos:
         filter_owner : str
             The username or display name to search for.
         workspace_id : str
-            The CloudOS workspace ID.
+            The Lifebit Platform workspace ID.
         verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -926,7 +926,7 @@ class Cloudos:
                 "q": filter_owner,
                 "teamId": workspace_id
             }
-            # Note: this endpoint may not be open in all CloudOS instances
+            # Note: this endpoint may not be open in all Lifebit Platform instances
             user_search_r = retry_requests_get(f"{self.cloudos_url}/api/v1/users/search-assist",
                                              params=search_params, headers=search_headers, verify=verify)
             if user_search_r.status_code >= 400:
@@ -951,12 +951,12 @@ class Cloudos:
             raise ValueError(f"Error resolving user '{filter_owner}'. {str(e)}")
 
     def get_cromwell_status(self, workspace_id, verify=True):
-        """Get Cromwell server status from CloudOS.
+        """Get Cromwell server status from Lifebit Platform.
 
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to check the Cromwell status.
+            The Lifebit Platform workspace id from to check the Cromwell status.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -982,7 +982,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id in which restart/stop Cromwell status.
+            The Lifebit Platform workspace id in which restart/stop Cromwell status.
         action : string [restart|stop]
             The action to perform.
         verify: [bool|string]
@@ -1009,7 +1009,7 @@ class Cloudos:
                      verify=True, filter_status=None, filter_job_name=None,
                      filter_project=None, filter_workflow=None, filter_job_id=None,
                      filter_only_mine=False, filter_owner=None, filter_queue=None, last=False):
-        """Get jobs from a CloudOS workspace with optional filtering.
+        """Get jobs from a Lifebit Platform workspace with optional filtering.
 
         Fetches jobs page by page, applies all filters after fetching.
         Stops when enough jobs are collected or no more jobs are available.
@@ -1017,7 +1017,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to collect the jobs.
+            The Lifebit Platform workspace id from to collect the jobs.
         last_n_jobs : [int | 'all'], default=None
             How many of the last jobs from the user to retrieve. You can specify a
             very large int or 'all' to get all user's jobs. When specified, page
@@ -1476,12 +1476,12 @@ class Cloudos:
     def get_workflow_list(self, workspace_id, verify=True, get_all=True,
                           page=1, page_size=10, max_page_size=100,
                           archived_status=False):
-        """Get all the workflows from a CloudOS workspace.
+        """Get all the workflows from a Lifebit Platform workspace.
 
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
+            The Lifebit Platform workspace id from to collect the workflows.
         verify : [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1590,7 +1590,7 @@ class Cloudos:
         workflow_name : string
             Name of the workflow.
         workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
+            The Lifebit Platform workspace id from to collect the workflows.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1620,7 +1620,7 @@ class Cloudos:
         workflow_name : string
             Name of the workflow.
         workspace_id : string
-            The CloudOS workspace id from to collect the workflows.
+            The Lifebit Platform workspace id from to collect the workflows.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1649,12 +1649,12 @@ class Cloudos:
 
     def get_project_list(self, workspace_id, verify=True, get_all=True,
                          page=1, page_size=10, max_page_size=100):
-        """Get all the project from a CloudOS workspace.
+        """Get all the project from a Lifebit Platform workspace.
 
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to collect the projects.
+            The Lifebit Platform workspace id from to collect the projects.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1752,16 +1752,16 @@ class Cloudos:
     def workflow_import(self, workspace_id, workflow_url, workflow_name,
                         repository_project_id, workflow_docs_link='',
                         repository_id=None, verify=True):
-        """Imports workflows to CloudOS.
+        """Imports workflows to Lifebit Platform.
 
         Parameters
         ----------
         workspace_id : string
-            The CloudOS workspace id from to collect the projects.
+            The Lifebit Platform workspace id from to collect the projects.
         workflow_url : string
             The URL of the workflow. Only Github or Bitbucket are allowed.
         workflow_name : string
-            A name for the imported pipeline in CloudOS.
+            A name for the imported pipeline in Lifebit Platform.
         repository_project_id : int
             The repository project ID.
         workflow_docs_link : string
@@ -1863,7 +1863,7 @@ class Cloudos:
         Parameters
         ----------
         job : string
-            The CloudOS job id of the job to abort.
+            The Lifebit Platform job id of the job to abort.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1895,9 +1895,9 @@ class Cloudos:
         Parameters
         ----------
         job_ids : list
-            The CloudOS job ids of the jobs to update.
+            The Lifebit Platform job ids of the jobs to update.
         workspace_id : string
-            The CloudOS workspace id.
+            The Lifebit Platform workspace id.
         archive_status : bool
             True to archive jobs, False to unarchive jobs.
         verify: [bool|string]
@@ -1955,9 +1955,9 @@ class Cloudos:
         Parameters
         ----------
         job_ids : list
-            The CloudOS job ids of the jobs to archive.
+            The Lifebit Platform job ids of the jobs to archive.
         workspace_id : string
-            The CloudOS workspace id.
+            The Lifebit Platform workspace id.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1976,9 +1976,9 @@ class Cloudos:
         Parameters
         ----------
         job_ids : list
-            The CloudOS job ids of the jobs to unarchive.
+            The Lifebit Platform job ids of the jobs to unarchive.
         workspace_id : string
-            The CloudOS workspace id.
+            The Lifebit Platform workspace id.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -1999,7 +1999,7 @@ class Cloudos:
         job_ids : list
             List of job IDs to check.
         workspace_id : str
-            The CloudOS workspace id.
+            The Lifebit Platform workspace id.
         target_archived_state : bool
             True if checking for archiving operation, False if checking for unarchiving operation.
         verify : [bool | str], optional
@@ -2074,7 +2074,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID to search for the project.
+            The Lifebit Platform workspace ID to search for the project.
         project_name : str
             The name of the project to search for.
         verify : [bool | str], optional
@@ -2110,12 +2110,12 @@ class Cloudos:
         return project_id
 
     def create_project(self, workspace_id, project_name, verify=True):
-        """Create a new project in CloudOS.
+        """Create a new project in Lifebit Platform.
 
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID where the project will be created.
+            The Lifebit Platform workspace ID where the project will be created.
         project_name : str
             The name for the new project.
         verify : [bool | str], optional
@@ -2161,7 +2161,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID to search for the workflow.
+            The Lifebit Platform workspace ID to search for the workflow.
         workflow_name : str
             The name of the workflow to search for.
         verify : [bool | str], optional
@@ -2202,7 +2202,7 @@ class Cloudos:
         Parameters
         ----------
         workspace_id : str
-            The CloudOS workspace ID to search for the workflow.
+            The Lifebit Platform workspace ID to search for the workflow.
         workflow_name : str
             The name of the workflow to search for.
         verify : [bool | str], optional
@@ -2265,12 +2265,12 @@ class Cloudos:
 
     def get_interactive_session_list(self, team_id, page=None, limit=None, status=None, 
                                      owner_only=False, include_archived=False, verify=True):
-        """Get interactive sessions from a CloudOS team.
+        """Get interactive sessions from a Lifebit Platform team.
 
         Parameters
         ----------
         team_id : string
-            The CloudOS team id (workspace id) to retrieve sessions from.
+            The Lifebit Platform team id (workspace id) to retrieve sessions from.
         page : int, optional
             Page number for pagination. Default=1.
         limit : int, optional
@@ -2385,7 +2385,7 @@ class Cloudos:
         Parameters
         ----------
         team_id : string
-            The CloudOS team id (workspace id) to create session in.
+            The Lifebit Platform team id (workspace id) to create session in.
         payload : dict
             Complete session creation payload with configuration, data items, etc.
         verify: [bool|string], default=True
@@ -2437,7 +2437,7 @@ class Cloudos:
         session_id : string
             The session ID (MongoDB ObjectId) to resume.
         team_id : string
-            The CloudOS team id (workspace id) where the session is running.
+            The Lifebit Platform team id (workspace id) where the session is running.
         payload : dict
             Resume payload with optional dataItems and newInteractiveSessionConfiguration.
         verify: [bool|string], default=True
@@ -2491,7 +2491,7 @@ class Cloudos:
         session_id : string
             The session ID (MongoDB ObjectId) to abort.
         team_id : string
-            The CloudOS team id (workspace id) where the session is running.
+            The Lifebit Platform team id (workspace id) where the session is running.
         upload_on_close : bool, optional
             If True, save session data to S3 before terminating. Default=True.
         force_abort : bool, optional

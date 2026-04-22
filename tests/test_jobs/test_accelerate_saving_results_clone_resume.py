@@ -1,7 +1,7 @@
 """pytest tests for --accelerate-saving-results flag in job resume command
 
 This test file provides testing for the --accelerate-saving-results flag functionality
-in the job resume command of CloudOS CLI.
+in the job resume command of Lifebit Platform CLI.
 """
 from cloudos_cli.jobs.cli import clone_resume
 

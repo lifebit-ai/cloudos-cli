@@ -16,9 +16,9 @@ class Images(Cloudos):
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     verify: [bool|string]
         Whether to use SSL verification or not. Alternatively, if
         a string is passed, it will be interpreted as the path to
@@ -42,9 +42,9 @@ class Images(Cloudos):
         Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         procurement_id : string
             The specific Cloudos procurement id.
         page
@@ -81,9 +81,9 @@ class Images(Cloudos):
         Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         procurement_id : string
             The specific Cloudos procurement id.
         organisationId
@@ -138,9 +138,9 @@ class Images(Cloudos):
         Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         procurement_id : string
             The specific Cloudos procurement id.
         organisationId
