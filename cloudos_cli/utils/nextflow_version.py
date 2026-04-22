@@ -80,14 +80,14 @@ def resolve_nextflow_version(
             if nextflow_version != AZURE_NEXTFLOW_LATEST:
                 workflow_msg = f' \'{workflow_name}\'' if workflow_name else ''
                 print(f'The selected workflow{workflow_msg} ' +
-                      'is a Lifebit Platform Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
+                      'is a Lifebit Platform Workflow on Azure. Platform Workflows on Azure only work with ' +
                       f'Nextflow version {AZURE_NEXTFLOW_LATEST}. Switching to use {AZURE_NEXTFLOW_LATEST}')
             nextflow_version = AZURE_NEXTFLOW_LATEST
         else:
             if nextflow_version != PLATFORM_WORKFLOW_NEXTFLOW_VERSION:
                 workflow_msg = f' \'{workflow_name}\'' if workflow_name else ''
                 print(f'The selected workflow{workflow_msg} ' +
-                      'is a Lifebit Platform Platform Workflow. Platform Workflows only work with ' +
+                      'is a Lifebit Platform Workflow. Platform Workflows only work with ' +
                       f'Nextflow version {PLATFORM_WORKFLOW_NEXTFLOW_VERSION}. Switching to use {PLATFORM_WORKFLOW_NEXTFLOW_VERSION}')
             nextflow_version = PLATFORM_WORKFLOW_NEXTFLOW_VERSION
     

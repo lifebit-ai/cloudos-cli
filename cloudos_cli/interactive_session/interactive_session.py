@@ -1391,7 +1391,7 @@ class InteractiveSessionAPI:
         Parameters
         ----------
         cloudos_url : str
-            Base Lifebit Platform platform URL
+            Base Lifebit Platform URL
         apikey : str
             API key for authentication
         verify_ssl : bool
@@ -1739,7 +1739,7 @@ def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: st
     Parameters
     ----------
     cloudos_url : str
-        Lifebit Platform platform URL
+        Lifebit Platform URL
     apikey : str
         API key for authentication
     session_id : str
