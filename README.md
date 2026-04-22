@@ -718,9 +718,8 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 Please note that HPC execution does not support the following parameters and all of them will be ignored:
 
 - `--job-queue`
-- `--resumable | --do-not-save-logs`
+- `--resumable` | `--do-not-save-logs`
 - `--instance-type` | `--instance-disk` | `--cost-limit`
-- `--storage-mode` | `--lustre-size`
 - `--wdl-mainfile` | `--wdl-importsfile` | `--cromwell-token`
 
 #### Check Job Status
@@ -765,18 +764,20 @@ The output shows a rich table with job information and pagination details:
 ```console
 Executing list...
 
-                                                    Job List                                                    
-┏━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
-┃ Status ┃ Name         ┃ Project     ┃ Owner    ┃ Pipeline     ┃ ID                      ┃ Submit time  ┃
-┡━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
-│ ✓      │ analysis_run │ test-proj   │ John     │ rnatoy       │ 692ee71c40e98ed6ed529e43│ 2025-12-02   │
-│        │              │             │ Doe      │              │                         │ 15:30:45     │
-│ ◐      │ test_job     │ research    │ Jane     │ VEP          │ 692ee81d50f98ed7fe639f54│ 2025-12-02   │
-│        │              │             │ Smith    │              │                         │ 14:20:30     │
-└────────┴──────────────┴─────────────┴──────────┴──────────────┴─────────────────────────┴──────────────┘
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Status ┃ ID                       ┃ Pipeline     ┃ Name           ┃ Project      ┃ Owner    ┃ Runtime ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ ✓      │ 692ee71c40e98ed6ed529e43 │ rnatoy       │ analysis_run   │ test-proj    │ John Doe │ 15m 30s │
+│ ◐      │ 692ee81d50f98ed7fe639f54 │ VEP          │ test_job       │ research     │ Jane Sm… │ 2m 15s  │
+└────────┴──────────────────────────┴──────────────┴────────────────┴──────────────┴──────────┴─────────┘
+
+Legend: ✓ = Completed  |  ◐ = Running  |  ✗ = Failed  |  ■ = Aborted  |  ○ = Initialising  |  ? = Unknown
 
 Showing 10 of 45 total jobs | Page 1 of 5
 ```
+
+> [!NOTE]
+> **Responsive Table Display**: The table automatically adapts to your terminal width, intelligently selecting which columns to display. Narrow terminals show essential columns (Status, ID, Pipeline, Name), while wider terminals progressively add more information (Project, Owner, Runtime, Cost, timestamps, etc.). The table ensures only complete columns are shown and always renders with proper borders.
 
 **Status Indicators**
 

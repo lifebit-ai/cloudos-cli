@@ -75,15 +75,7 @@ def bash():
               help='The amount of memory, in GB, to use for the task\'s master node. Default=4.',
               type=int,
               default=4)
-@click.option('--storage-mode',
-              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
-                    'regular or lustre storage. Default=regular.'),
-              default='regular')
-@click.option('--lustre-size',
-              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
-                    'be 1200 or a multiple of it. Default=1200.'),
-              type=int,
-              default=1200)
+
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -136,8 +128,6 @@ def run_bash_job(ctx,
                  instance_disk,
                  cpus,
                  memory,
-                 storage_mode,
-                 lustre_size,
                  wait_completion,
                  wait_time,
                  repository_platform,
@@ -194,8 +184,6 @@ def run_bash_job(ctx,
                       nextflow_version=None,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
-                      storage_mode=storage_mode,
-                      lustre_size=lustre_size,
                       execution_platform=execution_platform,
                       hpc_id=None,
                       cost_limit=cost_limit,
@@ -296,15 +284,6 @@ def run_bash_job(ctx,
               help='The amount of memory, in GB, to use for the task\'s master node. Default=4.',
               type=int,
               default=4)
-@click.option('--storage-mode',
-              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
-                    'regular or lustre storage. Default=regular.'),
-              default='regular')
-@click.option('--lustre-size',
-              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
-                    'be 1200 or a multiple of it. Default=1200.'),
-              type=int,
-              default=1200)
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -391,8 +370,6 @@ def run_bash_array_job(ctx,
                        instance_disk,
                        cpus,
                        memory,
-                       storage_mode,
-                       lustre_size,
                        wait_completion,
                        wait_time,
                        repository_platform,
@@ -525,8 +502,6 @@ def run_bash_array_job(ctx,
                       nextflow_version=None,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
-                      storage_mode=storage_mode,
-                      lustre_size=lustre_size,
                       execution_platform=execution_platform,
                       hpc_id=None,
                       cost_limit=cost_limit,

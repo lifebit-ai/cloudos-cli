@@ -119,15 +119,6 @@ def job():
               help='The disk space of the master node instance, in GB. Default=500.',
               type=int,
               default=500)
-@click.option('--storage-mode',
-              help=('Either \'lustre\' or \'regular\'. Indicates if the user wants to select ' +
-                    'regular or lustre storage. Default=regular.'),
-              default='regular')
-@click.option('--lustre-size',
-              help=('The lustre storage to be used when --storage-mode=lustre, in GB. It should ' +
-                    'be 1200 or a multiple of it. Default=1200.'),
-              type=int,
-              default=1200)
 @click.option('--wait-completion',
               help=('Whether to wait to job completion and report final ' +
                     'job status.'),
@@ -219,8 +210,6 @@ def run(ctx,
         nextflow_version,
         instance_type,
         instance_disk,
-        storage_mode,
-        lustre_size,
         wait_completion,
         wait_time,
         wdl_mainfile,
@@ -267,11 +256,9 @@ def run(ctx,
               '\t--job-queue\n' +
               '\t--resumable | --do-not-save-logs\n' +
               '\t--instance-type | --instance-disk | --cost-limit\n' +
-              '\t--storage-mode | --lustre-size\n' +
               '\t--wdl-mainfile | --wdl-importsfile | --cromwell-token\n')
         wdl_mainfile = None
         wdl_importsfile = None
-        storage_mode = 'regular'
         save_logs = False
     if accelerate_file_staging:
         if execution_platform != 'aws':
@@ -377,7 +364,7 @@ def run(ctx,
                                 'Docker account to Lifebit Platform before using ' +
                                 '--use-private-docker-repository option.')
             print('Use private Docker repository has been selected. A custom job ' +
-                  'queue to support private Docker containers and/or Lustre FSx will be created for ' +
+                  'queue to support private Docker containers will be created for ' +
                   'your job. The selected job queue will serve as a template.')
             docker_login = True
     else:
@@ -402,8 +389,6 @@ def run(ctx,
                       nextflow_version=nextflow_version,
                       instance_type=instance_type,
                       instance_disk=instance_disk,
-                      storage_mode=storage_mode,
-                      lustre_size=lustre_size,
                       execution_platform=execution_platform,
                       hpc_id=hpc_id,
                       workflow_type=workflow_type,
