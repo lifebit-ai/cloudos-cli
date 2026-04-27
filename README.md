@@ -118,7 +118,7 @@ The repository is also available from [PyPI](https://pypi.org/project/cloudos-cl
 pip install cloudos-cli
 ```
 
-To update Lifebit Platform CLI to the latest version using pip, you can run:
+To update CloudOS CLI to the latest version using pip, you can run:
 
 ```bash
 pip install --upgrade cloudos-cli
