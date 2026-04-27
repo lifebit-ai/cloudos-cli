@@ -94,7 +94,7 @@ Python package for interacting with Lifebit Platform
 
 ## Requirements
 
-Lifebit Platform CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.
+CloudOS CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.
 
 ```
 click>=8.0.1
