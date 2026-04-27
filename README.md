@@ -108,7 +108,7 @@ rich_click>=1.8.2
 
 ## Installation
 
-Lifebit Platform CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.
+CloudOS CLI can be installed in multiple ways depending on your needs and environment. Choose the method that best fits your workflow.
 
 ### From PyPI
 
