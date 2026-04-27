@@ -1604,7 +1604,7 @@ def archive_unarchive_jobs(ctx,
     cl = Cloudos(cloudos_url, apikey, None)
 
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\t{action_ing.capitalize()} jobs in the following workspace: {workspace_id}')
 
