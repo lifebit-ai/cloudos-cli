@@ -1,7 +1,7 @@
 """pytest tests for --accelerate-saving-results flag in job run command
 
 This test file provides testing for the --accelerate-saving-results flag functionality
-in the job run command of Lifebit Platform CLI.
+in the job run command of CloudOS CLI.
 """
 from click.testing import CliRunner
 from cloudos_cli.jobs.cli import run
