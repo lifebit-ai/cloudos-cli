@@ -477,7 +477,7 @@ def job_status(ctx,
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:
@@ -572,7 +572,7 @@ def job_workdir(ctx,
         cl = Cloudos(cloudos_url, apikey, None)
 
         if verbose:
-            console.print('\t[dim]The following Lifebit Platform object was created:[/dim]')
+            console.print('\t[dim]The following Cloudos object was created:[/dim]')
             console.print('\t' + str(cl) + '\n')
 
         try:
@@ -650,7 +650,7 @@ def job_workdir(ctx,
             print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:
@@ -778,7 +778,7 @@ def job_logs(ctx,
             print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:
@@ -900,7 +900,7 @@ def job_results(ctx,
         cl = Cloudos(cloudos_url, apikey, None)
 
         if verbose:
-            console.print('\t[dim]The following Lifebit Platform object was created:[/dim]')
+            console.print('\t[dim]The following Cloudos object was created:[/dim]')
             console.print('\t' + str(cl) + '\n')
 
         try:
@@ -978,7 +978,7 @@ def job_results(ctx,
             print(f'\t\tSession ID: {session_id}')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
     try:

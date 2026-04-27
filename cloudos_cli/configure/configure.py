@@ -11,7 +11,7 @@ from cloudos_cli.constants import CLOUDOS_URL, INIT_PROFILE
 
 
 class ConfigurationProfile:
-    """Class to manage configuration profiles for the Lifebit Platform CLI.
+    """Class to manage configuration profiles for the CloudOS CLI.
     This class provides methods to create, list, remove, and load profiles from
     configuration files. It also allows setting a profile as the default profile.
     Attributes:

@@ -160,7 +160,7 @@ pip install .
 
 ## Usage
 
-Lifebit Platform CLI can be used both as a command-line interface tool for interactive work and as a Python package for scripting and automation.
+CloudOS CLI can be used both as a command-line interface tool for interactive work and as a Python package for scripting and automation.
 
 To get general information about the tool:
 
@@ -168,11 +168,11 @@ To get general information about the tool:
 cloudos --help
 ```
 ```console
-                                                                                                                        
- Usage: cloudos [OPTIONS] COMMAND [ARGS]...                                                                             
-                                                                                                                        
- Lifebit Platform python package: a package for interacting with Lifebit Platform.                                                        
-                                                                                                                        
+
+Usage: cloudos [OPTIONS] COMMAND [ARGS]...
+
+CloudOS python package: a package for interacting with Lifebit Platform.
+
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --debug        Show detailed error information and tracebacks                                                        │
 │ --version      Show the version and exit.                                                                            │
@@ -251,7 +251,7 @@ In the same way, each implemented command has its own subcommands with its own `
 
 ## Configuration
 
-Lifebit Platform CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple Lifebit Platform environments.
+CloudOS CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple Lifebit Platform environments.
 
 Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named `.cloudos` will be created, with files `credentials` and `config` also being created. The structure will look like:
 
@@ -333,7 +333,7 @@ cloudos configure remove-profile --profile second-profile
 
 ### Configure
 
-See [Configuration](#configuration) section above for detailed information on setting up profiles and managing your Lifebit Platform CLI configuration.
+See [Configuration](#configuration) section above for detailed information on setting up profiles and managing your CloudOS CLI configuration.
 
 
 
@@ -654,7 +654,7 @@ _For example, the pipeline `lifebit-process` was imported on May 23 2025 and aga
 
 **Nextflow Version Support**
 
-Lifebit Platform CLI supports multiple Nextflow versions, with intelligent defaults based on your workflow type and execution platform.
+CloudOS CLI supports multiple Nextflow versions, with intelligent defaults based on your workflow type and execution platform.
 
 **Default Version Behavior:**
 
@@ -673,7 +673,7 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 ```
 
 > [!NOTE]
-> **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), Lifebit Platform CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
+> **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
 
 **AWS Executor Support**
 
@@ -693,7 +693,7 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 Lifebit Platform can also be configured to use Microsoft Azure compute platforms. If your Lifebit Platform is configured to use Azure, you will need to take into consideration the following:
 
 - When sending jobs to Lifebit Platform using `cloudos job run` command, please use the option `--execution-platform azure`
-- Azure only supports Nextflow version `22.11.1-edge`. If you specify a different version, Lifebit Platform CLI will display a warning and automatically use `22.11.1-edge` instead
+- Azure only supports Nextflow version `22.11.1-edge`. If you specify a different version, CloudOS CLI will display a warning and automatically use `22.11.1-edge` instead
 - Due to the lack of AWS batch queues in Azure, `cloudos queue list` command is not working
 
 Other than that, `cloudos-cli` will work very similarly. For instance, this is a typical send job command:
@@ -745,7 +745,7 @@ View your workspace jobs in a clean, formatted table directly in your terminal. 
 
 **Output Formats**
 
-Lifebit Platform CLI provides three output formats for job listings:
+CloudOS CLI provides three output formats for job listings:
 
 - **Table (default)**: Rich formatted table displayed in the terminal with pagination information
 - **CSV**: Tabular format with predefined or all available columns using `--all-fields`
@@ -794,7 +794,7 @@ Job IDs in the table are clickable hyperlinks (when supported by your terminal) 
 
 **Job Listing Control Options**
 
-Lifebit Platform CLI provides two ways to control the number of jobs retrieved:
+CloudOS CLI provides two ways to control the number of jobs retrieved:
 
 1. **Pagination Control (Default)**: Use `--page` and `--page-size` for precise pagination
 2. **Last N Jobs**: Use `--last-n-jobs` for retrieving the most recent jobs
@@ -2160,7 +2160,7 @@ cloudos interactive-session create \
 
 **Data Management**
 
-Lifebit Platform CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
+CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
 - you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
 - you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
 
