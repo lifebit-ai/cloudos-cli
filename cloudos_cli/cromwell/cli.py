@@ -129,7 +129,7 @@ def cromwell_restart(ctx,
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tStarting Cromwell server in {workspace_id} workspace')
     cl.cromwell_switch(workspace_id, action, verify_ssl)
