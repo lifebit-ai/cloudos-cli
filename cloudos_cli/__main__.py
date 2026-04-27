@@ -38,7 +38,7 @@ sys.excepthook = custom_exception_handler
 @click.version_option(__version__)
 @click.pass_context
 def run_cloudos_cli(ctx):
-    """Lifebit Platform python package: a package for interacting with Lifebit Platform."""
+    """CloudOS CLI python package: a package for interacting with Lifebit Platform."""
     update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
 
