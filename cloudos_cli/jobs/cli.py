@@ -1102,7 +1102,7 @@ def job_details(ctx,
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, None)
     if verbose:
-        print('\tThe following Lifebit Platform object was created:')
+        print('\tThe following Cloudos object was created:')
         print('\t' + str(cl) + '\n')
         print(f'\tSearching for job id: {job_id}')
 
