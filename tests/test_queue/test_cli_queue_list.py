@@ -31,7 +31,8 @@ def test_queue_list_command_exists():
     result = runner.invoke(run_cloudos_cli, ['queue', '--help'])
     assert result.exit_code == 0
     assert 'list' in result.output
-    assert 'Collect and display all available job queues from a CloudOS workspace' in result.output
+    assert 'Collect and display all available job queues' in result.output
+    assert 'Lifebit Platform' in result.output
 
 
 def test_queue_list_help():

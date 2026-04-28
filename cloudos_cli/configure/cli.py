@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS configuration management."""
+"""CLI commands for Lifebit Platform configuration management."""
 
 import rich_click as click
 from cloudos_cli.configure.configure import ConfigurationProfile
@@ -14,7 +14,7 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
               help='Make the profile the default one.')
 @click.pass_context
 def configure(ctx, profile, make_default):
-    """CloudOS configuration."""
+    """Lifebit Platform configuration."""
     print(configure.__doc__ + '\n')
     update_command_context_from_click(ctx)
     profile = profile or ctx.obj['profile']

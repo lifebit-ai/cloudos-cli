@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS workflow management."""
+"""CLI commands for Lifebit Platform workflow management."""
 
 import rich_click as click
 import json
@@ -13,22 +13,22 @@ from cloudos_cli.utils.details import create_workflow_list_table
 # Create the workflow group
 @click.group(cls=pass_debug_to_subcommands())
 def workflow():
-    """CloudOS workflow functionality: list and import workflows."""
+    """Lifebit Platform workflow functionality: list and import workflows."""
     print(workflow.__doc__ + '\n')
 
 
 @workflow.command('list')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--output-basename',
               help=('Output file base name to save workflow list. ' +
@@ -71,7 +71,7 @@ def list_workflows(ctx,
                    disable_ssl_verification,
                    ssl_cert,
                    profile):
-    """Collect and display workflows from a CloudOS workspace."""
+    """Collect and display workflows from a Lifebit Platform workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -109,21 +109,21 @@ def list_workflows(ctx,
 @workflow.command('import')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=('The CloudOS url you are trying to access to. ' +
+              help=('The Lifebit Platform url you are trying to access to. ' +
                     f'Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--repository-platform', type=click.Choice(["github", "gitlab", "bitbucketServer"]),
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
-@click.option("--workflow-name", help="The name that the workflow will have in CloudOS.", required=True)
+@click.option("--workflow-name", help="The name that the workflow will have in Lifebit Platform.", required=True)
 @click.option("-w", "--workflow-url", help="URL of the workflow repository.", required=True)
 @click.option("-d", "--workflow-docs-link", help="URL to the documentation of the workflow.", default='')
 @click.option("--cost-limit", help="Cost limit for the workflow. Default: $30 USD.", default=30)

@@ -574,7 +574,7 @@ class ConfigurationProfile:
         resolved_cloudos_url = resolved_params.get('cloudos_url', '')
         if not resolved_cloudos_url:
             click.secho(
-                f"No CloudOS URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
+                f"No Lifebit Platform URL provided via CLI or profile. Falling back to default: {cloudos_url_default}",
                 fg="yellow",
                 bold=True
             )
@@ -626,8 +626,8 @@ def with_profile_config(required_params=None):
     ----------
     required_params : list, optional
         List of parameter names that can currently be added in a profile. Common values:
-        - 'apikey': CloudOS API key
-        - 'workspace_id': CloudOS workspace ID
+        - 'apikey': Lifebit Platform API key
+        - 'workspace_id': Lifebit Platform workspace ID
         - 'project_name': Project name
         - 'workflow_name': Workflow/pipeline name
         - 'session_id': Interactive session ID
@@ -637,9 +637,9 @@ def with_profile_config(required_params=None):
     Example
     -------
     @job.command('details')
-    @click.option('--apikey', help='Your CloudOS API key', required=True)
-    @click.option('--workspace-id', help='The specific CloudOS workspace id.', required=True)
-    @click.option('--job-id', help='The job id in CloudOS to search for.', required=True)
+    @click.option('--apikey', help='Your Lifebit Platform API key', required=True)
+    @click.option('--workspace-id', help='The specific Lifebit Platform workspace id.', required=True)
+    @click.option('--job-id', help='The job id in Lifebit Platform to search for.', required=True)
     @click.option('--profile', help='Profile to use from the config file', default=None)
     @click.pass_context
     @with_profile_config(required_params=['apikey', 'workspace_id'])

@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS job management."""
+"""CLI commands for Lifebit Platform job management."""
 
 import rich_click as click
 import cloudos_cli.jobs.job as jb
@@ -35,28 +35,28 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 # Create the job group
 @click.group(cls=pass_debug_to_subcommands())
 def job():
-    """CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS."""
+    """Lifebit Platform job functionality: run, clone, resume, check and abort jobs in Lifebit Platform."""
     print(job.__doc__ + '\n')
 
 
 @job.command('run', cls=click.RichCommand)
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.',
+              help='The name of a Lifebit Platform project.',
               required=True)
 @click.option('--workflow-name',
-              help='The name of a CloudOS workflow or pipeline.',
+              help='The name of a Lifebit Platform workflow or pipeline.',
               required=True)
 @click.option('--last',
               help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
@@ -82,7 +82,7 @@ def job():
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
 @click.option('--nextflow-version',
-              help=('Nextflow version to use when executing the workflow in CloudOS. ' +
+              help=('Nextflow version to use when executing the workflow in Lifebit Platform. ' +
                     'Defaults to 22.10.8 for Platform Workflows or 24.04.4 for user-imported Workflows.'),
               type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']),
               default=None)
@@ -139,7 +139,7 @@ def job():
               help='Name of the repository platform of the workflow. Default=github.',
               default='github')
 @click.option('--execution-platform',
-              help='Name of the execution platform implemented in your CloudOS. Default=aws.',
+              help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
               type=click.Choice(['aws', 'azure', 'hpc']),
               default='aws')
 @click.option('--hpc-id',
@@ -169,7 +169,7 @@ def job():
               is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
-                    'account has to be already linked to CloudOS.'),
+                    'account has to be already linked to Lifebit Platform.'),
               is_flag=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -230,7 +230,7 @@ def run(ctx,
         disable_ssl_verification,
         ssl_cert,
         profile):
-    """Run a CloudOS workflow."""    
+    """Run a Lifebit Platform workflow."""    
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if do_not_save_logs:
         save_logs = False
@@ -272,7 +272,7 @@ def run(ctx,
                   'Please, take into consideration the following:\n' +
                   '\t- It significantly reduces runtime and compute costs but may increase network costs.\n' +
                   '\t- Requires extra memory. Adjust process memory or optimise resource usage if necessary.\n' +
-                  '\t- This is still a CloudOS BETA feature.\n')
+                  '\t- This is still a Lifebit Platform BETA feature.\n')
     else:
         use_mountpoints = False
     if verbose:
@@ -333,7 +333,7 @@ def run(ctx,
     if verbose:
         print('\tThe following Job object was created:')
         print('\t' + str(j))
-        print('\t...Sending job to CloudOS\n')
+        print('\t...Sending job to Lifebit Platform\n')
     if is_module:
         if job_queue is not None:
             print(f'Ignoring job queue "{job_queue}" for ' +
@@ -342,7 +342,7 @@ def run(ctx,
         job_queue_id = None
         if execution_platform == 'azure':
             print(f'The selected workflow \'{workflow_name}\' ' +
-                  'is a CloudOS module. For these workflows, worker nodes ' +
+                  'is a Lifebit Platform module. For these workflows, worker nodes ' +
                   'are managed internally. For this reason, the options ' +
                   'azure-worker-instance-type, azure-worker-instance-disk and ' +
                   'azure-worker-instance-spot are not taking effect.')
@@ -353,7 +353,7 @@ def run(ctx,
                                                 job_queue=job_queue)
     if use_private_docker_repository:
         if is_module:
-            print(f'Workflow "{workflow_name}" is a CloudOS module. ' +
+            print(f'Workflow "{workflow_name}" is a Lifebit Platform module. ' +
                   'Option --use-private-docker-repository will be ignored.')
             docker_login = False
         else:
@@ -361,7 +361,7 @@ def run(ctx,
             if len(me) == 0:
                 raise Exception('User private Docker repository has been selected but your user ' +
                                 'credentials have not been configured yet. Please, link your ' +
-                                'Docker account to CloudOS before using ' +
+                                'Docker account to Lifebit Platform before using ' +
                                 '--use-private-docker-repository option.')
             print('Use private Docker repository has been selected. A custom job ' +
                   'queue to support private Docker containers will be created for ' +
@@ -434,18 +434,18 @@ def run(ctx,
 @job.command('status')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The job id in Lifebit Platform to search for.',
               required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -468,7 +468,7 @@ def job_status(ctx,
                disable_ssl_verification,
                ssl_cert,
                profile):
-    """Get the status of a CloudOS job."""
+    """Get the status of a Lifebit Platform job."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     print('Executing status...')
@@ -496,30 +496,30 @@ def job_status(ctx,
 @job.command('workdir')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The job id in Lifebit Platform to search for.',
               required=True)
 @click.option('--link',
               help='Link the working directory to an interactive session.',
               is_flag=True)
 @click.option('--delete',
-              help='Delete the results directory of a CloudOS job.',
+              help='Delete the results directory of a Lifebit Platform job.',
               is_flag=True)
 @click.option('-y', '--yes',
               help='Skip confirmation prompt when deleting results.',
               is_flag=True)
 @click.option('--session-id',
-              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              help='The specific Lifebit Platform interactive session id. Required when using --link flag.',
               required=False)
 @click.option('--status',
               help='Check the deletion status of the working directory.',
@@ -564,7 +564,7 @@ def job_workdir(ctx,
             console.print('[bold cyan]Checking deletion status of job working directory...[/bold cyan]')
             console.print('\t[dim]...Preparing objects[/dim]')
             console.print('\t[bold]Using the following parameters:[/bold]')
-            console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
+            console.print(f'\t\t[cyan]Lifebit Platform url:[/cyan] {cloudos_url}')
             console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
             console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
 
@@ -643,7 +643,7 @@ def job_workdir(ctx,
     if verbose:
         print('\t...Preparing objects')
         print('\tUsing the following parameters:')
-        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tLifebit Platform url: {cloudos_url}')
         print(f'\t\tWorkspace ID: {workspace_id}')
         print(f'\t\tJob ID: {job_id}')
         if link:
@@ -716,24 +716,24 @@ def job_workdir(ctx,
 @job.command('logs')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The job id in Lifebit Platform to search for.',
               required=True)
 @click.option('--link',
               help='Link the logs directories to an interactive session.',
               is_flag=True)
 @click.option('--session-id',
-              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              help='The specific Lifebit Platform interactive session id. Required when using --link flag.',
               required=False)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -771,7 +771,7 @@ def job_logs(ctx,
     if verbose:
         print('\t...Preparing objects')
         print('\tUsing the following parameters:')
-        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tLifebit Platform url: {cloudos_url}')
         print(f'\t\tWorkspace ID: {workspace_id}')
         print(f'\t\tJob ID: {job_id}')
         if link:
@@ -824,30 +824,30 @@ def job_logs(ctx,
 @job.command('results')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The job id in Lifebit Platform to search for.',
               required=True)
 @click.option('--link',
               help='Link the results directories to an interactive session.',
               is_flag=True)
 @click.option('--delete',
-              help='Delete the results directory of a CloudOS job.',
+              help='Delete the results directory of a Lifebit Platform job.',
               is_flag=True)
 @click.option('-y', '--yes',
               help='Skip confirmation prompt when deleting results.',
               is_flag=True)
 @click.option('--session-id',
-              help='The specific CloudOS interactive session id. Required when using --link flag.',
+              help='The specific Lifebit Platform interactive session id. Required when using --link flag.',
               required=False)
 @click.option('--status',
               help='Check the deletion status of the job results.',
@@ -892,7 +892,7 @@ def job_results(ctx,
             console.print('[bold cyan]Checking deletion status of job results...[/bold cyan]')
             console.print('\t[dim]...Preparing objects[/dim]')
             console.print('\t[bold]Using the following parameters:[/bold]')
-            console.print(f'\t\t[cyan]CloudOS url:[/cyan] {cloudos_url}')
+            console.print(f'\t\t[cyan]Lifebit Platform url:[/cyan] {cloudos_url}')
             console.print(f'\t\t[cyan]Workspace ID:[/cyan] {workspace_id}')
             console.print(f'\t\t[cyan]Job ID:[/cyan] {job_id}')
 
@@ -971,7 +971,7 @@ def job_results(ctx,
     if verbose:
         print('\t...Preparing objects')
         print('\tUsing the following parameters:')
-        print(f'\t\tCloudOS url: {cloudos_url}')
+        print(f'\t\tLifebit Platform url: {cloudos_url}')
         print(f'\t\tWorkspace ID: {workspace_id}')
         print(f'\t\tJob ID: {job_id}')
         if link:
@@ -1022,7 +1022,7 @@ def job_results(ctx,
                     print('\nDeletion cancelled.')
                     return
             if verbose:
-                print('\nDeleting result directories from CloudOS...')
+                print('\nDeleting result directories from Lifebit Platform...')
             # Proceed with deletion
             job = jb.Job(cloudos_url, apikey, None, workspace_id, None, None, workflow_id=1234, project_id="None",
                         mainfile=None, importsfile=None, verify=verify_ssl)
@@ -1040,18 +1040,18 @@ def job_results(ctx,
 @job.command('details')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to search for.',
+              help='The job id in Lifebit Platform to search for.',
               required=True)
 @click.option('--output-format',
               help=('The desired display for the output, either directly in standard output or saved as file. ' +
@@ -1090,7 +1090,7 @@ def job_details(ctx,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Retrieve job details in CloudOS."""
+    """Retrieve job details in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if ctx.get_parameter_source('output_basename') == click.core.ParameterSource.DEFAULT:
@@ -1122,15 +1122,15 @@ def job_details(ctx,
 @job.command('list')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--output-basename',
               help=('Output file base name to save jobs list. ' +
@@ -1225,7 +1225,7 @@ def list_jobs(ctx,
               disable_ssl_verification,
               ssl_cert,
               profile):
-    """Collect and display workspace jobs from a CloudOS workspace."""
+    """Collect and display workspace jobs from a Lifebit Platform workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1358,15 +1358,15 @@ def list_jobs(ctx,
 @job.command('abort')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-ids',
               help=('One or more job ids to abort. If more than ' +
@@ -1398,7 +1398,7 @@ def abort_jobs(ctx,
                ssl_cert,
                profile,
                force):
-    """Abort all specified jobs from a CloudOS workspace."""
+    """Abort all specified jobs from a Lifebit Platform workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1453,18 +1453,18 @@ def abort_jobs(ctx,
 @job.command('cost')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to get costs for.',
+              help='The job id in Lifebit Platform to get costs for.',
               required=True)
 @click.option('--output-format',
               help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
@@ -1492,7 +1492,7 @@ def job_cost(ctx,
              disable_ssl_verification,
              ssl_cert,
              profile):
-    """Retrieve job cost information in CloudOS."""
+    """Retrieve job cost information in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     print('Retrieving cost information...')
@@ -1509,18 +1509,18 @@ def job_cost(ctx,
 @job.command('related')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-id',
-              help='The job id in CloudOS to get costs for.',
+              help='The job id in Lifebit Platform to get costs for.',
               required=True)
 @click.option('--output-format',
               help='The desired output format. Default=stdout.',
@@ -1544,7 +1544,7 @@ def related(ctx,
             disable_ssl_verification,
             ssl_cert,
             profile):
-    """Retrieve related job analyses in CloudOS."""
+    """Retrieve related job analyses in Lifebit Platform."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     related_analyses(cloudos_url, apikey, job_id, workspace_id, output_format, verify_ssl)
 
@@ -1552,15 +1552,15 @@ def related(ctx,
 @click.command()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--job-ids',
               help=('One or more job ids to archive/unarchive. If more than ' +
@@ -1588,7 +1588,7 @@ def archive_unarchive_jobs(ctx,
                            disable_ssl_verification,
                            ssl_cert,
                            profile):
-    """Archive or unarchive specified jobs in a CloudOS workspace."""
+    """Archive or unarchive specified jobs in a Lifebit Platform workspace."""
     # Determine operation based on the command name used
     target_archived_state = ctx.info_name == "archive"
     action = "archive" if target_archived_state else "unarchive"
@@ -1673,18 +1673,18 @@ def archive_unarchive_jobs(ctx,
 @click.command(help='Clone or resume a job with modified parameters')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--project-name',
-              help='The name of a CloudOS project.')
+              help='The name of a Lifebit Platform project.')
 @click.option('-p',
               '--parameter',
               multiple=True,
@@ -1696,7 +1696,7 @@ def archive_unarchive_jobs(ctx,
               help=('A comma separated string indicating the nextflow profile/s ' +
                     'to use with your job.'))
 @click.option('--nextflow-version',
-              help=('Nextflow version to use when executing the workflow in CloudOS.'),
+              help=('Nextflow version to use when executing the workflow in Lifebit Platform.'),
               type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']))
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
@@ -1721,7 +1721,7 @@ def archive_unarchive_jobs(ctx,
               help='Add a cost limit to your job. Default=30.0 (For no cost limit please use -1).',
               type=float)
 @click.option('--job-id',
-              help='The CloudOS job id of the job to be cloned.',
+              help='The Lifebit Platform job id of the job to be cloned.',
               required=True)
 @click.option('--accelerate-file-staging',
               help='Enables AWS S3 mountpoint for quicker file staging.',
@@ -1872,12 +1872,12 @@ def clone_resume(ctx,
 
 
 # Register archive_unarchive_jobs with both command names using aliases (same pattern as clone/resume)
-archive_unarchive_jobs.help = 'Archive specified jobs in a CloudOS workspace.'
+archive_unarchive_jobs.help = 'Archive specified jobs in a Lifebit Platform workspace.'
 job.add_command(archive_unarchive_jobs, "archive")
 
 # Create a copy with different help text for unarchive
 archive_unarchive_jobs_copy = copy.deepcopy(archive_unarchive_jobs)
-archive_unarchive_jobs_copy.help = 'Unarchive specified jobs in a CloudOS workspace.'
+archive_unarchive_jobs_copy.help = 'Unarchive specified jobs in a Lifebit Platform workspace.'
 job.add_command(archive_unarchive_jobs_copy, "unarchive")
 
 

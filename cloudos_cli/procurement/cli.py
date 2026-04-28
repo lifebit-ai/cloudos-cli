@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS procurement management."""
+"""CLI commands for Lifebit Platform procurement management."""
 
 import rich_click as click
 from cloudos_cli.procurement.images import Images
@@ -9,26 +9,26 @@ from rich.console import Console
 
 @click.group()
 def procurement():
-    """CloudOS procurement functionality."""
+    """Lifebit Platform procurement functionality."""
     print(procurement.__doc__ + '\n')
 
 
 @procurement.group()
 def images():
-    """CloudOS procurement images functionality."""
+    """Lifebit Platform procurement images functionality."""
 
 
 @images.command(name="ls")
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
+              help='Your Lifebit Platform API key.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
-@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--procurement-id', help='The specific Lifebit Platform procurement id.', required=True)
 @click.option('--page', help='The response page. Defaults to 1.', required=False, default=1)
 @click.option('--limit', help='The page size limit. Defaults to 10', required=False, default=10)
 @click.option('--disable-ssl-verification',
@@ -74,16 +74,16 @@ def list_images(ctx,
 @images.command(name="set")
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
+              help='Your Lifebit Platform API key.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
-@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--procurement-id', help='The specific Lifebit Platform procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+@click.option('--image-type', help='The Lifebit Platform resource image type.', required=True,
               type=click.Choice([
                   'RegularInteractiveSessions',
                   'SparkInteractiveSessions',
@@ -150,16 +150,16 @@ def set_organisation_image(ctx,
 @images.command(name="reset")
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.',
+              help='Your Lifebit Platform API key.',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
-@click.option('--procurement-id', help='The specific CloudOS procurement id.', required=True)
+@click.option('--procurement-id', help='The specific Lifebit Platform procurement id.', required=True)
 @click.option('--organisation-id', help='The Organisation Id where the change is going to be applied.', required=True)
-@click.option('--image-type', help='The CloudOS resource image type.', required=True,
+@click.option('--image-type', help='The Lifebit Platform resource image type.', required=True,
               type=click.Choice([
                   'RegularInteractiveSessions',
                   'SparkInteractiveSessions',
@@ -189,7 +189,7 @@ def reset_organisation_image(ctx,
                              disable_ssl_verification,
                              ssl_cert,
                              profile):
-    """Reset image associated with an organisations of a given procurement to CloudOS defaults."""
+    """Reset image associated with an organisations of a given procurement to Lifebit Platform defaults."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     procurement_images = Images(

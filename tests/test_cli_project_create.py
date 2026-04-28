@@ -16,7 +16,7 @@ def test_project_create_command_exists():
     assert result.exit_code == 0
 
     # Check that the help text contains expected options
-    assert 'Create a new project in CloudOS' in result.output
+    assert 'Create a new project in Lifebit Platform' in result.output
     assert '--new-project' in result.output
     assert '--workspace-id' in result.output
     assert '--apikey' in result.output
@@ -34,7 +34,7 @@ def test_project_create_command_structure():
 
     # Command should exist and show help properly
     assert result.exit_code == 0
-    assert 'Create a new project in CloudOS' in result.output
+    assert 'Create a new project in Lifebit Platform' in result.output
     assert '--new-project' in result.output
     assert 'required' in result.output  # Required arguments should be marked as such
 
@@ -50,4 +50,4 @@ def test_project_group_contains_create_command():
 
     assert result.exit_code == 0
     assert 'create' in result.output
-    assert 'Create a new project in CloudOS' in result.output
+    assert 'Create a new project in Lifebit Platform' in result.output

@@ -22,9 +22,9 @@ class Link(Cloudos):
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     workspace_id : string
         The specific Cloudos workspace id.
     verify: [bool|string]
