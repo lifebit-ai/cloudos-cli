@@ -476,14 +476,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates formatted job details output from job data in multiple formats.</span>
 
-<span class="sd">    This function processes job details from the CloudOS API response and outputs</span>
+<span class="sd">    This function processes job details from the Lifebit Platform API response and outputs</span>
 <span class="sd">    the information in a user-specified format (stdout table, JSON, or CSV).</span>
 <span class="sd">    It also optionally creates configuration files with job parameters.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    j_details_h : dict</span>
-<span class="sd">        A dictionary containing job details from the CloudOS API. Expected keys include:</span>
+<span class="sd">        A dictionary containing job details from the Lifebit Platform API. Expected keys include:</span>
 <span class="sd">            - &#39;jobType&#39;: The type of job executor (e.g., &#39;nextflowAWS&#39;, &#39;dockerAWS&#39;).</span>
 <span class="sd">            - &#39;parameters&#39;: List of parameter dictionaries for the job.</span>
 <span class="sd">            - &#39;status&#39;: Current status of the job.</span>
@@ -513,7 +513,7 @@
 <span class="sd">        If True and parameters exist, creates a &#39;.config&#39; file with Nextflow-style</span>
 <span class="sd">        parameter formatting.</span>
 <span class="sd">    cloudos_url : str, optional</span>
-<span class="sd">        The base URL of the CloudOS instance. Defaults to &quot;https://cloudos.lifebit.ai&quot;.</span>
+<span class="sd">        The base URL of the Lifebit Platform instance. Defaults to &quot;https://cloudos.lifebit.ai&quot;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -739,9 +739,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    job : dict</span>
-<span class="sd">        Job dictionary from CloudOS API</span>
+<span class="sd">        Job dictionary from Lifebit Platform API</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        CloudOS service URL for generating job links</span>
+<span class="sd">        Lifebit Platform service URL for generating job links</span>
 <span class="sd">    terminal_width : int</span>
 <span class="sd">        Current terminal width for responsive formatting</span>
 <span class="sd">    columns_to_show : list</span>
@@ -907,9 +907,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    jobs : list</span>
-<span class="sd">        List of job dictionaries from CloudOS API</span>
+<span class="sd">        List of job dictionaries from Lifebit Platform API</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        CloudOS service URL for generating job links</span>
+<span class="sd">        Lifebit Platform service URL for generating job links</span>
 <span class="sd">    terminal_width : int</span>
 <span class="sd">        Current terminal width for responsive formatting</span>
 <span class="sd">    columns_to_show : list</span>
@@ -1205,7 +1205,7 @@
 <span class="sd">    workflows : list</span>
 <span class="sd">        A list of dicts, each corresponding to a workflow.</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        The CloudOS URL for creating hyperlinks.</span>
+<span class="sd">        The Lifebit Platform URL for creating hyperlinks.</span>
 <span class="sd">    page_size : int</span>
 <span class="sd">        Number of workflows to display per page. Default is 10.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1355,7 +1355,7 @@
 <span class="sd">    queues : list</span>
 <span class="sd">        A list of dicts, each corresponding to a job queue.</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        The CloudOS URL for context (currently not used for hyperlinks).</span>
+<span class="sd">        The Lifebit Platform URL for context (currently not used for hyperlinks).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1427,7 +1427,7 @@
 <span class="sd">    projects : list</span>
 <span class="sd">        A list of dicts, each corresponding to a project.</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        The CloudOS URL for creating hyperlinks.</span>
+<span class="sd">        The Lifebit Platform URL for creating hyperlinks.</span>
 <span class="sd">    page_size : int</span>
 <span class="sd">        Number of projects to display per page. Default is 10.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

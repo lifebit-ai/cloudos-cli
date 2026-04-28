@@ -452,7 +452,7 @@
             <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">HPC_NEXTFLOW_LATEST</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;You have specified Nextflow version </span><span class="se">\&#39;</span><span class="s1">latest</span><span class="se">\&#39;</span><span class="s1"> for execution platform &#39;</span> <span class="o">+</span>
               <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="si">{</span><span class="n">execution_platform</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">. The workflow will use the &#39;</span> <span class="o">+</span>
-              <span class="sa">f</span><span class="s1">&#39;latest version available on CloudOS: </span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+              <span class="sa">f</span><span class="s1">&#39;latest version available on Lifebit Platform: </span><span class="si">{</span><span class="n">nextflow_version</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
     
     <span class="c1"># Step 3: Force correct version for Platform workflows</span>
     <span class="k">if</span> <span class="n">is_module</span><span class="p">:</span>
@@ -460,14 +460,14 @@
             <span class="k">if</span> <span class="n">nextflow_version</span> <span class="o">!=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span><span class="p">:</span>
                 <span class="n">workflow_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">workflow_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">workflow_name</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The selected workflow</span><span class="si">{</span><span class="n">workflow_msg</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
-                      <span class="s1">&#39;is a CloudOS Platform Workflow on Azure. Platform Workflows on Azure only work with &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;is a Lifebit Platform Workflow on Azure. Platform Workflows on Azure only work with &#39;</span> <span class="o">+</span>
                       <span class="sa">f</span><span class="s1">&#39;Nextflow version </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1">. Switching to use </span><span class="si">{</span><span class="n">AZURE_NEXTFLOW_LATEST</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">AZURE_NEXTFLOW_LATEST</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">nextflow_version</span> <span class="o">!=</span> <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="p">:</span>
                 <span class="n">workflow_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">workflow_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">workflow_name</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The selected workflow</span><span class="si">{</span><span class="n">workflow_msg</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
-                      <span class="s1">&#39;is a CloudOS Platform Workflow. Platform Workflows only work with &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;is a Lifebit Platform Workflow. Platform Workflows only work with &#39;</span> <span class="o">+</span>
                       <span class="sa">f</span><span class="s1">&#39;Nextflow version </span><span class="si">{</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1">. Switching to use </span><span class="si">{</span><span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">nextflow_version</span> <span class="o">=</span> <span class="n">PLATFORM_WORKFLOW_NEXTFLOW_VERSION</span>
     

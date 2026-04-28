@@ -397,19 +397,19 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : string</span>
-<span class="sd">        The CloudOS service url.</span>
+<span class="sd">        The Lifebit Platform service url.</span>
 <span class="sd">    apikey : string</span>
-<span class="sd">        Your CloudOS API key.</span>
+<span class="sd">        Your Lifebit Platform API key.</span>
 <span class="sd">    workspace_id : string</span>
 <span class="sd">        The specific Cloudos workspace id.</span>
 <span class="sd">    project_name : string</span>
-<span class="sd">        The name of a CloudOS project.</span>
+<span class="sd">        The name of a Lifebit Platform project.</span>
 <span class="sd">    verify: [bool|string]</span>
 <span class="sd">        Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">        a string is passed, it will be interpreted as the path to</span>
 <span class="sd">        the SSL certificate file.</span>
 <span class="sd">    project_id : string</span>
-<span class="sd">        The CloudOS project id for a given project name.</span>
+<span class="sd">        The Lifebit Platform project id for a given project name.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span>
@@ -445,7 +445,7 @@
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The specific Cloudos workspace id.</span>
 <span class="sd">        project_name : string</span>
-<span class="sd">            The name of a CloudOS project element.</span>
+<span class="sd">            The name of a Lifebit Platform project element.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -454,7 +454,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        project_id : string</span>
-<span class="sd">            The CloudOS project id for a given project name.</span>
+<span class="sd">            The Lifebit Platform project id for a given project name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_project_id_from_name</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span></div>
 
@@ -468,9 +468,9 @@
 <span class="sd">        Uses</span>
 <span class="sd">        ----------</span>
 <span class="sd">        apikey : string</span>
-<span class="sd">            Your CloudOS API key</span>
+<span class="sd">            Your Lifebit Platform API key</span>
 <span class="sd">        cloudos_url : string</span>
-<span class="sd">            The CloudOS service url.</span>
+<span class="sd">            The Lifebit Platform service url.</span>
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The specific Cloudos workspace id.</span>
 <span class="sd">        project_id</span>
@@ -504,9 +504,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses</span>
 <span class="sd">        ----------</span>
 <span class="sd">        apikey : string</span>
-<span class="sd">            Your CloudOS API key</span>
+<span class="sd">            Your Lifebit Platform API key</span>
 <span class="sd">        cloudos_url : string</span>
-<span class="sd">            The CloudOS service url.</span>
+<span class="sd">            The Lifebit Platform service url.</span>
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The specific Cloudos workspace id.</span>
 <span class="sd">        project_id : string</span>
@@ -514,7 +514,7 @@
 <span class="sd">        folder_name : string</span>
 <span class="sd">            The requested folder name</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Prepare api request for CloudOS to fetch dataset info</span>
+        <span class="c1"># Prepare api request for Lifebit Platform to fetch dataset info</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
@@ -545,9 +545,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses</span>
 <span class="sd">        ----------</span>
 <span class="sd">        apikey : string</span>
-<span class="sd">            Your CloudOS API key</span>
+<span class="sd">            Your Lifebit Platform API key</span>
 <span class="sd">        cloudos_url : string</span>
-<span class="sd">            The CloudOS service url.</span>
+<span class="sd">            The Lifebit Platform service url.</span>
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The specific Cloudos workspace id.</span>
 <span class="sd">        project_id : string</span>
@@ -557,7 +557,7 @@
 <span class="sd">        s3_relative_path: string</span>
 <span class="sd">            The relative path in the s3 bucket</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Prepare api request for CloudOS to fetch dataset info</span>
+        <span class="c1"># Prepare api request for Lifebit Platform to fetch dataset info</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
@@ -595,9 +595,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uses</span>
 <span class="sd">        ----------</span>
 <span class="sd">        apikey : string</span>
-<span class="sd">            Your CloudOS API key</span>
+<span class="sd">            Your Lifebit Platform API key</span>
 <span class="sd">        cloudos_url : string</span>
-<span class="sd">            The CloudOS service url.</span>
+<span class="sd">            The Lifebit Platform service url.</span>
 <span class="sd">        workspace_id : string</span>
 <span class="sd">            The specific Cloudos workspace id.</span>
 <span class="sd">        project_id : string</span>
@@ -679,7 +679,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.list_folder_content">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_folder_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Wrapper to list contents of a CloudOS folder.</span>
+<span class="sd">        Wrapper to list contents of a Lifebit Platform folder.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -690,7 +690,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            JSON response from the appropriate CloudOS endpoint.</span>
+<span class="sd">            JSON response from the appropriate Lifebit Platform endpoint.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_project_content</span><span class="p">()</span>
@@ -785,7 +785,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.move_files_and_folders">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">move_files_and_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source_kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Move a file to another dataset in CloudOS.</span>
+<span class="sd">        Move a file to another dataset in Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -798,7 +798,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        response : requests.Response</span>
-<span class="sd">            The response object from the CloudOS API.</span>
+<span class="sd">            The response object from the Lifebit Platform API.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/dataItems/move?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
@@ -826,7 +826,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.rename_item">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">rename_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Rename a file or folder in CloudOS.</span>
+<span class="sd">        Rename a file or folder in Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -840,7 +840,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        response : requests.Response</span>
-<span class="sd">            The response object from the CloudOS API.</span>
+<span class="sd">            The response object from the Lifebit Platform API.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="s2">&quot;Folder&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid kind provided. Must be &#39;File&#39; or &#39;Folder&#39;.&quot;</span><span class="p">)</span>
@@ -867,7 +867,7 @@
 <div class="viewcode-block" id="Datasets.copy_item">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.copy_item">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">destination_id</span><span class="p">,</span> <span class="n">destination_kind</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copy a file or folder (S3, Azure or Virtual) to a destination in CloudOS.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copy a file or folder (S3, Azure or Virtual) to a destination in Lifebit Platform.&quot;&quot;&quot;</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;accept&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
@@ -939,7 +939,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.create_virtual_folder">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_virtual_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new virtual folder in CloudOS under a given parent.</span>
+<span class="sd">        Create a new virtual folder in Lifebit Platform under a given parent.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -953,7 +953,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        response : requests.Response</span>
-<span class="sd">            The response object from the CloudOS API.</span>
+<span class="sd">            The response object from the Lifebit Platform API.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">parent_kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;Folder&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid parent_kind. Must be &#39;Dataset&#39; or &#39;Folder&#39;.&quot;</span><span class="p">)</span>
@@ -984,7 +984,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.datasets.datasets.html#cloudos_cli.datasets.datasets.Datasets.delete_item">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">delete_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Delete a file or folder in CloudOS.</span>
+<span class="sd">        Delete a file or folder in Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -996,7 +996,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        response : requests.Response</span>
-<span class="sd">            The response object from the CloudOS API.</span>
+<span class="sd">            The response object from the Lifebit Platform API.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="s2">&quot;Folder&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid kind provided. Must be &#39;File&#39; or &#39;Folder&#39;.&quot;</span><span class="p">)</span>

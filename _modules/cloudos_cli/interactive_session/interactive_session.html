@@ -1077,16 +1077,16 @@
 <div class="viewcode-block" id="parse_data_file">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_data_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_data_file</span><span class="p">(</span><span class="n">data_file_str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse data file format: either S3 or CloudOS dataset path.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse data file format: either S3 or Lifebit Platform dataset path.</span>
 
-<span class="sd">    Supports mounting both S3 files and CloudOS dataset files into the session.</span>
+<span class="sd">    Supports mounting both S3 files and Lifebit Platform dataset files into the session.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    data_file_str : str</span>
 <span class="sd">        Format:</span>
 <span class="sd">        - S3 file: s3://bucket_name/path/to/file.txt</span>
-<span class="sd">        - CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path</span>
+<span class="sd">        - Lifebit Platform dataset: project_name/dataset_path or project_name &gt; dataset_path</span>
 
 <span class="sd">        Examples:</span>
 <span class="sd">        - s3://lifebit-featured-datasets/pipelines/phewas/data.csv</span>
@@ -1098,7 +1098,7 @@
 <span class="sd">        Parsed data item. For S3:</span>
 <span class="sd">        {&quot;type&quot;: &quot;s3&quot;, &quot;s3_bucket&quot;: &quot;...&quot;, &quot;s3_prefix&quot;: &quot;...&quot;}</span>
 
-<span class="sd">        For CloudOS dataset:</span>
+<span class="sd">        For Lifebit Platform dataset:</span>
 <span class="sd">        {&quot;type&quot;: &quot;cloudos&quot;, &quot;project_name&quot;: &quot;...&quot;, &quot;dataset_path&quot;: &quot;...&quot;}</span>
 
 <span class="sd">    Raises</span>
@@ -1120,7 +1120,7 @@
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
             <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
         <span class="p">}</span>
-    <span class="c1"># Otherwise, parse as CloudOS dataset path</span>
+    <span class="c1"># Otherwise, parse as Lifebit Platform dataset path</span>
     <span class="c1"># Determine which separator to use: &gt; takes precedence over /</span>
     <span class="n">separator</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="s1">&#39;&gt;&#39;</span> <span class="ow">in</span> <span class="n">data_file_str</span><span class="p">:</span>
@@ -1131,7 +1131,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Invalid data file format: </span><span class="si">{</span><span class="n">data_file_str</span><span class="si">}</span><span class="s2">. Expected one of:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  - S3 file: s3://bucket/path/file.txt</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;  - CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;  - Lifebit Platform dataset: project_name/dataset_path or project_name &gt; dataset_path&quot;</span>
         <span class="p">)</span>
     <span class="c1"># Split only on the first separator to handle nested paths</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">data_file_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -1271,16 +1271,16 @@
 <div class="viewcode-block" id="parse_link_path">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.parse_link_path">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_link_path</span><span class="p">(</span><span class="n">link_path_str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse link path format: supports S3, CloudOS, or legacy colon format.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse link path format: supports S3, Lifebit Platform, or legacy colon format.</span>
 
-<span class="sd">    Links an S3 folder or CloudOS folder to the session for read/write access.</span>
+<span class="sd">    Links an S3 folder or Lifebit Platform folder to the session for read/write access.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    link_path_str : str</span>
 <span class="sd">        Format (one of):</span>
 <span class="sd">        - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)</span>
-<span class="sd">        - CloudOS folder: project/folder_path (e.g., leila-test/Data)</span>
+<span class="sd">        - Lifebit Platform folder: project/folder_path (e.g., leila-test/Data)</span>
 <span class="sd">        - Legacy format (deprecated): mountName:bucketName:s3Prefix</span>
 
 <span class="sd">    Returns</span>
@@ -1288,14 +1288,14 @@
 <span class="sd">    dict</span>
 <span class="sd">        Tuple of (type, data) where type is &#39;s3&#39; or &#39;cloudos&#39; and data contains:</span>
 <span class="sd">        For S3: {&quot;s3_bucket&quot;: &quot;...&quot;, &quot;s3_prefix&quot;: &quot;...&quot;}</span>
-<span class="sd">        For CloudOS: {&quot;project_name&quot;: &quot;...&quot;, &quot;folder_path&quot;: &quot;...&quot;}</span>
+<span class="sd">        For Lifebit Platform: {&quot;project_name&quot;: &quot;...&quot;, &quot;folder_path&quot;: &quot;...&quot;}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Check for Azure blob storage paths and provide helpful error</span>
     <span class="k">if</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;az://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;.blob.core.windows.net&#39;</span> <span class="ow">in</span> <span class="n">link_path_str</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Azure blob storage paths are not supported for linking. &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Folder linking is not supported on Azure execution platforms. &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;Please use CloudOS file explorer to access your data directly.&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Please use Lifebit Platform file explorer to access your data directly.&quot;</span>
         <span class="p">)</span>
     <span class="c1"># Check for S3 path</span>
     <span class="k">if</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">):</span>
@@ -1330,7 +1330,7 @@
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
             <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
         <span class="p">}</span>
-    <span class="c1"># Otherwise, parse as CloudOS folder path</span>
+    <span class="c1"># Otherwise, parse as Lifebit Platform folder path</span>
     <span class="c1"># Format: project_name/folder_path or project_name &gt; folder_path</span>
     <span class="n">separator</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="s1">&#39;&gt;&#39;</span> <span class="ow">in</span> <span class="n">link_path_str</span><span class="p">:</span>
@@ -1341,7 +1341,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Invalid link path format: </span><span class="si">{</span><span class="n">link_path_str</span><span class="si">}</span><span class="s2">. Expected one of:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  - S3 path: s3://bucket/prefix/</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;  - CloudOS folder: project/folder/path</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;  - Lifebit Platform folder: project/folder/path</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;  - Legacy format (deprecated): mountName:bucketName:prefix&quot;</span>
         <span class="p">)</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -1402,7 +1402,7 @@
 <span class="sd">    shutdown_at : str</span>
 <span class="sd">        ISO8601 datetime for auto-shutdown (optional)</span>
 <span class="sd">    data_files : list</span>
-<span class="sd">        List of data file dicts. For AWS: CloudOS or S3. For Azure: CloudOS only.</span>
+<span class="sd">        List of data file dicts. For AWS: Lifebit Platform or S3. For Azure: Lifebit Platform only.</span>
 <span class="sd">    s3_mounts : list</span>
 <span class="sd">        List of S3 mount dicts (AWS only, ignored for Azure)</span>
 <span class="sd">    r_version : str</span>
@@ -1651,7 +1651,7 @@
         <span class="n">mounted_files</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">data_files</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="c1"># Handle CloudOS dataset files</span>
+                <span class="c1"># Handle Lifebit Platform dataset files</span>
                 <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;File&#39;</span><span class="p">:</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
                     <span class="n">mounted_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -1671,7 +1671,7 @@
                 <span class="n">data</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="p">{})</span>
                 <span class="n">bucket</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                 <span class="n">prefix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                <span class="c1"># For CloudOS mounts, show project/path; for S3, show bucket/path</span>
+                <span class="c1"># For Lifebit Platform mounts, show project/path; for S3, show bucket/path</span>
                 <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="n">bucket</span><span class="p">:</span>
                     <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">bucket</span><span class="p">:</span>
@@ -1825,7 +1825,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        cloudos_url : str</span>
-<span class="sd">            Base CloudOS platform URL</span>
+<span class="sd">            Base Lifebit Platform URL</span>
 <span class="sd">        apikey : str</span>
 <span class="sd">            API key for authentication</span>
 <span class="sd">        verify_ssl : bool</span>
@@ -1913,7 +1913,7 @@
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API request timeout after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">REQUEST_TIMEOUT</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to connect to CloudOS: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to connect to Lifebit Platform: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </div>
 
 
@@ -2209,7 +2209,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        CloudOS platform URL</span>
+<span class="sd">        Lifebit Platform URL</span>
 <span class="sd">    apikey : str</span>
 <span class="sd">        API key for authentication</span>
 <span class="sd">    session_id : str</span>
@@ -2255,7 +2255,7 @@
 <span class="sd">    session_data : dict</span>
 <span class="sd">        Transformed session data (from transform_session_response)</span>
 <span class="sd">    cloudos_url : str, optional</span>
-<span class="sd">        CloudOS URL for creating links</span>
+<span class="sd">        Lifebit Platform URL for creating links</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">OutputFormatter</span><span class="o">.</span><span class="n">format_stdout</span><span class="p">(</span><span class="n">session_data</span><span class="p">,</span> <span class="n">cloudos_url</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
 
@@ -2342,7 +2342,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        CloudOS API URL</span>
+<span class="sd">        Lifebit Platform API URL</span>
 <span class="sd">    apikey : str</span>
 <span class="sd">        API key for authentication</span>
 <span class="sd">    session_id : str</span>
@@ -2409,7 +2409,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cl : Cloudos</span>
-<span class="sd">        CloudOS API client instance</span>
+<span class="sd">        Lifebit Platform API client instance</span>
 <span class="sd">    workspace_id : str</span>
 <span class="sd">        Workspace ID</span>
 <span class="sd">    page_num : int</span>

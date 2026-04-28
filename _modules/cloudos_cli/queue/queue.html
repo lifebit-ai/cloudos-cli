@@ -398,9 +398,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : string</span>
-<span class="sd">        The CloudOS service url.</span>
+<span class="sd">        The Lifebit Platform service url.</span>
 <span class="sd">    apikey : string</span>
-<span class="sd">        Your CloudOS API key.</span>
+<span class="sd">        Your Lifebit Platform API key.</span>
 <span class="sd">    cromwell_token : string</span>
 <span class="sd">        Cromwell server token.</span>
 <span class="sd">    workspace_id : string</span>
@@ -416,7 +416,7 @@
 <div class="viewcode-block" id="Queue.get_job_queues">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_job_queues">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_system_queues</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the job queues from a CloudOS workspace.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the job queues from a Lifebit Platform workspace.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -446,7 +446,7 @@
 <div class="viewcode-block" id="Queue.get_system_job_queues">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.get_system_job_queues">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_system_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the system job queues from CloudOS.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the system job queues from Lifebit Platform.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -501,10 +501,10 @@
 <div class="viewcode-block" id="Queue.fetch_job_queue_id">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.queue.Queue.fetch_job_queue_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_job_queue_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_type</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">job_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches CloudOS ID for a given job queue.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches Lifebit Platform ID for a given job queue.</span>
 
 <span class="sd">        This method will try to find the</span>
-<span class="sd">        corresponding CloudOS ID for the job_queue in a given workspace. If</span>
+<span class="sd">        corresponding Lifebit Platform ID for the job_queue in a given workspace. If</span>
 <span class="sd">        job_queue=None, this method will select the available default queue in</span>
 <span class="sd">        the workspace, or the newest &quot;ready&quot; job queue if no default queues are</span>
 <span class="sd">        available.</span>
@@ -521,7 +521,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        job_queue_id : str or None</span>
-<span class="sd">            The CloudOS ID for the selected job queue, or None if batch=False.</span>
+<span class="sd">            The Lifebit Platform ID for the selected job queue, or None if batch=False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">batch</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -535,12 +535,12 @@
                             <span class="n">q</span><span class="p">[</span><span class="s1">&#39;executor&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">workflow_type</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_queues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There are no available job queues for </span><span class="si">{</span><span class="n">workflow_type</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
-                            <span class="s1">&#39;workflows. Consider creating one using CloudOS UI.&#39;</span><span class="p">)</span>
+                            <span class="s1">&#39;workflows. Consider creating one using Lifebit Platform UI.&#39;</span><span class="p">)</span>
         <span class="n">default_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isDefault&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">&#39;CloudOS default&#39;</span>
+            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">&#39;Lifebit Platform default&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>

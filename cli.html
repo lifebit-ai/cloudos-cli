@@ -387,7 +387,7 @@
 <p>This section documents the CloudOS CLI commands and options.</p>
 <section id="cloudos">
 <h2>cloudos<a class="headerlink" href="#cloudos" title="Link to this heading">¶</a></h2>
-<p>CloudOS python package: a package for interacting with CloudOS.</p>
+<p>CloudOS CLI python package: a package for interacting with Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -407,7 +407,7 @@
 
 <section id="cloudos-bash">
 <h3>bash<a class="headerlink" href="#cloudos-bash" title="Link to this heading">¶</a></h3>
-<p>CloudOS bash-specific job functionality.</p>
+<p>Lifebit Platform bash-specific job functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -421,7 +421,7 @@
 
 <section id="cloudos-bash-array-job">
 <h4>array-job<a class="headerlink" href="#cloudos-bash-array-job" title="Link to this heading">¶</a></h4>
-<p>Run a bash array job in CloudOS.</p>
+<p>Run a bash array job in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -430,7 +430,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-k">
 <span id="cmdoption-cloudos-bash-array-job-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
@@ -442,25 +442,25 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-c">
 <span id="cmdoption-cloudos-bash-array-job-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-project-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS project.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-workflow-name">
 <span class="sig-name descname"><span class="pre">--workflow-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workflow_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-workflow-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS workflow or pipeline.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform workflow or pipeline.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -543,7 +543,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-execution-platform">
 <span class="sig-name descname"><span class="pre">--execution-platform</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;execution_platform&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-execution-platform" title="Link to this definition">¶</a></dt>
-<dd><p>Name of the execution platform implemented in your CloudOS. Default=aws.</p>
+<dd><p>Name of the execution platform implemented in your Lifebit Platform. Default=aws.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>aws | azure | hpc</p>
@@ -649,7 +649,7 @@
 </section>
 <section id="cloudos-bash-job">
 <h4>job<a class="headerlink" href="#cloudos-bash-job" title="Link to this heading">¶</a></h4>
-<p>Run a bash job in CloudOS.</p>
+<p>Run a bash job in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>job<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -658,7 +658,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-k">
 <span id="cmdoption-cloudos-bash-job-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
@@ -670,25 +670,25 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-c">
 <span id="cmdoption-cloudos-bash-job-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-project-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS project.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-workflow-name">
 <span class="sig-name descname"><span class="pre">--workflow-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workflow_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-workflow-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS workflow or pipeline.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform workflow or pipeline.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -771,7 +771,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-execution-platform">
 <span class="sig-name descname"><span class="pre">--execution-platform</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;execution_platform&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-execution-platform" title="Link to this definition">¶</a></dt>
-<dd><p>Name of the execution platform implemented in your CloudOS. Default=aws.</p>
+<dd><p>Name of the execution platform implemented in your Lifebit Platform. Default=aws.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -820,7 +820,7 @@
 </section>
 <section id="cloudos-configure">
 <h3>configure<a class="headerlink" href="#cloudos-configure" title="Link to this heading">¶</a></h3>
-<p>CloudOS configuration.</p>
+<p>Lifebit Platform configuration.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>configure<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -883,7 +883,7 @@
 </section>
 <section id="cloudos-cromwell">
 <h3>cromwell<a class="headerlink" href="#cloudos-cromwell" title="Link to this heading">¶</a></h3>
-<p>CloudOS Cromwell server functionality.</p>
+<p>Lifebit Platform Cromwell server functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>cromwell<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -897,7 +897,7 @@
 
 <section id="cloudos-cromwell-start">
 <h4>start<a class="headerlink" href="#cloudos-cromwell-start" title="Link to this heading">¶</a></h4>
-<p>Restart Cromwell server in CloudOS.</p>
+<p>Restart Cromwell server in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>cromwell<span class="w"> </span>start<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -912,7 +912,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-start-k">
 <span id="cmdoption-cloudos-cromwell-start-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-start-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key.</p>
+<dd><p>Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -924,13 +924,13 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-start-c">
 <span id="cmdoption-cloudos-cromwell-start-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-start-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-start-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-start-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -972,7 +972,7 @@
 </section>
 <section id="cloudos-cromwell-status">
 <h4>status<a class="headerlink" href="#cloudos-cromwell-status" title="Link to this heading">¶</a></h4>
-<p>Check Cromwell server status in CloudOS.</p>
+<p>Check Cromwell server status in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>cromwell<span class="w"> </span>status<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -987,7 +987,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-status-k">
 <span id="cmdoption-cloudos-cromwell-status-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-status-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key.</p>
+<dd><p>Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -999,13 +999,13 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-status-c">
 <span id="cmdoption-cloudos-cromwell-status-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-status-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-status-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-status-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1041,7 +1041,7 @@
 </section>
 <section id="cloudos-cromwell-stop">
 <h4>stop<a class="headerlink" href="#cloudos-cromwell-stop" title="Link to this heading">¶</a></h4>
-<p>Stop Cromwell server in CloudOS.</p>
+<p>Stop Cromwell server in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -1056,7 +1056,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-stop-k">
 <span id="cmdoption-cloudos-cromwell-stop-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-stop-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key.</p>
+<dd><p>Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1068,13 +1068,13 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-stop-c">
 <span id="cmdoption-cloudos-cromwell-stop-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-stop-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-cromwell-stop-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-cromwell-stop-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1111,7 +1111,7 @@
 </section>
 <section id="cloudos-datasets">
 <h3>datasets<a class="headerlink" href="#cloudos-datasets" title="Link to this heading">¶</a></h3>
-<p>CloudOS datasets functionality.</p>
+<p>Lifebit Platform datasets functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -1140,19 +1140,19 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-cp-k">
 <span id="cmdoption-cloudos-datasets-cp-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-cp-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-cp-c">
 <span id="cmdoption-cloudos-datasets-cp-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-cp-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS URL.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform URL.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-cp-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-cp-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS workspace ID.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform workspace ID.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1218,31 +1218,31 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-k">
 <span id="cmdoption-cloudos-datasets-link-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-c">
 <span id="cmdoption-cloudos-datasets-link-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-c" title="Link to this definition">¶</a></dt>
-<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-project-name" title="Link to this definition">¶</a></dt>
-<dd><p>The name of a CloudOS project.</p>
+<dd><p>The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-session-id">
 <span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-session-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS interactive session id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform interactive session id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1279,7 +1279,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-datasets-ls">
 <h4>ls<a class="headerlink" href="#cloudos-datasets-ls" title="Link to this heading">¶</a></h4>
-<p>List contents of a path within a CloudOS workspace dataset.</p>
+<p>List contents of a path within a Lifebit Platform workspace dataset.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PATH<span class="o">]</span>
 </pre></div>
@@ -1288,19 +1288,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-k">
 <span id="cmdoption-cloudos-datasets-ls-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-c">
 <span id="cmdoption-cloudos-datasets-ls-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1318,7 +1318,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-ls-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-ls-project-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS project.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1366,7 +1366,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-datasets-mkdir">
 <h4>mkdir<a class="headerlink" href="#cloudos-datasets-mkdir" title="Link to this heading">¶</a></h4>
-<p>Create a virtual folder in a CloudOS project.</p>
+<p>Create a virtual folder in a Lifebit Platform project.</p>
 <p>NEW_FOLDER_PATH [path]: Full path to the new folder including its name. Must start with ‘Data’.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>mkdir<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>NEW_FOLDER_PATH
@@ -1376,19 +1376,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mkdir-k">
 <span id="cmdoption-cloudos-datasets-mkdir-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mkdir-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mkdir-c">
 <span id="cmdoption-cloudos-datasets-mkdir-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mkdir-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS URL.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform URL.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mkdir-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mkdir-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS workspace ID.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform workspace ID.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1431,7 +1431,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-datasets-mv">
 <h4>mv<a class="headerlink" href="#cloudos-datasets-mv" title="Link to this heading">¶</a></h4>
-<p>Move a file or folder from a source path to a destination path within or across CloudOS projects.</p>
+<p>Move a file or folder from a source path to a destination path within or across Lifebit Platform projects.</p>
 <dl class="simple">
 <dt>SOURCE_PATH [path]: the full path to the file or folder to move. It must be a ‘Data’ folder path.</dt><dd><p>E.g.: ‘Data/folderA/file.txt’</p>
 </dd>
@@ -1446,19 +1446,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mv-k">
 <span id="cmdoption-cloudos-datasets-mv-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mv-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mv-c">
 <span id="cmdoption-cloudos-datasets-mv-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mv-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS URL.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform URL.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-mv-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-mv-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS workspace ID.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform workspace ID.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1513,7 +1513,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-datasets-rename">
 <h4>rename<a class="headerlink" href="#cloudos-datasets-rename" title="Link to this heading">¶</a></h4>
-<p>Rename a file or folder in a CloudOS project.</p>
+<p>Rename a file or folder in a Lifebit Platform project.</p>
 <dl class="simple">
 <dt>SOURCE_PATH [path]: the full path to the file or folder to rename. It must be a ‘Data’ folder path.</dt><dd><p>E.g.: ‘Data/folderA/old_name.txt’</p>
 </dd>
@@ -1527,19 +1527,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rename-k">
 <span id="cmdoption-cloudos-datasets-rename-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rename-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rename-c">
 <span id="cmdoption-cloudos-datasets-rename-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rename-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS URL.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform URL.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rename-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rename-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS workspace ID.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform workspace ID.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1588,7 +1588,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-datasets-rm">
 <h4>rm<a class="headerlink" href="#cloudos-datasets-rm" title="Link to this heading">¶</a></h4>
-<p>Delete a file or folder in a CloudOS project.</p>
+<p>Delete a file or folder in a Lifebit Platform project.</p>
 <p>TARGET_PATH [path]: the full path to the file or folder to delete. Must start with ‘Data’.</p>
 <p>E.g.: ‘Data/folderA/file.txt’ or ‘Data/my_analysis/results/folderB’</p>
 <p class="rubric">Usage</p>
@@ -1599,19 +1599,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rm-k">
 <span id="cmdoption-cloudos-datasets-rm-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rm-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rm-c">
 <span id="cmdoption-cloudos-datasets-rm-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rm-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS URL.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform URL.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-datasets-rm-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-rm-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS workspace ID.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform workspace ID.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1661,7 +1661,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-interactive-session">
 <h3>interactive-session<a class="headerlink" href="#cloudos-interactive-session" title="Link to this heading">¶</a></h3>
-<p>CloudOS interactive session functionality: list and manage interactive sessions.</p>
+<p>Lifebit Platform interactive session functionality: list and manage interactive sessions.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -1684,19 +1684,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-k">
 <span id="cmdoption-cloudos-interactive-session-create-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key</p>
+<dd><p>Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-c">
 <span id="cmdoption-cloudos-interactive-session-create-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-c" title="Link to this definition">¶</a></dt>
-<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS workspace id.</p>
+<dd><p>The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1761,13 +1761,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-mount">
 <span class="sig-name descname"><span class="pre">--mount</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;mount&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-mount" title="Link to this definition">¶</a></dt>
-<dd><p>Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.</p>
+<dd><p>Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-link">
 <span class="sig-name descname"><span class="pre">--link</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;link&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-link" title="Link to this definition">¶</a></dt>
-<dd><p>Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Can be used multiple times.</p>
+<dd><p>Link a folder into the session for read/write access. Supports S3 folders and Lifebit Platform folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Can be used multiple times.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1843,7 +1843,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-interactive-session-list">
 <h4>list<a class="headerlink" href="#cloudos-interactive-session-list" title="Link to this heading">¶</a></h4>
-<p>List interactive sessions for a CloudOS team.</p>
+<p>List interactive sessions for a Lifebit Platform team.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -1852,19 +1852,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-list-k">
 <span id="cmdoption-cloudos-interactive-session-list-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-list-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-list-c">
 <span id="cmdoption-cloudos-interactive-session-list-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-list-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-list-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-list-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -1979,19 +1979,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-k">
 <span id="cmdoption-cloudos-interactive-session-pause-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key</p>
+<dd><p>Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-c">
 <span id="cmdoption-cloudos-interactive-session-pause-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-c" title="Link to this definition">¶</a></dt>
-<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-pause-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-pause-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS workspace id.</p>
+<dd><p>The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2066,19 +2066,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-k">
 <span id="cmdoption-cloudos-interactive-session-resume-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key</p>
+<dd><p>Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-c">
 <span id="cmdoption-cloudos-interactive-session-resume-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-c" title="Link to this definition">¶</a></dt>
-<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS workspace id.</p>
+<dd><p>The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2159,13 +2159,13 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-k">
 <span id="cmdoption-cloudos-interactive-session-status-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-k" title="Link to this definition">¶</a></dt>
-<dd><p>Your CloudOS API key</p>
+<dd><p>Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-c">
 <span id="cmdoption-cloudos-interactive-session-status-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-c" title="Link to this definition">¶</a></dt>
-<dd><p>The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2177,7 +2177,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-status-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-status-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS workspace id.</p>
+<dd><p>The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2249,7 +2249,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job">
 <h3>job<a class="headerlink" href="#cloudos-job" title="Link to this heading">¶</a></h3>
-<p>CloudOS job functionality: run, clone, resume, check and abort jobs in CloudOS.</p>
+<p>Lifebit Platform job functionality: run, clone, resume, check and abort jobs in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -2263,7 +2263,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 
 <section id="cloudos-job-abort">
 <h4>abort<a class="headerlink" href="#cloudos-job-abort" title="Link to this heading">¶</a></h4>
-<p>Abort all specified jobs from a CloudOS workspace.</p>
+<p>Abort all specified jobs from a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2272,19 +2272,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-abort-k">
 <span id="cmdoption-cloudos-job-abort-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-abort-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-abort-c">
 <span id="cmdoption-cloudos-job-abort-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-abort-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-abort-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-abort-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2332,7 +2332,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-archive-unarchive-jobs">
 <h4>archive-unarchive-jobs<a class="headerlink" href="#cloudos-job-archive-unarchive-jobs" title="Link to this heading">¶</a></h4>
-<p>Archive specified jobs in a CloudOS workspace.</p>
+<p>Archive specified jobs in a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive-unarchive-jobs<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2341,19 +2341,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-k">
 <span id="cmdoption-cloudos-job-archive-unarchive-jobs-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-c">
 <span id="cmdoption-cloudos-job-archive-unarchive-jobs-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2395,7 +2395,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-archive-unarchive-jobs">
 <h4>archive-unarchive-jobs<a class="headerlink" href="#cloudos-job-archive-unarchive-jobs" title="Link to this heading">¶</a></h4>
-<p>Unarchive specified jobs in a CloudOS workspace.</p>
+<p>Unarchive specified jobs in a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive-unarchive-jobs<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2404,19 +2404,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-0">
 <span id="cmdoption-cloudos-job-archive-unarchive-jobs-1"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-0" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-2">
 <span id="cmdoption-cloudos-job-archive-unarchive-jobs-3"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-2" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-archive-unarchive-jobs-4">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-archive-unarchive-jobs-4" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2467,25 +2467,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-k">
 <span id="cmdoption-cloudos-job-clone-resume-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-c">
 <span id="cmdoption-cloudos-job-clone-resume-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-project-name" title="Link to this definition">¶</a></dt>
-<dd><p>The name of a CloudOS project.</p>
+<dd><p>The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2503,7 +2503,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-nextflow-version">
 <span class="sig-name descname"><span class="pre">--nextflow-version</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;nextflow_version&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-nextflow-version" title="Link to this definition">¶</a></dt>
-<dd><p>Nextflow version to use when executing the workflow in CloudOS.</p>
+<dd><p>Nextflow version to use when executing the workflow in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>22.10.8 | 24.04.4 | 25.04.8 | 25.10.4 | 22.11.1-edge | latest</p>
@@ -2561,7 +2561,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS job id of the job to be cloned.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform job id of the job to be cloned.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2642,25 +2642,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-0">
 <span id="cmdoption-cloudos-job-clone-resume-1"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-0" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-2">
 <span id="cmdoption-cloudos-job-clone-resume-3"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-2" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-4">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-4" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-5">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-5" title="Link to this definition">¶</a></dt>
-<dd><p>The name of a CloudOS project.</p>
+<dd><p>The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2678,7 +2678,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-9">
 <span class="sig-name descname"><span class="pre">--nextflow-version</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;nextflow_version&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-9" title="Link to this definition">¶</a></dt>
-<dd><p>Nextflow version to use when executing the workflow in CloudOS.</p>
+<dd><p>Nextflow version to use when executing the workflow in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>22.10.8 | 24.04.4 | 25.04.8 | 25.10.4 | 22.11.1-edge | latest</p>
@@ -2736,7 +2736,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-clone-resume-17">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-clone-resume-17" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS job id of the job to be cloned.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform job id of the job to be cloned.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2808,7 +2808,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-cost">
 <h4>cost<a class="headerlink" href="#cloudos-job-cost" title="Link to this heading">¶</a></h4>
-<p>Retrieve job cost information in CloudOS.</p>
+<p>Retrieve job cost information in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>cost<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2817,25 +2817,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-cost-k">
 <span id="cmdoption-cloudos-job-cost-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-cost-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-cost-c">
 <span id="cmdoption-cloudos-job-cost-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-cost-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-cost-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-cost-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-cost-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-cost-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to get costs for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to get costs for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2882,7 +2882,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-details">
 <h4>details<a class="headerlink" href="#cloudos-job-details" title="Link to this heading">¶</a></h4>
-<p>Retrieve job details in CloudOS.</p>
+<p>Retrieve job details in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>details<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2891,25 +2891,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-details-k">
 <span id="cmdoption-cloudos-job-details-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-details-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-details-c">
 <span id="cmdoption-cloudos-job-details-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-details-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-details-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-details-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-details-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-details-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to search for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to search for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2968,7 +2968,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-list">
 <h4>list<a class="headerlink" href="#cloudos-job-list" title="Link to this heading">¶</a></h4>
-<p>Collect and display workspace jobs from a CloudOS workspace.</p>
+<p>Collect and display workspace jobs from a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -2977,19 +2977,19 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-list-k">
 <span id="cmdoption-cloudos-job-list-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-list-c">
 <span id="cmdoption-cloudos-job-list-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-list-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-list-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3141,25 +3141,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-k">
 <span id="cmdoption-cloudos-job-logs-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-c">
 <span id="cmdoption-cloudos-job-logs-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to search for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to search for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3171,7 +3171,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-logs-session-id">
 <span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-logs-session-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS interactive session id. Required when using –link flag.</p>
+<dd><p>The specific Lifebit Platform interactive session id. Required when using –link flag.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3207,7 +3207,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-related">
 <h4>related<a class="headerlink" href="#cloudos-job-related" title="Link to this heading">¶</a></h4>
-<p>Retrieve related job analyses in CloudOS.</p>
+<p>Retrieve related job analyses in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>related<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -3216,25 +3216,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-related-k">
 <span id="cmdoption-cloudos-job-related-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-related-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-related-c">
 <span id="cmdoption-cloudos-job-related-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-related-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-related-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-related-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-related-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-related-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to get costs for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to get costs for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3284,25 +3284,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-k">
 <span id="cmdoption-cloudos-job-results-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-c">
 <span id="cmdoption-cloudos-job-results-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to search for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to search for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3314,7 +3314,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-delete">
 <span class="sig-name descname"><span class="pre">--delete</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-results-delete" title="Link to this definition">¶</a></dt>
-<dd><p>Delete the results directory of a CloudOS job.</p>
+<dd><p>Delete the results directory of a Lifebit Platform job.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3326,7 +3326,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-results-session-id">
 <span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-results-session-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS interactive session id. Required when using –link flag.</p>
+<dd><p>The specific Lifebit Platform interactive session id. Required when using –link flag.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3368,7 +3368,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-run">
 <h4>run<a class="headerlink" href="#cloudos-job-run" title="Link to this heading">¶</a></h4>
-<p>Run a CloudOS workflow.</p>
+<p>Run a Lifebit Platform workflow.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -3377,31 +3377,31 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-k">
 <span id="cmdoption-cloudos-job-run-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-c">
 <span id="cmdoption-cloudos-job-run-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-project-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS project.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform project.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-workflow-name">
 <span class="sig-name descname"><span class="pre">--workflow-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workflow_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-workflow-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name of a CloudOS workflow or pipeline.</p>
+<dd><p><strong>Required</strong> The name of a Lifebit Platform workflow or pipeline.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3437,7 +3437,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-nextflow-version">
 <span class="sig-name descname"><span class="pre">--nextflow-version</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;nextflow_version&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-nextflow-version" title="Link to this definition">¶</a></dt>
-<dd><p>Nextflow version to use when executing the workflow in CloudOS. Defaults to 22.10.8 for Platform Workflows or 24.04.4 for user-imported Workflows.</p>
+<dd><p>Nextflow version to use when executing the workflow in Lifebit Platform. Defaults to 22.10.8 for Platform Workflows or 24.04.4 for user-imported Workflows.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>22.10.8 | 24.04.4 | 25.04.8 | 25.10.4 | 22.11.1-edge | latest</p>
@@ -3543,7 +3543,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-execution-platform">
 <span class="sig-name descname"><span class="pre">--execution-platform</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;execution_platform&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-execution-platform" title="Link to this definition">¶</a></dt>
-<dd><p>Name of the execution platform implemented in your CloudOS. Default=aws.</p>
+<dd><p>Name of the execution platform implemented in your Lifebit Platform. Default=aws.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>aws | azure | hpc</p>
@@ -3596,7 +3596,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-use-private-docker-repository">
 <span class="sig-name descname"><span class="pre">--use-private-docker-repository</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-run-use-private-docker-repository" title="Link to this definition">¶</a></dt>
-<dd><p>Allows to use private docker repository for running jobs. The Docker user account has to be already linked to CloudOS.</p>
+<dd><p>Allows to use private docker repository for running jobs. The Docker user account has to be already linked to Lifebit Platform.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3638,7 +3638,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 </section>
 <section id="cloudos-job-status">
 <h4>status<a class="headerlink" href="#cloudos-job-status" title="Link to this heading">¶</a></h4>
-<p>Get the status of a CloudOS job.</p>
+<p>Get the status of a Lifebit Platform job.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>status<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -3647,25 +3647,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-status-k">
 <span id="cmdoption-cloudos-job-status-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-status-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-status-c">
 <span id="cmdoption-cloudos-job-status-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-status-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-status-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-status-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-status-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-status-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to search for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to search for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3710,25 +3710,25 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-k">
 <span id="cmdoption-cloudos-job-workdir-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-c">
 <span id="cmdoption-cloudos-job-workdir-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-job-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The job id in CloudOS to search for.</p>
+<dd><p><strong>Required</strong> The job id in Lifebit Platform to search for.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3740,7 +3740,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-delete">
 <span class="sig-name descname"><span class="pre">--delete</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-delete" title="Link to this definition">¶</a></dt>
-<dd><p>Delete the results directory of a CloudOS job.</p>
+<dd><p>Delete the results directory of a Lifebit Platform job.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3752,7 +3752,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-workdir-session-id">
 <span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-workdir-session-id" title="Link to this definition">¶</a></dt>
-<dd><p>The specific CloudOS interactive session id. Required when using –link flag.</p>
+<dd><p>The specific Lifebit Platform interactive session id. Required when using –link flag.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3826,37 +3826,37 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-k">
 <span id="cmdoption-cloudos-link-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-c">
 <span id="cmdoption-cloudos-link-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-session-id">
 <span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-session-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS interactive session id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform interactive session id.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-job-id">
 <span class="sig-name descname"><span class="pre">--job-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-job-id" title="Link to this definition">¶</a></dt>
-<dd><p>The job id in CloudOS. When provided, links results, workdir and logs by default.</p>
+<dd><p>The job id in Lifebit Platform. When provided, links results, workdir and logs by default.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-link-project-name">
 <span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-link-project-name" title="Link to this definition">¶</a></dt>
-<dd><p>The name of a CloudOS project. Required for File Explorer paths.</p>
+<dd><p>The name of a Lifebit Platform project. Required for File Explorer paths.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3917,7 +3917,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-procurement">
 <h3>procurement<a class="headerlink" href="#cloudos-procurement" title="Link to this heading">¶</a></h3>
-<p>CloudOS procurement functionality.</p>
+<p>Lifebit Platform procurement functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -3931,7 +3931,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 
 <section id="cloudos-procurement-images">
 <h4>images<a class="headerlink" href="#cloudos-procurement-images" title="Link to this heading">¶</a></h4>
-<p>CloudOS procurement images functionality.</p>
+<p>Lifebit Platform procurement images functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -3947,19 +3947,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-ls-k">
 <span id="cmdoption-cloudos-procurement-images-ls-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-ls-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-ls-c">
 <span id="cmdoption-cloudos-procurement-images-ls-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-ls-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-ls-procurement-id">
 <span class="sig-name descname"><span class="pre">--procurement-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;procurement_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-ls-procurement-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS procurement id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform procurement id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3995,7 +3995,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-procurement-images-reset">
 <h5>reset<a class="headerlink" href="#cloudos-procurement-images-reset" title="Link to this heading">¶</a></h5>
-<p>Reset image associated with an organisations of a given procurement to CloudOS defaults.</p>
+<p>Reset image associated with an organisations of a given procurement to Lifebit Platform defaults.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4004,19 +4004,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-k">
 <span id="cmdoption-cloudos-procurement-images-reset-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-c">
 <span id="cmdoption-cloudos-procurement-images-reset-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-procurement-id">
 <span class="sig-name descname"><span class="pre">--procurement-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;procurement_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-procurement-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS procurement id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform procurement id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4028,7 +4028,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-reset-image-type">
 <span class="sig-name descname"><span class="pre">--image-type</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;image_type&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-reset-image-type" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS resource image type.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform resource image type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>RegularInteractiveSessions | SparkInteractiveSessions | RStudioInteractiveSessions | JupyterInteractiveSessions | JobDefault | NextflowBatchComputeEnvironment</p>
@@ -4083,19 +4083,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-k">
 <span id="cmdoption-cloudos-procurement-images-set-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key.</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-c">
 <span id="cmdoption-cloudos-procurement-images-set-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-procurement-id">
 <span class="sig-name descname"><span class="pre">--procurement-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;procurement_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-procurement-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS procurement id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform procurement id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4107,7 +4107,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-procurement-images-set-image-type">
 <span class="sig-name descname"><span class="pre">--image-type</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;image_type&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-procurement-images-set-image-type" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS resource image type.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform resource image type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Options<span class="colon">:</span></dt>
 <dd class="field-odd"><p>RegularInteractiveSessions | SparkInteractiveSessions | RStudioInteractiveSessions | JupyterInteractiveSessions | JobDefault | NextflowBatchComputeEnvironment</p>
@@ -4173,7 +4173,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-project">
 <h3>project<a class="headerlink" href="#cloudos-project" title="Link to this heading">¶</a></h3>
-<p>CloudOS project functionality.</p>
+<p>Lifebit Platform project functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -4187,7 +4187,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 
 <section id="cloudos-project-create">
 <h4>create<a class="headerlink" href="#cloudos-project-create" title="Link to this heading">¶</a></h4>
-<p>Create a new project in CloudOS.</p>
+<p>Create a new project in Lifebit Platform.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4196,19 +4196,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-create-k">
 <span id="cmdoption-cloudos-project-create-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-create-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-create-c">
 <span id="cmdoption-cloudos-project-create-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-create-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-create-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-create-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4250,7 +4250,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-project-list">
 <h4>list<a class="headerlink" href="#cloudos-project-list" title="Link to this heading">¶</a></h4>
-<p>Collect and display all projects from a CloudOS workspace.</p>
+<p>Collect and display all projects from a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4259,19 +4259,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-list-k">
 <span id="cmdoption-cloudos-project-list-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-list-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-list-c">
 <span id="cmdoption-cloudos-project-list-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-list-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-project-list-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-project-list-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4337,7 +4337,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-queue">
 <h3>queue<a class="headerlink" href="#cloudos-queue" title="Link to this heading">¶</a></h3>
-<p>CloudOS job queue functionality.</p>
+<p>Lifebit Platform job queue functionality.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -4351,7 +4351,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 
 <section id="cloudos-queue-list">
 <h4>list<a class="headerlink" href="#cloudos-queue-list" title="Link to this heading">¶</a></h4>
-<p>Collect and display all available job queues from a CloudOS workspace.</p>
+<p>Collect and display all available job queues from a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4360,19 +4360,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-k">
 <span id="cmdoption-cloudos-queue-list-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-c">
 <span id="cmdoption-cloudos-queue-list-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-queue-list-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-queue-list-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4432,7 +4432,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-workflow">
 <h3>workflow<a class="headerlink" href="#cloudos-workflow" title="Link to this heading">¶</a></h3>
-<p>CloudOS workflow functionality: list and import workflows.</p>
+<p>Lifebit Platform workflow functionality: list and import workflows.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
@@ -4455,19 +4455,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-k">
 <span id="cmdoption-cloudos-workflow-import-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-c">
 <span id="cmdoption-cloudos-workflow-import-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4484,7 +4484,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-import-workflow-name">
 <span class="sig-name descname"><span class="pre">--workflow-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workflow_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-import-workflow-name" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The name that the workflow will have in CloudOS.</p>
+<dd><p><strong>Required</strong> The name that the workflow will have in Lifebit Platform.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -4538,7 +4538,7 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 </section>
 <section id="cloudos-workflow-list">
 <h4>list<a class="headerlink" href="#cloudos-workflow-list" title="Link to this heading">¶</a></h4>
-<p>Collect and display workflows from a CloudOS workspace.</p>
+<p>Collect and display workflows from a Lifebit Platform workspace.</p>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </pre></div>
@@ -4547,19 +4547,19 @@ cloudos link s3://bucket/folder –session-id abc123</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-k">
 <span id="cmdoption-cloudos-workflow-list-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your CloudOS API key</p>
+<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-c">
 <span id="cmdoption-cloudos-workflow-list-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-c" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The CloudOS url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
+<dd><p><strong>Required</strong> The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-workflow-list-workspace-id">
 <span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-workflow-list-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific CloudOS workspace id.</p>
+<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
 </dd></dl>
 
 <dl class="std option">

@@ -419,12 +419,12 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cloudos_url</strong> (<em>string</em>) – The CloudOS service url.</p></li>
-<li><p><strong>apikey</strong> (<em>string</em>) – Your CloudOS API key.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>string</em>) – The Lifebit Platform service url.</p></li>
+<li><p><strong>apikey</strong> (<em>string</em>) – Your Lifebit Platform API key.</p></li>
 <li><p><strong>cromwell_token</strong> (<em>string</em>) – Cromwell server token.</p></li>
 <li><p><strong>workspace_id</strong> (<em>string</em>) – The specific Cloudos workspace id.</p></li>
-<li><p><strong>project_name</strong> (<em>string</em>) – The name of a CloudOS project.</p></li>
-<li><p><strong>workflow_name</strong> (<em>string</em>) – The name of a CloudOS workflow or pipeline.</p></li>
+<li><p><strong>project_name</strong> (<em>string</em>) – The name of a Lifebit Platform project.</p></li>
+<li><p><strong>workflow_name</strong> (<em>string</em>) – The name of a Lifebit Platform workflow or pipeline.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -433,8 +433,8 @@ mainFiles could be loaded for a single pipeline.</p></li>
 <li><p><strong>importsfile</strong> (<em>string</em>) – The name of the importsFile used by the workflow. Optional and only used for WDL pipelines
 as different importsFiles could be loaded for a single pipeline.</p></li>
 <li><p><strong>repository_platform</strong> (<em>string</em>) – The name of the repository platform of the workflow.</p></li>
-<li><p><strong>project_id</strong> (<em>string</em>) – The CloudOS project id for a given project name.</p></li>
-<li><p><strong>workflow_id</strong> (<em>string</em>) – The CloudOS workflow id for a given workflow_name.</p></li>
+<li><p><strong>project_id</strong> (<em>string</em>) – The Lifebit Platform project id for a given project name.</p></li>
+<li><p><strong>workflow_id</strong> (<em>string</em>) – The Lifebit Platform workflow id for a given workflow_name.</p></li>
 <li><p><strong>last</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
@@ -447,7 +447,7 @@ as different importsFiles could be loaded for a single pipeline.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session_id</strong> (<em>string</em>) – The session ID (MongoDB ObjectId) to abort.</p></li>
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) where the session is running.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) where the session is running.</p></li>
 <li><p><strong>upload_on_close</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save session data to S3 before terminating. Default=True.</p></li>
 <li><p><strong>force_abort</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, force immediate termination (skip graceful shutdown). Default=False.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
@@ -471,7 +471,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job</strong> (<em>string</em>) – The CloudOS job id of the job to abort.</p></li>
+<li><p><strong>job</strong> (<em>string</em>) – The Lifebit Platform job id of the job to abort.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -499,8 +499,8 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to archive.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>job_ids</strong> (<em>list</em>) – The Lifebit Platform job ids of the jobs to archive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -529,7 +529,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>job_ids</strong> (<em>list</em>) – List of job IDs to check.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>target_archived_state</strong> (<em>bool</em>) – True if checking for archiving operation, False if checking for unarchiving operation.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Default is True.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print detailed information. Default is False.</p></li>
@@ -552,7 +552,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source_job_id</strong> (<em>str</em>) – The CloudOS job ID to clone/resume from.</p></li>
+<li><p><strong>source_job_id</strong> (<em>str</em>) – The Lifebit Platform job ID to clone/resume from.</p></li>
 <li><p><strong>queue_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the job queue to use.</p></li>
 <li><p><strong>cost_limit</strong> (<em>float</em><em>, </em><em>optional</em>) – Job cost limit override.</p></li>
 <li><p><strong>master_instance</strong> (<em>str</em><em>, </em><em>optional</em>) – Master instance type override.</p></li>
@@ -574,7 +574,7 @@ the SSL certificate file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The CloudOS job ID of the cloned/resumed job.</p>
+<dd class="field-even"><p>The Lifebit Platform job ID of the cloned/resumed job.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
@@ -614,19 +614,19 @@ default branch will be used.</p></li>
 commit of the default branch will be used.</p></li>
 <li><p><strong>git_branch</strong> (<em>string</em>) – The branch of the pipeline to use. If not specified, the last
 commit of the default branch will be used.</p></li>
-<li><p><strong>project_id</strong> (<em>string</em>) – The CloudOS project id for a given project name.</p></li>
-<li><p><strong>workflow_id</strong> (<em>string</em>) – The CloudOS workflow id for a given workflow_name.</p></li>
+<li><p><strong>project_id</strong> (<em>string</em>) – The Lifebit Platform project id for a given project name.</p></li>
+<li><p><strong>workflow_id</strong> (<em>string</em>) – The Lifebit Platform workflow id for a given workflow_name.</p></li>
 <li><p><strong>job_name</strong> (<em>string.</em>) – The name to assign to the job.</p></li>
 <li><p><strong>resumable</strong> (<em>bool</em>) – Whether to create a resumable job or not.</p></li>
 <li><p><strong>save_logs</strong> (<em>bool</em>) – Whether to save job logs or not.</p></li>
 <li><p><strong>batch</strong> (<em>bool</em>) – Whether to create an AWS batch job or not.</p></li>
 <li><p><strong>job_queue_id</strong> (<em>string</em>) – Job queue Id to use in the batch job.</p></li>
 <li><p><strong>nextflow_profile</strong> (<em>string</em>) – A comma separated string with the profiles to be used.</p></li>
-<li><p><strong>nextflow_version</strong> (<em>string</em>) – Nextflow version to use when executing the workflow in CloudOS.</p></li>
+<li><p><strong>nextflow_version</strong> (<em>string</em>) – Nextflow version to use when executing the workflow in Lifebit Platform.</p></li>
 <li><p><strong>instance_type</strong> (<em>string</em>) – Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</p></li>
 <li><p><strong>instance_disk</strong> (<em>int</em>) – The disk space of the master node instance, in GB.</p></li>
-<li><p><strong>execution_platform</strong> (<em>string</em><em> [</em><em>'aws'</em><em>|</em><em>'azure'</em><em>|</em><em>'hpc'</em><em>]</em>) – The execution platform implemented in your CloudOS.</p></li>
-<li><p><strong>hpc_id</strong> (<em>string</em>) – The ID of your HPC in CloudOS.</p></li>
+<li><p><strong>execution_platform</strong> (<em>string</em><em> [</em><em>'aws'</em><em>|</em><em>'azure'</em><em>|</em><em>'hpc'</em><em>]</em>) – The execution platform implemented in your Lifebit Platform.</p></li>
+<li><p><strong>hpc_id</strong> (<em>string</em>) – The ID of your HPC in Lifebit Platform.</p></li>
 <li><p><strong>workflow_type</strong> (<em>str</em>) – The type of workflow to run. It could be ‘nextflow’, ‘wdl’ or ‘docker’.</p></li>
 <li><p><strong>cromwell_id</strong> (<em>str</em>) – Cromwell server ID.</p></li>
 <li><p><strong>azure_worker_instance_type</strong> (<em>str</em>) – The worker node instance type to be used in azure.</p></li>
@@ -657,7 +657,7 @@ commit of the default branch will be used.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) to create session in.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) to create session in.</p></li>
 <li><p><strong>payload</strong> (<em>dict</em>) – Complete session creation payload with configuration, data items, etc.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -676,11 +676,11 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.create_project">
 <span class="sig-name descname"><span class="pre">create_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.create_project" title="Link to this definition">¶</a></dt>
-<dd><p>Create a new project in CloudOS.</p>
+<dd><p>Create a new project in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID where the project will be created.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID where the project will be created.</p></li>
 <li><p><strong>project_name</strong> (<em>str</em>) – The name for the new project.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -707,7 +707,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id in which restart/stop Cromwell status.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id in which restart/stop Cromwell status.</p></li>
 <li><p><strong>action</strong> (<em>string</em><em> [</em><em>restart</em><em>|</em><em>stop</em><em>]</em>) – The action to perform.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -735,7 +735,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID whose results folder is to be deleted.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID whose results folder is to be deleted.</p></li>
 <li><p><strong>mode</strong> (<em>str</em>) – The mode to use for deletion (e.g., “analysisResults” or “workDirectory”).</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -765,7 +765,7 @@ the SSL certificate file. Default is True.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -843,11 +843,11 @@ It can represent a file path, a glob pattern, or a simple text value.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>apikey</strong> (<em>string</em>) – Your CloudOS API key</p></li>
-<li><p><strong>cloudos_url</strong> (<em>string</em>) – The CloudOS service url.</p></li>
+<li><p><strong>apikey</strong> (<em>string</em>) – Your Lifebit Platform API key</p></li>
+<li><p><strong>cloudos_url</strong> (<em>string</em>) – The Lifebit Platform service url.</p></li>
 <li><p><strong>resource</strong> (<em>string</em>) – The resource you want to fetch from. E.g.: projects.</p></li>
 <li><p><strong>workspace_id</strong> (<em>string</em>) – The specific Cloudos workspace id.</p></li>
-<li><p><strong>name</strong> (<em>string</em>) – The name of a CloudOS resource element.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – The name of a Lifebit Platform resource element.</p></li>
 <li><p><strong>mainfile</strong> (<em>string</em>) – The name of the mainFile used by the workflow. Only used when resource == ‘workflows’.
 Required for WDL pipelines as different mainFiles could be loaded for a single
 pipeline.</p></li>
@@ -860,7 +860,7 @@ the SSL certificate file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>project_id</strong> – The CloudOS project id for a given project name.</p>
+<dd class="field-even"><p><strong>project_id</strong> – The Lifebit Platform project id for a given project name.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
@@ -885,7 +885,7 @@ have to remain as text even if the text is ‘true’.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>repository_identifier</strong> (<em>str</em>) – The GitHub repository identifier (repository ID).</p></li>
 <li><p><strong>owner</strong> (<em>str</em>) – The owner of the repository (e.g., ‘lifebit-ai’).</p></li>
-<li><p><strong>workflow_owner_id</strong> (<em>str</em>) – The workflow owner ID in CloudOS.</p></li>
+<li><p><strong>workflow_owner_id</strong> (<em>str</em>) – The workflow owner ID in Lifebit Platform.</p></li>
 <li><p><strong>strategy</strong> (<em>str</em><em>, </em><em>optional</em>) – The repository strategy/platform (default is ‘github’).</p></li>
 <li><p><strong>branch_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Filter branches by name. Default is ‘’ (empty string to get all branches).</p></li>
 <li><p><strong>page</strong> (<em>int</em><em>, </em><em>optional</em>) – Page number for pagination. Default is 1.</p></li>
@@ -911,11 +911,11 @@ Structure: {“branches”: […], “total”: &lt;total_count&gt;}</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_cromwell_status">
 <span class="sig-name descname"><span class="pre">get_cromwell_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_cromwell_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get Cromwell server status from CloudOS.</p>
+<dd><p>Get Cromwell server status from Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the Cromwell status.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the Cromwell status.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -937,7 +937,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID to get the resume work directory for.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID to get the resume work directory for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -961,8 +961,8 @@ with its deletion status (ready/deleting/etc).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folder_id</strong> (<em>str</em>) – The CloudOS folder ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>folder_id</strong> (<em>str</em>) – The Lifebit Platform folder ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -989,8 +989,8 @@ with their deletion status (ready/deleting).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folder_id</strong> (<em>str</em>) – The CloudOS folder ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>folder_id</strong> (<em>str</em>) – The Lifebit Platform folder ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -1011,11 +1011,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_interactive_session_list">
 <span class="sig-name descname"><span class="pre">get_interactive_session_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_archived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_interactive_session_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get interactive sessions from a CloudOS team.</p>
+<dd><p>Get interactive sessions from a Lifebit Platform team.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) to retrieve sessions from.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) to retrieve sessions from.</p></li>
 <li><p><strong>page</strong> (<em>int</em><em>, </em><em>optional</em>) – Page number for pagination. Default=1.</p></li>
 <li><p><strong>limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of results per page. Default=10, max=100.</p></li>
 <li><p><strong>status</strong> (<em>list</em><em> of </em><em>string</em><em>, </em><em>optional</em>) – Filter by session status. Valid values: running, stopped, provisioning, scheduled.</p></li>
@@ -1038,13 +1038,13 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_job_list">
 <span class="sig-name descname"><span class="pre">get_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_job_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get jobs from a CloudOS workspace with optional filtering.</p>
+<dd><p>Get jobs from a Lifebit Platform workspace with optional filtering.</p>
 <p>Fetches jobs page by page, applies all filters after fetching.
 Stops when enough jobs are collected or no more jobs are available.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the jobs.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the jobs.</p></li>
 <li><p><strong>last_n_jobs</strong> (<em>[</em><em>int</em><em> | </em><em>'all'</em><em>]</em><em>, </em><em>default=None</em>) – How many of the last jobs from the user to retrieve. You can specify a
 very large int or ‘all’ to get all user’s jobs. When specified, page
 and page_size parameters are ignored.</p></li>
@@ -1092,7 +1092,7 @@ using pagination internally to fetch all results from the API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>workdir_folder_id</strong> (<em>str</em>) – The working directory folder ID to filter jobs by.</p></li>
 <li><p><strong>limit</strong> (<em>int</em>) – Batch size for API requests (default: 100). This parameter is kept
 for backwards compatibility but fetches all jobs regardless.</p></li>
@@ -1122,7 +1122,7 @@ _id, createdAt, runTime, and computeCostSpent.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID to get the payload for.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID to get the payload for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1146,12 +1146,12 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_job_status">
 <span class="sig-name descname"><span class="pre">get_job_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_job_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get job status from CloudOS.</p>
+<dd><p>Get job status from Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
+<li><p><strong>j_id</strong> (<em>string</em>) – The Lifebit Platform job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the job status.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1179,7 +1179,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>folder_id</strong> (<em>str</em>) – The ID of the folder whose parent job is to be retrieved.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1205,7 +1205,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the project.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the project.</p></li>
 <li><p><strong>project_name</strong> (<em>str</em>) – The name of the project to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1228,11 +1228,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_project_list">
 <span class="sig-name descname"><span class="pre">get_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_project_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get all the project from a CloudOS workspace.</p>
+<dd><p>Get all the project from a Lifebit Platform workspace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the projects.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1261,8 +1261,8 @@ the deletion status of items within it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -1353,8 +1353,8 @@ using the folders API endpoint.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -1393,7 +1393,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the workflow.</p></li>
 <li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1416,11 +1416,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.get_workflow_list">
 <span class="sig-name descname"><span class="pre">get_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.get_workflow_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get all the workflows from a CloudOS workspace.</p>
+<dd><p>Get all the workflows from a Lifebit Platform workspace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1448,7 +1448,7 @@ indicated page.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the workflow.</p></li>
 <li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1483,7 +1483,7 @@ properly manage queue selection.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1614,7 +1614,7 @@ only the selected columns or the full DataFrame.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filter_owner</strong> (<em>str</em>) – The username or display name to search for.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1640,7 +1640,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session_id</strong> (<em>string</em>) – The session ID (MongoDB ObjectId) to resume.</p></li>
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) where the session is running.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) where the session is running.</p></li>
 <li><p><strong>payload</strong> (<em>dict</em>) – Resume payload with optional dataItems and newInteractiveSessionConfiguration.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1694,7 +1694,7 @@ and making an API call to retrieve the file’s metadata.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.send_job">
 <span class="sig-name descname"><span class="pre">send_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_parameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_file_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_commit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_branch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'new_job'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resumable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_queue_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nextflow_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nextflow_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'22.10.8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c5.xlarge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_disk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aws'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hpc_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nextflow'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Standard_D4as_v4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_disk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_spot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mountpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accelerate_saving_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">docker_login</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.send_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.send_job" title="Link to this definition">¶</a></dt>
-<dd><p>Send a job to CloudOS.</p>
+<dd><p>Send a job to Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1722,11 +1722,11 @@ commit of the default branch will be used.</p></li>
 <li><p><strong>batch</strong> (<em>bool</em>) – Whether to create an AWS batch job or not.</p></li>
 <li><p><strong>job_queue_id</strong> (<em>string</em>) – Job queue Id to use in the batch job.</p></li>
 <li><p><strong>nextflow_profile</strong> (<em>string</em>) – A comma separated string with the profiles to be used.</p></li>
-<li><p><strong>nextflow_version</strong> (<em>string</em>) – Nextflow version to use when executing the workflow in CloudOS.</p></li>
+<li><p><strong>nextflow_version</strong> (<em>string</em>) – Nextflow version to use when executing the workflow in Lifebit Platform.</p></li>
 <li><p><strong>instance_type</strong> (<em>string</em>) – Name of the instance type to be used for the job master node, for example for AWS EC2 c5.xlarge</p></li>
 <li><p><strong>instance_disk</strong> (<em>int</em>) – The disk space of the master node instance, in GB.</p></li>
-<li><p><strong>execution_platform</strong> (<em>string</em><em> [</em><em>'aws'</em><em>|</em><em>'azure'</em><em>|</em><em>'hpc'</em><em>]</em>) – The execution platform implemented in your CloudOS.</p></li>
-<li><p><strong>hpc_id</strong> (<em>string</em>) – The ID of your HPC in CloudOS.</p></li>
+<li><p><strong>execution_platform</strong> (<em>string</em><em> [</em><em>'aws'</em><em>|</em><em>'azure'</em><em>|</em><em>'hpc'</em><em>]</em>) – The execution platform implemented in your Lifebit Platform.</p></li>
+<li><p><strong>hpc_id</strong> (<em>string</em>) – The ID of your HPC in Lifebit Platform.</p></li>
 <li><p><strong>workflow_type</strong> (<em>str</em>) – The type of workflow to run. It could be ‘nextflow’, ‘wdl’ or ‘docker’.</p></li>
 <li><p><strong>cromwell_id</strong> (<em>str</em>) – Cromwell server ID.</p></li>
 <li><p><strong>azure_worker_instance_type</strong> (<em>str</em>) – The worker node instance type to be used in azure.</p></li>
@@ -1745,7 +1745,7 @@ the SSL certificate file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>j_id</strong> – The CloudOS job id of the job just launched.</p>
+<dd class="field-even"><p><strong>j_id</strong> – The Lifebit Platform job id of the job just launched.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
@@ -1826,8 +1826,8 @@ Each dictionary should contain “name” and “index” keys.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to unarchive.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>job_ids</strong> (<em>list</em>) – The Lifebit Platform job ids of the jobs to unarchive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1871,12 +1871,12 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.wait_job_completion">
 <span class="sig-name descname"><span class="pre">wait_job_completion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.wait_job_completion" title="Link to this definition">¶</a></dt>
-<dd><p>Checks job status from CloudOS and wait for its complation.</p>
+<dd><p>Checks job status from Lifebit Platform and wait for its complation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
+<li><p><strong>job_id</strong> (<em>string</em>) – The Lifebit Platform job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the job status.</p></li>
 <li><p><strong>wait_time</strong> (<em>int</em>) – Max time to wait (in seconds) to job completion.</p></li>
 <li><p><strong>request_interval</strong> (<em>int</em>) – Time interval (in seconds) to request job status.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to output status on every request or not.</p></li>
@@ -1907,13 +1907,13 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.workflow_import">
 <span class="sig-name descname"><span class="pre">workflow_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_docs_link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.workflow_import" title="Link to this definition">¶</a></dt>
-<dd><p>Imports workflows to CloudOS.</p>
+<dd><p>Imports workflows to Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the projects.</p></li>
 <li><p><strong>workflow_url</strong> (<em>string</em>) – The URL of the workflow. Only Github or Bitbucket are allowed.</p></li>
-<li><p><strong>workflow_name</strong> (<em>string</em>) – A name for the imported pipeline in CloudOS.</p></li>
+<li><p><strong>workflow_name</strong> (<em>string</em>) – A name for the imported pipeline in Lifebit Platform.</p></li>
 <li><p><strong>repository_project_id</strong> (<em>int</em>) – The repository project ID.</p></li>
 <li><p><strong>workflow_docs_link</strong> (<em>string</em>) – Link to the documentation URL.</p></li>
 <li><p><strong>repository_id</strong> (<em>int</em>) – The repository ID. Only required for GitHub repositories.</p></li>
@@ -1950,8 +1950,8 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cl</strong> (<a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><em>Cloudos</em></a>) – CloudOS API client instance</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID</p></li>
+<li><p><strong>cl</strong> (<a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><em>Cloudos</em></a>) – Lifebit Platform API client instance</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID</p></li>
 <li><p><strong>page_size</strong> (<em>int</em>) – Number of jobs per page</p></li>
 <li><p><strong>archived</strong> (<em>bool</em>) – Whether to include archived jobs</p></li>
 <li><p><strong>verify_ssl</strong> (<em>bool</em><em> or </em><em>str</em>) – SSL verification setting</p></li>
@@ -2001,9 +2001,9 @@ want to paginate through the cached results.</p>
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.fetch_job_page">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.jobs.job.</span></span><span class="sig-name descname"><span class="pre">fetch_job_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_n_jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#fetch_job_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.fetch_job_page" title="Link to this definition">¶</a></dt>
 <dd><p>Helper function to fetch a specific page of jobs.
-:param cl: CloudOS API client instance
+:param cl: Lifebit Platform API client instance
 :type cl: Cloudos
-:param workspace_id: The CloudOS workspace ID
+:param workspace_id: The Lifebit Platform workspace ID
 :type workspace_id: str
 :param page_num: Page number to fetch (1-indexed)
 :type page_num: int

@@ -401,9 +401,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : string</span>
-<span class="sd">        The CloudOS service url.</span>
+<span class="sd">        The Lifebit Platform service url.</span>
 <span class="sd">    apikey : string</span>
-<span class="sd">        Your CloudOS API key.</span>
+<span class="sd">        Your Lifebit Platform API key.</span>
 <span class="sd">    cromwell_token : string</span>
 <span class="sd">        Cromwell server token. If None, apikey will be used instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -414,14 +414,14 @@
 <div class="viewcode-block" id="Cloudos.get_job_status">
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_job_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_job_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get job status from CloudOS.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get job status from Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        j_id : string</span>
-<span class="sd">            The CloudOS job id of the job just launched.</span>
+<span class="sd">            The Lifebit Platform job id of the job just launched.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to check the job status.</span>
+<span class="sd">            The Lifebit Platform workspace id from to check the job status.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -454,14 +454,14 @@
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.wait_job_completion">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">wait_job_completion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">wait_time</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span> <span class="n">request_interval</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                             <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks job status from CloudOS and wait for its complation.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks job status from Lifebit Platform and wait for its complation.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_id : string</span>
-<span class="sd">            The CloudOS job id of the job just launched.</span>
+<span class="sd">            The Lifebit Platform job id of the job just launched.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to check the job status.</span>
+<span class="sd">            The Lifebit Platform workspace id from to check the job status.</span>
 <span class="sd">        wait_time : int</span>
 <span class="sd">            Max time to wait (in seconds) to job completion.</span>
 <span class="sd">        request_interval : int</span>
@@ -941,9 +941,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folder_id : str</span>
-<span class="sd">            The CloudOS folder ID.</span>
+<span class="sd">            The Lifebit Platform folder ID.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID.</span>
+<span class="sd">            The Lifebit Platform workspace ID.</span>
 <span class="sd">        verify : [bool | str], optional</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -990,9 +990,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_id : str</span>
-<span class="sd">            The CloudOS job ID.</span>
+<span class="sd">            The Lifebit Platform job ID.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID.</span>
+<span class="sd">            The Lifebit Platform workspace ID.</span>
 <span class="sd">        verify : [bool | str], optional</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -1146,9 +1146,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folder_id : str</span>
-<span class="sd">            The CloudOS folder ID.</span>
+<span class="sd">            The Lifebit Platform folder ID.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID.</span>
+<span class="sd">            The Lifebit Platform workspace ID.</span>
 <span class="sd">        verify : [bool | str], optional</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -1196,9 +1196,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_id : str</span>
-<span class="sd">            The CloudOS job ID.</span>
+<span class="sd">            The Lifebit Platform job ID.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID.</span>
+<span class="sd">            The Lifebit Platform workspace ID.</span>
 <span class="sd">        verify : [bool | str], optional</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -1313,7 +1313,7 @@
 <span class="sd">        filter_owner : str</span>
 <span class="sd">            The username or display name to search for.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID.</span>
+<span class="sd">            The Lifebit Platform workspace ID.</span>
 <span class="sd">        verify : [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -1338,7 +1338,7 @@
                 <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">filter_owner</span><span class="p">,</span>
                 <span class="s2">&quot;teamId&quot;</span><span class="p">:</span> <span class="n">workspace_id</span>
             <span class="p">}</span>
-            <span class="c1"># Note: this endpoint may not be open in all CloudOS instances</span>
+            <span class="c1"># Note: this endpoint may not be open in all Lifebit Platform instances</span>
             <span class="n">user_search_r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/users/search-assist&quot;</span><span class="p">,</span>
                                              <span class="n">params</span><span class="o">=</span><span class="n">search_params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">search_headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">user_search_r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
@@ -1366,12 +1366,12 @@
 <div class="viewcode-block" id="Cloudos.get_cromwell_status">
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_cromwell_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cromwell_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Cromwell server status from CloudOS.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Cromwell server status from Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to check the Cromwell status.</span>
+<span class="sd">            The Lifebit Platform workspace id from to check the Cromwell status.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -1400,7 +1400,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id in which restart/stop Cromwell status.</span>
+<span class="sd">            The Lifebit Platform workspace id in which restart/stop Cromwell status.</span>
 <span class="sd">        action : string [restart|stop]</span>
 <span class="sd">            The action to perform.</span>
 <span class="sd">        verify: [bool|string]</span>
@@ -1430,7 +1430,7 @@
                      <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">filter_status</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_job_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">filter_project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_workflow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_job_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">filter_only_mine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_owner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get jobs from a CloudOS workspace with optional filtering.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get jobs from a Lifebit Platform workspace with optional filtering.</span>
 
 <span class="sd">        Fetches jobs page by page, applies all filters after fetching.</span>
 <span class="sd">        Stops when enough jobs are collected or no more jobs are available.</span>
@@ -1438,7 +1438,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the jobs.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the jobs.</span>
 <span class="sd">        last_n_jobs : [int | &#39;all&#39;], default=None</span>
 <span class="sd">            How many of the last jobs from the user to retrieve. You can specify a</span>
 <span class="sd">            very large int or &#39;all&#39; to get all user&#39;s jobs. When specified, page</span>
@@ -1909,12 +1909,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_workflow_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                           <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
                           <span class="n">archived_status</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the workflows from a CloudOS workspace.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the workflows from a Lifebit Platform workspace.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the workflows.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the workflows.</span>
 <span class="sd">        verify : [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2029,7 +2029,7 @@
 <span class="sd">        workflow_name : string</span>
 <span class="sd">            Name of the workflow.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the workflows.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the workflows.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2062,7 +2062,7 @@
 <span class="sd">        workflow_name : string</span>
 <span class="sd">            Name of the workflow.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the workflows.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the workflows.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2094,12 +2094,12 @@
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_project_list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_project_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_page_size</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the project from a CloudOS workspace.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the project from a Lifebit Platform workspace.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the projects.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the projects.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2203,16 +2203,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">workflow_import</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">workflow_url</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span>
                         <span class="n">repository_project_id</span><span class="p">,</span> <span class="n">workflow_docs_link</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                         <span class="n">repository_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Imports workflows to CloudOS.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Imports workflows to Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id from to collect the projects.</span>
+<span class="sd">            The Lifebit Platform workspace id from to collect the projects.</span>
 <span class="sd">        workflow_url : string</span>
 <span class="sd">            The URL of the workflow. Only Github or Bitbucket are allowed.</span>
 <span class="sd">        workflow_name : string</span>
-<span class="sd">            A name for the imported pipeline in CloudOS.</span>
+<span class="sd">            A name for the imported pipeline in Lifebit Platform.</span>
 <span class="sd">        repository_project_id : int</span>
 <span class="sd">            The repository project ID.</span>
 <span class="sd">        workflow_docs_link : string</span>
@@ -2320,7 +2320,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job : string</span>
-<span class="sd">            The CloudOS job id of the job to abort.</span>
+<span class="sd">            The Lifebit Platform job id of the job to abort.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2353,9 +2353,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_ids : list</span>
-<span class="sd">            The CloudOS job ids of the jobs to update.</span>
+<span class="sd">            The Lifebit Platform job ids of the jobs to update.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">            The Lifebit Platform workspace id.</span>
 <span class="sd">        archive_status : bool</span>
 <span class="sd">            True to archive jobs, False to unarchive jobs.</span>
 <span class="sd">        verify: [bool|string]</span>
@@ -2415,9 +2415,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_ids : list</span>
-<span class="sd">            The CloudOS job ids of the jobs to archive.</span>
+<span class="sd">            The Lifebit Platform job ids of the jobs to archive.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">            The Lifebit Platform workspace id.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2439,9 +2439,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        job_ids : list</span>
-<span class="sd">            The CloudOS job ids of the jobs to unarchive.</span>
+<span class="sd">            The Lifebit Platform job ids of the jobs to unarchive.</span>
 <span class="sd">        workspace_id : string</span>
-<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">            The Lifebit Platform workspace id.</span>
 <span class="sd">        verify: [bool|string]</span>
 <span class="sd">            Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">            a string is passed, it will be interpreted as the path to</span>
@@ -2465,7 +2465,7 @@
 <span class="sd">        job_ids : list</span>
 <span class="sd">            List of job IDs to check.</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace id.</span>
+<span class="sd">            The Lifebit Platform workspace id.</span>
 <span class="sd">        target_archived_state : bool</span>
 <span class="sd">            True if checking for archiving operation, False if checking for unarchiving operation.</span>
 <span class="sd">        verify : [bool | str], optional</span>
@@ -2543,7 +2543,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID to search for the project.</span>
+<span class="sd">            The Lifebit Platform workspace ID to search for the project.</span>
 <span class="sd">        project_name : str</span>
 <span class="sd">            The name of the project to search for.</span>
 <span class="sd">        verify : [bool | str], optional</span>
@@ -2582,12 +2582,12 @@
 <div class="viewcode-block" id="Cloudos.create_project">
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.create_project">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new project in CloudOS.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new project in Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID where the project will be created.</span>
+<span class="sd">            The Lifebit Platform workspace ID where the project will be created.</span>
 <span class="sd">        project_name : str</span>
 <span class="sd">            The name for the new project.</span>
 <span class="sd">        verify : [bool | str], optional</span>
@@ -2636,7 +2636,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID to search for the workflow.</span>
+<span class="sd">            The Lifebit Platform workspace ID to search for the workflow.</span>
 <span class="sd">        workflow_name : str</span>
 <span class="sd">            The name of the workflow to search for.</span>
 <span class="sd">        verify : [bool | str], optional</span>
@@ -2680,7 +2680,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        workspace_id : str</span>
-<span class="sd">            The CloudOS workspace ID to search for the workflow.</span>
+<span class="sd">            The Lifebit Platform workspace ID to search for the workflow.</span>
 <span class="sd">        workflow_name : str</span>
 <span class="sd">            The name of the workflow to search for.</span>
 <span class="sd">        verify : [bool | str], optional</span>
@@ -2749,12 +2749,12 @@
 <a class="viewcode-back" href="../../_autosummary/cloudos_cli.clos.html#cloudos_cli.clos.Cloudos.get_interactive_session_list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_interactive_session_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">team_id</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
                                      <span class="n">owner_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_archived</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get interactive sessions from a CloudOS team.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get interactive sessions from a Lifebit Platform team.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        team_id : string</span>
-<span class="sd">            The CloudOS team id (workspace id) to retrieve sessions from.</span>
+<span class="sd">            The Lifebit Platform team id (workspace id) to retrieve sessions from.</span>
 <span class="sd">        page : int, optional</span>
 <span class="sd">            Page number for pagination. Default=1.</span>
 <span class="sd">        limit : int, optional</span>
@@ -2872,7 +2872,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        team_id : string</span>
-<span class="sd">            The CloudOS team id (workspace id) to create session in.</span>
+<span class="sd">            The Lifebit Platform team id (workspace id) to create session in.</span>
 <span class="sd">        payload : dict</span>
 <span class="sd">            Complete session creation payload with configuration, data items, etc.</span>
 <span class="sd">        verify: [bool|string], default=True</span>
@@ -2927,7 +2927,7 @@
 <span class="sd">        session_id : string</span>
 <span class="sd">            The session ID (MongoDB ObjectId) to resume.</span>
 <span class="sd">        team_id : string</span>
-<span class="sd">            The CloudOS team id (workspace id) where the session is running.</span>
+<span class="sd">            The Lifebit Platform team id (workspace id) where the session is running.</span>
 <span class="sd">        payload : dict</span>
 <span class="sd">            Resume payload with optional dataItems and newInteractiveSessionConfiguration.</span>
 <span class="sd">        verify: [bool|string], default=True</span>
@@ -2984,7 +2984,7 @@
 <span class="sd">        session_id : string</span>
 <span class="sd">            The session ID (MongoDB ObjectId) to abort.</span>
 <span class="sd">        team_id : string</span>
-<span class="sd">            The CloudOS team id (workspace id) where the session is running.</span>
+<span class="sd">            The Lifebit Platform team id (workspace id) where the session is running.</span>
 <span class="sd">        upload_on_close : bool, optional</span>
 <span class="sd">            If True, save session data to S3 before terminating. Default=True.</span>
 <span class="sd">        force_abort : bool, optional</span>

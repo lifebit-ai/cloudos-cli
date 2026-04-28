@@ -980,7 +980,7 @@
         <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="n">resolved_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">resolved_cloudos_url</span><span class="p">:</span>
             <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;No CloudOS URL provided via CLI or profile. Falling back to default: </span><span class="si">{</span><span class="n">cloudos_url_default</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;No Lifebit Platform URL provided via CLI or profile. Falling back to default: </span><span class="si">{</span><span class="n">cloudos_url_default</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                 <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
                 <span class="n">bold</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
@@ -1036,8 +1036,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    required_params : list, optional</span>
 <span class="sd">        List of parameter names that can currently be added in a profile. Common values:</span>
-<span class="sd">        - &#39;apikey&#39;: CloudOS API key</span>
-<span class="sd">        - &#39;workspace_id&#39;: CloudOS workspace ID</span>
+<span class="sd">        - &#39;apikey&#39;: Lifebit Platform API key</span>
+<span class="sd">        - &#39;workspace_id&#39;: Lifebit Platform workspace ID</span>
 <span class="sd">        - &#39;project_name&#39;: Project name</span>
 <span class="sd">        - &#39;workflow_name&#39;: Workflow/pipeline name</span>
 <span class="sd">        - &#39;session_id&#39;: Interactive session ID</span>
@@ -1047,9 +1047,9 @@
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 <span class="sd">    @job.command(&#39;details&#39;)</span>
-<span class="sd">    @click.option(&#39;--apikey&#39;, help=&#39;Your CloudOS API key&#39;, required=True)</span>
-<span class="sd">    @click.option(&#39;--workspace-id&#39;, help=&#39;The specific CloudOS workspace id.&#39;, required=True)</span>
-<span class="sd">    @click.option(&#39;--job-id&#39;, help=&#39;The job id in CloudOS to search for.&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--apikey&#39;, help=&#39;Your Lifebit Platform API key&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--workspace-id&#39;, help=&#39;The specific Lifebit Platform workspace id.&#39;, required=True)</span>
+<span class="sd">    @click.option(&#39;--job-id&#39;, help=&#39;The job id in Lifebit Platform to search for.&#39;, required=True)</span>
 <span class="sd">    @click.option(&#39;--profile&#39;, help=&#39;Profile to use from the config file&#39;, default=None)</span>
 <span class="sd">    @click.pass_context</span>
 <span class="sd">    @with_profile_config(required_params=[&#39;apikey&#39;, &#39;workspace_id&#39;])</span>

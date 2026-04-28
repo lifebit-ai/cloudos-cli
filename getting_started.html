@@ -388,7 +388,7 @@
 <section id="cloudos-cli">
 <h1>cloudos-cli<a class="headerlink" href="#cloudos-cli" title="Link to this heading">¶</a></h1>
 <p><a class="reference external" href="https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml"><img alt="CI_tests" src="https://github.com/lifebit-ai/cloudos-cli/actions/workflows/ci.yml/badge.svg" /></a></p>
-<p>Python package for interacting with CloudOS</p>
+<p>Python package for interacting with Lifebit Platform</p>
 <hr class="docutils" />
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
@@ -592,26 +592,25 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>--help
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">                                                                                                                        </span>
-<span class="go"> Usage: cloudos [OPTIONS] COMMAND [ARGS]...                                                                             </span>
-<span class="go">                                                                                                                        </span>
-<span class="go"> CloudOS python package: a package for interacting with CloudOS.                                                        </span>
-<span class="go">                                                                                                                        </span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: cloudos [OPTIONS] COMMAND [ARGS]...</span>
+
+<span class="go">CloudOS python package: a package for interacting with Lifebit Platform.</span>
+
 <span class="go">╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
 <span class="go">│ --debug        Show detailed error information and tracebacks                                                        │</span>
 <span class="go">│ --version      Show the version and exit.                                                                            │</span>
 <span class="go">│ --help         Show this message and exit.                                                                           │</span>
 <span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
 <span class="go">╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
-<span class="go">│ bash               CloudOS bash functionality.                                                                       │</span>
-<span class="go">│ configure          CloudOS configuration.                                                                            │</span>
+<span class="go">│ bash               Lifebit Platform bash functionality.                                                                       │</span>
+<span class="go">│ configure          Lifebit Platform configuration.                                                                            │</span>
 <span class="go">│ cromwell           Cromwell server functionality: check status, start and stop.                                      │</span>
-<span class="go">│ datasets           CloudOS datasets functionality.                                                                   │</span>
-<span class="go">│ job                CloudOS job functionality: run, check and abort jobs in CloudOS.                                  │</span>
-<span class="go">│ procurement        CloudOS procurement functionality.                                                                │</span>
-<span class="go">│ project            CloudOS project functionality: list and create projects in CloudOS.                               │</span>
-<span class="go">│ queue              CloudOS job queue functionality.                                                                  │</span>
-<span class="go">│ workflow           CloudOS workflow functionality: list and import workflows.                                        │</span>
+<span class="go">│ datasets           Lifebit Platform datasets functionality.                                                                   │</span>
+<span class="go">│ job                Lifebit Platform job functionality: run, check and abort jobs in Lifebit Platform.                                  │</span>
+<span class="go">│ procurement        Lifebit Platform procurement functionality.                                                                │</span>
+<span class="go">│ project            Lifebit Platform project functionality: list and create projects in Lifebit Platform.                               │</span>
+<span class="go">│ queue              Lifebit Platform job queue functionality.                                                                  │</span>
+<span class="go">│ workflow           Lifebit Platform workflow functionality: list and import workflows.                                        │</span>
 <span class="go">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
 </pre></div>
 </div>
@@ -620,14 +619,14 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">                                                                                                            </span>
-<span class="go"> Collect workspace jobs from a CloudOS workspace in CSV or JSON format.                                     </span>
+<span class="go"> Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.                                     </span>
 <span class="go">                                                                                                            </span>
 <span class="go">╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
-<span class="go">│ *  --apikey                    -k  TEXT        Your CloudOS API key [required]                           │</span>
-<span class="go">│ *  --cloudos-url               -c  TEXT        The CloudOS url you are trying to access to.              │</span>
+<span class="go">│ *  --apikey                    -k  TEXT        Your Lifebit Platform API key [required]                           │</span>
+<span class="go">│ *  --cloudos-url               -c  TEXT        The Lifebit Platform url you are trying to access to.              │</span>
 <span class="go">│                                                Default=https://cloudos.lifebit.ai.                       │</span>
 <span class="go">│                                                [required]                                                │</span>
-<span class="go">│ *  --workspace-id                  TEXT        The specific CloudOS workspace id. [required]             │</span>
+<span class="go">│ *  --workspace-id                  TEXT        The specific Lifebit Platform workspace id. [required]             │</span>
 <span class="go">│    --output-basename               TEXT        Output file base name to save jobs list. Default=joblist  │</span>
 <span class="go">│    --output-format                 [csv|json]  The desired file format (file extension) for the output.  │</span>
 <span class="go">│                                                For json option --all-fields will be automatically set to │</span>
@@ -672,7 +671,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <hr class="docutils" />
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
-<p>CloudOS CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple CloudOS environments.</p>
+<p>CloudOS CLI uses a profile-based configuration system to store your credentials and settings securely. This eliminates the need to provide authentication details with every command and allows you to work with multiple Lifebit Platform environments.</p>
 <p>Configuration will be saved in the $HOME path folder regardless of operating system. Here, a new folder named <code class="docutils literal notranslate"><span class="pre">.cloudos</span></code> will be created, with files <code class="docutils literal notranslate"><span class="pre">credentials</span></code> and <code class="docutils literal notranslate"><span class="pre">config</span></code> also being created. The structure will look like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span>HOME
 <span class="go">    └── .cloudos/</span>
@@ -698,8 +697,8 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <p>The same prompts will appear, including the execution platform (aws or azure). If a profile with the same name already exists, the current parameters will appear in square brackets and can be overwritten or left unchanged by pressing Enter/Return.</p>
 <p>When configuring a profile, you can specify:</p>
 <ul class="simple">
-<li><p><strong>API Key</strong>: Your CloudOS API credentials</p></li>
-<li><p><strong>CloudOS URL</strong>: The CloudOS instance URL</p></li>
+<li><p><strong>API Key</strong>: Your Lifebit Platform API credentials</p></li>
+<li><p><strong>Platform URL</strong>: The Lifebit Platform instance URL</p></li>
 <li><p><strong>Project Name</strong>: Default project for commands</p></li>
 <li><p><strong>Execution Platform</strong>: <code class="docutils literal notranslate"><span class="pre">aws</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">azure</span></code> - determines default instance types and available features</p></li>
 <li><p><strong>Repository Platform</strong>: Version control system (github, gitlab, etc.)</p></li>
@@ -747,7 +746,7 @@ When there is already at least 1 previous profile defined, a new question will a
 </section>
 <section id="project">
 <h3>Project<a class="headerlink" href="#project" title="Link to this heading">¶</a></h3>
-<p>Projects in CloudOS provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.</p>
+<p>Projects in Lifebit Platform provide logical separation of datasets, workflows, and results, making it easier to manage complex research initiatives. You can list all available projects or create new ones using the CLI.</p>
 <section id="list-projects">
 <h4>List Projects<a class="headerlink" href="#list-projects" title="Link to this heading">¶</a></h4>
 <p>You can get a summary of all available workspace projects in three different output formats using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
@@ -779,7 +778,7 @@ cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w
 </section>
 <section id="create-projects">
 <h4>Create Projects<a class="headerlink" href="#create-projects" title="Link to this heading">¶</a></h4>
-<p>You can create a new project in your CloudOS workspace using the <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> command. This command requires the name of the new project and will return the project ID upon successful creation.</p>
+<p>You can create a new project in your Lifebit Platform workspace using the <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> command. This command requires the name of the new project and will return the project ID upon successful creation.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--new-project<span class="w"> </span><span class="s2">&quot;My New Project&quot;</span>
 </pre></div>
 </div>
@@ -791,10 +790,10 @@ cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w
 </section>
 <section id="queue">
 <h3>Queue<a class="headerlink" href="#queue" title="Link to this heading">¶</a></h3>
-<p>Job queues are required for running jobs using AWS batch executor. The available job queues in your CloudOS workspace are listed in the “Compute Resources” section in “Settings”.</p>
+<p>Job queues are required for running jobs using AWS batch executor. The available job queues in your Lifebit Platform workspace are listed in the “Compute Resources” section in “Settings”.</p>
 <blockquote>
 <div><p>[!NOTE]
-<strong>Azure Platform</strong>: Queue listing is not available for CloudOS workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.</p>
+<strong>Azure Platform</strong>: Queue listing is not available for Lifebit Platform workspaces configured to use Azure execution platform, as Azure does not use AWS batch queues.</p>
 </div></blockquote>
 <section id="list-queues">
 <h4>List Queues<a class="headerlink" href="#list-queues" title="Link to this heading">¶</a></h4>
@@ -828,10 +827,10 @@ cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w">
 </pre></div>
 </div>
 <blockquote>
-<div><p>NOTE: The queue name that is visible in CloudOS and must be used with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter is the one in the <code class="docutils literal notranslate"><span class="pre">label</span></code> field.</p>
+<div><p>NOTE: The queue name that is visible in Lifebit Platform and must be used with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter is the one in the <code class="docutils literal notranslate"><span class="pre">label</span></code> field.</p>
 </div></blockquote>
 <p><strong>Job queues for platform workflows</strong></p>
-<p>Platform workflows (those provided by CloudOS in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, CloudOS will automatically assign the valid queue and you should not specify any queue using the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are “System Tools” and “Data Factory” workflows.</p>
+<p>Platform workflows (those provided by Lifebit Platform in your workspace as modules) run on separate and specific AWS batch queues (system queues). Therefore, Lifebit Platform will automatically assign the valid queue and you should not specify any queue using the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. Any attempt to use this parameter will be ignored. Examples of such platform workflows are “System Tools” and “Data Factory” workflows.</p>
 </section>
 </section>
 <section id="workflow">
@@ -869,24 +868,24 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="
 <span class="go">	Workflow list saved to workflow_list.json</span>
 </pre></div>
 </div>
-<p>The collected workflows are those that can be found in the “WORKSPACE TOOLS” section in CloudOS.</p>
+<p>The collected workflows are those that can be found in the “WORKSPACE TOOLS” section in Lifebit Platform.</p>
 </section>
 <section id="import-a-nextflow-workflow">
 <h4>Import a Nextflow Workflow<a class="headerlink" href="#import-a-nextflow-workflow" title="Link to this heading">¶</a></h4>
-<p>You can import new workflows to your CloudOS workspaces. The requirements are:</p>
+<p>You can import new workflows to your Lifebit Platform workspaces. The requirements are:</p>
 <ul class="simple">
 <li><p>The workflow must be a Nextflow pipeline</p></li>
 <li><p>The workflow repository must be located at GitHub, GitLab or BitBucket Server (specified by the <code class="docutils literal notranslate"><span class="pre">--repository-platform</span></code> option. Available options: <code class="docutils literal notranslate"><span class="pre">github</span></code>, <code class="docutils literal notranslate"><span class="pre">gitlab</span></code> and <code class="docutils literal notranslate"><span class="pre">bitbucketServer</span></code>)</p></li>
-<li><p>If your repository is private, you must have access to the repository and have linked your GitHub, Gitlab or Bitbucket server accounts to CloudOS</p></li>
+<li><p>If your repository is private, you must have access to the repository and have linked your GitHub, Gitlab or Bitbucket server accounts to Lifebit Platform</p></li>
 </ul>
 <p><strong>Usage of the workflow import command</strong></p>
-<p>To import GitHub workflows to CloudOS:</p>
+<p>To import GitHub workflows to Lifebit Platform:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example workflow to import: https://github.com/lifebit-ai/DeepVariant</span>
 cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant&quot;</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;new_name_for_the_github_workflow&quot;</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
 </pre></div>
 </div>
 <p>The expected output will be:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS workflow functionality: list and import workflows.</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Lifebit Platform workflow functionality: list and import workflows.</span>
 
 <span class="go">Executing workflow import...</span>
 
@@ -900,16 +899,16 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 </pre></div>
 </div>
 <blockquote>
-<div><p>NOTE: Importing workflows using cloudos-cli is not yet available in all CloudOS workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: <code class="docutils literal notranslate"><span class="pre">It</span> <span class="pre">seems</span> <span class="pre">your</span> <span class="pre">API</span> <span class="pre">key</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">authorised.</span> <span class="pre">Please</span> <span class="pre">check</span> <span class="pre">if</span> <span class="pre">your</span> <span class="pre">workspace</span> <span class="pre">has</span> <span class="pre">support</span> <span class="pre">for</span> <span class="pre">importing</span> <span class="pre">workflows</span> <span class="pre">using</span> <span class="pre">cloudos-cli</span></code>.</p>
+<div><p>NOTE: Importing workflows using cloudos-cli is not yet available in all Lifebit Platform workspaces. If you try to use this feature in a non-prepared workspace you will get the following error message: <code class="docutils literal notranslate"><span class="pre">It</span> <span class="pre">seems</span> <span class="pre">your</span> <span class="pre">API</span> <span class="pre">key</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">authorised.</span> <span class="pre">Please</span> <span class="pre">check</span> <span class="pre">if</span> <span class="pre">your</span> <span class="pre">workspace</span> <span class="pre">has</span> <span class="pre">support</span> <span class="pre">for</span> <span class="pre">importing</span> <span class="pre">workflows</span> <span class="pre">using</span> <span class="pre">cloudos-cli</span></code>.</p>
 </div></blockquote>
 </section>
 </section>
 <section id="nextflow-jobs">
 <h3>Nextflow Jobs<a class="headerlink" href="#nextflow-jobs" title="Link to this heading">¶</a></h3>
-<p>The job commands allow you to submit, monitor, and manage computational workflows on CloudOS. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.</p>
+<p>The job commands allow you to submit, monitor, and manage computational workflows on Lifebit Platform. This includes both Nextflow pipelines and bash scripts, with support for various execution platforms.</p>
 <section id="submit-a-job">
 <h4>Submit a Job<a class="headerlink" href="#submit-a-job" title="Link to this heading">¶</a></h4>
-<p>You can submit Nextflow workflows to CloudOS using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameters, etc.</p>
+<p>You can submit Nextflow workflows to Lifebit Platform using either configuration files or command-line parameters. Jobs can be configured with specific compute resources, execution platforms, parameters, etc.</p>
 <p>First, configure your local environment to ease parameter input. We will try to submit a small toy example already available:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable
 </pre></div>
@@ -973,7 +972,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 </div></blockquote>
 <p>If everything went well, you should see something like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
-<span class="go">	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355</span>
+<span class="go">	Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355</span>
 <span class="go">	Your assigned job id is: 62c83a1191fe06013b7ef355</span>
 <span class="go">	Your current job status is: initializing</span>
 <span class="go">	To further check your job status you can either go to https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a1191fe06013b7ef355 or use the following command:</span>
@@ -991,7 +990,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <p>When setting this parameter, you can also set <code class="docutils literal notranslate"><span class="pre">--request-interval</span></code> to a bigger number (default is 30s) if the job is quite large. This will ensure that the status requests are not sent too close from each other and recognized as spam by the API.</p>
 <p>If the job takes less than <code class="docutils literal notranslate"><span class="pre">--wait-time</span></code> (3600 seconds by default), the previous command should have an output similar to:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
-<span class="go">	Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363</span>
+<span class="go">	Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/62c83a6191fe06013b7ef363</span>
 <span class="go">	Your assigned job id is: 62c83a6191fe06013b7ef363</span>
 <span class="go">	Please, wait until job completion or max wait time of 3600 seconds is reached.</span>
 <span class="go">	Your current job status is: initializing.</span>
@@ -1020,19 +1019,19 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <strong>Azure Platform Behavior</strong>: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.</p>
 </div></blockquote>
 <p><strong>AWS Executor Support</strong></p>
-<p>CloudOS supports <a class="reference external" href="https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch">AWS batch</a> executor by default.
+<p>Lifebit Platform supports <a class="reference external" href="https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch">AWS batch</a> executor by default.
 You can specify the AWS batch queue to use from the ones available in your workspace (see <a class="reference internal" href="#list-job-queues"><span class="xref myst">here</span></a>) by specifying its name with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. If none is specified, the most recent suitable queue in your workspace will be selected by default.</p>
 <p>Example command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable
 </pre></div>
 </div>
 <blockquote>
-<div><p>Note: From cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache <a class="reference external" href="https://www.nextflow.io/docs/latest/ignite.html#apache-ignite">ignite</a> executor is being removed progressively from CloudOS, so most likely will not be available in your CloudOS. Cloudos-cli still supports ignite during this period by adding the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag to the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command. Please note that if you use the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag in a CloudOS without ignite support, the command will fail.</p>
+<div><p>Note: From cloudos-cli 2.7.0, the default executor is AWS batch. The previous Apache <a class="reference external" href="https://www.nextflow.io/docs/latest/ignite.html#apache-ignite">ignite</a> executor is being removed progressively from Lifebit Platform, so most likely will not be available in your Lifebit Platform. Cloudos-cli still supports ignite during this period by adding the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag to the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command. Please note that if you use the <code class="docutils literal notranslate"><span class="pre">--ignite</span></code> flag in a Lifebit Platform without ignite support, the command will fail.</p>
 </div></blockquote>
 <p><strong>Azure Execution Platform Support</strong></p>
-<p>CloudOS can also be configured to use Microsoft Azure compute platforms. If your CloudOS is configured to use Azure, you will need to take into consideration the following:</p>
+<p>Lifebit Platform can also be configured to use Microsoft Azure compute platforms. If your Lifebit Platform is configured to use Azure, you will need to take into consideration the following:</p>
 <ul class="simple">
-<li><p>When sending jobs to CloudOS using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command, please use the option <code class="docutils literal notranslate"><span class="pre">--execution-platform</span> <span class="pre">azure</span></code></p></li>
+<li><p>When sending jobs to Lifebit Platform using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command, please use the option <code class="docutils literal notranslate"><span class="pre">--execution-platform</span> <span class="pre">azure</span></code></p></li>
 <li><p>Azure only supports Nextflow version <code class="docutils literal notranslate"><span class="pre">22.11.1-edge</span></code>. If you specify a different version, CloudOS CLI will display a warning and automatically use <code class="docutils literal notranslate"><span class="pre">22.11.1-edge</span></code> instead</p></li>
 <li><p>Due to the lack of AWS batch queues in Azure, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">queue</span> <span class="pre">list</span></code> command is not working</p></li>
 </ul>
@@ -1041,7 +1040,7 @@ You can specify the AWS batch queue to use from the ones available in your works
 </pre></div>
 </div>
 <p><strong>HPC Execution Support</strong></p>
-<p>CloudOS is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command:</p>
+<p>Lifebit Platform is also prepared to use an HPC compute infrastructure. For such cases, you will need to take into account the following for your job submissions using <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command:</p>
 <ul class="simple">
 <li><p>Use the following parameter: <code class="docutils literal notranslate"><span class="pre">--execution-platform</span> <span class="pre">hpc</span></code></p></li>
 <li><p>Indicate the HPC ID using: <code class="docutils literal notranslate"><span class="pre">--hpc-id</span> <span class="pre">XXXX</span></code></p></li>
@@ -1116,7 +1115,7 @@ You can specify the AWS batch queue to use from the ones available in your works
 <li><p><strong>Grey ○</strong> Initialising</p></li>
 </ul>
 <p><strong>Clickable Job IDs</strong></p>
-<p>Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in CloudOS.</p>
+<p>Job IDs in the table are clickable hyperlinks (when supported by your terminal) that open the job details page in Lifebit Platform.</p>
 <p><strong>Job Listing Control Options</strong></p>
 <p>CloudOS CLI provides two ways to control the number of jobs retrieved:</p>
 <ol class="arabic simple">
@@ -1236,7 +1235,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 </section>
 <section id="get-job-results">
 <h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
-<p>The following command allows you to get the path where CloudOS stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
+<p>The following command allows you to get the path where Lifebit Platform stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
 <p>Example:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
 </pre></div>
@@ -1358,7 +1357,7 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 </section>
 <section id="abort-jobs">
 <h4>Abort Jobs<a class="headerlink" href="#abort-jobs" title="Link to this heading">¶</a></h4>
-<p>Aborts jobs in the CloudOS workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
+<p>Aborts jobs in the Lifebit Platform workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
 <section id="basic-usage">
 <h5>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h5>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
@@ -1384,9 +1383,9 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <section id="additional-options">
 <h5>Additional Options<a class="headerlink" href="#additional-options" title="Link to this heading">¶</a></h5>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The CloudOS workspace ID (can be set in profile)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (can be set in profile)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code>: The CloudOS URL (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The Lifebit Platform workspace ID (can be set in profile)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your Lifebit Platform API key (can be set in profile)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code>: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Print detailed information messages</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification (not recommended)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--ssl-cert</span></code>: Path to your SSL certificate file</p></li>
@@ -1460,14 +1459,14 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 </section>
 <section id="get-job-workdir">
 <h4>Get Job Workdir<a class="headerlink" href="#get-job-workdir" title="Link to this heading">¶</a></h4>
-<p>To get the working directory of a job submitted to CloudOS:</p>
+<p>To get the working directory of a job submitted to Lifebit Platform:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>profile-name<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355
 </pre></div>
 </div>
 <p>The output should be something similar to:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS job functionality: run, check and abort jobs in CloudOS.</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Lifebit Platform job functionality: run, check and abort jobs in Lifebit Platform.</span>
 
 <span class="go">Finding working directory path...</span>
 <span class="go">Working directory for job 68747bac9e7fe38ec6e022ad: az://123456789000.blob.core.windows.net/cloudos-987652349087/projects/455654676/jobs/54678856765/work</span>
@@ -1537,8 +1536,8 @@ If the working directory has been completely deleted, the command will report th
 </section>
 <section id="get-job-costs">
 <h4>Get Job Costs<a class="headerlink" href="#get-job-costs" title="Link to this heading">¶</a></h4>
-<p>You can retrieve detailed cost information for any job in your CloudOS workspace using the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">cost</span></code> command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.</p>
-<p>The cost information is retrieved from CloudOS and can be displayed in multiple formats:</p>
+<p>You can retrieve detailed cost information for any job in your Lifebit Platform workspace using the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">cost</span></code> command. This provides insights into compute costs, storage usage, and runtime metrics to help optimize workflows and manage expenses.</p>
+<p>The cost information is retrieved from Lifebit Platform and can be displayed in multiple formats:</p>
 <ul class="simple">
 <li><p><strong>Console display</strong>: Rich formatted tables with pagination for easy viewing</p></li>
 <li><p><strong>CSV</strong>: Structured data for analysis and reporting</p></li>
@@ -1674,8 +1673,8 @@ cat<span class="w"> </span>62c83a1191fe06013b7ef355_costs.json
 </section>
 <section id="get-job-related-analyses">
 <h4>Get Job Related Analyses<a class="headerlink" href="#get-job-related-analyses" title="Link to this heading">¶</a></h4>
-<p>You can view related jobs that share the same working directory in a CloudOS workspace by using the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">related</span></code> command. This feature helps track job lineages, resume workflows, and understand job relationships.</p>
-<p>The information is retrieved from CloudOS and can be displayed in multiple formats:</p>
+<p>You can view related jobs that share the same working directory in a Lifebit Platform workspace by using the <code class="docutils literal notranslate"><span class="pre">job</span> <span class="pre">related</span></code> command. This feature helps track job lineages, resume workflows, and understand job relationships.</p>
+<p>The information is retrieved from Lifebit Platform and can be displayed in multiple formats:</p>
 <ul class="simple">
 <li><p><strong>Console display</strong>: Rich formatted tables with pagination</p></li>
 <li><p><strong>JSON</strong>: Complete job data for programmatic processing</p></li>
@@ -1710,7 +1709,7 @@ cat<span class="w"> </span>62c83a1191fe06013b7ef355_costs.json
 <li><p><strong>Status</strong>: Current job state (initializing, running, completed, aborting, aborted, failed)</p></li>
 <li><p><strong>Name</strong>: Job name assigned when submitted</p></li>
 <li><p><strong>Owner</strong>: User who submitted the job (first name and last name)</p></li>
-<li><p><strong>ID</strong>: Job identifier in CloudOS</p></li>
+<li><p><strong>ID</strong>: Job identifier in Lifebit Platform</p></li>
 <li><p><strong>Submit time</strong>: When the job was submitted (formatted as YYYY-MM-DD HH:MM:SS)</p></li>
 <li><p><strong>Run time</strong>: Actual execution time (formatted as hours, minutes, seconds)</p></li>
 <li><p><strong>Total Cost</strong>: Compute cost in USD</p></li>
@@ -1778,7 +1777,7 @@ Related jobs are identified by their shared working directory folder ID. Only jo
 </section>
 <section id="delete-job-results">
 <h4>Delete Job Results<a class="headerlink" href="#delete-job-results" title="Link to this heading">¶</a></h4>
-<p>CloudOS allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.</p>
+<p>Lifebit Platform allows you to permanently delete job results directories to manage storage and clean up completed analyses. This feature provides a safe way to remove final analysis results with built-in confirmation prompts and status tracking.</p>
 <blockquote>
 <div><p>[!WARNING]
 Deleting job results is <strong>irreversible</strong>. All data and backups will be permanently removed and cannot be recovered. Use this feature with caution.</p>
@@ -1838,7 +1837,7 @@ The <code class="docutils literal notranslate"><span class="pre">--delete</span>
 </section>
 <section id="archive-jobs">
 <h4>Archive Jobs<a class="headerlink" href="#archive-jobs" title="Link to this heading">¶</a></h4>
-<p>CloudOS allows you to archive completed jobs to organize and manage your analysis history.</p>
+<p>Lifebit Platform allows you to archive completed jobs to organize and manage your analysis history.</p>
 <blockquote>
 <div><p>[!NOTE]
 Archiving jobs does not delete any data or results. It simply adds metadata to mark jobs as archived for organizational purposes.</p>
@@ -1905,7 +1904,7 @@ Archiving jobs does not delete any data or results. It simply adds metadata to m
 <li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Display detailed information about the archiving process</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Use a specific configuration profile</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: Specify the workspace ID (if not using profiles)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (if not using profiles)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your Lifebit Platform API key (if not using profiles)</p></li>
 </ul>
 <blockquote>
 <div><p>[!TIP]
@@ -1914,7 +1913,7 @@ Use the <code class="docutils literal notranslate"><span class="pre">cloudos</sp
 </section>
 <section id="unarchive-jobs">
 <h4>Unarchive Jobs<a class="headerlink" href="#unarchive-jobs" title="Link to this heading">¶</a></h4>
-<p>CloudOS allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.</p>
+<p>Lifebit Platform allows you to restore archived jobs back to their active state. Unarchiving removes the archived status while preserving all job data, results, and history.</p>
 <blockquote>
 <div><p>[!NOTE]
 Unarchiving jobs does not modify any data or results. It simply removes the archived metadata flag, making jobs appear as regular (non-archived) jobs again.</p>
@@ -1981,7 +1980,7 @@ Unarchiving jobs does not modify any data or results. It simply removes the arch
 <li><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code>: Display detailed information about the unarchiving process</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Use a specific configuration profile</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: Specify the workspace ID (if not using profiles)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your CloudOS API key (if not using profiles)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code>: Your Lifebit Platform API key (if not using profiles)</p></li>
 </ul>
 <p><strong>Managing Job Lifecycle</strong></p>
 <p>Use the archive and unarchive commands together to manage your job organization:</p>
@@ -1998,10 +1997,10 @@ Archived jobs remain fully accessible - archiving is purely for organizational p
 </section>
 <section id="bash-jobs">
 <h3>Bash Jobs<a class="headerlink" href="#bash-jobs" title="Link to this heading">¶</a></h3>
-<p>Execute bash scripts on CloudOS for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.</p>
+<p>Execute bash scripts on Lifebit Platform for custom processing workflows. Bash jobs allow you to run shell commands with custom parameters and are ideal for data preprocessing or simple computational tasks.</p>
 <section id="send-array-job">
 <h4>Send Array Job<a class="headerlink" href="#send-array-job" title="Link to this heading">¶</a></h4>
-<p>A bash job can be sent to CloudOS using the command <code class="docutils literal notranslate"><span class="pre">bash</span></code> and the subcommand <code class="docutils literal notranslate"><span class="pre">job</span></code>. In this case, the <code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code> must be a bash job already present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).</p>
+<p>A bash job can be sent to Lifebit Platform using the command <code class="docutils literal notranslate"><span class="pre">bash</span></code> and the subcommand <code class="docutils literal notranslate"><span class="pre">job</span></code>. In this case, the <code class="docutils literal notranslate"><span class="pre">--workflow-name</span></code> must be a bash job already present in the platform. Bash jobs are identified by bash icon (unlike Nextflow jobs, which are identified with Nextflow icon).</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>job<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--workflow-name<span class="w"> </span>ubuntu<span class="w"> </span><span class="se">\</span>
@@ -2020,9 +2019,9 @@ Archived jobs remain fully accessible - archiving is purely for organizational p
 At the moment only string values are allowed to the <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.</p>
 </div></blockquote>
 <p>If everything went well, you should see something like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">CloudOS bash functionality.</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Lifebit Platform bash functionality.</span>
 
-<span class="go">        Job successfully launched to CloudOS, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334</span>
+<span class="go">        Job successfully launched to Lifebit Platform, please check the following link: https://cloudos.lifebit.ai/app/advanced-analytics/analyses/682622d09f305de717327334</span>
 <span class="go">        Your assigned job id is: 682622d09f305de717327334</span>
 
 <span class="go">        Your current job status is: initializing</span>
@@ -2342,8 +2341,8 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </ul>
 <p><strong>Data &amp; Storage Management:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--mount</span></code>: Mount a data file into the session. Supports both CloudOS datasets and S3 files (AWS only). Format: <code class="docutils literal notranslate"><span class="pre">project_name/dataset_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/Data/file.csv</span></code>) or <code class="docutils literal notranslate"><span class="pre">s3://bucket/path/to/file</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>). Can be used multiple times.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders and CloudOS folders. Format: <code class="docutils literal notranslate"><span class="pre">s3://bucket/prefix</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) or <code class="docutils literal notranslate"><span class="pre">project_name/folder_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/AnalysesResults/analysis_id/results</span></code>). Can be used multiple times. <strong>Note:</strong> Linking is not supported on Azure. Use CloudOS file explorer for data access.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--mount</span></code>: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: <code class="docutils literal notranslate"><span class="pre">project_name/dataset_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/Data/file.csv</span></code>) or <code class="docutils literal notranslate"><span class="pre">s3://bucket/path/to/file</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>). Can be used multiple times.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders and Lifebit Platform folders. Format: <code class="docutils literal notranslate"><span class="pre">s3://bucket/prefix</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) or <code class="docutils literal notranslate"><span class="pre">project_name/folder_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/AnalysesResults/analysis_id/results</span></code>). Can be used multiple times. <strong>Note:</strong> Linking is not supported on Azure. Use Lifebit Platform file explorer for data access.</p></li>
 </ul>
 <p><strong>Backend-Specific:</strong></p>
 <ul class="simple">
@@ -2621,7 +2620,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 <p><strong>Optional Overrides from Profile:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> (optional): Override API key from profile</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> (optional): Override CloudOS URL from profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> (optional): Override Lifebit Platform URL from profile</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code> (optional): Override workspace ID from profile</p></li>
 </ul>
 <p><strong>Optional Behavior Flags:</strong></p>
@@ -2685,10 +2684,10 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 </section>
 <section id="datasets">
 <h3>Datasets<a class="headerlink" href="#datasets" title="Link to this heading">¶</a></h3>
-<p>Manage files and folders within your CloudOS File Explorer programmatically. These commands provide comprehensive file management capabilities for organizing research data and results.</p>
+<p>Manage files and folders within your Lifebit Platform File Explorer programmatically. These commands provide comprehensive file management capabilities for organizing research data and results.</p>
 <section id="list-files">
 <h4>List Files<a class="headerlink" href="#list-files" title="Link to this heading">¶</a></h4>
-<p>Browse files and folders within your CloudOS projects. Use the <code class="docutils literal notranslate"><span class="pre">--details</span></code> flag to get comprehensive information about file ownership, sizes, and modification dates.</p>
+<p>Browse files and folders within your Lifebit Platform projects. Use the <code class="docutils literal notranslate"><span class="pre">--details</span></code> flag to get comprehensive information about file ownership, sizes, and modification dates.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>ls<span class="w"> </span>&lt;path&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;
 </pre></div>
 </div>
@@ -2836,7 +2835,7 @@ New folders can be created within the <code class="docutils literal notranslate"
 </section>
 <section id="remove-files-or-folders">
 <h4>Remove Files or Folders<a class="headerlink" href="#remove-files-or-folders" title="Link to this heading">¶</a></h4>
-<p>Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from CloudOS but not from underlying cloud storage.</p>
+<p>Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from Lifebit Platform but not from underlying cloud storage.</p>
 <blockquote>
 <div><p>[!NOTE]
 Files and folders can be removed in the <code class="docutils literal notranslate"><span class="pre">Data</span></code> datasets and its subfolders.</p>
@@ -2885,12 +2884,12 @@ cloudos<span class="w"> </span>link<span class="w"> </span><span class="s2">&quo
 <p><strong>Command options:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">PATH</span></code>: S3 path to link (positional argument, required if <code class="docutils literal notranslate"><span class="pre">--job-id</span></code> is not provided)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL (default: https://cloudos.lifebit.ai)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The specific CloudOS workspace ID (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--session-id</span></code>: The specific CloudOS interactive session ID (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--job-id</span></code>: The job ID in CloudOS (links results, workdir, and logs by default)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--project-name</span></code>: CloudOS project name (required for File Explorer paths)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your Lifebit Platform API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The specific Lifebit Platform workspace ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--session-id</span></code>: The specific Lifebit Platform interactive session ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--job-id</span></code>: The job ID in Lifebit Platform (links results, workdir, and logs by default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--project-name</span></code>: Lifebit Platform project name (required for File Explorer paths)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--results</span></code>: Link only results folder (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--workdir</span></code>: Link only working directory (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--logs</span></code>: Link only logs folder (only works with <code class="docutils literal notranslate"><span class="pre">--job-id</span></code>)</p></li>
@@ -2934,7 +2933,7 @@ Azure Blob Storage paths (az://) are not supported for linking in Azure environm
 <hr class="docutils" />
 <section id="procurement">
 <h3>Procurement<a class="headerlink" href="#procurement" title="Link to this heading">¶</a></h3>
-<p>CloudOS supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.</p>
+<p>Lifebit Platform supports procurement functionality to manage and list images associated with organizations within a given procurement. This feature is useful for administrators and users who need to view available container images across different organizations in their procurement.</p>
 <section id="list-procurement-images">
 <h4>List Procurement Images<a class="headerlink" href="#list-procurement-images" title="Link to this heading">¶</a></h4>
 <p>You can get a list of images associated with organizations of a given procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">ls</span></code> command. This command provides paginated results showing image configurations and metadata.</p>
@@ -2946,9 +2945,9 @@ Azure Blob Storage paths (az://) are not supported for linking in Azure environm
 </div>
 <p><strong>Command options:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your Lifebit Platform API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific Lifebit Platform procurement ID (required)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--page</span></code>: The response page number (default: 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--limit</span></code>: The page size limit (default: 10)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
@@ -2975,18 +2974,18 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 </section>
 <section id="set-procurement-organization-image">
 <h4>Set Procurement Organization Image<a class="headerlink" href="#set-procurement-organization-image" title="Link to this heading">¶</a></h4>
-<p>You can set a custom image ID or name for an organization within a procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">set</span></code> command. This allows you to override the default CloudOS images with your own custom images for specific organizations.</p>
+<p>You can set a custom image ID or name for an organization within a procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">set</span></code> command. This allows you to override the default Lifebit Platform images with your own custom images for specific organizations.</p>
 <p>To set a custom image for an organization, use the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">&quot;ami-0123456789abcdef0&quot;</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">&quot;custom-image-name&quot;</span><span class="w"> </span>--image-version<span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
 </pre></div>
 </div>
 <p><strong>Set command options:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your Lifebit Platform API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific Lifebit Platform procurement ID (required)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--organisation-id</span></code>: The organization ID where the change will be applied (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The CloudOS resource image type (required). Possible values:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The Lifebit Platform resource image type (required). Possible values:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">RegularInteractiveSessions</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SparkInteractiveSessions</span></code></p></li>
@@ -3013,18 +3012,18 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 </section>
 <section id="reset-procurement-organization-image">
 <h4>Reset Procurement Organization Image<a class="headerlink" href="#reset-procurement-organization-image" title="Link to this heading">¶</a></h4>
-<p>You can reset an organization’s image configuration back to CloudOS defaults using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">reset</span></code> command. This removes any custom image configurations and restores the original CloudOS defaults.</p>
+<p>You can reset an organization’s image configuration back to Lifebit Platform defaults using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">reset</span></code> command. This removes any custom image configurations and restores the original Lifebit Platform defaults.</p>
 <p>To reset an organization’s image to defaults, use the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
 </pre></div>
 </div>
 <p><strong>Reset command options:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your CloudOS API key (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The CloudOS URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific CloudOS procurement ID (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your Lifebit Platform API key (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--procurement-id</span></code>: The specific Lifebit Platform procurement ID (required)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--organisation-id</span></code>: The organization ID where the change will be applied (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The CloudOS resource image type (required). Same values as for <code class="docutils literal notranslate"><span class="pre">set</span></code> command</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--image-type</span></code>: The Lifebit Platform resource image type (required). Same values as for <code class="docutils literal notranslate"><span class="pre">set</span></code> command</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--provider</span></code>: The cloud provider (required). Currently only <code class="docutils literal notranslate"><span class="pre">aws</span></code> is supported</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--region</span></code>: The cloud region (required). Currently only AWS regions are supported</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--disable-ssl-verification</span></code>: Disable SSL certificate verification</p></li>
@@ -3032,7 +3031,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 <li><p><code class="docutils literal notranslate"><span class="pre">--profile</span></code>: Profile to use from the config file</p></li>
 </ul>
 <p><strong>Reset command example:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset image configuration to CloudOS defaults</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset image configuration to Lifebit Platform defaults</span>
 cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
 </pre></div>
 </div>
@@ -3042,7 +3041,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 <h3>Cromwell and WDL Pipeline Support<a class="headerlink" href="#cromwell-and-wdl-pipeline-support" title="Link to this heading">¶</a></h3>
 <section id="manage-cromwell-server">
 <h4>Manage Cromwell Server<a class="headerlink" href="#manage-cromwell-server" title="Link to this heading">¶</a></h4>
-<p>In order to run WDL pipelines, a Cromwell server in CloudOS should be running. This server can be accessed to check its status, restart it or stop it, using the following commands:</p>
+<p>In order to run WDL pipelines, a Cromwell server in Lifebit Platform should be running. This server can be accessed to check its status, restart it or stop it, using the following commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Cromwell status</span>
 cloudos<span class="w"> </span>cromwell<span class="w"> </span>status<span class="w"> </span>--profile<span class="w"> </span>my_profile
 </pre></div>
@@ -3074,7 +3073,7 @@ cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="
 <h4>Run WDL Workflows<a class="headerlink" href="#run-wdl-workflows" title="Link to this heading">¶</a></h4>
 <p>To run WDL workflows, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> command can be used normally, but adding two extra parameters:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--wdl-mainfile</span></code>: name of the mainFile (*.wdl) file used by the CloudOS workflow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--wdl-mainfile</span></code>: name of the mainFile (*.wdl) file used by the Lifebit Platform workflow.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--wdl-importsfile</span></code> [Optional]: name of the workflow imported file (importsFile, *.zip).</p></li>
 </ul>
 <p>All the rest of the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">run</span></code> functionality is available.</p>
@@ -3120,7 +3119,7 @@ cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="
 <span class="go">        --workspace-id $WORKSPACE_ID</span>
 <span class="go">    *******************************************************************************</span>
 
-<span class="go">	Job successfully launched to CloudOS, please check the following link: ****</span>
+<span class="go">	Job successfully launched to Lifebit Platform, please check the following link: ****</span>
 <span class="go">	Your assigned job id is: ****</span>
 <span class="go">	Please, wait until job completion or max wait time of 3600 seconds is reached.</span>
 <span class="go">	Your current job status is: initializing.</span>

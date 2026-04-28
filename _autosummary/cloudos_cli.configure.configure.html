@@ -674,8 +674,8 @@ create required_dict and call load_profile_and_validate_data in each command.</p
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>required_params</strong> (<em>list</em><em>, </em><em>optional</em>) – List of parameter names that can currently be added in a profile. Common values:
-- ‘apikey’: CloudOS API key
-- ‘workspace_id’: CloudOS workspace ID
+- ‘apikey’: Lifebit Platform API key
+- ‘workspace_id’: Lifebit Platform workspace ID
 - ‘project_name’: Project name
 - ‘workflow_name’: Workflow/pipeline name
 - ‘session_id’: Interactive session ID
@@ -685,9 +685,9 @@ This list can be updated as new parameters are added to profiles.</p>
 </dl>
 <p class="rubric">Example</p>
 <p>&#64;job.command(‘details’)
-&#64;click.option(’–apikey’, help=’Your CloudOS API key’, required=True)
-&#64;click.option(’–workspace-id’, help=’The specific CloudOS workspace id.’, required=True)
-&#64;click.option(’–job-id’, help=’The job id in CloudOS to search for.’, required=True)
+&#64;click.option(’–apikey’, help=’Your Lifebit Platform API key’, required=True)
+&#64;click.option(’–workspace-id’, help=’The specific Lifebit Platform workspace id.’, required=True)
+&#64;click.option(’–job-id’, help=’The job id in Lifebit Platform to search for.’, required=True)
 &#64;click.option(’–profile’, help=’Profile to use from the config file’, default=None)
 &#64;click.pass_context
 &#64;with_profile_config(required_params=[‘apikey’, ‘workspace_id’])

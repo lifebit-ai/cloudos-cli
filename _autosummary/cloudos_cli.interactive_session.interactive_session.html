@@ -438,10 +438,10 @@
 <td><p>Map API status value to user-friendly display status.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file" title="cloudos_cli.interactive_session.interactive_session.parse_data_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_data_file</span></code></a>(data_file_str)</p></td>
-<td><p>Parse data file format: either S3 or CloudOS dataset path.</p></td>
+<td><p>Parse data file format: either S3 or Lifebit Platform dataset path.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path" title="cloudos_cli.interactive_session.interactive_session.parse_link_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_link_path</span></code></a>(link_path_str)</p></td>
-<td><p>Parse link path format: supports S3, CloudOS, or legacy colon format.</p></td>
+<td><p>Parse link path format: supports S3, Lifebit Platform, or legacy colon format.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration" title="cloudos_cli.interactive_session.interactive_session.parse_shutdown_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_shutdown_duration</span></code></a>(duration_str)</p></td>
 <td><p>Parse shutdown duration string to ISO8601 datetime string.</p></td>
@@ -676,7 +676,7 @@
 <li><p><strong>is_shared</strong> (<em>bool</em>) – Make session shared (default: False)</p></li>
 <li><p><strong>cost_limit</strong> (<em>float</em>) – Compute cost limit in USD (default: -1 for unlimited)</p></li>
 <li><p><strong>shutdown_at</strong> (<em>str</em>) – ISO8601 datetime for auto-shutdown (optional)</p></li>
-<li><p><strong>data_files</strong> (<em>list</em>) – List of data file dicts. For AWS: CloudOS or S3. For Azure: CloudOS only.</p></li>
+<li><p><strong>data_files</strong> (<em>list</em>) – List of data file dicts. For AWS: Lifebit Platform or S3. For Azure: Lifebit Platform only.</p></li>
 <li><p><strong>s3_mounts</strong> (<em>list</em>) – List of S3 mount dicts (AWS only, ignored for Azure)</p></li>
 <li><p><strong>r_version</strong> (<em>str</em>) – R version for RStudio (required for rstudio backend)</p></li>
 <li><p><strong>spark_master_type</strong> (<em>str</em>) – Spark master instance type (required for spark backend, AWS only)</p></li>
@@ -778,7 +778,7 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cl</strong> (<a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><em>Cloudos</em></a>) – CloudOS API client instance</p></li>
+<li><p><strong>cl</strong> (<a class="reference internal" href="cloudos_cli.clos.html#cloudos_cli.clos.Cloudos" title="cloudos_cli.clos.Cloudos"><em>Cloudos</em></a>) – Lifebit Platform API client instance</p></li>
 <li><p><strong>workspace_id</strong> (<em>str</em>) – Workspace ID</p></li>
 <li><p><strong>page_num</strong> (<em>int</em>) – Page number to fetch</p></li>
 <li><p><strong>limit</strong> (<em>int</em>) – Number of results per page</p></li>
@@ -882,7 +882,7 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session_data</strong> (<em>dict</em>) – Transformed session data (from transform_session_response)</p></li>
-<li><p><strong>cloudos_url</strong> (<em>str</em><em>, </em><em>optional</em>) – CloudOS URL for creating links</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em><em>, </em><em>optional</em>) – Lifebit Platform URL for creating links</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -930,7 +930,7 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cloudos_url</strong> (<em>str</em>) – CloudOS platform URL</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – Lifebit Platform URL</p></li>
 <li><p><strong>apikey</strong> (<em>str</em>) – API key for authentication</p></li>
 <li><p><strong>session_id</strong> (<em>str</em>) – Session ID (24-char hex)</p></li>
 <li><p><strong>team_id</strong> (<em>str</em>) – Team/workspace ID</p></li>
@@ -973,13 +973,13 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_data_file">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_data_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_file_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_data_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_data_file" title="Link to this definition">¶</a></dt>
-<dd><p>Parse data file format: either S3 or CloudOS dataset path.</p>
-<p>Supports mounting both S3 files and CloudOS dataset files into the session.</p>
+<dd><p>Parse data file format: either S3 or Lifebit Platform dataset path.</p>
+<p>Supports mounting both S3 files and Lifebit Platform dataset files into the session.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>data_file_str</strong> (<em>str</em>) – <p>Format:
 - S3 file: s3://bucket_name/path/to/file.txt
-- CloudOS dataset: project_name/dataset_path or project_name &gt; dataset_path</p>
+- Lifebit Platform dataset: project_name/dataset_path or project_name &gt; dataset_path</p>
 <p>Examples:
 - s3://lifebit-featured-datasets/pipelines/phewas/data.csv
 - leila-test/Data/3_vcf_list.txt</p>
@@ -988,7 +988,7 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>Parsed data item. For S3:
 {“type”: “s3”, “s3_bucket”: “…”, “s3_prefix”: “…”}</p>
-<p>For CloudOS dataset:
+<p>For Lifebit Platform dataset:
 {“type”: “cloudos”, “project_name”: “…”, “dataset_path”: “…”}</p>
 </p>
 </dd>
@@ -1004,19 +1004,19 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.parse_link_path">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">parse_link_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link_path_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#parse_link_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.parse_link_path" title="Link to this definition">¶</a></dt>
-<dd><p>Parse link path format: supports S3, CloudOS, or legacy colon format.</p>
-<p>Links an S3 folder or CloudOS folder to the session for read/write access.</p>
+<dd><p>Parse link path format: supports S3, Lifebit Platform, or legacy colon format.</p>
+<p>Links an S3 folder or Lifebit Platform folder to the session for read/write access.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>link_path_str</strong> (<em>str</em>) – Format (one of):
 - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)
-- CloudOS folder: project/folder_path (e.g., leila-test/Data)
+- Lifebit Platform folder: project/folder_path (e.g., leila-test/Data)
 - Legacy format (deprecated): mountName:bucketName:s3Prefix</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Tuple of (type, data) where type is ‘s3’ or ‘cloudos’ and data contains:
 For S3: {“s3_bucket”: “…”, “s3_prefix”: “…”}
-For CloudOS: {“project_name”: “…”, “folder_path”: “…”}</p>
+For Lifebit Platform: {“project_name”: “…”, “folder_path”: “…”}</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
@@ -1067,7 +1067,7 @@ For CloudOS: {“project_name”: “…”, “folder_path”: “…”}</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cloudos_url</strong> (<em>str</em>) – CloudOS API URL</p></li>
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – Lifebit Platform API URL</p></li>
 <li><p><strong>apikey</strong> (<em>str</em>) – API key for authentication</p></li>
 <li><p><strong>session_id</strong> (<em>str</em>) – Session ID to monitor</p></li>
 <li><p><strong>team_id</strong> (<em>str</em>) – Team/workspace ID</p></li>

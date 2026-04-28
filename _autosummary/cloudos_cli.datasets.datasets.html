@@ -403,14 +403,14 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cloudos_url</strong> (<em>string</em>) – The CloudOS service url.</p></li>
-<li><p><strong>apikey</strong> (<em>string</em>) – Your CloudOS API key.</p></li>
+<li><p><strong>cloudos_url</strong> (<em>string</em>) – The Lifebit Platform service url.</p></li>
+<li><p><strong>apikey</strong> (<em>string</em>) – Your Lifebit Platform API key.</p></li>
 <li><p><strong>workspace_id</strong> (<em>string</em>) – The specific Cloudos workspace id.</p></li>
-<li><p><strong>project_name</strong> (<em>string</em>) – The name of a CloudOS project.</p></li>
+<li><p><strong>project_name</strong> (<em>string</em>) – The name of a Lifebit Platform project.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
-<li><p><strong>project_id</strong> (<em>string</em>) – The CloudOS project id for a given project name.</p></li>
+<li><p><strong>project_id</strong> (<em>string</em>) – The Lifebit Platform project id for a given project name.</p></li>
 <li><p><strong>cromwell_token</strong> (<em>str</em>)</p></li>
 </ul>
 </dd>
@@ -423,7 +423,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session_id</strong> (<em>string</em>) – The session ID (MongoDB ObjectId) to abort.</p></li>
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) where the session is running.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) where the session is running.</p></li>
 <li><p><strong>upload_on_close</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save session data to S3 before terminating. Default=True.</p></li>
 <li><p><strong>force_abort</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, force immediate termination (skip graceful shutdown). Default=False.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
@@ -447,7 +447,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job</strong> (<em>string</em>) – The CloudOS job id of the job to abort.</p></li>
+<li><p><strong>job</strong> (<em>string</em>) – The Lifebit Platform job id of the job to abort.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -475,8 +475,8 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to archive.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>job_ids</strong> (<em>list</em>) – The Lifebit Platform job ids of the jobs to archive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -499,7 +499,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>job_ids</strong> (<em>list</em>) – List of job IDs to check.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>target_archived_state</strong> (<em>bool</em>) – True if checking for archiving operation, False if checking for unarchiving operation.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Default is True.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print detailed information. Default is False.</p></li>
@@ -523,7 +523,7 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.copy_item">
 <span class="sig-name descname"><span class="pre">copy_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.copy_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.copy_item" title="Link to this definition">¶</a></dt>
-<dd><p>Copy a file or folder (S3, Azure or Virtual) to a destination in CloudOS.</p>
+<dd><p>Copy a file or folder (S3, Azure or Virtual) to a destination in Lifebit Platform.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -533,7 +533,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) to create session in.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) to create session in.</p></li>
 <li><p><strong>payload</strong> (<em>dict</em>) – Complete session creation payload with configuration, data items, etc.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -552,11 +552,11 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.create_project">
 <span class="sig-name descname"><span class="pre">create_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.create_project" title="Link to this definition">¶</a></dt>
-<dd><p>Create a new project in CloudOS.</p>
+<dd><p>Create a new project in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID where the project will be created.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID where the project will be created.</p></li>
 <li><p><strong>project_name</strong> (<em>str</em>) – The name for the new project.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -579,7 +579,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.create_virtual_folder">
 <span class="sig-name descname"><span class="pre">create_virtual_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.create_virtual_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.create_virtual_folder" title="Link to this definition">¶</a></dt>
-<dd><p>Create a new virtual folder in CloudOS under a given parent.</p>
+<dd><p>Create a new virtual folder in Lifebit Platform under a given parent.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -589,7 +589,7 @@ the SSL certificate file. Default is True.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>response</strong> – The response object from the CloudOS API.</p>
+<dd class="field-even"><p><strong>response</strong> – The response object from the Lifebit Platform API.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>requests.Response</p>
@@ -604,7 +604,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id in which restart/stop Cromwell status.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id in which restart/stop Cromwell status.</p></li>
 <li><p><strong>action</strong> (<em>string</em><em> [</em><em>restart</em><em>|</em><em>stop</em><em>]</em>) – The action to perform.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -628,7 +628,7 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.delete_item">
 <span class="sig-name descname"><span class="pre">delete_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.delete_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.delete_item" title="Link to this definition">¶</a></dt>
-<dd><p>Delete a file or folder in CloudOS.</p>
+<dd><p>Delete a file or folder in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -637,7 +637,7 @@ the SSL certificate file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>response</strong> – The response object from the CloudOS API.</p>
+<dd class="field-even"><p><strong>response</strong> – The response object from the Lifebit Platform API.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>requests.Response</p>
@@ -653,7 +653,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -676,14 +676,14 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>workspace_id</strong> (<em>string</em>) – The specific Cloudos workspace id.</p></li>
-<li><p><strong>project_name</strong> (<em>string</em>) – The name of a CloudOS project element.</p></li>
+<li><p><strong>project_name</strong> (<em>string</em>) – The name of a Lifebit Platform project element.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>project_id</strong> – The CloudOS project id for a given project name.</p>
+<dd class="field-even"><p><strong>project_id</strong> – The Lifebit Platform project id for a given project name.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
@@ -694,11 +694,11 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_cromwell_status">
 <span class="sig-name descname"><span class="pre">get_cromwell_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_cromwell_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get Cromwell server status from CloudOS.</p>
+<dd><p>Get Cromwell server status from Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the Cromwell status.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the Cromwell status.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -722,8 +722,8 @@ with its deletion status (ready/deleting/etc).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folder_id</strong> (<em>str</em>) – The CloudOS folder ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>folder_id</strong> (<em>str</em>) – The Lifebit Platform folder ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -750,8 +750,8 @@ with their deletion status (ready/deleting).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folder_id</strong> (<em>str</em>) – The CloudOS folder ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>folder_id</strong> (<em>str</em>) – The Lifebit Platform folder ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -772,11 +772,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_interactive_session_list">
 <span class="sig-name descname"><span class="pre">get_interactive_session_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">team_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_archived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_interactive_session_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get interactive sessions from a CloudOS team.</p>
+<dd><p>Get interactive sessions from a Lifebit Platform team.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) to retrieve sessions from.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) to retrieve sessions from.</p></li>
 <li><p><strong>page</strong> (<em>int</em><em>, </em><em>optional</em>) – Page number for pagination. Default=1.</p></li>
 <li><p><strong>limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of results per page. Default=10, max=100.</p></li>
 <li><p><strong>status</strong> (<em>list</em><em> of </em><em>string</em><em>, </em><em>optional</em>) – Filter by session status. Valid values: running, stopped, provisioning, scheduled.</p></li>
@@ -799,13 +799,13 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_job_list">
 <span class="sig-name descname"><span class="pre">get_job_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_workflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_only_mine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_queue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_job_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get jobs from a CloudOS workspace with optional filtering.</p>
+<dd><p>Get jobs from a Lifebit Platform workspace with optional filtering.</p>
 <p>Fetches jobs page by page, applies all filters after fetching.
 Stops when enough jobs are collected or no more jobs are available.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the jobs.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the jobs.</p></li>
 <li><p><strong>last_n_jobs</strong> (<em>[</em><em>int</em><em> | </em><em>'all'</em><em>]</em><em>, </em><em>default=None</em>) – How many of the last jobs from the user to retrieve. You can specify a
 very large int or ‘all’ to get all user’s jobs. When specified, page
 and page_size parameters are ignored.</p></li>
@@ -853,12 +853,12 @@ Non-batch jobs are preserved in results as they don’t use queues.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_job_status">
 <span class="sig-name descname"><span class="pre">get_job_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_job_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get job status from CloudOS.</p>
+<dd><p>Get job status from Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>j_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
+<li><p><strong>j_id</strong> (<em>string</em>) – The Lifebit Platform job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the job status.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -886,7 +886,7 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the project.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the project.</p></li>
 <li><p><strong>project_name</strong> (<em>str</em>) – The name of the project to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -909,11 +909,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_project_list">
 <span class="sig-name descname"><span class="pre">get_project_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_project_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get all the project from a CloudOS workspace.</p>
+<dd><p>Get all the project from a Lifebit Platform workspace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the projects.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -942,8 +942,8 @@ the deletion status of items within it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -1034,8 +1034,8 @@ using the folders API endpoint.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>str</em>) – The CloudOS job ID.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>job_id</strong> (<em>str</em>) – The Lifebit Platform job ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file. Default is True.</p></li>
@@ -1074,7 +1074,7 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the workflow.</p></li>
 <li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1097,11 +1097,11 @@ the SSL certificate file. Default is True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.get_workflow_list">
 <span class="sig-name descname"><span class="pre">get_workflow_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archived_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.get_workflow_list" title="Link to this definition">¶</a></dt>
-<dd><p>Get all the workflows from a CloudOS workspace.</p>
+<dd><p>Get all the workflows from a Lifebit Platform workspace.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1129,7 +1129,7 @@ indicated page.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID to search for the workflow.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID to search for the workflow.</p></li>
 <li><p><strong>workflow_name</strong> (<em>str</em>) – The name of the workflow to search for.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em> | </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1159,7 +1159,7 @@ properly manage queue selection.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>workflow_name</strong> (<em>string</em>) – Name of the workflow.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the workflows.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the workflows.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1195,9 +1195,9 @@ the SSL certificate file.</p></li>
 <dd><section id="uses">
 <h2>Uses<a class="headerlink" href="#uses" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt>apikey<span class="classifier">string</span></dt><dd><p>Your CloudOS API key</p>
+<dt>apikey<span class="classifier">string</span></dt><dd><p>Your Lifebit Platform API key</p>
 </dd>
-<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The CloudOS service url.</p>
+<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The Lifebit Platform service url.</p>
 </dd>
 <dt>workspace_id<span class="classifier">string</span></dt><dd><p>The specific Cloudos workspace id.</p>
 </dd>
@@ -1212,14 +1212,14 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.list_folder_content">
 <span class="sig-name descname"><span class="pre">list_folder_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.list_folder_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.list_folder_content" title="Link to this definition">¶</a></dt>
-<dd><p>Wrapper to list contents of a CloudOS folder.</p>
+<dd><p>Wrapper to list contents of a Lifebit Platform folder.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – A path like ‘TopFolder’, ‘TopFolder/Subfolder’, or deeper.
 If None, lists all top-level datasets in the project.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>JSON response from the appropriate CloudOS endpoint.</p>
+<dd class="field-even"><p>JSON response from the appropriate Lifebit Platform endpoint.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
@@ -1234,9 +1234,9 @@ If None, lists all top-level datasets in the project.</p>
 <section id="id1">
 <h2>Uses<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt>apikey<span class="classifier">string</span></dt><dd><p>Your CloudOS API key</p>
+<dt>apikey<span class="classifier">string</span></dt><dd><p>Your Lifebit Platform API key</p>
 </dd>
-<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The CloudOS service url.</p>
+<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The Lifebit Platform service url.</p>
 </dd>
 <dt>workspace_id<span class="classifier">string</span></dt><dd><p>The specific Cloudos workspace id.</p>
 </dd>
@@ -1252,9 +1252,9 @@ If None, lists all top-level datasets in the project.</p>
 <dd><section id="id2">
 <h2>Uses<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt>apikey<span class="classifier">string</span></dt><dd><p>Your CloudOS API key</p>
+<dt>apikey<span class="classifier">string</span></dt><dd><p>Your Lifebit Platform API key</p>
 </dd>
-<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The CloudOS service url.</p>
+<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The Lifebit Platform service url.</p>
 </dd>
 <dt>workspace_id<span class="classifier">string</span></dt><dd><p>The specific Cloudos workspace id.</p>
 </dd>
@@ -1274,9 +1274,9 @@ If None, lists all top-level datasets in the project.</p>
 <dd><section id="id3">
 <h2>Uses<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt>apikey<span class="classifier">string</span></dt><dd><p>Your CloudOS API key</p>
+<dt>apikey<span class="classifier">string</span></dt><dd><p>Your Lifebit Platform API key</p>
 </dd>
-<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The CloudOS service url.</p>
+<dt>cloudos_url<span class="classifier">string</span></dt><dd><p>The Lifebit Platform service url.</p>
 </dd>
 <dt>workspace_id<span class="classifier">string</span></dt><dd><p>The specific Cloudos workspace id.</p>
 </dd>
@@ -1291,7 +1291,7 @@ If None, lists all top-level datasets in the project.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.move_files_and_folders">
 <span class="sig-name descname"><span class="pre">move_files_and_folders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.move_files_and_folders"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.move_files_and_folders" title="Link to this definition">¶</a></dt>
-<dd><p>Move a file to another dataset in CloudOS.</p>
+<dd><p>Move a file to another dataset in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1304,7 +1304,7 @@ If None, lists all top-level datasets in the project.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>response</strong> – The response object from the CloudOS API.</p>
+<dd class="field-even"><p><strong>response</strong> – The response object from the Lifebit Platform API.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>requests.Response</p>
@@ -1388,7 +1388,7 @@ only the selected columns or the full DataFrame.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.rename_item">
 <span class="sig-name descname"><span class="pre">rename_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/datasets/datasets.html#Datasets.rename_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.rename_item" title="Link to this definition">¶</a></dt>
-<dd><p>Rename a file or folder in CloudOS.</p>
+<dd><p>Rename a file or folder in Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1398,7 +1398,7 @@ only the selected columns or the full DataFrame.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>response</strong> – The response object from the CloudOS API.</p>
+<dd class="field-even"><p><strong>response</strong> – The response object from the Lifebit Platform API.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>requests.Response</p>
@@ -1434,7 +1434,7 @@ only the selected columns or the full DataFrame.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filter_owner</strong> (<em>str</em>) – The username or display name to search for.</p></li>
-<li><p><strong>workspace_id</strong> (<em>str</em>) – The CloudOS workspace ID.</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – The Lifebit Platform workspace ID.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1460,7 +1460,7 @@ the SSL certificate file.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session_id</strong> (<em>string</em>) – The session ID (MongoDB ObjectId) to resume.</p></li>
-<li><p><strong>team_id</strong> (<em>string</em>) – The CloudOS team id (workspace id) where the session is running.</p></li>
+<li><p><strong>team_id</strong> (<em>string</em>) – The Lifebit Platform team id (workspace id) where the session is running.</p></li>
 <li><p><strong>payload</strong> (<em>dict</em>) – Resume payload with optional dataItems and newInteractiveSessionConfiguration.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em><em>, </em><em>default=True</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
@@ -1488,8 +1488,8 @@ the SSL certificate file.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_ids</strong> (<em>list</em>) – The CloudOS job ids of the jobs to unarchive.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id.</p></li>
+<li><p><strong>job_ids</strong> (<em>list</em>) – The Lifebit Platform job ids of the jobs to unarchive.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id.</p></li>
 <li><p><strong>verify</strong> (<em>[</em><em>bool</em><em>|</em><em>string</em><em>]</em>) – Whether to use SSL verification or not. Alternatively, if
 a string is passed, it will be interpreted as the path to
 the SSL certificate file.</p></li>
@@ -1512,12 +1512,12 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.wait_job_completion">
 <span class="sig-name descname"><span class="pre">wait_job_completion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.wait_job_completion" title="Link to this definition">¶</a></dt>
-<dd><p>Checks job status from CloudOS and wait for its complation.</p>
+<dd><p>Checks job status from Lifebit Platform and wait for its complation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_id</strong> (<em>string</em>) – The CloudOS job id of the job just launched.</p></li>
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to check the job status.</p></li>
+<li><p><strong>job_id</strong> (<em>string</em>) – The Lifebit Platform job id of the job just launched.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to check the job status.</p></li>
 <li><p><strong>wait_time</strong> (<em>int</em>) – Max time to wait (in seconds) to job completion.</p></li>
 <li><p><strong>request_interval</strong> (<em>int</em>) – Time interval (in seconds) to request job status.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to output status on every request or not.</p></li>
@@ -1543,13 +1543,13 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.datasets.datasets.Datasets.workflow_import">
 <span class="sig-name descname"><span class="pre">workflow_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_docs_link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repository_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.datasets.datasets.Datasets.workflow_import" title="Link to this definition">¶</a></dt>
-<dd><p>Imports workflows to CloudOS.</p>
+<dd><p>Imports workflows to Lifebit Platform.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>workspace_id</strong> (<em>string</em>) – The CloudOS workspace id from to collect the projects.</p></li>
+<li><p><strong>workspace_id</strong> (<em>string</em>) – The Lifebit Platform workspace id from to collect the projects.</p></li>
 <li><p><strong>workflow_url</strong> (<em>string</em>) – The URL of the workflow. Only Github or Bitbucket are allowed.</p></li>
-<li><p><strong>workflow_name</strong> (<em>string</em>) – A name for the imported pipeline in CloudOS.</p></li>
+<li><p><strong>workflow_name</strong> (<em>string</em>) – A name for the imported pipeline in Lifebit Platform.</p></li>
 <li><p><strong>repository_project_id</strong> (<em>int</em>) – The repository project ID.</p></li>
 <li><p><strong>workflow_docs_link</strong> (<em>string</em>) – Link to the documentation URL.</p></li>
 <li><p><strong>repository_id</strong> (<em>int</em>) – The repository ID. Only required for GitHub repositories.</p></li>

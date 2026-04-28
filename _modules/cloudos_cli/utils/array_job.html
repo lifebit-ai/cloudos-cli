@@ -494,7 +494,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.generate_datasets_for_project">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_datasets_for_project</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate datasets for a specified project in a CloudOS workspace.</span>
+<span class="sd">    Generate datasets for a specified project in a Lifebit Platform workspace.</span>
 
 <span class="sd">    This function initializes a `Datasets` object for the given project and handles</span>
 <span class="sd">    potential errors such as missing project elements or unauthorized API calls.</span>
@@ -502,7 +502,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        The URL of the CloudOS instance.</span>
+<span class="sd">        The URL of the Lifebit Platform instance.</span>
 <span class="sd">    apikey : str</span>
 <span class="sd">        The API key for authentication.</span>
 <span class="sd">    workspace_id : str</span>
@@ -554,14 +554,14 @@
 <div class="viewcode-block" id="get_file_or_folder_id">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.get_file_or_folder_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_file_or_folder_id</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">command_dir</span><span class="p">,</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the ID of a specific file or folder within a CloudOS workspace.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the ID of a specific file or folder within a Lifebit Platform workspace.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cloudos_url : str</span>
-<span class="sd">        The base URL of the CloudOS API.</span>
+<span class="sd">        The base URL of the Lifebit Platform API.</span>
 <span class="sd">    apikey : str</span>
-<span class="sd">        The API key for authenticating requests to the CloudOS API.</span>
+<span class="sd">        The API key for authenticating requests to the Lifebit Platform API.</span>
 <span class="sd">    workspace_id : str</span>
 <span class="sd">        The ID of the workspace containing the project.</span>
 <span class="sd">    project_name : str</span>
