@@ -41,6 +41,8 @@ class Link(Cloudos):
                     session_id: str) -> dict:
         """Link a folder (S3 or File Explorer) to an interactive session.
 
+        Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.
+
         Parameters
         ----------
         folder : str
@@ -55,71 +57,192 @@ class Link(Cloudos):
             If the API key is invalid or permissions are insufficient
             If the URL is invalid or the session is not active.
         """
-        url = (
-            f"{self.cloudos_url}/api/v1/"
-            f"interactive-sessions/{session_id}/fuse-filesystem/mount"
-            f"?teamId={self.workspace_id}"
-        )
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
+        # Use batch method for single folder (leverages v2 dataItems array)
+        return self.link_folders_batch([folder], session_id)
 
-        # Block Azure Blob Storage URLs as they are not supported by the API
-        if folder.startswith('az://'):
-            raise ValueError(
-                "Azure Blob Storage paths (az://) are not supported for linking. "
-                "Azure environments do not support linking folders to Interactive Analysis sessions. "
-            )
+    def link_folders_batch(self,
+                          folders: list,
+                          session_id: str) -> dict:
+        """Link multiple folders (S3 or File Explorer) to an interactive session in one request.
 
-        # determine if is file explorer or s3
-        if folder.startswith('s3://'):
-            data = self.parse_s3_path(folder)
-            type_folder = "S3"
-        else:
-            data = self.parse_file_explorer_path(folder)
-            type_folder = "File Explorer"
-        r = retry_requests_post(url, headers=headers, json=data, verify=self.verify)
+        Attempts to use API v2 (which supports multiple folders per request) first, 
+        with automatic fallback to v1 (individual requests) if v2 is not available.
 
-        if r.status_code == 403:
-            raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
-        elif r.status_code == 401:
-            raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
-        elif r.status_code == 400:
-            r_content = json.loads(r.content)
-            if r_content["message"] == "Invalid Supported DataItem folderType. Supported values are S3Folder":
-                raise ValueError(f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.")
-            elif r_content["message"] == "Request failed with status code 403":
-                raise ValueError(f"Interactive Analysis session is not active")
-            else:
-                raise ValueError(f"Cannot link folder")
-        elif r.status_code == 204:
-            if type_folder == "S3":
-                full_path = (
-                    f"s3://{data['dataItem']['data']['s3BucketName']}/"
-                    f"{data['dataItem']['data']['s3Prefix']}"
+        Parameters
+        ----------
+        folders : list
+            List of folder paths to link.
+        session_id : str
+            The interactive session ID.
+
+        Raises
+        ------
+        ValueError
+            If any validation fails or API errors occur.
+        """
+        if not folders:
+            raise ValueError("No folders provided")
+
+        # Parse all folders and collect data items
+        data_items = []
+        folder_info = []  # Track folder paths and types for status messages
+        
+        for folder in folders:
+            # Block Azure Blob Storage URLs
+            if folder.startswith('az://'):
+                raise ValueError(
+                    "Azure Blob Storage paths (az://) are not supported for linking. "
+                    "Azure environments do not support linking folders to Interactive Analysis sessions."
                 )
-                mount_name = data['dataItem']['data']['name']
+
+            # Parse folder and extract just the data item (without wrapper)
+            if folder.startswith('s3://'):
+                parsed = self.parse_s3_path(folder)
+                data_items.append(parsed["dataItem"])
+                folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
-                full_path = folder
-                mount_name = data['dataItem']['name']
+                parsed = self.parse_file_explorer_path(folder)
+                data_items.append(parsed["dataItem"])
+                folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
 
-            try:
-                # Wait for mount completion and check final status
-                final_status = self.wait_for_mount_completion(session_id, mount_name)
+        # Build v2 payload with dataItems array
+        v2_payload = {"dataItems": data_items}
 
-                if final_status["status"] == "mounted":
-                    click.secho(f"Successfully mounted {type_folder} folder: {full_path}", fg='green', bold=True)
-                elif final_status["status"] == "failed":
-                    error_msg = final_status.get("errorMessage", "Unknown error")
-                    click.secho(f"Failed to mount {type_folder} folder: {full_path}", fg='red', bold=True)
-                    click.secho(f"  Error: {error_msg}", fg='red')
+        # Try v2 API first (supports batch)
+        status_code = None
+        used_v2 = False
+        
+        try:
+            # Attempt v2 API with batch payload
+            status_code = self.mount_fuse_filesystem_v2(
+                session_id=session_id,
+                team_id=self.workspace_id,
+                payload=v2_payload,
+                verify=self.verify
+            )
+            used_v2 = True
+        except Exception as v2_error:
+            # Check if error indicates v2 not available or not ready (404, 400)
+            error_str = str(v2_error)
+            should_fallback = (
+                "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower() or
+                "400" in error_str or "Bad Request" in error_str or "Invalid request" in error_str
+            )
+            
+            if should_fallback:
+                # Fall back to v1 API (one request per folder)
+                for idx, folder_data in enumerate(folder_info):
+                    try:
+                        # Build v1 payload (single dataItem)
+                        v1_payload = {"dataItem": folder_data["data"]}
+                        
+                        url = (
+                            f"{self.cloudos_url}/api/v1/"
+                            f"interactive-sessions/{session_id}/fuse-filesystem/mount"
+                            f"?teamId={self.workspace_id}"
+                        )
+                        headers = {
+                            "Content-type": "application/json",
+                            "apikey": self.apikey
+                        }
+                        r = retry_requests_post(url, headers=headers, json=v1_payload, verify=self.verify)
+                        
+                        if r.status_code >= 400:
+                            # Handle v1 errors
+                            if r.status_code == 403:
+                                raise ValueError(f"Provided {folder_data['type']} folder already exists with 'mounted' status")
+                            elif r.status_code == 401:
+                                raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
+                            elif r.status_code == 400:
+                                r_content = json.loads(r.content)
+                                if r_content.get("message") == "Invalid Supported DataItem folderType. Supported values are S3Folder":
+                                    raise ValueError(f"Invalid Supported DataItem '{folder_data['type']}' folderType. Virtual folders cannot be linked.")
+                                elif r_content.get("message") == "Request failed with status code 403":
+                                    raise ValueError(f"Interactive Analysis session is not active")
+                                else:
+                                    raise ValueError(f"Cannot link folder")
+                            else:
+                                raise ValueError(f"Failed to mount folder: HTTP {r.status_code}")
+                        
+                        status_code = r.status_code
+                        
+                    except ValueError:
+                        # Re-raise ValueError as-is
+                        raise
+                    except Exception as v1_error:
+                        # v1 failed for this folder
+                        raise ValueError(f"Failed to mount {folder_data['type']} folder: {str(v1_error)}")
+            else:
+                # v2 failed for reasons other than not available
+                self._handle_mount_error(v2_error, "folder")
+
+        # Success - status code should be 204
+        if status_code == 204:
+            # Wait for mount completion for each folder
+            for folder_data in folder_info:
+                if folder_data["type"] == "S3":
+                    full_path = (
+                        f"s3://{folder_data['data']['data']['s3BucketName']}/"
+                        f"{folder_data['data']['data']['s3Prefix']}"
+                    )
+                    mount_name = folder_data['data']['data']['name']
                 else:
-                    click.secho(f"Mount status: {final_status['status']} for {type_folder} folder: {full_path}", fg='yellow', bold=True)
+                    full_path = folder_data["path"]
+                    mount_name = folder_data['data']['name']
 
-            except ValueError as e:
-                click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
-                click.secho(f"  The linking request was submitted, but verification failed.", fg='yellow')
+                try:
+                    # Wait for mount completion and check final status
+                    final_status = self.wait_for_mount_completion(session_id, mount_name)
+
+                    if final_status["status"] == "mounted":
+                        click.secho(f"Successfully mounted {folder_data['type']} folder: {full_path}", fg='green', bold=True)
+                    elif final_status["status"] == "failed":
+                        error_msg = final_status.get("errorMessage", "Unknown error")
+                        click.secho(f"Failed to mount {folder_data['type']} folder: {full_path}", fg='red', bold=True)
+                        click.secho(f"  Error: {error_msg}", fg='red')
+                    else:
+                        click.secho(f"Mount status: {final_status['status']} for {folder_data['type']} folder: {full_path}", fg='yellow', bold=True)
+
+                except ValueError as e:
+                    click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
+                    click.secho(f"  The linking request was submitted, but verification failed.", fg='yellow')
+
+    def _handle_mount_error(self, error: Exception, type_folder: str):
+        """Handle and convert mount errors to user-friendly messages.
+
+        Parameters
+        ----------
+        error : Exception
+            The exception that occurred during mounting.
+        type_folder : str
+            The type of folder being mounted ("S3" or "File Explorer").
+
+        Raises
+        ------
+        ValueError
+            Always raises with a user-friendly error message.
+        """
+        error_str = str(error)
+        error_lower = error_str.lower()
+        
+        # Check for specific error conditions
+        if "403" in error_str or "forbidden" in error_lower:
+            if "already exists" in error_lower or "mounted" in error_lower:
+                raise ValueError(f"Provided {type_folder} folder already exists with 'mounted' status")
+            else:
+                raise ValueError(f"Interactive Analysis session is not active or access denied")
+        elif "401" in error_str or "unauthorized" in error_lower:
+            raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
+        elif "400" in error_str or "bad request" in error_lower:
+            if "invalid supported dataitem foldertype" in error_lower:
+                raise ValueError(f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.")
+            else:
+                raise ValueError(f"Cannot link folder: {error_str}")
+        elif "404" in error_str or "not found" in error_lower:
+            raise ValueError(f"Session not found or endpoint not available")
+        else:
+            # Generic error
+            raise ValueError(f"Failed to mount {type_folder} folder: {error_str}")
 
     def parse_s3_path(self, s3_url):
         """
