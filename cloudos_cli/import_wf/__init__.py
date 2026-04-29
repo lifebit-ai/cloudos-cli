@@ -1,5 +1,5 @@
 """
-Functions and classes related to importing workflows into CloudOS.
+Functions and classes related to importing workflows into Lifebit Platform.
 """
 
 from .import_wf import WFImport, ImportWorflow

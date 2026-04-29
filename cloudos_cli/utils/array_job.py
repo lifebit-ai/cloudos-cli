@@ -102,7 +102,7 @@ def classify_pattern(s):
 
 def generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_name, verify_ssl):
     """
-    Generate datasets for a specified project in a CloudOS workspace.
+    Generate datasets for a specified project in a Lifebit Platform workspace.
 
     This function initializes a `Datasets` object for the given project and handles
     potential errors such as missing project elements or unauthorized API calls.
@@ -110,7 +110,7 @@ def generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_nam
     Parameters
     ----------
     cloudos_url : str
-        The URL of the CloudOS instance.
+        The URL of the Lifebit Platform instance.
     apikey : str
         The API key for authentication.
     workspace_id : str
@@ -159,14 +159,14 @@ def generate_datasets_for_project(cloudos_url, apikey, workspace_id, project_nam
     return ds
 
 def get_file_or_folder_id(cloudos_url, apikey, workspace_id, project_name, verify_ssl, command_dir, command_name, is_file=True):
-    """Retrieve the ID of a specific file or folder within a CloudOS workspace.
+    """Retrieve the ID of a specific file or folder within a Lifebit Platform workspace.
 
     Parameters
     ----------
     cloudos_url : str
-        The base URL of the CloudOS API.
+        The base URL of the Lifebit Platform API.
     apikey : str
-        The API key for authenticating requests to the CloudOS API.
+        The API key for authenticating requests to the Lifebit Platform API.
     workspace_id : str
         The ID of the workspace containing the project.
     project_name : str

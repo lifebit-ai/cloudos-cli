@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS Cromwell server management."""
+"""CLI commands for Lifebit Platform Cromwell server management."""
 
 import rich_click as click
 import json
@@ -13,7 +13,7 @@ from cloudos_cli.constants import REQUEST_INTERVAL_CROMWELL
 
 @click.group(cls=pass_debug_to_subcommands())
 def cromwell():
-    """CloudOS Cromwell server functionality."""
+    """Lifebit Platform Cromwell server functionality."""
     print(cromwell.__doc__ + '\n')
 
 
@@ -21,18 +21,18 @@ def cromwell():
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.')
+              help='Your Lifebit Platform API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -55,7 +55,7 @@ def cromwell_status(ctx,
                     disable_ssl_verification,
                     ssl_cert,
                     profile):
-    """Check Cromwell server status in CloudOS."""
+    """Check Cromwell server status in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:
@@ -78,18 +78,18 @@ def cromwell_status(ctx,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.')
+              help='Your Lifebit Platform API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--wait-time',
               help=('Max time to wait (in seconds) to Cromwell restart. ' +
@@ -117,7 +117,7 @@ def cromwell_restart(ctx,
                      disable_ssl_verification,
                      ssl_cert,
                      profile):
-    """Restart Cromwell server in CloudOS."""
+    """Restart Cromwell server in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:
@@ -162,18 +162,18 @@ def cromwell_restart(ctx,
 @click.version_option()
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key.')
+              help='Your Lifebit Platform API key.')
 @click.option('-t',
               '--cromwell-token',
               help=('Specific Cromwell server authentication token. You can use it instead of ' +
                     'the apikey.'))
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--verbose',
               help='Whether to print information messages or not.',
@@ -196,7 +196,7 @@ def cromwell_stop(ctx,
                   disable_ssl_verification,
                   ssl_cert,
                   profile):
-    """Stop Cromwell server in CloudOS."""
+    """Stop Cromwell server in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     if apikey is None and cromwell_token is None:

@@ -93,14 +93,14 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
     """
     Creates formatted job details output from job data in multiple formats.
 
-    This function processes job details from the CloudOS API response and outputs
+    This function processes job details from the Lifebit Platform API response and outputs
     the information in a user-specified format (stdout table, JSON, or CSV).
     It also optionally creates configuration files with job parameters.
 
     Parameters
     ----------
     j_details_h : dict
-        A dictionary containing job details from the CloudOS API. Expected keys include:
+        A dictionary containing job details from the Lifebit Platform API. Expected keys include:
             - 'jobType': The type of job executor (e.g., 'nextflowAWS', 'dockerAWS').
             - 'parameters': List of parameter dictionaries for the job.
             - 'status': Current status of the job.
@@ -130,7 +130,7 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         If True and parameters exist, creates a '.config' file with Nextflow-style
         parameter formatting.
     cloudos_url : str, optional
-        The base URL of the CloudOS instance. Defaults to "https://cloudos.lifebit.ai".
+        The base URL of the Lifebit Platform instance. Defaults to "https://cloudos.lifebit.ai".
 
     Returns
     -------
@@ -355,9 +355,9 @@ def _build_job_row_values(job, cloudos_url, terminal_width, columns_to_show):
     Parameters
     ----------
     job : dict
-        Job dictionary from CloudOS API
+        Job dictionary from Lifebit Platform API
     cloudos_url : str
-        CloudOS service URL for generating job links
+        Lifebit Platform service URL for generating job links
     terminal_width : int
         Current terminal width for responsive formatting
     columns_to_show : list
@@ -523,9 +523,9 @@ def _build_job_table(jobs, cloudos_url, terminal_width, columns_to_show, column_
     Parameters
     ----------
     jobs : list
-        List of job dictionaries from CloudOS API
+        List of job dictionaries from Lifebit Platform API
     cloudos_url : str
-        CloudOS service URL for generating job links
+        Lifebit Platform service URL for generating job links
     terminal_width : int
         Current terminal width for responsive formatting
     columns_to_show : list
@@ -816,7 +816,7 @@ def create_workflow_list_table(workflows, cloudos_url="https://cloudos.lifebit.a
     workflows : list
         A list of dicts, each corresponding to a workflow.
     cloudos_url : str
-        The CloudOS URL for creating hyperlinks.
+        The Lifebit Platform URL for creating hyperlinks.
     page_size : int
         Number of workflows to display per page. Default is 10.
     """
@@ -963,7 +963,7 @@ def create_queue_list_table(queues, cloudos_url="https://cloudos.lifebit.ai"):
     queues : list
         A list of dicts, each corresponding to a job queue.
     cloudos_url : str
-        The CloudOS URL for context (currently not used for hyperlinks).
+        The Lifebit Platform URL for context (currently not used for hyperlinks).
 
     Returns
     -------
@@ -1032,7 +1032,7 @@ def create_project_list_table(projects, cloudos_url="https://cloudos.lifebit.ai"
     projects : list
         A list of dicts, each corresponding to a project.
     cloudos_url : str
-        The CloudOS URL for creating hyperlinks.
+        The Lifebit Platform URL for creating hyperlinks.
     page_size : int
         Number of projects to display per page. Default is 10.
     """

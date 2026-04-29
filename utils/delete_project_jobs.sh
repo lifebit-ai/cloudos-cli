@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to delete results and/or working directories for all jobs in a CloudOS project
+# Script to delete results and/or working directories for all jobs in a Lifebit Platform project
 # Usage: ./delete_project_jobs.sh --profile <profile> --project-name <project> [--results] [--workdir] [--both]
 
 set -e

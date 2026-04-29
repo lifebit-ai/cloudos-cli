@@ -17,19 +17,19 @@ class Datasets(Cloudos):
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     workspace_id : string
         The specific Cloudos workspace id.
     project_name : string
-        The name of a CloudOS project.
+        The name of a Lifebit Platform project.
     verify: [bool|string]
         Whether to use SSL verification or not. Alternatively, if
         a string is passed, it will be interpreted as the path to
         the SSL certificate file.
     project_id : string
-        The CloudOS project id for a given project name.
+        The Lifebit Platform project id for a given project name.
     """
     workspace_id: str
     project_name: str
@@ -63,7 +63,7 @@ class Datasets(Cloudos):
         workspace_id : string
             The specific Cloudos workspace id.
         project_name : string
-            The name of a CloudOS project element.
+            The name of a Lifebit Platform project element.
         verify: [bool|string]
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -72,7 +72,7 @@ class Datasets(Cloudos):
         Returns
         -------
         project_id : string
-            The CloudOS project id for a given project name.
+            The Lifebit Platform project id for a given project name.
         """
         return self.get_project_id_from_name(workspace_id, project_name, verify=verify)
 
@@ -83,9 +83,9 @@ class Datasets(Cloudos):
         Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         workspace_id : string
             The specific Cloudos workspace id.
         project_id
@@ -116,9 +116,9 @@ class Datasets(Cloudos):
         """Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         workspace_id : string
             The specific Cloudos workspace id.
         project_id : string
@@ -126,7 +126,7 @@ class Datasets(Cloudos):
         folder_name : string
             The requested folder name
         """
-        # Prepare api request for CloudOS to fetch dataset info
+        # Prepare api request for Lifebit Platform to fetch dataset info
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
@@ -154,9 +154,9 @@ class Datasets(Cloudos):
         """Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         workspace_id : string
             The specific Cloudos workspace id.
         project_id : string
@@ -166,7 +166,7 @@ class Datasets(Cloudos):
         s3_relative_path: string
             The relative path in the s3 bucket
         """
-        # Prepare api request for CloudOS to fetch dataset info
+        # Prepare api request for Lifebit Platform to fetch dataset info
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
@@ -201,9 +201,9 @@ class Datasets(Cloudos):
         """Uses
         ----------
         apikey : string
-            Your CloudOS API key
+            Your Lifebit Platform API key
         cloudos_url : string
-            The CloudOS service url.
+            The Lifebit Platform service url.
         workspace_id : string
             The specific Cloudos workspace id.
         project_id : string
@@ -279,7 +279,7 @@ class Datasets(Cloudos):
 
     def list_folder_content(self, path=None):
         """
-        Wrapper to list contents of a CloudOS folder.
+        Wrapper to list contents of a Lifebit Platform folder.
 
         Parameters
         ----------
@@ -290,7 +290,7 @@ class Datasets(Cloudos):
         Returns
         -------
         dict
-            JSON response from the appropriate CloudOS endpoint.
+            JSON response from the appropriate Lifebit Platform endpoint.
         """
         if not path:
             return self.list_project_content()
@@ -382,7 +382,7 @@ class Datasets(Cloudos):
 
     def move_files_and_folders(self, source_id: str, source_kind: str, target_id: str, target_kind: str):
         """
-        Move a file to another dataset in CloudOS.
+        Move a file to another dataset in Lifebit Platform.
 
         Parameters
         ----------
@@ -395,7 +395,7 @@ class Datasets(Cloudos):
         Returns
         -------
         response : requests.Response
-            The response object from the CloudOS API.
+            The response object from the Lifebit Platform API.
         """
         url = f"{self.cloudos_url}/api/v1/dataItems/move?teamId={self.workspace_id}"
         headers = {
@@ -420,7 +420,7 @@ class Datasets(Cloudos):
 
     def rename_item(self, item_id: str, new_name: str, kind: str):
         """
-        Rename a file or folder in CloudOS.
+        Rename a file or folder in Lifebit Platform.
 
         Parameters
         ----------
@@ -434,7 +434,7 @@ class Datasets(Cloudos):
         Returns
         -------
         response : requests.Response
-            The response object from the CloudOS API.
+            The response object from the Lifebit Platform API.
         """
         if kind not in ("File", "Folder"):
             raise ValueError("Invalid kind provided. Must be 'File' or 'Folder'.")
@@ -458,7 +458,7 @@ class Datasets(Cloudos):
         return response
 
     def copy_item(self, item, destination_id, destination_kind):
-        """Copy a file or folder (S3, Azure or Virtual) to a destination in CloudOS."""
+        """Copy a file or folder (S3, Azure or Virtual) to a destination in Lifebit Platform."""
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
@@ -527,7 +527,7 @@ class Datasets(Cloudos):
 
     def create_virtual_folder(self, name: str, parent_id: str, parent_kind: str):
         """
-        Create a new virtual folder in CloudOS under a given parent.
+        Create a new virtual folder in Lifebit Platform under a given parent.
 
         Parameters
         ----------
@@ -541,7 +541,7 @@ class Datasets(Cloudos):
         Returns
         -------
         response : requests.Response
-            The response object from the CloudOS API.
+            The response object from the Lifebit Platform API.
         """
         if parent_kind not in ("Dataset", "Folder"):
             raise ValueError("Invalid parent_kind. Must be 'Dataset' or 'Folder'.")
@@ -569,7 +569,7 @@ class Datasets(Cloudos):
 
     def delete_item(self, item_id: str, kind: str):
         """
-        Delete a file or folder in CloudOS.
+        Delete a file or folder in Lifebit Platform.
 
         Parameters
         ----------
@@ -581,7 +581,7 @@ class Datasets(Cloudos):
         Returns
         -------
         response : requests.Response
-            The response object from the CloudOS API.
+            The response object from the Lifebit Platform API.
         """
         if kind not in ("File", "Folder"):
             raise ValueError("Invalid kind provided. Must be 'File' or 'Folder'.")

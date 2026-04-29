@@ -679,16 +679,16 @@ def parse_watch_timeout_duration(duration_str):
         return value * 86400
 
 def parse_data_file(data_file_str):
-    """Parse data file format: either S3 or CloudOS dataset path.
+    """Parse data file format: either S3 or Lifebit Platform dataset path.
 
-    Supports mounting both S3 files and CloudOS dataset files into the session.
+    Supports mounting both S3 files and Lifebit Platform dataset files into the session.
 
     Parameters
     ----------
     data_file_str : str
         Format:
         - S3 file: s3://bucket_name/path/to/file.txt
-        - CloudOS dataset: project_name/dataset_path or project_name > dataset_path
+        - Lifebit Platform dataset: project_name/dataset_path or project_name > dataset_path
 
         Examples:
         - s3://lifebit-featured-datasets/pipelines/phewas/data.csv
@@ -700,7 +700,7 @@ def parse_data_file(data_file_str):
         Parsed data item. For S3:
         {"type": "s3", "s3_bucket": "...", "s3_prefix": "..."}
 
-        For CloudOS dataset:
+        For Lifebit Platform dataset:
         {"type": "cloudos", "project_name": "...", "dataset_path": "..."}
 
     Raises
@@ -722,7 +722,7 @@ def parse_data_file(data_file_str):
             "s3_bucket": bucket,
             "s3_prefix": prefix
         }
-    # Otherwise, parse as CloudOS dataset path
+    # Otherwise, parse as Lifebit Platform dataset path
     # Determine which separator to use: > takes precedence over /
     separator = None
     if '>' in data_file_str:
@@ -733,7 +733,7 @@ def parse_data_file(data_file_str):
         raise ValueError(
             f"Invalid data file format: {data_file_str}. Expected one of:\n"
             f"  - S3 file: s3://bucket/path/file.txt\n"
-            f"  - CloudOS dataset: project_name/dataset_path or project_name > dataset_path"
+            f"  - Lifebit Platform dataset: project_name/dataset_path or project_name > dataset_path"
         )
     # Split only on the first separator to handle nested paths
     parts = data_file_str.split(separator, 1)
@@ -867,16 +867,16 @@ def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
 
 
 def parse_link_path(link_path_str):
-    """Parse link path format: supports S3, CloudOS, or legacy colon format.
+    """Parse link path format: supports S3, Lifebit Platform, or legacy colon format.
 
-    Links an S3 folder or CloudOS folder to the session for read/write access.
+    Links an S3 folder or Lifebit Platform folder to the session for read/write access.
 
     Parameters
     ----------
     link_path_str : str
         Format (one of):
         - S3 path: s3://bucketName/s3Prefix (e.g., s3://my-bucket/data/)
-        - CloudOS folder: project/folder_path (e.g., leila-test/Data)
+        - Lifebit Platform folder: project/folder_path (e.g., leila-test/Data)
         - Legacy format (deprecated): mountName:bucketName:s3Prefix
 
     Returns
@@ -884,14 +884,14 @@ def parse_link_path(link_path_str):
     dict
         Tuple of (type, data) where type is 's3' or 'cloudos' and data contains:
         For S3: {"s3_bucket": "...", "s3_prefix": "..."}
-        For CloudOS: {"project_name": "...", "folder_path": "..."}
+        For Lifebit Platform: {"project_name": "...", "folder_path": "..."}
     """
     # Check for Azure blob storage paths and provide helpful error
     if link_path_str.startswith('az://') or link_path_str.startswith('https://') and '.blob.core.windows.net' in link_path_str:
         raise ValueError(
             f"Azure blob storage paths are not supported for linking. "
             f"Folder linking is not supported on Azure execution platforms. "
-            f"Please use CloudOS file explorer to access your data directly."
+            f"Please use Lifebit Platform file explorer to access your data directly."
         )
     # Check for S3 path
     if link_path_str.startswith('s3://'):
@@ -926,7 +926,7 @@ def parse_link_path(link_path_str):
             "s3_bucket": bucket,
             "s3_prefix": prefix
         }
-    # Otherwise, parse as CloudOS folder path
+    # Otherwise, parse as Lifebit Platform folder path
     # Format: project_name/folder_path or project_name > folder_path
     separator = None
     if '>' in link_path_str:
@@ -937,7 +937,7 @@ def parse_link_path(link_path_str):
         raise ValueError(
             f"Invalid link path format: {link_path_str}. Expected one of:\n"
             f"  - S3 path: s3://bucket/prefix/\n"
-            f"  - CloudOS folder: project/folder/path\n"
+            f"  - Lifebit Platform folder: project/folder/path\n"
             f"  - Legacy format (deprecated): mountName:bucketName:prefix"
         )
     parts = link_path_str.split(separator, 1)
@@ -995,7 +995,7 @@ def build_session_payload(
     shutdown_at : str
         ISO8601 datetime for auto-shutdown (optional)
     data_files : list
-        List of data file dicts. For AWS: CloudOS or S3. For Azure: CloudOS only.
+        List of data file dicts. For AWS: Lifebit Platform or S3. For Azure: Lifebit Platform only.
     s3_mounts : list
         List of S3 mount dicts (AWS only, ignored for Azure)
     r_version : str
@@ -1238,7 +1238,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         mounted_files = []
         for df in data_files:
             if isinstance(df, dict):
-                # Handle CloudOS dataset files
+                # Handle Lifebit Platform dataset files
                 if df.get('kind') == 'File':
                     name = df.get('name', 'Unknown')
                     mounted_files.append(name)
@@ -1258,7 +1258,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                 data = s3.get('data', {})
                 bucket = data.get('s3BucketName', '')
                 prefix = data.get('s3Prefix', '')
-                # For CloudOS mounts, show project/path; for S3, show bucket/path
+                # For Lifebit Platform mounts, show project/path; for S3, show bucket/path
                 if prefix and bucket:
                     linked_s3.append(f"s3://{bucket}/{prefix}")
                 elif bucket:
@@ -1391,7 +1391,7 @@ class InteractiveSessionAPI:
         Parameters
         ----------
         cloudos_url : str
-            Base CloudOS platform URL
+            Base Lifebit Platform URL
         apikey : str
             API key for authentication
         verify_ssl : bool
@@ -1477,7 +1477,7 @@ class InteractiveSessionAPI:
         except requests.exceptions.Timeout:
             raise RuntimeError(f"API request timeout after {self.REQUEST_TIMEOUT} seconds")
         except requests.exceptions.ConnectionError as e:
-            raise RuntimeError(f"Failed to connect to CloudOS: {str(e)}")
+            raise RuntimeError(f"Failed to connect to Lifebit Platform: {str(e)}")
 
 
 class OutputFormatter:
@@ -1739,7 +1739,7 @@ def get_interactive_session_status(cloudos_url: str, apikey: str, session_id: st
     Parameters
     ----------
     cloudos_url : str
-        CloudOS platform URL
+        Lifebit Platform URL
     apikey : str
         API key for authentication
     session_id : str
@@ -1782,7 +1782,7 @@ def format_session_status_table(session_data: dict, cloudos_url: str = None) -> 
     session_data : dict
         Transformed session data (from transform_session_response)
     cloudos_url : str, optional
-        CloudOS URL for creating links
+        Lifebit Platform URL for creating links
     """
     OutputFormatter.format_stdout(session_data, cloudos_url or '')
 
@@ -1860,7 +1860,7 @@ def poll_session_termination(cloudos_url: str, apikey: str, session_id: str, tea
     Parameters
     ----------
     cloudos_url : str
-        CloudOS API URL
+        Lifebit Platform API URL
     apikey : str
         API key for authentication
     session_id : str
@@ -1924,7 +1924,7 @@ def fetch_interactive_session_page(cl, workspace_id, page_num, limit, filter_sta
     Parameters
     ----------
     cl : Cloudos
-        CloudOS API client instance
+        Lifebit Platform API client instance
     workspace_id : str
         Workspace ID
     page_num : int

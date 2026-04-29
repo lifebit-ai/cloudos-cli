@@ -18,9 +18,9 @@ class Queue(Cloudos):
     Parameters
     ----------
     cloudos_url : string
-        The CloudOS service url.
+        The Lifebit Platform service url.
     apikey : string
-        Your CloudOS API key.
+        Your Lifebit Platform API key.
     cromwell_token : string
         Cromwell server token.
     workspace_id : string
@@ -34,7 +34,7 @@ class Queue(Cloudos):
     verify: Union[bool, str] = True
 
     def get_job_queues(self, exclude_system_queues=False):
-        """Get all the job queues from a CloudOS workspace.
+        """Get all the job queues from a Lifebit Platform workspace.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class Queue(Cloudos):
         return queues
 
     def get_system_job_queues(self):
-        """Get all the system job queues from CloudOS.
+        """Get all the system job queues from Lifebit Platform.
 
         Returns
         -------
@@ -110,10 +110,10 @@ class Queue(Cloudos):
         return df
 
     def fetch_job_queue_id(self, workflow_type, batch=True, job_queue=None):
-        """Fetches CloudOS ID for a given job queue.
+        """Fetches Lifebit Platform ID for a given job queue.
 
         This method will try to find the
-        corresponding CloudOS ID for the job_queue in a given workspace. If
+        corresponding Lifebit Platform ID for the job_queue in a given workspace. If
         job_queue=None, this method will select the available default queue in
         the workspace, or the newest "ready" job queue if no default queues are
         available.
@@ -130,7 +130,7 @@ class Queue(Cloudos):
         Returns
         -------
         job_queue_id : str or None
-            The CloudOS ID for the selected job queue, or None if batch=False.
+            The Lifebit Platform ID for the selected job queue, or None if batch=False.
         """
         if not batch:
             return None
@@ -144,12 +144,12 @@ class Queue(Cloudos):
                             q['executor'] == workflow_type]
         if len(available_queues) == 0:
             raise Exception(f'There are no available job queues for {workflow_type} ' +
-                            'workflows. Consider creating one using CloudOS UI.')
+                            'workflows. Consider creating one using Lifebit Platform UI.')
         default_queue = [q for q in available_queues if q.get('isDefault', False)]
         if len(default_queue) > 0:
             default_queue_id = default_queue[0]['id']
             default_queue_name = default_queue[0]['label']
-            queue_as_default = 'CloudOS default'
+            queue_as_default = 'Lifebit Platform default'
         else:
             default_queue_id = available_queues[-1]['id']
             default_queue_name = available_queues[-1]['label']

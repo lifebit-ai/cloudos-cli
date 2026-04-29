@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS interactive session management."""
+"""CLI commands for Lifebit Platform interactive session management."""
 
 import rich_click as click
 import json
@@ -39,22 +39,22 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 # Create the interactive_session group
 @click.group(cls=pass_debug_to_subcommands())
 def interactive_session():
-    """CloudOS interactive session functionality: list and manage interactive sessions."""
+    """Lifebit Platform interactive session functionality: list and manage interactive sessions."""
     print(interactive_session.__doc__ + '\n')
 
 
 @interactive_session.command('list')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--filter-status',
               multiple=True,
@@ -122,7 +122,7 @@ def list_sessions(ctx,
                   disable_ssl_verification,
                   ssl_cert,
                   profile):
-    """List interactive sessions for a CloudOS team."""
+    """List interactive sessions for a Lifebit Platform team."""
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Validate limit parameter
@@ -210,7 +210,7 @@ def list_sessions(ctx,
         error_str = str(e)
         # Check if the error is related to authentication
         if '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and Lifebit Platform URL).', fg='red', err=True)
             raise SystemExit(1)
         # Check if the error is related to status filtering
         elif filter_status and ('400' in error_str or 'Invalid' in error_str):
@@ -226,10 +226,10 @@ def list_sessions(ctx,
         error_str = str(e)
         # Check for DNS/connection errors
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str or 'nodename nor servname provided' in error_str:
-            click.secho(f'Error: Unable to connect to CloudOS URL. Please verify the CloudOS URL is correct.', fg='red', err=True)
+            click.secho(f'Error: Unable to connect to Lifebit Platform URL. Please verify the Lifebit Platform URL is correct.', fg='red', err=True)
         # Check for 401 Unauthorized
         elif '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+            click.secho(f'Error: Failed to retrieve interactive sessions. Please check your credentials (API key and Lifebit Platform URL).', fg='red', err=True)
         else:
             click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
@@ -238,15 +238,15 @@ def list_sessions(ctx,
 @interactive_session.command('create')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=False)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=False)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=False)
 @click.option('--project-name',
               help='The project name. Will be resolved to project ID automatically.',
@@ -280,10 +280,10 @@ def list_sessions(ctx,
               default='12h')
 @click.option('--mount',
               multiple=True,
-              help='Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
+              help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Multiple paths can be provided as comma-separated values or by using --link multiple times.')
+              help='Link a folder into the session for read/write access. Supports S3 folders and File explorer folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Multiple paths can be provided as comma-separated values or by using --link multiple times.')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -409,7 +409,7 @@ def create_session(ctx,
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and resolve mounted data files (both CloudOS and S3)
+        # Parse and resolve mounted data files (both Lifebit Platform and S3)
         parsed_data_files = []
         parsed_s3_mounts = []  # S3 folders go into FUSE mounts
         if mount:
@@ -419,7 +419,7 @@ def create_session(ctx,
                     if parsed['type'] == 's3':
                         # S3 files are only supported on AWS
                         if execution_platform != 'aws':
-                            click.secho(f'Error: S3 mounts are only supported on AWS. Use CloudOS file explorer paths for Azure.', fg='red', err=True)
+                            click.secho(f'Error: S3 mounts are only supported on AWS. Use Lifebit Platform file explorer paths for Azure.', fg='red', err=True)
                             raise SystemExit(1)
                         # S3 file: add to dataItems as S3File type
                         if verbose:
@@ -437,7 +437,7 @@ def create_session(ctx,
                         if verbose:
                             print(f'\t  ✓ Added S3 file to mount')
                     else:  # type == 'cloudos'
-                        # CloudOS dataset file: resolve via Datasets API
+                        # Lifebit Platform dataset file: resolve via Datasets API
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
                         if verbose:
@@ -502,11 +502,11 @@ def create_session(ctx,
                         print(f'\t  ✓ Linked S3: {mount_name}')
 
                 else:  # type == 'cloudos'
-                    # CloudOS folder: resolve via Datasets API
+                    # Lifebit Platform folder: resolve via Datasets API
                     folder_project = parsed['project_name']
                     folder_path = parsed['folder_path']
                     if verbose:
-                        print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
+                        print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
                     # Create Datasets API instance for this project
                     datasets_api = Datasets(
                         cloudos_url=cloudos_url,
@@ -516,7 +516,7 @@ def create_session(ctx,
                         verify=verify_ssl,
                         cromwell_token=None
                     )
-                    # For CloudOS folders, we create a mount item
+                    # For Lifebit Platform folders, we create a mount item
                     mount_name = folder_path.split('/')[-1] if folder_path else folder_project
                     cloudos_mount_item = {
                         "type": "S3Folder",
@@ -529,7 +529,7 @@ def create_session(ctx,
                     parsed_s3_mounts.append(cloudos_mount_item)
 
                     if verbose:
-                        print(f'\t  ✓ Linked CloudOS folder: {mount_name}')
+                        print(f'\t  ✓ Linked Lifebit Platform folder: {mount_name}')
 
             except Exception as e:
                 click.secho(f'Error: Failed to link folder: {str(e)}', fg='red', err=True)
@@ -585,7 +585,7 @@ def create_session(ctx,
     except BadRequestException as e:
         error_str = str(e)
         if '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and Lifebit Platform URL).', fg='red', err=True)
         else:
             click.secho(f'Error: Failed to create interactive session: {e}', fg='red', err=True)
         raise SystemExit(1)
@@ -593,10 +593,10 @@ def create_session(ctx,
         error_str = str(e)
         # Check for DNS/connection errors
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str or 'nodename nor servname provided' in error_str:
-            click.secho(f'Error: Unable to connect to CloudOS URL. Please verify the CloudOS URL is correct.', fg='red', err=True)
+            click.secho(f'Error: Unable to connect to Lifebit Platform URL. Please verify the Lifebit Platform URL is correct.', fg='red', err=True)
         # Check for 401 Unauthorized
         elif '401' in error_str or 'Unauthorized' in error_str:
-            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and CloudOS URL).', fg='red', err=True)
+            click.secho(f'Error: Failed to create interactive session. Please check your credentials (API key and Lifebit Platform URL).', fg='red', err=True)
         else:
             click.secho(f'Error: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
@@ -605,18 +605,18 @@ def create_session(ctx,
 @interactive_session.command('status')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=False)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=False)
 @click.option('--session-id',
               help='The session ID to retrieve status for (24-character hex string).',
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=False)
 @click.option('--output-format',
               help='Output format for session status.',
@@ -798,7 +798,7 @@ def get_session_status(ctx,
         error_str = str(e)
         # Check for network errors
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
-            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+            click.secho(f'Error: Unable to connect to Lifebit Platform. Please verify the Lifebit Platform URL is correct.', fg='red', err=True)
         elif '401' in error_str or 'Unauthorized' in error_str:
             click.secho(f'Error: Failed to retrieve session status. Please check your credentials.', fg='red', err=True)
         else:
@@ -812,15 +812,15 @@ def get_session_status(ctx,
               required=True)
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=False)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=False)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=False)
 @click.option('--no-upload',
               is_flag=True,
@@ -927,7 +927,7 @@ def pause_session(ctx,
         # Create Cloudos client and abort session
         cl = Cloudos(cloudos_url, apikey, None)
         if verbose:
-            print('\t...Sending abort request to CloudOS')
+            print('\t...Sending abort request to Lifebit Platform')
 
         # Call the abort endpoint
         status_code = cl.abort_interactive_session(
@@ -995,7 +995,7 @@ def pause_session(ctx,
         error_str = str(e)
         # Check for network errors
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
-            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+            click.secho(f'Error: Unable to connect to Lifebit Platform. Please verify the Lifebit Platform URL is correct.', fg='red', err=True)
         elif '401' in error_str or 'Unauthorized' in error_str:
             click.secho(f'Error: Failed to pause session. Please check your credentials.', fg='red', err=True)
         elif 'Session not found' in error_str:
@@ -1019,15 +1019,15 @@ def pause_session(ctx,
               required=True)
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=False)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=False)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=False)
 @click.option('--instance',
               help='Change instance type when resuming.',
@@ -1152,7 +1152,7 @@ def resume_session(ctx,
                             }
                         }
                         parsed_data_files.append(s3_file_item)
-                    else:  # CloudOS dataset
+                    else:  # Lifebit Platform dataset
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
                         if verbose:
@@ -1209,11 +1209,11 @@ def resume_session(ctx,
                             }
                         }
                         parsed_s3_mounts.append(s3_mount_item)
-                    else:  # CloudOS folder
+                    else:  # Lifebit Platform folder
                         folder_project = parsed['project_name']
                         folder_path = parsed['folder_path']
                         if verbose:
-                            print(f'\tLinking CloudOS folder: {folder_project}/{folder_path}')
+                            print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
                         # Create Datasets API instance for this project
                         datasets_api = Datasets(
                             cloudos_url=cloudos_url,
@@ -1223,7 +1223,7 @@ def resume_session(ctx,
                             verify=verify_ssl,
                             cromwell_token=None
                         )                        
-                        # AWS-only: Create S3Folder mount for CloudOS folders
+                        # AWS-only: Create S3Folder mount for Lifebit Platform folders
                         mount_name = folder_path.split('/')[-1] if folder_path else folder_project
                         cloudos_mount_item = {
                             "type": "S3Folder",
@@ -1235,7 +1235,7 @@ def resume_session(ctx,
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
                         if verbose:
-                            print(f'\t  ✓ Linked CloudOS folder: {mount_name}')
+                            print(f'\t  ✓ Linked Lifebit Platform folder: {mount_name}')
             except Exception as e:
                 click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
@@ -1302,7 +1302,7 @@ def resume_session(ctx,
                 click.secho(f'Error: Cannot resume session - current status is "{current_status}".', fg='red', err=True)
                 click.secho(f'Only sessions with status "paused" can be resumed.', fg='yellow', err=True)
                 if current_status == 'running':
-                    click.secho(f'Tip: This session is already running. Use the CloudOS web interface to access it.', fg='yellow', err=True)
+                    click.secho(f'Tip: This session is already running. Use the Lifebit Platform web interface to access it.', fg='yellow', err=True)
                 elif current_status == 'terminated':
                     click.secho(f'Tip: Terminated sessions cannot be resumed. Please create a new session instead.', fg='yellow', err=True)
                 else:
@@ -1323,7 +1323,7 @@ def resume_session(ctx,
         error_str = str(e)
         # Check for network errors
         if 'Failed to resolve' in error_str or 'Name or service not known' in error_str:
-            click.secho(f'Error: Unable to connect to CloudOS. Please verify the CloudOS URL is correct.', fg='red', err=True)
+            click.secho(f'Error: Unable to connect to Lifebit Platform. Please verify the Lifebit Platform URL is correct.', fg='red', err=True)
         elif '401' in error_str or 'Unauthorized' in error_str:
             click.secho(f'Error: Failed to resume session. Please check your credentials.', fg='red', err=True)
         else:
