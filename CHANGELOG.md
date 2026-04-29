@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.90.0 (2026-04-29)
+
+### Feat
+
+- Adds linking of multiple folders at once
+
 ## v2.89.1 (2026-04-17)
 
 ### Patch

@@ -2762,7 +2762,10 @@ Link job-related folders or custom S3 paths to your interactive analysis session
    - By default, links results, workdir, and logs folders
    - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
 
-2. **Direct path linking** (PATH argument): Links a specific S3 path
+2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths
+   - Supports single path or comma-separated multiple paths
+   - Multiple paths are sent in a single API request (v2) for efficiency
+   - Automatic fallback to v1 API if v2 is not available
 
 **Basic usage:**
 
@@ -2774,8 +2777,11 @@ cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
 
-# Link a specific S3 path
+# Link a single S3 path
 cloudos link s3://bucket/folder --session-id <SESSION_ID> --profile my_profile
+
+# Link multiple S3 paths (comma-separated)
+cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/output --session-id <SESSION_ID> --profile my_profile
 
 # Link a File Explorer path (requires project name)
 cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
@@ -2783,7 +2789,7 @@ cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID>
 
 **Command options:**
 
-- `PATH`: S3 path to link (positional argument, required if `--job-id` is not provided)
+- `PATH`: S3 or File Explorer path(s) to link (positional argument, required if `--job-id` is not provided). Supports comma-separated multiple paths for batch linking (e.g., `s3://bucket1/path1,s3://bucket2/path2`)
 - `--apikey` / `-k`: Your CloudOS API key (required)
 - `--cloudos-url` / `-c`: The CloudOS URL (default: https://cloudos.lifebit.ai)
 - `--workspace-id`: The specific CloudOS workspace ID (required)
@@ -2810,9 +2816,14 @@ cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --results --p
 # Link workdir and logs (but not results)
 cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --logs --profile my_profile
 
-# Link an S3 bucket folder
+# Link a single S3 bucket folder
 cloudos link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
 
+# Link multiple S3 folders in one command
+cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/final-output --session-id abc123 --profile my_profile
+
+# Mix different S3 prefixes from the same or different buckets
+cloudos link s3://lifebit-datasets/pipelines/vep/,s3://lifebit-datasets/pipelines/phewas/,s3://my-results/output/ --session-id abc123 --profile my_profile
 ```
 
 **Error handling:**
@@ -2823,11 +2834,23 @@ The command provides clear error messages for common scenarios:
 - Job still initializing
 - Invalid paths or permissions
 
+**API Version Support:**
+
+The `cloudos link` command uses CloudOS API v2 when available, which supports batch operations for linking multiple folders in a single request. This is more efficient than making individual requests for each folder.
+
+- **v2 API (preferred)**: Sends all folders in one request using the `dataItems` array
+- **v1 API (fallback)**: Automatically used if v2 is not available or encounters errors, sending one request per folder
+
+The fallback happens transparently without user intervention, ensuring compatibility across different CloudOS versions.
+
 > [!NOTE]
 > If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
 
 > [!NOTE]
 > Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
+
+> [!TIP]
+> When linking multiple folders, use comma-separated paths to leverage the v2 API's batch capability for faster execution.
 
 ---
 
