@@ -283,7 +283,7 @@ def list_sessions(ctx,
               help='Mount a data file into the session. Supports both CloudOS datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Can be used multiple times.')
+              help='Link a folder into the session for read/write access. Supports S3 folders and CloudOS folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Multiple paths can be provided as comma-separated values or by using --link multiple times.')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -460,7 +460,14 @@ def create_session(ctx,
                 raise SystemExit(1)
 
         # Parse and add linked folders from --link (S3 or CloudOS)
-        for link_path in link:
+        # Flatten comma-separated paths within --link options
+        all_link_paths = []
+        for link_entry in link:
+            # Split by comma to support comma-separated paths
+            paths = [p.strip() for p in link_entry.split(',') if p.strip()]
+            all_link_paths.extend(paths)
+        
+        for link_path in all_link_paths:
             try:
                 # Block all linking on Azure platforms
                 if execution_platform == 'azure':
@@ -475,8 +482,13 @@ def create_session(ctx,
                     # S3 folder: create S3Folder FUSE mount
                     if verbose:
                         print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                    # Use bucket name or mount_name if provided (legacy format)
-                    mount_name = parsed.get('mount_name', f"{parsed['s3_bucket']}-mount")
+                    # Generate unique mount name from last segment of prefix, or use provided mount_name (legacy format)
+                    if 'mount_name' in parsed:
+                        mount_name = parsed['mount_name']
+                    else:
+                        # Extract last meaningful segment from prefix for unique mount name
+                        prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
+                        mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
                     s3_mount_item = {
                         "type": "S3Folder",
                         "data": {
@@ -1036,7 +1048,7 @@ def pause_session(ctx,
               help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link additional folder. Format: s3://bucket/prefix or project_name/folder_path. Can be used multiple times.')
+              help='Link additional folder. Format: s3://bucket/prefix or project_name/folder_path. Multiple paths can be provided as comma-separated values or by using --link multiple times.')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1165,7 +1177,14 @@ def resume_session(ctx,
         parsed_s3_mounts = []
         if link:
             try:
-                for link_path in link:
+                # Flatten comma-separated paths within --link options
+                all_link_paths = []
+                for link_entry in link:
+                    # Split by comma to support comma-separated paths
+                    paths = [p.strip() for p in link_entry.split(',') if p.strip()]
+                    all_link_paths.extend(paths)
+                
+                for link_path in all_link_paths:
                     # Block all linking on Azure
                     if execution_platform == 'azure':
                         click.secho(f'Error: Linking folders is not supported on Azure. Please use --mount instead.', fg='red', err=True)
@@ -1174,7 +1193,13 @@ def resume_session(ctx,
                     if parsed['type'] == 's3':
                         if verbose:
                             print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        mount_name = parsed.get('mount_name', f"{parsed['s3_bucket']}-mount")
+                        # Generate unique mount name from last segment of prefix, or use provided mount_name (legacy format)
+                        if 'mount_name' in parsed:
+                            mount_name = parsed['mount_name']
+                        else:
+                            # Extract last meaningful segment from prefix for unique mount name
+                            prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
+                            mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
                         s3_mount_item = {
                             "type": "S3Folder",
                             "data": {
