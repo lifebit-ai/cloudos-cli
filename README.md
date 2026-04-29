@@ -2762,10 +2762,8 @@ Link job-related folders or custom S3 paths to your interactive analysis session
    - By default, links results, workdir, and logs folders
    - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
 
-2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths
-   - Supports single path or comma-separated multiple paths
-   - Multiple paths are sent in a single API request (v2) for efficiency
-   - Automatic fallback to v1 API if v2 is not available
+2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths. It supports a single path or comma-separated multiple paths.
+   
 
 **Basic usage:**
 
@@ -2834,23 +2832,11 @@ The command provides clear error messages for common scenarios:
 - Job still initializing
 - Invalid paths or permissions
 
-**API Version Support:**
-
-The `cloudos link` command uses CloudOS API v2 when available, which supports batch operations for linking multiple folders in a single request. This is more efficient than making individual requests for each folder.
-
-- **v2 API (preferred)**: Sends all folders in one request using the `dataItems` array
-- **v1 API (fallback)**: Automatically used if v2 is not available or encounters errors, sending one request per folder
-
-The fallback happens transparently without user intervention, ensuring compatibility across different CloudOS versions.
-
 > [!NOTE]
 > If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
 
 > [!NOTE]
 > Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
-
-> [!TIP]
-> When linking multiple folders, use comma-separated paths to leverage the v2 API's batch capability for faster execution.
 
 ---
 
