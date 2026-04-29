@@ -12,7 +12,7 @@ def test_job_archive_command_exists():
     result = runner.invoke(run_cloudos_cli, ['job', '--help'])
     assert result.exit_code == 0
     assert 'archive' in result.output
-    assert 'Archive specified jobs in a CloudOS workspace.' in result.output
+    assert 'Archive specified jobs in a Lifebit Platform workspace.' in result.output
 
 
 def test_job_archive_help():
@@ -20,7 +20,7 @@ def test_job_archive_help():
     runner = CliRunner()
     result = runner.invoke(run_cloudos_cli, ['job', 'archive', '--help'])
     assert result.exit_code == 0
-    assert 'Archive specified jobs in a CloudOS workspace.' in result.output
+    assert 'Archive specified jobs in a Lifebit Platform workspace.' in result.output
     assert '--job-ids' in result.output
     assert '--workspace-id' in result.output
     assert '--apikey' in result.output

@@ -1,6 +1,6 @@
 # Delete Project Jobs Script
 
-A bash utility script for bulk deletion of job results and/or working directories for all jobs within a CloudOS project.
+A bash utility script for bulk deletion of job results and/or working directories for all jobs within Lifebit Platform project.
 
 ## Overview
 
@@ -308,7 +308,7 @@ If a deletion fails (e.g., resource already deleted, no permissions), the script
 **Solutions**:
 - Verify the project name is correct (case-sensitive)
 - Remove status filter to see all jobs
-- Check if jobs exist using CloudOS web interface
+- Check if jobs exist using the Lifebit Platform web interface
 
 ### Permission Errors
 

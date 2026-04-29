@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS project management."""
+"""CLI commands for Lifebit Platform project management."""
 
 import rich_click as click
 import json
@@ -12,22 +12,22 @@ from cloudos_cli.utils.details import create_project_list_table
 
 @click.group(cls=pass_debug_to_subcommands())
 def project():
-    """CloudOS project functionality."""
+    """Lifebit Platform project functionality."""
     print(project.__doc__ + '\n')
 
 
 @project.command('list')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--output-basename',
               help=('Output file base name to save project list. ' +
@@ -75,7 +75,7 @@ def list_projects(ctx,
                   disable_ssl_verification,
                   ssl_cert,
                   profile):
-    """Collect and display all projects from a CloudOS workspace."""
+    """Collect and display all projects from a Lifebit Platform workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -130,15 +130,15 @@ def list_projects(ctx,
 @project.command('create')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--new-project',
               help='The name for the new project.',
@@ -164,7 +164,7 @@ def create_project(ctx,
                    disable_ssl_verification,
                    ssl_cert,
                    profile):
-    """Create a new project in CloudOS."""
+    """Create a new project in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     # verify ssl configuration
@@ -172,7 +172,7 @@ def create_project(ctx,
 
     # Print basic output
     if verbose:
-        print(f'\tUsing CloudOS URL: {cloudos_url}')
+        print(f'\tUsing Lifebit Platform URL: {cloudos_url}')
         print(f'\tUsing workspace: {workspace_id}')
         print(f'\tProject name: {new_project}')
 

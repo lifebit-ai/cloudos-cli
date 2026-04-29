@@ -114,4 +114,4 @@ def test_send_bash_array_job():
     result_string = output.getvalue().rstrip()
 
     assert isinstance(job_json, str)
-    assert "Job successfully launched to CloudOS, please check the following link:" in result_string
+    assert "Job successfully launched to Lifebit Platform, please check the following link:" in result_string

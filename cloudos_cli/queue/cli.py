@@ -1,4 +1,4 @@
-"""CLI commands for CloudOS job queue management."""
+"""CLI commands for Lifebit Platform job queue management."""
 
 import rich_click as click
 import json
@@ -12,22 +12,22 @@ from cloudos_cli.utils.details import create_queue_list_table
 # Create the queue group
 @click.group(cls=pass_debug_to_subcommands())
 def queue():
-    """CloudOS job queue functionality."""
+    """Lifebit Platform job queue functionality."""
     print(queue.__doc__ + '\n')
 
 
 @queue.command('list')
 @click.option('-k',
               '--apikey',
-              help='Your CloudOS API key',
+              help='Your Lifebit Platform API key',
               required=True)
 @click.option('-c',
               '--cloudos-url',
-              help=(f'The CloudOS url you are trying to access to. Default={CLOUDOS_URL}.'),
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
               default=CLOUDOS_URL,
               required=True)
 @click.option('--workspace-id',
-              help='The specific CloudOS workspace id.',
+              help='The specific Lifebit Platform workspace id.',
               required=True)
 @click.option('--output-basename',
               help=('Output file base name to save job queue list. ' +
@@ -70,7 +70,7 @@ def list_queues(ctx,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
-    """Collect and display all available job queues from a CloudOS workspace."""
+    """Collect and display all available job queues from a Lifebit Platform workspace."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -78,7 +78,7 @@ def list_queues(ctx,
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
     my_queues = j_queue.get_job_queues(exclude_system_queues=exclude_system_queues)
     if len(my_queues) == 0:
-        raise ValueError('No AWS batch queues found. Please, make sure that your CloudOS supports AWS batch queues')
+        raise ValueError('No AWS batch queues found. Please, make sure that your Lifebit Platform supports AWS batch queues')
     if output_format == 'stdout':
         create_queue_list_table(my_queues, cloudos_url)
     elif output_format == 'csv':

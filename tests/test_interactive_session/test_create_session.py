@@ -390,7 +390,7 @@ class TestSessionCreatorHelpers:
         """Test parsing data file format."""
         from cloudos_cli.interactive_session.interactive_session import parse_data_file
         
-        # Test CloudOS dataset with / separator: project_name/dataset_path
+        # Test Lifebit Platform dataset with / separator: project_name/dataset_path
         result = parse_data_file('leila-test/Data/mydata.csv')
         assert isinstance(result, dict)
         assert result['type'] == 'cloudos'
@@ -399,13 +399,13 @@ class TestSessionCreatorHelpers:
         assert result['project_name'] == 'leila-test'
         assert result['dataset_path'] == 'Data/mydata.csv'
         
-        # Test CloudOS dataset with > separator
+        # Test Lifebit Platform dataset with > separator
         result2 = parse_data_file('leila-test > Data/mydata.csv')
         assert result2['type'] == 'cloudos'
         assert result2['project_name'] == 'leila-test'
         assert result2['dataset_path'] == 'Data/mydata.csv'
         
-        # Test CloudOS dataset with nested paths
+        # Test Lifebit Platform dataset with nested paths
         result3 = parse_data_file('my-project/folder/subfolder/file.txt')
         assert result3['type'] == 'cloudos'
         assert result3['project_name'] == 'my-project'
