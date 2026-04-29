@@ -382,3 +382,147 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
     assert "Successfully mounted File Explorer folder: /home/user/data" in captured.out
 
 
+
+@responses.activate
+def test_link_folders_batch_multiple_s3(capsys, link_instance_test_response, monkeypatch):
+    """Test linking multiple S3 folders in one batch request using v2 API."""
+    # Mock v2 endpoint for batch request
+    url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url_v2, status=204)
+
+    # Mock the GET request for checking fuse filesystem status for each folder
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    
+    # First call - returns folder1
+    mock_response_1 = {
+        "fuseFileSystems": [{
+            "_id": "123",
+            "mountName": "folder1",
+            "status": "mounted"
+        }],
+        "paginationMetadata": {"Pagination-Count": 1}
+    }
+    responses.add(responses.GET, status_url, json=mock_response_1, status=200)
+    
+    # Second call - returns folder2
+    mock_response_2 = {
+        "fuseFileSystems": [{
+            "_id": "124",
+            "mountName": "folder2",
+            "status": "mounted"
+        }],
+        "paginationMetadata": {"Pagination-Count": 1}
+    }
+    responses.add(responses.GET, status_url, json=mock_response_2, status=200)
+    
+    # Third call - returns folder3
+    mock_response_3 = {
+        "fuseFileSystems": [{
+            "_id": "125",
+            "mountName": "folder3",
+            "status": "mounted"
+        }],
+        "paginationMetadata": {"Pagination-Count": 1}
+    }
+    responses.add(responses.GET, status_url, json=mock_response_3, status=200)
+
+    # Patch parse_s3_path
+    def mock_parse_s3_path(url):
+        if "folder1" in url:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder1", "s3BucketName": "bucket1", "s3Prefix": "path1/folder1/"}}}
+        elif "folder2" in url:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder2", "s3BucketName": "bucket2", "s3Prefix": "path2/folder2/"}}}
+        else:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder3", "s3BucketName": "bucket3", "s3Prefix": "path3/folder3/"}}}
+    
+    monkeypatch.setattr(link_instance_test_response, "parse_s3_path", mock_parse_s3_path)
+
+    # Test batch linking
+    folders = [
+        "s3://bucket1/path1/folder1/",
+        "s3://bucket2/path2/folder2/",
+        "s3://bucket3/path3/folder3/"
+    ]
+    link_instance_test_response.link_folders_batch(folders, "sessionABC")
+    
+    captured = capsys.readouterr()
+    assert "Successfully mounted S3 folder: s3://bucket1/path1/folder1/" in captured.out
+    assert "Successfully mounted S3 folder: s3://bucket2/path2/folder2/" in captured.out
+    assert "Successfully mounted S3 folder: s3://bucket3/path3/folder3/" in captured.out
+
+
+@responses.activate
+def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_test_response, monkeypatch):
+    """Test fallback to v1 API when linking multiple folders."""
+    # Mock v2 endpoint to return 404
+    url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
+
+    # Mock v1 endpoint for each folder (3 separate requests in fallback)
+    url_v1 = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url_v1, status=204)  # folder1
+    responses.add(responses.POST, url_v1, status=204)  # folder2
+    responses.add(responses.POST, url_v1, status=204)  # folder3
+
+    # Mock status checks
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "1", "mountName": "folder1", "status": "mounted"}]}, status=200)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "2", "mountName": "folder2", "status": "mounted"}]}, status=200)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "3", "mountName": "folder3", "status": "mounted"}]}, status=200)
+
+    def mock_parse_s3_path(url):
+        if "folder1" in url:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder1", "s3BucketName": "bucket1", "s3Prefix": "path1/folder1/"}}}
+        elif "folder2" in url:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder2", "s3BucketName": "bucket2", "s3Prefix": "path2/folder2/"}}}
+        else:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder3", "s3BucketName": "bucket3", "s3Prefix": "path3/folder3/"}}}
+    
+    monkeypatch.setattr(link_instance_test_response, "parse_s3_path", mock_parse_s3_path)
+
+    folders = [
+        "s3://bucket1/path1/folder1/",
+        "s3://bucket2/path2/folder2/",
+        "s3://bucket3/path3/folder3/"
+    ]
+    link_instance_test_response.link_folders_batch(folders, "sessionABC")
+    
+    captured = capsys.readouterr()
+    # All three should succeed via v1 fallback
+    assert "Successfully mounted S3 folder: s3://bucket1/path1/folder1/" in captured.out
+    assert "Successfully mounted S3 folder: s3://bucket2/path2/folder2/" in captured.out
+    assert "Successfully mounted S3 folder: s3://bucket3/path3/folder3/" in captured.out
+
+
+@responses.activate  
+def test_link_folders_batch_partial_failure_v1_fallback(capsys, link_instance_test_response, monkeypatch):
+    """Test error handling when one folder fails during v1 fallback."""
+    # Mock v2 endpoint to return 404 (forcing v1 fallback)
+    url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
+
+    # Mock v1 endpoint - first succeeds, second fails with 403
+    url_v1 = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
+    responses.add(responses.POST, url_v1, status=204)  # folder1 succeeds
+    responses.add(responses.POST, url_v1, status=403, json={"message": "Folder already mounted"})  # folder2 fails
+
+    # Mock status check for successful folder1
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "1", "mountName": "folder1", "status": "mounted"}]}, status=200)
+
+    def mock_parse_s3_path(url):
+        if "folder1" in url:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder1", "s3BucketName": "bucket1", "s3Prefix": "path1/folder1/"}}}
+        else:
+            return {"dataItem": {"type": "S3Folder", "data": {"name": "folder2", "s3BucketName": "bucket2", "s3Prefix": "path2/folder2/"}}}
+    
+    monkeypatch.setattr(link_instance_test_response, "parse_s3_path", mock_parse_s3_path)
+
+    folders = [
+        "s3://bucket1/path1/folder1/",
+        "s3://bucket2/path2/folder2/"
+    ]
+    
+    # Should raise ValueError for the second folder
+    with pytest.raises(ValueError, match="already exists with 'mounted' status"):
+        link_instance_test_response.link_folders_batch(folders, "sessionABC")
