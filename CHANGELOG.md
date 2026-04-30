@@ -4,7 +4,7 @@
 
 ### Feat
 
-- Adds linking of multiple folders at once
+- Adds linking of multiple Lifebit Platform File Explorer folders or S3 paths at once. Can be used with command `cloudos link` or `cloudos interactive-session create --link`
 
 ## v2.89.2 (2026-04-22)
 
