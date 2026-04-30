@@ -2558,9 +2558,9 @@ class Cloudos:
         team_id : string
             The CloudOS team id (workspace id).
         payload : dict
-            FuseFileSystemMount payload with dataItem configuration.
-            For S3: {"dataItem": {"type": "S3Folder", "data": {"name": str, "s3BucketName": str, "s3Prefix": str}}}
-            For File Explorer: {"dataItem": {"kind": "Folder", "item": str, "name": str}}
+            FuseFileSystemMount payload with dataItems array configuration.
+            For S3: {"dataItems": [{"type": "S3Folder", "data": {"name": str, "s3BucketName": str, "s3Prefix": str}}, ...]}
+            For File Explorer: {"dataItems": [{"kind": "Folder", "item": str, "name": str}, ...]}
         verify: [bool|string], default=True
             Whether to use SSL verification or not. Alternatively, if
             a string is passed, it will be interpreted as the path to
@@ -2590,7 +2590,7 @@ class Cloudos:
             r = retry_requests_post(
                 url,
                 headers=headers,
-                data=json.dumps(payload),
+                json=payload,
                 verify=verify,
                 timeout=30
             )
@@ -2599,7 +2599,17 @@ class Cloudos:
         
         if r.status_code >= 400:
             if r.status_code == 404:
-                raise ValueError(f"Session not found: {session_id}")
+                # Try to determine if it's a missing session or missing endpoint
+                try:
+                    error_body = r.json() if r.content else {}
+                    error_message = error_body.get("message", "").lower()
+                    # If error mentions session, it's a session-not-found error
+                    if "session" in error_message:
+                        raise ValueError(f"Session not found: {session_id}")
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+                # Otherwise, likely endpoint not available - raise generic 404
+                raise BadRequestException(r)
             raise BadRequestException(r)
         
         # Return the status code (204 No Content is success)

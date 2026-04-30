@@ -62,7 +62,7 @@ class Link(Cloudos):
 
     def link_folders_batch(self,
                           folders: list,
-                          session_id: str) -> dict:
+                          session_id: str) -> None:
         """Link multiple folders (S3 or File Explorer) to an interactive session in one request.
 
         Attempts to use API v2 (which supports multiple folders per request) first, 
@@ -170,11 +170,15 @@ class Link(Cloudos):
             )
             return status_code
         except Exception as v2_error:
-            # Check if error indicates v2 not available (404, 400)
+            # Check if error indicates v2 endpoint not available (404 only, but not session-not-found)
             error_str = str(v2_error)
+            # Only fall back to v1 if it's a genuine endpoint-not-available 404
+            # Session-not-found errors should propagate immediately
+            if "Session not found" in error_str:
+                raise  # Re-raise session-not-found errors immediately
+            
             should_fallback = (
-                "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower() or
-                "400" in error_str or "Bad Request" in error_str or "Invalid request" in error_str
+                "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower()
             )
             
             if should_fallback:
@@ -201,11 +205,23 @@ class Link(Cloudos):
         Raises
         ------
         ValueError
-            If any folder fails to mount.
+            If any folder fails to mount. Note: Earlier folders may have
+            successfully mounted before the failure.
         """
         status_code = None
+        mounted_folders = []
+        
         for folder_data in folder_info:
-            status_code = self._mount_single_folder_v1(folder_data, session_id)
+            try:
+                status_code = self._mount_single_folder_v1(folder_data, session_id)
+                mounted_folders.append(folder_data['path'])
+            except ValueError as e:
+                # If we've already mounted some folders, inform the user
+                if mounted_folders:
+                    error_msg = f"{str(e)}\n\nNote: The following folders were successfully mounted before this error: {', '.join(mounted_folders)}"
+                    raise ValueError(error_msg)
+                else:
+                    raise
         return status_code
 
     def _mount_single_folder_v1(self, folder_data: dict, session_id: str) -> int:
@@ -250,13 +266,16 @@ class Link(Cloudos):
                 elif r.status_code == 401:
                     raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
                 elif r.status_code == 400:
-                    r_content = json.loads(r.content)
-                    if r_content.get("message") == "Invalid Supported DataItem folderType. Supported values are S3Folder":
-                        raise ValueError(f"Invalid Supported DataItem '{folder_data['type']}' folderType. Virtual folders cannot be linked.")
-                    elif r_content.get("message") == "Request failed with status code 403":
-                        raise ValueError(f"Interactive Analysis session is not active")
-                    else:
-                        raise ValueError(f"Cannot link folder")
+                    try:
+                        r_content = json.loads(r.content)
+                        if r_content.get("message") == "Invalid Supported DataItem folderType. Supported values are S3Folder":
+                            raise ValueError(f"Invalid Supported DataItem '{folder_data['type']}' folderType. Virtual folders cannot be linked.")
+                        elif r_content.get("message") == "Request failed with status code 403":
+                            raise ValueError(f"Interactive Analysis session is not active")
+                        else:
+                            raise ValueError(f"Cannot link folder")
+                    except json.JSONDecodeError:
+                        raise ValueError(f"Bad request (400): Unable to parse error response")
                 else:
                     raise ValueError(f"Failed to mount folder: HTTP {r.status_code}")
             
