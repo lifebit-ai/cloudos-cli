@@ -82,7 +82,7 @@ def link(ctx,
        Use --results, --workdir, or --logs flags to link only specific folders.
 
     2. Direct path linking (PATH argument): Links specific path(s).
-       Supports S3 paths and CloudOS File Explorer paths.
+       Supports S3 paths and Lifebit Platform File Explorer paths.
 
     Examples:
 

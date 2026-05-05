@@ -283,7 +283,7 @@ def list_sessions(ctx,
               help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read/write access. Supports S3 folders (e.g., s3://my-bucket/data/) and File Explorer folders (e.g., project-name/Data/results). Multiple paths can be provided as comma-separated values or by using --link multiple times. Examples: --link s3://bucket/path1/,s3://bucket/path2/ OR --link project/folder1 --link project/folder2')
+              help='Link a folder into the session for read access. Supports S3 folders (e.g., s3://my-bucket/data/) and File Explorer folders (e.g., project-name/Data/results). Multiple paths can be provided as comma-separated values or by using --link multiple times. Examples: --link s3://bucket/path1/,s3://bucket/path2/ OR --link project/folder1 --link project/folder2')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -467,6 +467,7 @@ def create_session(ctx,
             paths = [p.strip() for p in link_entry.split(',') if p.strip()]
             all_link_paths.extend(paths)
         
+        mount_names_seen = {}  # Track mount names to detect duplicates
         for link_path in all_link_paths:
             try:
                 # Block all linking on Azure platforms
@@ -489,6 +490,18 @@ def create_session(ctx,
                         # Extract last meaningful segment from prefix for unique mount name
                         prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
                         mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
+                    
+                    # Check for duplicate mount names
+                    if mount_name in mount_names_seen:
+                        click.secho(
+                            f"Error: Duplicate mount name '{mount_name}' detected. "
+                            f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
+                            f"would both be mounted with the same name. Please use folders with unique names.",
+                            fg='red', err=True
+                        )
+                        raise SystemExit(1)
+                    mount_names_seen[mount_name] = link_path
+                    
                     s3_mount_item = {
                         "type": "S3Folder",
                         "data": {
@@ -508,23 +521,89 @@ def create_session(ctx,
                     if verbose:
                         print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
                     # Create Datasets API instance for this project
-                    datasets_api = Datasets(
-                        cloudos_url=cloudos_url,
-                        apikey=apikey,
-                        workspace_id=workspace_id,
-                        project_name=folder_project,
-                        verify=verify_ssl,
-                        cromwell_token=None
-                    )
+                    try:
+                        datasets_api = Datasets(
+                            cloudos_url=cloudos_url,
+                            apikey=apikey,
+                            workspace_id=workspace_id,
+                            project_name=folder_project,
+                            verify=verify_ssl,
+                            cromwell_token=None
+                        )
+                        # Validate project and folder exist
+                        _ = datasets_api.list_folder_content("")  # Check if project accessible
+                        
+                        # If there's a folder path, validate it exists
+                        if folder_path:
+                            folder_parts = folder_path.strip("/").split("/")
+                            parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
+                            item_name = folder_parts[-1]
+                            contents = datasets_api.list_folder_content(parent_path)
+                            
+                            # Check if the folder exists
+                            found = None
+                            for item in contents.get("folders", []):
+                                if item.get("name") == item_name:
+                                    found = item
+                                    break
+                            
+                            if not found:
+                                raise ValueError(
+                                    f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
+                                    f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
+                                )
+                            
+                            # Check if it's a virtual folder
+                            if found.get("folderType") == "VirtualFolder":
+                                raise ValueError(
+                                    f"The folder '{link_path}' is a virtual folder and cannot be linked. "
+                                    f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
+                                )
+                            
+                            # Check if the folder is empty
+                            folder_contents = datasets_api.list_folder_content(folder_path)
+                            has_files = len(folder_contents.get("files", [])) > 0
+                            has_folders = len(folder_contents.get("folders", [])) > 0
+                            if not has_files and not has_folders:
+                                raise ValueError(
+                                    f"The folder '{link_path}' is empty and cannot be linked. "
+                                    f"Please add files or subfolders to this folder before linking it."
+                                )
+                    except ValueError:
+                        raise  # Re-raise our validation errors
+                    except Exception as e:
+                        error_msg = str(e)
+                        if "404" in error_msg or "not found" in error_msg.lower():
+                            raise ValueError(
+                                f"Project '{folder_project}' not found. "
+                                f"Please verify the project name exists in your workspace."
+                            )
+                        else:
+                            raise ValueError(f"Failed to validate folder '{link_path}': {error_msg}")
+                    
                     # For Lifebit Platform folders, we create a mount item
                     mount_name = folder_path.split('/')[-1] if folder_path else folder_project
+                    
+                    # Check for duplicate mount names
+                    if mount_name in mount_names_seen:
+                        click.secho(
+                            f"Error: Duplicate mount name '{mount_name}' detected. "
+                            f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
+                            f"would both be mounted with the same name. Please use folders with unique names.",
+                            fg='red', err=True
+                        )
+                        raise SystemExit(1)
+                    mount_names_seen[mount_name] = link_path
+                    
                     cloudos_mount_item = {
                         "type": "S3Folder",
                         "data": {
                             "name": mount_name,
                             "s3BucketName": folder_project,
                             "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                        }
+                        },
+                        "_isFileExplorer": True,  # Marker for display formatting
+                        "_originalPath": f"{folder_project}/{folder_path}"  # Original path for display
                     }
                     parsed_s3_mounts.append(cloudos_mount_item)
 
@@ -1184,6 +1263,7 @@ def resume_session(ctx,
                     paths = [p.strip() for p in link_entry.split(',') if p.strip()]
                     all_link_paths.extend(paths)
                 
+                mount_names_seen = {}  # Track mount names to detect duplicates
                 for link_path in all_link_paths:
                     # Block all linking on Azure
                     if execution_platform == 'azure':
@@ -1200,6 +1280,18 @@ def resume_session(ctx,
                             # Extract last meaningful segment from prefix for unique mount name
                             prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
                             mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
+                        
+                        # Check for duplicate mount names
+                        if mount_name in mount_names_seen:
+                            click.secho(
+                                f"Error: Duplicate mount name '{mount_name}' detected. "
+                                f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
+                                f"would both be mounted with the same name. Please use folders with unique names.",
+                                fg='red', err=True
+                            )
+                            raise SystemExit(1)
+                        mount_names_seen[mount_name] = link_path
+                        
                         s3_mount_item = {
                             "type": "S3Folder",
                             "data": {
@@ -1215,23 +1307,89 @@ def resume_session(ctx,
                         if verbose:
                             print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
                         # Create Datasets API instance for this project
-                        datasets_api = Datasets(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=folder_project,
-                            verify=verify_ssl,
-                            cromwell_token=None
-                        )                        
+                        try:
+                            datasets_api = Datasets(
+                                cloudos_url=cloudos_url,
+                                apikey=apikey,
+                                workspace_id=workspace_id,
+                                project_name=folder_project,
+                                verify=verify_ssl,
+                                cromwell_token=None
+                            )
+                            # Validate project and folder exist
+                            _ = datasets_api.list_folder_content("")  # Check if project accessible
+                            
+                            # If there's a folder path, validate it exists
+                            if folder_path:
+                                folder_parts = folder_path.strip("/").split("/")
+                                parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
+                                item_name = folder_parts[-1]
+                                contents = datasets_api.list_folder_content(parent_path)
+                                
+                                # Check if the folder exists
+                                found = None
+                                for item in contents.get("folders", []):
+                                    if item.get("name") == item_name:
+                                        found = item
+                                        break
+                                
+                                if not found:
+                                    raise ValueError(
+                                        f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
+                                        f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
+                                    )
+                                
+                                # Check if it's a virtual folder
+                                if found.get("folderType") == "VirtualFolder":
+                                    raise ValueError(
+                                        f"The folder '{link_path}' is a virtual folder and cannot be linked. "
+                                        f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
+                                    )
+                                
+                                # Check if the folder is empty
+                                folder_contents = datasets_api.list_folder_content(folder_path)
+                                has_files = len(folder_contents.get("files", [])) > 0
+                                has_folders = len(folder_contents.get("folders", [])) > 0
+                                if not has_files and not has_folders:
+                                    raise ValueError(
+                                        f"The folder '{link_path}' is empty and cannot be linked. "
+                                        f"Please add files or subfolders to this folder before linking it."
+                                    )
+                        except ValueError:
+                            raise  # Re-raise our validation errors
+                        except Exception as e:
+                            error_msg = str(e)
+                            if "404" in error_msg or "not found" in error_msg.lower():
+                                raise ValueError(
+                                    f"Project '{folder_project}' not found. "
+                                    f"Please verify the project name exists in your workspace."
+                                )
+                            else:
+                                raise ValueError(f"Failed to validate folder '{link_path}': {error_msg}")
+                        
                         # AWS-only: Create S3Folder mount for Lifebit Platform folders
                         mount_name = folder_path.split('/')[-1] if folder_path else folder_project
+                        
+                        # Check for duplicate mount names
+                        if mount_name in mount_names_seen:
+                            click.secho(
+                                f"Error: Duplicate mount name '{mount_name}' detected. "
+                                f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
+                                f"would both be mounted with the same name. Please use folders with unique names.",
+                                fg='red', err=True
+                            )
+                            raise SystemExit(1)
+                        mount_names_seen[mount_name] = link_path
+                        
                         cloudos_mount_item = {
                             "type": "S3Folder",
                             "data": {
                                 "name": mount_name,
                                 "s3BucketName": folder_project,
                                 "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                            }
+                            },
+                            "_isFileExplorer": True,  # Marker for display formatting
+                            "_originalPath": f"{folder_project}/{folder_path}"  # Original path for display
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
                         if verbose:

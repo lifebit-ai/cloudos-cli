@@ -1250,21 +1250,36 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         if mounted_files:
             table.add_row("Mounted Data", ", ".join(mounted_files))
 
-    # Display linked S3 buckets
+    # Display linked S3 buckets and File Explorer folders
     if s3_mounts:
         linked_s3 = []
+        linked_file_explorer = []
         for s3 in s3_mounts:
             if isinstance(s3, dict):
-                data = s3.get('data', {})
-                bucket = data.get('s3BucketName', '')
-                prefix = data.get('s3Prefix', '')
-                # For Lifebit Platform mounts, show project/path; for S3, show bucket/path
-                if prefix and bucket:
-                    linked_s3.append(f"s3://{bucket}/{prefix}")
-                elif bucket:
-                    linked_s3.append(f"s3://{bucket}/")
+                # Check if this is a File Explorer folder
+                if s3.get('_isFileExplorer'):
+                    original_path = s3.get('_originalPath', '')
+                    if original_path:
+                        linked_file_explorer.append(f"File Explorer: {original_path}")
+                else:
+                    # Regular S3 folder
+                    data = s3.get('data', {})
+                    bucket = data.get('s3BucketName', '')
+                    prefix = data.get('s3Prefix', '')
+                    if prefix and bucket:
+                        linked_s3.append(f"s3://{bucket}/{prefix}")
+                    elif bucket:
+                        linked_s3.append(f"s3://{bucket}/")
+        
+        # Display both types if present
+        all_linked = []
         if linked_s3:
-            table.add_row("Linked S3", "\n".join(linked_s3))
+            all_linked.extend(linked_s3)
+        if linked_file_explorer:
+            all_linked.extend(linked_file_explorer)
+        
+        if all_linked:
+            table.add_row("Linked Folders", "\n".join(all_linked))
 
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")

@@ -118,6 +118,7 @@ class Link(Cloudos):
         """
         data_items = []
         folder_info = []
+        mount_names_seen = {}  # Track mount names to detect duplicates
         
         for folder in folders:
             # Block Azure Blob Storage URLs
@@ -130,10 +131,35 @@ class Link(Cloudos):
             # Parse folder and extract just the data item (without wrapper)
             if folder.startswith('s3://'):
                 parsed = self.parse_s3_path(folder)
+                mount_name = parsed["dataItem"]["data"]["name"]
+                
+                # Check for duplicate mount names
+                if mount_name in mount_names_seen:
+                    raise ValueError(
+                        f"Duplicate mount name '{mount_name}' detected. "  
+                        f"The folders '{mount_names_seen[mount_name]}' and '{folder}' "  
+                        f"would both be mounted with the same name. Please use folders with unique names."
+                    )
+                mount_names_seen[mount_name] = folder
+                
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
+                # File Explorer path - use basic parsing (validation will be done by API)
+                # For link command, we don't pre-validate as it adds complexity
+                # For interactive-session create/resume, validation happens there
                 parsed = self.parse_file_explorer_path(folder)
+                mount_name = parsed["dataItem"]["name"]
+                
+                # Check for duplicate mount names
+                if mount_name in mount_names_seen:
+                    raise ValueError(
+                        f"Duplicate mount name '{mount_name}' detected. "
+                        f"The folders '{mount_names_seen[mount_name]}' and '{folder}' "
+                        f"would both be mounted with the same name. Please use folders with unique names."
+                    )
+                mount_names_seen[mount_name] = folder
+                
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
         
@@ -427,8 +453,119 @@ class Link(Cloudos):
             }
         }
 
-    def parse_file_explorer_path(self, path):
+    def _validate_and_parse_file_explorer_path(self, path: str) -> dict:
+        """Validate and parse a File Explorer path with detailed error messages.
+        
+        Parameters
+        ----------
+        path : str
+            The File Explorer path (e.g., 'project/Data/folder')
+            
+        Returns
+        -------
+        dict
+            Parsed dataItem structure
+            
+        Raises
+        ------
+        ValueError
+            If project doesn't exist, folder doesn't exist, or is invalid type
         """
+        # Parse the path to extract project and folder path
+        parts = path.strip("/").split("/")
+        if len(parts) < 1:
+            raise ValueError(f"Invalid File Explorer path: '{path}'. Expected format: project_name/folder_path")
+        
+        project_from_path = parts[0]
+        folder_path = "/".join(parts[1:]) if len(parts) > 1 else ""
+        
+        # Check if project exists
+        from cloudos_cli.datasets.datasets import Datasets
+        try:
+            datasets = Datasets(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                workspace_id=self.workspace_id,
+                project_name=project_from_path,
+                verify=self.verify,
+                cromwell_token=None
+            )
+            # Try to access project - this will fail if project doesn't exist
+            _ = datasets.list_folder_content("")
+        except Exception as e:
+            error_msg = str(e)
+            if "404" in error_msg or "not found" in error_msg.lower():
+                raise ValueError(
+                    f"Project '{project_from_path}' not found. "
+                    f"Please verify the project name exists in your workspace."
+                )
+            else:
+                raise ValueError(
+                    f"Failed to access project '{project_from_path}': {error_msg}"
+                )
+        
+        # If there's a folder path, validate it exists
+        if folder_path:
+            try:
+                parent_path = "/".join(parts[1:-1]) if len(parts) > 2 else ""
+                item_name = parts[-1]
+                contents = datasets.list_folder_content(parent_path)
+                
+                # Check if the folder exists
+                found = None
+                for item in contents.get("folders", []):
+                    if item.get("name") == item_name:
+                        found = item
+                        break
+                
+                if not found:
+                    raise ValueError(
+                        f"Folder '{item_name}' not found at path '{parent_path}' in project '{project_from_path}'. "
+                        f"Please verify the folder exists using 'cloudos datasets ls --project-name {project_from_path}'."
+                    )
+                
+                # Check if it's a virtual folder
+                if found.get("folderType") == "VirtualFolder":
+                    raise ValueError(
+                        f"The folder '{path}' is a virtual folder and cannot be linked. "
+                        f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
+                    )
+            except ValueError:
+                raise  # Re-raise our custom ValueError messages
+            except Exception as e:
+                raise ValueError(
+                    f"Failed to validate folder '{path}': {str(e)}"
+                )
+        
+        # Get folder id
+        try:
+            folder_id = get_file_or_folder_id(
+                self.cloudos_url,
+                self.apikey,
+                self.workspace_id,
+                project_from_path,
+                self.verify,
+                folder_path if folder_path else "",
+                "",
+                is_file=False
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Failed to get folder ID for '{path}': {str(e)}. "
+                f"Please verify the path is correct."
+            )
+        
+        return {
+            "dataItem": {
+                "kind": "Folder",
+                "item": f"{folder_id}",
+                "name": f"{parts[-1]}"
+            }
+        }
+    
+    def parse_file_explorer_path(self, path):
+        """Legacy method - use _validate_and_parse_file_explorer_path for new code.
+        
         Parses a file path and returns the base name and full path.
 
         Parameters
@@ -690,124 +827,4 @@ class Link(Cloudos):
                 click.secho(f'\tCannot link logs: {error_msg}', fg='red')
             else:
                 click.secho(f'\tFailed to link logs: {error_msg}', fg='red')
-
-    def link_path_with_validation(self, path: str, session_id: str, verify_ssl, project_name: str = None, verbose: bool = False):
-        """
-        Link a path (S3 or File Explorer) to an interactive session with validation.
-
-        Parameters
-        ----------
-        path : str
-            The path to link
-        session_id : str
-            The interactive session ID
-        project_name : str, optional
-            The project name (required for File Explorer paths)
-        verify_ssl : Union[bool, str], optional
-            SSL verification setting
-        verbose : bool
-            Whether to print verbose output
-
-        Returns
-        -------
-        None
-            Prints status messages to console
-
-        Raises
-        ------
-        click.UsageError
-            If Azure path is provided or validation fails
-        ValueError
-            If path validation fails
-        """        
-        # Check for Azure paths and provide informative error message
-        if path.startswith("az://"):
-            raise click.UsageError("Azure Blob Storage paths (az://) are not supported for linking. Please use S3 paths (s3://) or File Explorer paths instead.")
-
-        # Validate path requirements
-        if not path.startswith("s3://") and not project_name:
-            raise click.UsageError("When using File Explorer paths, '--project-name' must be provided.")
-
-        # Use the same validation logic as datasets link command
-        is_s3 = path.startswith("s3://")
-        is_folder = True
-
-        if is_s3:
-            # S3 path validation
-            try:
-                if path.endswith('/'):
-                    is_folder = True
-                else:
-                    path_parts = path.rstrip("/").split("/")
-                    if path_parts:
-                        last_part = path_parts[-1]
-                        if '.' not in last_part:
-                            is_folder = True
-                        else:
-                            is_folder = None
-                    else:
-                        is_folder = None
-            except Exception:
-                is_folder = None
-        else:
-            # File Explorer path validation
-            try:
-                datasets = Datasets(
-                    cloudos_url=self.cloudos_url,
-                    apikey=self.apikey,
-                    workspace_id=self.workspace_id,
-                    project_name=project_name,
-                    verify=verify_ssl,
-                    cromwell_token=None
-                )
-                parts = path.strip("/").split("/")
-                parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
-                item_name = parts[-1]
-                contents = datasets.list_folder_content(parent_path)
-                found = None
-                for item in contents.get("folders", []):
-                    if item.get("name") == item_name:
-                        found = item
-                        break
-                if not found:
-                    for item in contents.get("files", []):
-                        if item.get("name") == item_name:
-                            found = item
-                            break
-                if found:
-                    if "folderType" not in found:
-                        # This is a file
-                        is_folder = "file"
-                    elif found.get("folderType") == "VirtualFolder":
-                        # This is a virtual folder (cannot be linked)
-                        is_folder = "virtual_folder"
-                else:
-                    # Item not found in File Explorer
-                    is_folder = "not_found"
-            except Exception:
-                is_folder = None
-
-        if is_folder == "file":
-            if is_s3:
-                raise ValueError("The path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
-            else:
-                raise ValueError("The path points to a file. Only folders can be linked. Please link the parent folder instead.")
-        elif is_folder == "virtual_folder":
-            raise ValueError("The path points to a virtual folder, which cannot be linked. Virtual folders exist only in File Explorer and don't have physical storage locations. Please link an S3 folder or a regular File Explorer folder instead.")
-        elif is_folder == "not_found":
-            raise ValueError(f"The specified path '{path}' was not found in File Explorer. Please verify the path exists and try again.")
-        elif is_folder is None:
-            if is_s3:
-                click.secho("Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
-                           "however, if the operation fails, please confirm that you are linking a folder rather than a file.", 
-                           fg='yellow', bold=True)
-            else:
-                click.secho("Unable to verify the File Explorer path. Proceeding with linking; " +
-                           "however, if the operation fails, please verify the path exists and is a folder.", 
-                           fg='yellow', bold=True)
-
-        if verbose:
-            print('\tLinking {path}...')
-
-        self.link_folder(path, session_id)
 
