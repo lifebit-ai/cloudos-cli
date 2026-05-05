@@ -2342,7 +2342,8 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p><strong>Data &amp; Storage Management:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--mount</span></code>: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: <code class="docutils literal notranslate"><span class="pre">project_name/dataset_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/Data/file.csv</span></code>) or <code class="docutils literal notranslate"><span class="pre">s3://bucket/path/to/file</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>). Can be used multiple times.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders and Lifebit Platform folders. Format: <code class="docutils literal notranslate"><span class="pre">s3://bucket/prefix</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) or <code class="docutils literal notranslate"><span class="pre">project_name/folder_path</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">leila-test/AnalysesResults/analysis_id/results</span></code>). Can be used multiple times. <strong>Note:</strong> Linking is not supported on Azure. Use Lifebit Platform file explorer for data access.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a folder into the session for read/write access (AWS only). Supports S3 folders (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) and File Explorer folders (e.g., <code class="docutils literal notranslate"><span class="pre">my-project/Data/results</span></code>). Multiple folders can be specified using multiple <code class="docutils literal notranslate"><span class="pre">--link</span></code> flags or as comma-separated paths in a single <code class="docutils literal notranslate"><span class="pre">--link</span></code> argument.
+<strong>Note:</strong> Linking is not supported on Azure. Use Lifebit Platform File Explorer for data access.</p></li>
 </ul>
 <p><strong>Backend-Specific:</strong></p>
 <ul class="simple">
@@ -2355,8 +2356,8 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p><strong>Data Management</strong></p>
 <p>CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:</p>
 <ul class="simple">
-<li><p>you can load data directly into the session (i.e. files are copied into the session’s mounted-data volume)</p></li>
-<li><p>you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments.</p></li>
+<li><p><strong>Mount files</strong> (<code class="docutils literal notranslate"><span class="pre">--mount</span></code>): Files are copied into the session’s mounted-data volume. Supports CloudOS File Explorer files and S3 files (AWS only).</p></li>
+<li><p><strong>Link folders</strong> (<code class="docutils literal notranslate"><span class="pre">--link</span></code>): Folders are mounted as read/write accessible directories in the session (AWS only). Supports both S3 folders and Lifebit Platform File Explorer folders. Linked folders appear with unique mount names based on the folder path.</p></li>
 </ul>
 <p><strong>Data Mounting Examples</strong></p>
 <p>Mount a file from File Explorer:</p>
@@ -2367,7 +2368,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="w">  </span>--mount<span class="w"> </span><span class="s2">&quot;my_project/training_data.csv&quot;</span>
 </pre></div>
 </div>
-<p>Link an S3 bucket:</p>
+<p>Link an S3 folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;S3 Access&quot;</span><span class="w"> </span><span class="se">\</span>
@@ -2375,13 +2376,30 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://my-results-bucket/output/&quot;</span>
 </pre></div>
 </div>
-<p>Link multiple S3 buckets:</p>
+<p>Link a File Explorer folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-S3 Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;File Explorer Access&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;my-project/Data/results&quot;</span>
+</pre></div>
+</div>
+<p>Link multiple folders (using multiple –link flags):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-Folder Session&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://input-bucket/data/&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://output-bucket/results/&quot;</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://output-bucket/results/&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;my-project/AnalysesResults/analysis_123/output&quot;</span>
+</pre></div>
+</div>
+<p>Link multiple folders (using comma-separated paths):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-Folder Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://bucket-1/data/,s3://bucket-2/results/,my-project/Data/analysis&quot;</span>
 </pre></div>
 </div>
 <p>This will show progress updates like:</p>
@@ -2864,7 +2882,7 @@ If a file was uploaded by the user, in order to be removed you must use  <code c
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">--results</span></code>, <code class="docutils literal notranslate"><span class="pre">--workdir</span></code>, or <code class="docutils literal notranslate"><span class="pre">--logs</span></code> flags to link only specific folders</p></li>
 </ul>
 </li>
-<li><p><strong>Direct path linking</strong> (PATH argument): Links a specific S3 path</p></li>
+<li><p><strong>Direct path linking</strong> (PATH argument): Links specific S3 or File Explorer paths. It supports a single path or comma-separated multiple paths.</p></li>
 </ol>
 <p><strong>Basic usage:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Link all job folders (results, workdir, logs) - default behavior</span>
@@ -2874,8 +2892,11 @@ cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="
 cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>&lt;JOB_ID&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--results<span class="w"> </span>--profile<span class="w"> </span>my_profile
 cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>&lt;JOB_ID&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--workdir<span class="w"> </span>--logs<span class="w"> </span>--profile<span class="w"> </span>my_profile
 
-<span class="c1"># Link a specific S3 path</span>
+<span class="c1"># Link a single S3 path</span>
 cloudos<span class="w"> </span>link<span class="w"> </span>s3://bucket/folder<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link multiple S3 paths (comma-separated)</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>s3://bucket1/data,s3://bucket2/results,s3://bucket3/output<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
 
 <span class="c1"># Link a File Explorer path (requires project name)</span>
 cloudos<span class="w"> </span>link<span class="w"> </span><span class="s2">&quot;Data/MyFolder&quot;</span><span class="w"> </span>--project-name<span class="w"> </span>my-project<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;<span class="w"> </span>--profile<span class="w"> </span>my_profile
@@ -2883,7 +2904,7 @@ cloudos<span class="w"> </span>link<span class="w"> </span><span class="s2">&quo
 </div>
 <p><strong>Command options:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">PATH</span></code>: S3 path to link (positional argument, required if <code class="docutils literal notranslate"><span class="pre">--job-id</span></code> is not provided)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PATH</span></code>: S3 or File Explorer path(s) to link (positional argument, required if <code class="docutils literal notranslate"><span class="pre">--job-id</span></code> is not provided). Supports comma-separated multiple paths for batch linking (e.g., <code class="docutils literal notranslate"><span class="pre">s3://bucket1/path1,s3://bucket2/path2</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--apikey</span></code> / <code class="docutils literal notranslate"><span class="pre">-k</span></code>: Your Lifebit Platform API key (required)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--cloudos-url</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span></code>: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--workspace-id</span></code>: The specific Lifebit Platform workspace ID (required)</p></li>
@@ -2908,8 +2929,14 @@ cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="
 <span class="c1"># Link workdir and logs (but not results)</span>
 cloudos<span class="w"> </span>link<span class="w"> </span>--job-id<span class="w"> </span>62c83a1191fe06013b7ef355<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--workdir<span class="w"> </span>--logs<span class="w"> </span>--profile<span class="w"> </span>my_profile
 
-<span class="c1"># Link an S3 bucket folder</span>
+<span class="c1"># Link a single S3 bucket folder</span>
 cloudos<span class="w"> </span>link<span class="w"> </span>s3://my-bucket/analysis-results/2024<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Link multiple S3 folders in one command</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>s3://bucket1/data,s3://bucket2/results,s3://bucket3/final-output<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--profile<span class="w"> </span>my_profile
+
+<span class="c1"># Mix different S3 prefixes from the same or different buckets</span>
+cloudos<span class="w"> </span>link<span class="w"> </span>s3://lifebit-datasets/pipelines/vep/,s3://lifebit-datasets/pipelines/phewas/,s3://my-results/output/<span class="w"> </span>--session-id<span class="w"> </span>abc123<span class="w"> </span>--profile<span class="w"> </span>my_profile
 </pre></div>
 </div>
 <p><strong>Error handling:</strong></p>

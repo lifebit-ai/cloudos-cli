@@ -4,3 +4,9 @@ cloudos\_cli.interactive\_session.cli
 .. automodule:: cloudos_cli.interactive_session.cli
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      validate_file_explorer_folder
+   

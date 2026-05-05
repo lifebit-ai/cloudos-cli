@@ -1767,7 +1767,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-link">
 <span class="sig-name descname"><span class="pre">--link</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;link&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-link" title="Link to this definition">¶</a></dt>
-<dd><p>Link a folder into the session for read/write access. Supports S3 folders and Lifebit Platform folders. Format: s3://bucket/prefix (e.g., s3://my-bucket/data/) or project_name/folder_path (e.g., leila-test/Data). Legacy format: mountName:bucketName:s3Prefix. Can be used multiple times.</p>
+<dd><p>Link a folder into the session for read access. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use –link multiple times. Examples: –link s3://bucket/data/,my-project/Data/results OR –link s3://bucket1/path/ –link my-project/Data</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2114,7 +2114,7 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-link">
 <span class="sig-name descname"><span class="pre">--link</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;link&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-link" title="Link to this definition">¶</a></dt>
-<dd><p>Link additional folder. Format: s3://bucket/prefix or project_name/folder_path. Can be used multiple times.</p>
+<dd><p>Link additional folder. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use –link multiple times. Examples: –link s3://bucket/data/,my-project/Data/results OR –link s3://bucket1/path/ –link my-project/Data</p>
 </dd></dl>
 
 <dl class="std option">
@@ -3799,7 +3799,9 @@ E.g.: ‘s3://bucket-name/folder/subfolder’, ‘Data/Downloads’ or ‘Data�
 <p>This command is used to link folders
 to an active interactive analysis session for direct access to data.</p>
 <dl class="simple">
-<dt>PATH: Optional path to link (S3).</dt><dd><p>Required if –job-id is not provided.</p>
+<dt>PATH: Optional path(s) to link (S3 or File Explorer).</dt><dd><p>Required if –job-id is not provided.
+Supports comma-separated list for multiple paths.
+File Explorer paths must include project name (project-name/folder/path).</p>
 </dd>
 </dl>
 <p>Two modes of operation:</p>
@@ -3807,7 +3809,9 @@ to an active interactive analysis session for direct access to data.</p>
 <li><p>Job-based linking (–job-id): Links job-related folders.
 By default, links results, workdir, and logs folders.
 Use –results, –workdir, or –logs flags to link only specific folders.</p></li>
-<li><p>Direct path linking (PATH argument): Links a specific S3 path.</p></li>
+<li><p>Direct path linking (PATH argument): Links specific path(s).
+Supports S3 paths and Lifebit Platform File Explorer paths.
+Both S3 and File Explorer paths can be combined.</p></li>
 </ol>
 <p>Examples:</p>
 <blockquote>
@@ -3815,8 +3819,14 @@ Use –results, –workdir, or –logs flags to link only specific folders.</p><
 cloudos link –job-id 12345 –session-id abc123</p>
 <p># Link only results from a job
 cloudos link –job-id 12345 –session-id abc123 –results</p>
-<p># Link a specific S3 path
+<p># Link a single S3 path
 cloudos link s3://bucket/folder –session-id abc123</p>
+<p># Link multiple S3 paths (comma-separated)
+cloudos link s3://bucket1/path1,s3://bucket2/path2,s3://bucket3/path3 –session-id abc123</p>
+<p># Link a File Explorer folder (requires –project-name)
+cloudos link project-name/Data/folder –session-id abc123 –project-name project-name</p>
+<p># Combine S3 and File Explorer paths
+cloudos link s3://bucket/data/,my-project/Data/results –session-id abc123 –project-name my-project</p>
 </div></blockquote>
 <p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>link<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PATH<span class="o">]</span>

@@ -1663,21 +1663,36 @@
         <span class="k">if</span> <span class="n">mounted_files</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Mounted Data&quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mounted_files</span><span class="p">))</span>
 
-    <span class="c1"># Display linked S3 buckets</span>
+    <span class="c1"># Display linked S3 buckets and File Explorer folders</span>
     <span class="k">if</span> <span class="n">s3_mounts</span><span class="p">:</span>
         <span class="n">linked_s3</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">linked_file_explorer</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">s3</span> <span class="ow">in</span> <span class="n">s3_mounts</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="p">{})</span>
-                <span class="n">bucket</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                <span class="n">prefix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                <span class="c1"># For Lifebit Platform mounts, show project/path; for S3, show bucket/path</span>
-                <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="n">bucket</span><span class="p">:</span>
-                    <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">bucket</span><span class="p">:</span>
-                    <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)</span>
+                <span class="c1"># Check if this is a File Explorer folder</span>
+                <span class="k">if</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_isFileExplorer&#39;</span><span class="p">):</span>
+                    <span class="n">original_path</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_originalPath&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">original_path</span><span class="p">:</span>
+                        <span class="n">linked_file_explorer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File Explorer: </span><span class="si">{</span><span class="n">original_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Regular S3 folder</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="n">bucket</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">prefix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="n">bucket</span><span class="p">:</span>
+                        <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">bucket</span><span class="p">:</span>
+                        <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Display both types if present</span>
+        <span class="n">all_linked</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">linked_s3</span><span class="p">:</span>
-            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Linked S3&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">linked_s3</span><span class="p">))</span>
+            <span class="n">all_linked</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">linked_s3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">linked_file_explorer</span><span class="p">:</span>
+            <span class="n">all_linked</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">linked_file_explorer</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">all_linked</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Linked Folders&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_linked</span><span class="p">))</span>
 
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.&quot;</span><span class="p">)</span>

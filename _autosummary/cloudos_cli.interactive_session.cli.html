@@ -172,7 +172,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -377,7 +377,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
@@ -385,6 +385,38 @@
           <section id="module-cloudos_cli.interactive_session.cli">
 <span id="cloudos-cli-interactive-session-cli"></span><h1>cloudos_cli.interactive_session.cli<a class="headerlink" href="#module-cloudos_cli.interactive_session.cli" title="Link to this heading">¶</a></h1>
 <p>CLI commands for Lifebit Platform interactive session management.</p>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.cli.validate_file_explorer_folder" title="cloudos_cli.interactive_session.cli.validate_file_explorer_folder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_file_explorer_folder</span></code></a>(cloudos_url, ...)</p></td>
+<td><p>Validate that a File Explorer folder exists and can be linked.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.cli.validate_file_explorer_folder">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.cli.</span></span><span class="sig-name descname"><span class="pre">validate_file_explorer_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloudos_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apikey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workspace_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_ssl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/cli.html#validate_file_explorer_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.cli.validate_file_explorer_folder" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that a File Explorer folder exists and can be linked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cloudos_url</strong> (<em>str</em>) – The CloudOS API URL</p></li>
+<li><p><strong>apikey</strong> (<em>str</em>) – API key for authentication</p></li>
+<li><p><strong>workspace_id</strong> (<em>str</em>) – Workspace ID</p></li>
+<li><p><strong>folder_project</strong> (<em>str</em>) – Project name containing the folder</p></li>
+<li><p><strong>folder_path</strong> (<em>str</em>) – Path to the folder within the project</p></li>
+<li><p><strong>link_path</strong> (<em>str</em>) – Original link path (for error messages)</p></li>
+<li><p><strong>verify_ssl</strong> (<em>bool</em>) – SSL verification setting</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If folder doesn’t exist, is virtual, is empty, or project not found</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -430,8 +462,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">cloudos_cli.interactive_session.cli</a><ul>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.cli.validate_file_explorer_folder"><code class="docutils literal notranslate"><span class="pre">validate_file_explorer_folder()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
