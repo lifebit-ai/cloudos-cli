@@ -74,6 +74,7 @@ def link(ctx,
     PATH: Optional path(s) to link (S3 or File Explorer). 
           Required if --job-id is not provided.
           Supports comma-separated list for multiple paths.
+          File Explorer paths must include project name (project-name/folder/path).
 
     Two modes of operation:
 
@@ -83,6 +84,7 @@ def link(ctx,
 
     2. Direct path linking (PATH argument): Links specific path(s).
        Supports S3 paths and Lifebit Platform File Explorer paths.
+       Both S3 and File Explorer paths can be combined.
 
     Examples:
 
@@ -98,8 +100,11 @@ def link(ctx,
         # Link multiple S3 paths (comma-separated)
         cloudos link s3://bucket1/path1,s3://bucket2/path2,s3://bucket3/path3 --session-id abc123
 
-        # Link a File Explorer folder
+        # Link a File Explorer folder (requires --project-name)
         cloudos link project-name/Data/folder --session-id abc123 --project-name project-name
+
+        # Combine S3 and File Explorer paths
+        cloudos link s3://bucket/data/,my-project/Data/results --session-id abc123 --project-name my-project
 
     """
     print('Lifebit Platform link functionality: link s3 folders to interactive analysis sessions.\n')

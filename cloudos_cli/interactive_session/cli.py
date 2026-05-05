@@ -283,7 +283,7 @@ def list_sessions(ctx,
               help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read access. Supports S3 folders (e.g., s3://my-bucket/data/) and File Explorer folders (e.g., project-name/Data/results). Multiple paths can be provided as comma-separated values or by using --link multiple times. Examples: --link s3://bucket/path1/,s3://bucket/path2/ OR --link project/folder1 --link project/folder2')
+              help='Link a folder into the session for read access. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -1127,7 +1127,7 @@ def pause_session(ctx,
               help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link additional folder. Supports S3 (e.g., s3://bucket/path/) and File Explorer folders (e.g., project/Data). Multiple paths can be provided as comma-separated values or by using --link multiple times.')
+              help='Link additional folder. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
