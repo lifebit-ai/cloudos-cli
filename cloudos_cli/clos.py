@@ -2548,4 +2548,71 @@ class Cloudos:
         # Return the status code (204 No Content is success)
         return r.status_code
     
+    def mount_fuse_filesystem_v2(self, session_id, team_id, payload, verify=True):
+        """Mount a FUSE filesystem into an interactive session (API v2).
+
+        Parameters
+        ----------
+        session_id : string
+            The session ID (MongoDB ObjectId) to mount filesystem to.
+        team_id : string
+            The CloudOS team id (workspace id).
+        payload : dict
+            FuseFileSystemMount payload with dataItems array configuration.
+            For S3: {"dataItems": [{"type": "S3Folder", "data": {"name": str, "s3BucketName": str, "s3Prefix": str}}, ...]}
+            For File Explorer: {"dataItems": [{"kind": "Folder", "item": str, "name": str}, ...]}
+        verify: [bool|string], default=True
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        int
+            HTTP status code (204 for successful mount, no content returned).
+        """
+        # Validate inputs
+        if not session_id or not isinstance(session_id, str):
+            raise ValueError("Invalid session_id: must be a non-empty string")
+        if not team_id or not isinstance(team_id, str):
+            raise ValueError("Invalid team_id: must be a non-empty string")
+
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+
+        # Build URL with v2 endpoint and teamId query parameter
+        url = f"{self.cloudos_url}/api/v2/interactive-sessions/{session_id}/fuse-filesystem/mount?teamId={team_id}"
+        
+        # Make the API request with POST method
+        try:
+            r = retry_requests_post(
+                url,
+                headers=headers,
+                json=payload,
+                verify=verify,
+                timeout=30
+            )
+        except Exception as e:
+            raise Exception(f"Failed to mount FUSE filesystem: {str(e)}")
+        
+        if r.status_code >= 400:
+            if r.status_code == 404:
+                # Try to determine if it's a missing session or missing endpoint
+                try:
+                    error_body = r.json() if r.content else {}
+                    error_message = error_body.get("message", "").lower()
+                    # If error mentions session, it's a session-not-found error
+                    if "session" in error_message:
+                        raise ValueError(f"Session not found: {session_id}")
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+                # Otherwise, likely endpoint not available - raise generic 404
+                raise BadRequestException(r)
+            raise BadRequestException(r)
+        
+        # Return the status code (204 No Content is success)
+        return r.status_code
+    
 

@@ -947,7 +947,7 @@ jobs:
         CLOUDOS_URL: "https://cloudos.lifebit.ai"
         PROJECT_NAME: "cloudos-cli-tests"
         SESSION_NAME: "ci_test_cli"
-        SESSION_TYPE: "jupyter"
+        SESSION_TYPE: "vscode"
         SHUTDOWN_IN: "10m"
       run: |
         cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name $SESSION_NAME --session-type $SESSION_TYPE --shutdown-in $SHUTDOWN_IN 2>&1 | tee out.txt

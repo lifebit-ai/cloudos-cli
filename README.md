@@ -2148,7 +2148,8 @@ cloudos interactive-session create \
 
 **Data & Storage Management:**
 - `--mount`: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders and Lifebit Platform folders. Format: `s3://bucket/prefix` (e.g., `s3://my-bucket/data/`) or `project_name/folder_path` (e.g., `leila-test/AnalysesResults/analysis_id/results`). Can be used multiple times. **Note:** Linking is not supported on Azure. Use Lifebit Platform file explorer for data access.
+- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders (e.g., `s3://my-bucket/data/`) and File Explorer folders (e.g., `my-project/Data/results`). Multiple folders can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument. 
+**Note:** Linking is not supported on Azure. Use Lifebit Platform File Explorer for data access.
 
 **Backend-Specific:**
 - `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
@@ -2161,8 +2162,8 @@ cloudos interactive-session create \
 **Data Management**
 
 CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
-- you can load data directly into the session (i.e. files are copied into the session's mounted-data volume)
-- you can link folders to your session  (i.e the folders are sym-linked to the session). This works only for folders (S3-based) and only in AWS enviornments. 
+- **Mount files** (`--mount`): Files are copied into the session's mounted-data volume. Supports CloudOS File Explorer files and S3 files (AWS only).
+- **Link folders** (`--link`): Folders are mounted as read/write accessible directories in the session (AWS only). Supports both S3 folders and Lifebit Platform File Explorer folders. Linked folders appear with unique mount names based on the folder path. 
 
 
 **Data Mounting Examples**
@@ -2177,7 +2178,7 @@ cloudos interactive-session create \
   --mount "my_project/training_data.csv"
 ```
 
-Link an S3 bucket:
+Link an S3 folder:
 
 ```bash
 cloudos interactive-session create \
@@ -2187,15 +2188,36 @@ cloudos interactive-session create \
   --link "s3://my-results-bucket/output/"
 ```
 
-Link multiple S3 buckets:
+Link a File Explorer folder:
 
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --name "Multi-S3 Session" \
+  --name "File Explorer Access" \
+  --session-type jupyter \
+  --link "my-project/Data/results"
+```
+
+Link multiple folders (using multiple --link flags):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-Folder Session" \
   --session-type jupyter \
   --link "s3://input-bucket/data/" \
-  --link "s3://output-bucket/results/"
+  --link "s3://output-bucket/results/" \
+  --link "my-project/AnalysesResults/analysis_123/output"
+```
+
+Link multiple folders (using comma-separated paths):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Multi-Folder Session" \
+  --session-type jupyter \
+  --link "s3://bucket-1/data/,s3://bucket-2/results/,my-project/Data/analysis"
 ```
 
 
@@ -2762,7 +2784,8 @@ Link job-related folders or custom S3 paths to your interactive analysis session
    - By default, links results, workdir, and logs folders
    - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
 
-2. **Direct path linking** (PATH argument): Links a specific S3 path
+2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths. It supports a single path or comma-separated multiple paths.
+   
 
 **Basic usage:**
 
@@ -2774,8 +2797,11 @@ cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
 
-# Link a specific S3 path
+# Link a single S3 path
 cloudos link s3://bucket/folder --session-id <SESSION_ID> --profile my_profile
+
+# Link multiple S3 paths (comma-separated)
+cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/output --session-id <SESSION_ID> --profile my_profile
 
 # Link a File Explorer path (requires project name)
 cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
@@ -2783,7 +2809,8 @@ cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID>
 
 **Command options:**
 
-- `PATH`: S3 path to link (positional argument, required if `--job-id` is not provided)
+
+- `PATH`: S3 or File Explorer path(s) to link (positional argument, required if `--job-id` is not provided). Supports comma-separated multiple paths for batch linking (e.g., `s3://bucket1/path1,s3://bucket2/path2`)
 - `--apikey` / `-k`: Your Lifebit Platform API key (required)
 - `--cloudos-url` / `-c`: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)
 - `--workspace-id`: The specific Lifebit Platform workspace ID (required)
@@ -2810,9 +2837,14 @@ cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --results --p
 # Link workdir and logs (but not results)
 cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --logs --profile my_profile
 
-# Link an S3 bucket folder
+# Link a single S3 bucket folder
 cloudos link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
 
+# Link multiple S3 folders in one command
+cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/final-output --session-id abc123 --profile my_profile
+
+# Mix different S3 prefixes from the same or different buckets
+cloudos link s3://lifebit-datasets/pipelines/vep/,s3://lifebit-datasets/pipelines/phewas/,s3://my-results/output/ --session-id abc123 --profile my_profile
 ```
 
 **Error handling:**

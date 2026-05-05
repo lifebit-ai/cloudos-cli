@@ -71,8 +71,10 @@ def link(ctx,
     This command is used to link folders
     to an active interactive analysis session for direct access to data.
 
-    PATH: Optional path to link (S3). 
+    PATH: Optional path(s) to link (S3 or File Explorer). 
           Required if --job-id is not provided.
+          Supports comma-separated list for multiple paths.
+          File Explorer paths must include project name (project-name/folder/path).
 
     Two modes of operation:
 
@@ -80,7 +82,9 @@ def link(ctx,
        By default, links results, workdir, and logs folders.
        Use --results, --workdir, or --logs flags to link only specific folders.
 
-    2. Direct path linking (PATH argument): Links a specific S3 path.
+    2. Direct path linking (PATH argument): Links specific path(s).
+       Supports S3 paths and Lifebit Platform File Explorer paths.
+       Both S3 and File Explorer paths can be combined.
 
     Examples:
 
@@ -90,8 +94,17 @@ def link(ctx,
         # Link only results from a job
         cloudos link --job-id 12345 --session-id abc123 --results
 
-        # Link a specific S3 path
+        # Link a single S3 path
         cloudos link s3://bucket/folder --session-id abc123
+
+        # Link multiple S3 paths (comma-separated)
+        cloudos link s3://bucket1/path1,s3://bucket2/path2,s3://bucket3/path3 --session-id abc123
+
+        # Link a File Explorer folder (requires --project-name)
+        cloudos link project-name/Data/folder --session-id abc123 --project-name project-name
+
+        # Combine S3 and File Explorer paths
+        cloudos link s3://bucket/data/,my-project/Data/results --session-id abc123 --project-name my-project
 
     """
     print('Lifebit Platform link functionality: link s3 folders to interactive analysis sessions.\n')
@@ -157,13 +170,25 @@ def link(ctx,
 
 
         else:
-            # Direct path linking
-            print(f'Linking path to interactive session {session_id}...\n')
+            # Direct path linking (supports comma-separated multiple paths)
+            # Split paths by comma and strip whitespace
+            paths = [p.strip() for p in path.split(',') if p.strip()]
+            
+            if len(paths) == 0:
+                raise click.UsageError("No valid paths provided.")
+            
+            if len(paths) == 1:
+                print(f'Linking path to interactive session {session_id}...\n')
+            else:
+                print(f'Linking {len(paths)} paths to interactive session {session_id}...\n')
 
-            # Link path with validation
-            link_client.link_path_with_validation(path, session_id, verify_ssl, project_name, verbose)
-
-            print('\nLinking operation completed.')
+            # Link all paths in one batch (v2 API will send them together)
+            try:
+                link_client.link_folders_batch(paths, session_id)
+                print('\nLinking operation completed successfully!')
+            except Exception as e:
+                click.secho(f'\n✗ Failed: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
 
     except BadRequestException as e:
         raise ValueError(f"Request failed: {str(e)}")
