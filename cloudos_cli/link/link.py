@@ -453,120 +453,11 @@ class Link(Cloudos):
             }
         }
 
-    def _validate_and_parse_file_explorer_path(self, path: str) -> dict:
-        """Validate and parse a File Explorer path with detailed error messages.
-        
-        Parameters
-        ----------
-        path : str
-            The File Explorer path (e.g., 'project/Data/folder')
-            
-        Returns
-        -------
-        dict
-            Parsed dataItem structure
-            
-        Raises
-        ------
-        ValueError
-            If project doesn't exist, folder doesn't exist, or is invalid type
-        """
-        # Parse the path to extract project and folder path
-        parts = path.strip("/").split("/")
-        if len(parts) < 1:
-            raise ValueError(f"Invalid File Explorer path: '{path}'. Expected format: project_name/folder_path")
-        
-        project_from_path = parts[0]
-        folder_path = "/".join(parts[1:]) if len(parts) > 1 else ""
-        
-        # Check if project exists
-        from cloudos_cli.datasets.datasets import Datasets
-        try:
-            datasets = Datasets(
-                cloudos_url=self.cloudos_url,
-                apikey=self.apikey,
-                workspace_id=self.workspace_id,
-                project_name=project_from_path,
-                verify=self.verify,
-                cromwell_token=None
-            )
-            # Try to access project - this will fail if project doesn't exist
-            _ = datasets.list_folder_content("")
-        except Exception as e:
-            error_msg = str(e)
-            if "404" in error_msg or "not found" in error_msg.lower():
-                raise ValueError(
-                    f"Project '{project_from_path}' not found. "
-                    f"Please verify the project name exists in your workspace."
-                )
-            else:
-                raise ValueError(
-                    f"Failed to access project '{project_from_path}': {error_msg}"
-                )
-        
-        # If there's a folder path, validate it exists
-        if folder_path:
-            try:
-                parent_path = "/".join(parts[1:-1]) if len(parts) > 2 else ""
-                item_name = parts[-1]
-                contents = datasets.list_folder_content(parent_path)
-                
-                # Check if the folder exists
-                found = None
-                for item in contents.get("folders", []):
-                    if item.get("name") == item_name:
-                        found = item
-                        break
-                
-                if not found:
-                    raise ValueError(
-                        f"Folder '{item_name}' not found at path '{parent_path}' in project '{project_from_path}'. "
-                        f"Please verify the folder exists using 'cloudos datasets ls --project-name {project_from_path}'."
-                    )
-                
-                # Check if it's a virtual folder
-                if found.get("folderType") == "VirtualFolder":
-                    raise ValueError(
-                        f"The folder '{path}' is a virtual folder and cannot be linked. "
-                        f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
-                    )
-            except ValueError:
-                raise  # Re-raise our custom ValueError messages
-            except Exception as e:
-                raise ValueError(
-                    f"Failed to validate folder '{path}': {str(e)}"
-                )
-        
-        # Get folder id
-        try:
-            folder_id = get_file_or_folder_id(
-                self.cloudos_url,
-                self.apikey,
-                self.workspace_id,
-                project_from_path,
-                self.verify,
-                folder_path if folder_path else "",
-                "",
-                is_file=False
-            )
-        except Exception as e:
-            raise ValueError(
-                f"Failed to get folder ID for '{path}': {str(e)}. "
-                f"Please verify the path is correct."
-            )
-        
-        return {
-            "dataItem": {
-                "kind": "Folder",
-                "item": f"{folder_id}",
-                "name": f"{parts[-1]}"
-            }
-        }
-    
     def parse_file_explorer_path(self, path):
-        """Legacy method - use _validate_and_parse_file_explorer_path for new code.
+        """Parse a File Explorer path and return folder metadata.
         
-        Parses a file path and returns the base name and full path.
+        Note: This method does basic parsing only. Validation of folder existence
+        should be done separately in the calling code if needed.
 
         Parameters
         ----------
@@ -575,12 +466,9 @@ class Link(Cloudos):
 
         Returns
         -------
-        dict: A dictionary containing the parsed file information structured as:
-                "dataItem": {
-                    "type": "File",
-                    "data": {
-                        "name": str,          # The base name of the file.
-                        "fullPath": str      # The full path of the file.
+        dict
+            A dictionary containing the parsed file information structured as:
+            {"dataItem": {"type": "File", "data": {"name": str, "fullPath": str}}}
         """
         # get folder id
         folder_id = get_file_or_folder_id(

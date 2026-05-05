@@ -36,6 +36,81 @@ from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
+def validate_file_explorer_folder(cloudos_url, apikey, workspace_id, folder_project, 
+                                  folder_path, link_path, verify_ssl):
+    """Validate that a File Explorer folder exists and can be linked.
+    
+    Parameters
+    ----------
+    cloudos_url : str
+        The CloudOS API URL
+    apikey : str
+        API key for authentication
+    workspace_id : str
+        Workspace ID
+    folder_project : str
+        Project name containing the folder
+    folder_path : str
+        Path to the folder within the project
+    link_path : str
+        Original link path (for error messages)
+    verify_ssl : bool
+        SSL verification setting
+        
+    Raises
+    ------
+    ValueError
+        If folder doesn't exist, is virtual, is empty, or project not found
+    """
+    datasets_api = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=folder_project,
+        verify=verify_ssl,
+        cromwell_token=None
+    )
+    # Validate project and folder exist
+    _ = datasets_api.list_folder_content("")  # Check if project accessible
+    
+    # If there's a folder path, validate it exists
+    if folder_path:
+        folder_parts = folder_path.strip("/").split("/")
+        parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
+        item_name = folder_parts[-1]
+        contents = datasets_api.list_folder_content(parent_path)
+        
+        # Check if the folder exists
+        found = None
+        for item in contents.get("folders", []):
+            if item.get("name") == item_name:
+                found = item
+                break
+        
+        if not found:
+            raise ValueError(
+                f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
+                f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
+            )
+        
+        # Check if it's a virtual folder
+        if found.get("folderType") == "VirtualFolder":
+            raise ValueError(
+                f"The folder '{link_path}' is a virtual folder and cannot be linked. "
+                f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
+            )
+        
+        # Check if the folder is empty
+        folder_contents = datasets_api.list_folder_content(folder_path)
+        has_files = len(folder_contents.get("files", [])) > 0
+        has_folders = len(folder_contents.get("folders", [])) > 0
+        if not has_files and not has_folders:
+            raise ValueError(
+                f"The folder '{link_path}' is empty and cannot be linked. "
+                f"Please add files or subfolders to this folder before linking it."
+            )
+
+
 # Create the interactive_session group
 @click.group(cls=pass_debug_to_subcommands())
 def interactive_session():
@@ -468,6 +543,7 @@ def create_session(ctx,
             all_link_paths.extend(paths)
         
         mount_names_seen = {}  # Track mount names to detect duplicates
+        s3_mount_display_info = {}  # Track File Explorer paths for display (not sent to API)
         for link_path in all_link_paths:
             try:
                 # Block all linking on Azure platforms
@@ -520,55 +596,12 @@ def create_session(ctx,
                     folder_path = parsed['folder_path']
                     if verbose:
                         print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
-                    # Create Datasets API instance for this project
+                    # Validate folder using helper function
                     try:
-                        datasets_api = Datasets(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=folder_project,
-                            verify=verify_ssl,
-                            cromwell_token=None
+                        validate_file_explorer_folder(
+                            cloudos_url, apikey, workspace_id,
+                            folder_project, folder_path, link_path, verify_ssl
                         )
-                        # Validate project and folder exist
-                        _ = datasets_api.list_folder_content("")  # Check if project accessible
-                        
-                        # If there's a folder path, validate it exists
-                        if folder_path:
-                            folder_parts = folder_path.strip("/").split("/")
-                            parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
-                            item_name = folder_parts[-1]
-                            contents = datasets_api.list_folder_content(parent_path)
-                            
-                            # Check if the folder exists
-                            found = None
-                            for item in contents.get("folders", []):
-                                if item.get("name") == item_name:
-                                    found = item
-                                    break
-                            
-                            if not found:
-                                raise ValueError(
-                                    f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
-                                    f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
-                                )
-                            
-                            # Check if it's a virtual folder
-                            if found.get("folderType") == "VirtualFolder":
-                                raise ValueError(
-                                    f"The folder '{link_path}' is a virtual folder and cannot be linked. "
-                                    f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
-                                )
-                            
-                            # Check if the folder is empty
-                            folder_contents = datasets_api.list_folder_content(folder_path)
-                            has_files = len(folder_contents.get("files", [])) > 0
-                            has_folders = len(folder_contents.get("folders", [])) > 0
-                            if not has_files and not has_folders:
-                                raise ValueError(
-                                    f"The folder '{link_path}' is empty and cannot be linked. "
-                                    f"Please add files or subfolders to this folder before linking it."
-                                )
                     except ValueError:
                         raise  # Re-raise our validation errors
                     except Exception as e:
@@ -595,17 +628,22 @@ def create_session(ctx,
                         raise SystemExit(1)
                     mount_names_seen[mount_name] = link_path
                     
+                    # API payload - no display markers
                     cloudos_mount_item = {
                         "type": "S3Folder",
                         "data": {
                             "name": mount_name,
                             "s3BucketName": folder_project,
                             "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                        },
-                        "_isFileExplorer": True,  # Marker for display formatting
-                        "_originalPath": f"{folder_project}/{folder_path}"  # Original path for display
+                        }
                     }
                     parsed_s3_mounts.append(cloudos_mount_item)
+                    
+                    # Track display info separately (not sent to API)
+                    s3_mount_display_info[mount_name] = {
+                        "is_file_explorer": True,
+                        "original_path": f"{folder_project}/{folder_path}"
+                    }
 
                     if verbose:
                         print(f'\t  ✓ Linked Lifebit Platform folder: {mount_name}')
@@ -613,6 +651,20 @@ def create_session(ctx,
             except Exception as e:
                 click.secho(f'Error: Failed to link folder: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
+
+        # Create display version of s3_mounts with File Explorer markers
+        s3_mounts_for_display = []
+        for mount in parsed_s3_mounts:
+            mount_name = mount['data']['name']
+            if mount_name in s3_mount_display_info:
+                # Add display markers for File Explorer folders
+                display_mount = mount.copy()
+                display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
+                display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
+                s3_mounts_for_display.append(display_mount)
+            else:
+                # Regular S3 folder - no markers needed
+                s3_mounts_for_display.append(mount)
 
         # Build the session payload
         payload = build_session_payload(
@@ -653,7 +705,7 @@ def create_session(ctx,
             spark_core=spark_core,
             spark_workers=spark_workers,
             data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts,
+            s3_mounts=s3_mounts_for_display,  # Use display version with markers
             shutdown_in=shutdown_in
         )
         # Output session link in greppable format for CI/automation
@@ -1306,55 +1358,12 @@ def resume_session(ctx,
                         folder_path = parsed['folder_path']
                         if verbose:
                             print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
-                        # Create Datasets API instance for this project
+                        # Validate folder using helper function
                         try:
-                            datasets_api = Datasets(
-                                cloudos_url=cloudos_url,
-                                apikey=apikey,
-                                workspace_id=workspace_id,
-                                project_name=folder_project,
-                                verify=verify_ssl,
-                                cromwell_token=None
+                            validate_file_explorer_folder(
+                                cloudos_url, apikey, workspace_id,
+                                folder_project, folder_path, link_path, verify_ssl
                             )
-                            # Validate project and folder exist
-                            _ = datasets_api.list_folder_content("")  # Check if project accessible
-                            
-                            # If there's a folder path, validate it exists
-                            if folder_path:
-                                folder_parts = folder_path.strip("/").split("/")
-                                parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
-                                item_name = folder_parts[-1]
-                                contents = datasets_api.list_folder_content(parent_path)
-                                
-                                # Check if the folder exists
-                                found = None
-                                for item in contents.get("folders", []):
-                                    if item.get("name") == item_name:
-                                        found = item
-                                        break
-                                
-                                if not found:
-                                    raise ValueError(
-                                        f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
-                                        f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
-                                    )
-                                
-                                # Check if it's a virtual folder
-                                if found.get("folderType") == "VirtualFolder":
-                                    raise ValueError(
-                                        f"The folder '{link_path}' is a virtual folder and cannot be linked. "
-                                        f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
-                                    )
-                                
-                                # Check if the folder is empty
-                                folder_contents = datasets_api.list_folder_content(folder_path)
-                                has_files = len(folder_contents.get("files", [])) > 0
-                                has_folders = len(folder_contents.get("folders", [])) > 0
-                                if not has_files and not has_folders:
-                                    raise ValueError(
-                                        f"The folder '{link_path}' is empty and cannot be linked. "
-                                        f"Please add files or subfolders to this folder before linking it."
-                                    )
                         except ValueError:
                             raise  # Re-raise our validation errors
                         except Exception as e:
@@ -1387,9 +1396,7 @@ def resume_session(ctx,
                                 "name": mount_name,
                                 "s3BucketName": folder_project,
                                 "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                            },
-                            "_isFileExplorer": True,  # Marker for display formatting
-                            "_originalPath": f"{folder_project}/{folder_path}"  # Original path for display
+                            }
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
                         if verbose:
