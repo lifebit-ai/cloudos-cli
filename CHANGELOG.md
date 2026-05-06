@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.90.1 (2026-05-06)
+
+### Patch
+
+- Fixes `--array-parameter` for multiple occurrences
+
 ## v2.90.0 (2026-04-29)
 
 ### Feat
