@@ -4,7 +4,7 @@
 
 ### Patch
 
-- Fixes a bug in `--array-parameter` for multiple occurrences
+- Fixes `--array-parameter` for multiple occurrences
 
 ## v2.90.0 (2026-04-29)
 
