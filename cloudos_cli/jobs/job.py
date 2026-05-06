@@ -469,8 +469,8 @@ class Job(Cloudos):
 
         # array file specific parameters (from --array-parameter)
         if array_parameter is not None and len(array_parameter) > 0:
-            ap_param = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
-            workflow_params.append(ap_param)
+            ap_params = Job.split_array_file_params(array_parameter, workflow_type, array_file_header)
+            workflow_params.extend(ap_params)
         elif array_file_header is not None and (array_parameter is None or len(array_parameter) == 0):
             raise ValueError('At least one array file column must be added to the parameters')
 
@@ -889,8 +889,8 @@ class Job(Cloudos):
 
         Returns
         -------
-        dict
-            A dictionary containing processed parameter details, including:
+        list
+            A list of dictionaries, each containing processed parameter details, including:
                 - prefix (str): The prefix for the parameter (e.g., "--" or "-").
                 - name (str): The name of the parameter with leading dashes stripped.
                 - parameterKind (str): The kind of parameter, set to "arrayFileColumn".
@@ -902,7 +902,7 @@ class Job(Cloudos):
         ValueError
             If an array parameter does not contain a '=' character or is improperly formatted.
         """
-        ap_param = dict()
+        ap_params = []
         for ap in array_parameter:
             ap_split = ap.split('=')
             if len(ap_split) < 2:
@@ -917,10 +917,11 @@ class Job(Cloudos):
                     "name": ap_name.lstrip('-'),
                     "parameterKind": "arrayFileColumn",
                     "columnName": ap_value,
-                    "columnIndex": next((item["index"] for item in array_file_header if item["name"] == "id"), 0)
+                    "columnIndex": next((item["index"] for item in array_file_header if item["name"] == ap_value), 0)
                 }
+                ap_params.append(ap_param)
 
-        return ap_param
+        return ap_params
 
     def docker_workflow_param_processing(self, param, project_name):
         """

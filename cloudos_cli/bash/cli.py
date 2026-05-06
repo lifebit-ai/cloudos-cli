@@ -341,6 +341,7 @@ def run_bash_job(ctx,
               is_flag=True)
 @click.option('-a', '--array-parameter',
               multiple=True,
+              required=True,
               help=('A single parameter to pass to the job call only for specifying array columns. ' +
                     'It should be in the following form: parameter_name=array_file_column_name. E.g.: ' +
                     '-a --test=value or -a -test=value or -a test=value or -a =value (for no prefix). ' +
