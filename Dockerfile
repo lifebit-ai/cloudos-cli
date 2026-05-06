@@ -1,6 +1,4 @@
-# Full contents of Dockerfile
-
-FROM continuumio/miniconda3:24.7.1-0
+FROM continuumio/miniconda3:26.3.2
 LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
       description="The cloudos-cli docker container" \
       maintainer="David Pineyro <davidp@lifebit.ai>"
@@ -13,7 +11,8 @@ RUN conda install -c conda-forge mamba -y
 
 # Install the conda environment
 COPY environment.yml /
-RUN mamba env update --quiet --name ${ENV_NAME} --file /environment.yml && conda clean -a
+RUN mamba env update -y --name ${ENV_NAME} --file /environment.yml -vv && \
+    mamba clean -afy
 
 # Add conda installation dir to PATH (instead of doing 'conda activate')
 ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
