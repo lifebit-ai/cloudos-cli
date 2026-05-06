@@ -1825,7 +1825,7 @@ Each dictionary should contain “name” and “index” keys.</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><dl class="simple">
-<dt>A dictionary containing processed parameter details, including:</dt><dd><ul class="simple">
+<dt>A list of dictionaries, each containing processed parameter details, including:</dt><dd><ul class="simple">
 <li><p>prefix (str): The prefix for the parameter (e.g., “–” or “-“).</p></li>
 <li><p>name (str): The name of the parameter with leading dashes stripped.</p></li>
 <li><p>parameterKind (str): The kind of parameter, set to “arrayFileColumn”.</p></li>
@@ -1837,7 +1837,7 @@ Each dictionary should contain “name” and “index” keys.</p></li>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>list</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If an array parameter does not contain a ‘=’ character or is improperly formatted.</p>
