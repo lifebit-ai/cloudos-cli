@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.90.2 (2026-05-07)
+
+### Patch
+
+- Fixes Dockerfile to correct a Release automation issue. No changes to the actual package code
+
 ## v2.90.1 (2026-05-06)
 
 ### Patch
