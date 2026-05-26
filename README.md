@@ -2148,7 +2148,7 @@ cloudos interactive-session create \
 
 **Data & Storage Management:**
 - `--mount`: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a folder into the session for read/write access (AWS only). Supports S3 folders (e.g., `s3://my-bucket/data/`) and File Explorer folders (e.g., `my-project/Data/results`). Multiple folders can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument. 
+- `--link`: Link a file or folder into the session for read access (AWS only). Supports S3 files/folders (e.g., `s3://my-bucket/data/file.csv`, `s3://my-bucket/data/`) and File Explorer files/folders (e.g., `my-project/Data/file.csv`, `my-project/Data/results`). S3 paths whose last segment contains a `.` are treated as files; paths ending with `/` or without an extension are treated as folders. Multiple items can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument.
 **Note:** Linking is not supported on Azure. Use Lifebit Platform File Explorer for data access.
 
 **Backend-Specific:**
@@ -2163,7 +2163,7 @@ cloudos interactive-session create \
 
 CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
 - **Mount files** (`--mount`): Files are copied into the session's mounted-data volume. Supports CloudOS File Explorer files and S3 files (AWS only).
-- **Link folders** (`--link`): Folders are mounted as read/write accessible directories in the session (AWS only). Supports both S3 folders and Lifebit Platform File Explorer folders. Linked folders appear with unique mount names based on the folder path. 
+- **Link files/folders** (`--link`): Files and folders are mounted as read-accessible items in the session (AWS only). Supports S3 files, S3 folders, and Lifebit Platform File Explorer files and folders. Linked items appear with unique mount names based on the item name. Maximum 100 items per session.
 
 
 **Data Mounting Examples**
@@ -2718,31 +2718,44 @@ cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 ```
 
 
-#### Link S3 Folders to Interactive Analysis
+#### Link Files and Folders to Interactive Analysis
 
-Connect external S3 buckets or internal File Explorer folders to your interactive analysis sessions. This provides direct access to data without needing to copy files.
+Connect external S3 buckets, S3 files, or File Explorer files/folders to your interactive analysis sessions. This provides direct access to data without needing to copy files.
 
-This subcommand is using the option `--session-id` to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.
+This subcommand uses the `--session-id` option to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.
 
 ```bash
-cloudos datasets link <S3_FOLDER_COMPLETE_PATH_OR_VIRTUAL_FOLDER_PATH> --profile <profile> --session-id <SESSION_ID>
+cloudos datasets link <PATH> --profile <profile> --session-id <SESSION_ID>
 ```
 
-For example, an s3 folder can be linked like follows
+Link an S3 folder:
 ```console
 cloudos datasets link s3://bucket/path/folder --profile test --session-id 1234
 ```
 
-A virtual folder can be linked like
-``` concole
-cloudos datasets link "Analyses Results/HLA" --session-id 1234
+Link an S3 file:
+```console
+cloudos datasets link s3://bucket/path/data.csv --profile test --session-id 1234
+```
+
+Link a File Explorer folder (requires `--project-name`):
+```console
+cloudos datasets link "Data/HLA" --project-name my-project --session-id 1234
+```
+
+Link a File Explorer file (requires `--project-name`):
+```console
+cloudos datasets link "Data/observations.csv" --project-name my-project --session-id 1234
 ```
 
 > [!NOTE]
 > If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the `--apikey` needs to be added.
 
 > [!NOTE]
-> Virtual folders in File Explorer, the ones a user has created in File explorer and are not actual storage locations, cannot be linked.
+> Virtual folders in File Explorer (folders created in File Explorer that are not actual storage locations) cannot be linked.
+
+> [!NOTE]
+> A maximum of 100 items can be linked per session. If the new items combined with already-linked items exceed this limit, the entire request is rejected.
 
 #### Create Folder
 
@@ -2772,11 +2785,11 @@ cloudos datasets rm <path> --profile my_profile
 
 ### Link
 
-The `cloudos link` command provides a unified interface for linking folders to interactive analysis sessions. This command consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
+The `cloudos link` command provides a unified interface for linking files and folders to interactive analysis sessions. This command consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
 
-#### Link Folders to Interactive Analysis
+#### Link Files and Folders to Interactive Analysis
 
-Link job-related folders or custom S3 paths to your interactive analysis sessions for direct access to data without needing to copy files.
+Link job-related folders or custom S3/File Explorer paths (files and folders) to your interactive analysis sessions for direct access to data without needing to copy files.
 
 **Two modes of operation:**
 
@@ -2784,8 +2797,10 @@ Link job-related folders or custom S3 paths to your interactive analysis session
    - By default, links results, workdir, and logs folders
    - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
 
-2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths. It supports a single path or comma-separated multiple paths.
-   
+2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths (files or folders). Supports a single path or comma-separated multiple paths.
+   - S3 paths whose last segment contains a `.` are treated as files (e.g., `s3://bucket/data/file.csv`)
+   - S3 paths ending with `/` or without an extension are treated as folders
+   - File Explorer paths can point to either files or folders — the CLI detects the type automatically
 
 **Basic usage:**
 
@@ -2797,14 +2812,20 @@ cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
 cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
 
-# Link a single S3 path
-cloudos link s3://bucket/folder --session-id <SESSION_ID> --profile my_profile
+# Link a single S3 folder
+cloudos link s3://bucket/folder/ --session-id <SESSION_ID> --profile my_profile
 
-# Link multiple S3 paths (comma-separated)
-cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/output --session-id <SESSION_ID> --profile my_profile
+# Link a single S3 file
+cloudos link s3://bucket/data/file.csv --session-id <SESSION_ID> --profile my_profile
 
-# Link a File Explorer path (requires project name)
-cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+# Link multiple S3 paths (comma-separated, files and folders mixed)
+cloudos link s3://bucket1/data/,s3://bucket2/results/file.csv --session-id <SESSION_ID> --profile my_profile
+
+# Link a File Explorer folder (requires project name)
+cloudos link "my-project/Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+
+# Link a File Explorer file (requires project name)
+cloudos link "my-project/Data/file.csv" --project-name my-project --session-id <SESSION_ID> --profile my_profile
 ```
 
 **Command options:**

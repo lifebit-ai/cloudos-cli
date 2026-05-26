@@ -66,12 +66,12 @@ def link(ctx,
                  ssl_cert,
                  profile):
     """
-    Link folders to an interactive analysis session.
+    Link files or folders to an interactive analysis session.
 
-    This command is used to link folders
-    to an active interactive analysis session for direct access to data.
+    This command links S3 or File Explorer items (files and folders) to an active
+    interactive analysis session for direct read access.
 
-    PATH: Optional path(s) to link (S3 or File Explorer). 
+    PATH: Optional path(s) to link (S3 or File Explorer).
           Required if --job-id is not provided.
           Supports comma-separated list for multiple paths.
           File Explorer paths must include project name (project-name/folder/path).
@@ -83,28 +83,33 @@ def link(ctx,
        Use --results, --workdir, or --logs flags to link only specific folders.
 
     2. Direct path linking (PATH argument): Links specific path(s).
-       Supports S3 paths and Lifebit Platform File Explorer paths.
+       Supports S3 files/folders and Lifebit Platform File Explorer files/folders.
        Both S3 and File Explorer paths can be combined.
+       S3 paths ending with '/' or without a file extension are treated as folders.
+       S3 paths whose last segment contains a '.' are treated as files.
 
     Examples:
 
         # Link all job folders (results, workdir, logs)
         cloudos link --job-id 12345 --session-id abc123
 
-        # Link only results from a job
-        cloudos link --job-id 12345 --session-id abc123 --results
+        # Link a single S3 folder
+        cloudos link s3://bucket/folder/ --session-id abc123
 
-        # Link a single S3 path
-        cloudos link s3://bucket/folder --session-id abc123
+        # Link a single S3 file
+        cloudos link s3://bucket/data/file.csv --session-id abc123
 
-        # Link multiple S3 paths (comma-separated)
-        cloudos link s3://bucket1/path1,s3://bucket2/path2,s3://bucket3/path3 --session-id abc123
+        # Link multiple S3 paths (comma-separated, files and folders mixed)
+        cloudos link s3://bucket1/folder1/,s3://bucket2/data/file.csv --session-id abc123
 
-        # Link a File Explorer folder (requires --project-name)
-        cloudos link project-name/Data/folder --session-id abc123 --project-name project-name
+        # Link a File Explorer folder
+        cloudos link my-project/Data/folder --session-id abc123 --project-name my-project
+
+        # Link a File Explorer file
+        cloudos link my-project/Data/file.csv --session-id abc123 --project-name my-project
 
         # Combine S3 and File Explorer paths
-        cloudos link s3://bucket/data/,my-project/Data/results --session-id abc123 --project-name my-project
+        cloudos link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123 --project-name my-project
 
     """
     print('Lifebit Platform link functionality: link s3 folders to interactive analysis sessions.\n')

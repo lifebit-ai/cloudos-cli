@@ -9,7 +9,7 @@ from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from cloudos_cli.utils.errors import JoBNotCompletedException
 from cloudos_cli.datasets import Datasets
 from urllib.parse import urlparse
-from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id
+from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id, generate_datasets_for_project
 import json
 import time
 import rich_click as click
@@ -63,15 +63,15 @@ class Link(Cloudos):
     def link_folders_batch(self,
                           folders: list,
                           session_id: str) -> None:
-        """Link multiple folders (S3 or File Explorer) to an interactive session in one request.
+        """Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.
 
-        Attempts to use API v2 (which supports multiple folders per request) first, 
+        Attempts to use API v2 (which supports multiple items per request) first,
         with automatic fallback to v1 (individual requests) if v2 is not available.
 
         Parameters
         ----------
         folders : list
-            List of folder paths to link.
+            List of folder/file paths to link.
         session_id : str
             The interactive session ID.
 
@@ -81,29 +81,40 @@ class Link(Cloudos):
             If any validation fails or API errors occur.
         """
         if not folders:
-            raise ValueError("No folders provided")
+            raise ValueError("No paths provided")
 
-        # Parse and validate all folders
-        data_items, folder_info = self._parse_folders_to_data_items(folders)
+        # Check 100-item limit against already-linked items
+        current_items = self.get_fuse_filesystems_status(session_id)
+        current_count = len(current_items)
+        if current_count + len(folders) > 100:
+            raise ValueError("Cannot link more than 100 items")
+
+        # Check for duplicate names against already-mounted items
+        existing_mount_names = {fs.get("mountName") for fs in current_items if fs.get("mountName")}
+
+        # Parse and validate all items
+        data_items, folder_info = self._parse_items_to_data_items(folders, existing_mount_names)
 
         # Try v2 API first (supports batch)
         status_code = self._try_mount_v2(data_items, session_id)
-        
+
         if status_code is None:
             # v2 failed or not available, fall back to v1
             status_code = self._fallback_mount_v1(folder_info, session_id)
 
-        # Verify mount completion for all folders
+        # Verify mount completion for all items
         if status_code == 204:
             self._verify_all_mounts(folder_info, session_id)
 
-    def _parse_folders_to_data_items(self, folders: list) -> tuple:
-        """Parse and validate folders, extracting data items for API payload.
+    def _parse_items_to_data_items(self, folders: list, existing_mount_names: set = None) -> tuple:
+        """Parse and validate folders/files, extracting data items for API payload.
 
         Parameters
         ----------
         folders : list
-            List of folder paths to parse.
+            List of folder/file paths to parse.
+        existing_mount_names : set, optional
+            Set of mount names already linked to the session.
 
         Returns
         -------
@@ -114,55 +125,56 @@ class Link(Cloudos):
         Raises
         ------
         ValueError
-            If any folder path is invalid or uses unsupported storage.
+            If any path is invalid or uses unsupported storage.
         """
         data_items = []
         folder_info = []
-        mount_names_seen = {}  # Track mount names to detect duplicates
-        
+        mount_names_seen = dict.fromkeys(existing_mount_names or [], None)
+
         for folder in folders:
             # Block Azure Blob Storage URLs
             if folder.startswith('az://'):
                 raise ValueError(
                     "Azure Blob Storage paths (az://) are not supported for linking. "
-                    "Azure environments do not support linking folders to Interactive Analysis sessions."
+                    "Azure environments do not support linking to Interactive Analysis sessions."
                 )
 
-            # Parse folder and extract just the data item (without wrapper)
             if folder.startswith('s3://'):
-                parsed = self.parse_s3_path(folder)
+                if self.is_s3_file_path(folder):
+                    parsed = self.parse_s3_file_path(folder)
+                else:
+                    parsed = self.parse_s3_path(folder)
                 mount_name = parsed["dataItem"]["data"]["name"]
-                
-                # Check for duplicate mount names
+
                 if mount_name in mount_names_seen:
+                    existing = mount_names_seen[mount_name]
+                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
                     raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected. "  
-                        f"The folders '{mount_names_seen[mount_name]}' and '{folder}' "  
-                        f"would both be mounted with the same name. Please use folders with unique names."
+                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
+                        f"Items with the same name cannot be mounted together. "
+                        f"Please use items with unique names."
                     )
                 mount_names_seen[mount_name] = folder
-                
+
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
-                # File Explorer path - use basic parsing (validation will be done by API)
-                # For link command, we don't pre-validate as it adds complexity
-                # For interactive-session create/resume, validation happens there
-                parsed = self.parse_file_explorer_path(folder)
+                parsed = self._parse_file_explorer_item(folder)
                 mount_name = parsed["dataItem"]["name"]
-                
-                # Check for duplicate mount names
+
                 if mount_name in mount_names_seen:
+                    existing = mount_names_seen[mount_name]
+                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
                     raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected. "
-                        f"The folders '{mount_names_seen[mount_name]}' and '{folder}' "
-                        f"would both be mounted with the same name. Please use folders with unique names."
+                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
+                        f"Items with the same name cannot be mounted together. "
+                        f"Please use items with unique names."
                     )
                 mount_names_seen[mount_name] = folder
-                
+
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
-        
+
         return data_items, folder_info
 
     def _try_mount_v2(self, data_items: list, session_id: str) -> int:
@@ -231,9 +243,19 @@ class Link(Cloudos):
         Raises
         ------
         ValueError
-            If any folder fails to mount. Note: Earlier folders may have
-            successfully mounted before the failure.
+            If any item is a file (v1 only supports folders), or if any folder
+            fails to mount. Note: Earlier folders may have successfully mounted
+            before the failure.
         """
+        for f in folder_info:
+            item_type = f['data'].get('type', '')
+            item_kind = f['data'].get('kind', '')
+            if item_type == 'S3File' or item_kind == 'File':
+                raise ValueError(
+                    f"File linking requires API v2, which is not available for this session. "
+                    f"Only folder linking is supported via the v1 API fallback."
+                )
+
         status_code = None
         mounted_folders = []
         
@@ -288,7 +310,7 @@ class Link(Cloudos):
             if r.status_code >= 400:
                 # Handle v1 errors using consolidated error handling
                 if r.status_code == 403:
-                    raise ValueError(f"Provided {folder_data['type']} folder already exists with 'mounted' status")
+                    raise ValueError(f"Provided {folder_data['type']} item already exists with 'mounted' status")
                 elif r.status_code == 401:
                     raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
                 elif r.status_code == 400:
@@ -299,11 +321,11 @@ class Link(Cloudos):
                         elif r_content.get("message") == "Request failed with status code 403":
                             raise ValueError(f"Interactive Analysis session is not active")
                         else:
-                            raise ValueError(f"Cannot link folder")
+                            raise ValueError(f"Cannot link item")
                     except json.JSONDecodeError:
                         raise ValueError(f"Bad request (400): Unable to parse error response")
                 else:
-                    raise ValueError(f"Failed to mount folder: HTTP {r.status_code}")
+                    raise ValueError(f"Failed to mount item: HTTP {r.status_code}")
             
             return r.status_code
             
@@ -311,43 +333,43 @@ class Link(Cloudos):
             # Re-raise ValueError as-is
             raise
         except Exception as v1_error:
-            # v1 failed for this folder
-            raise ValueError(f"Failed to mount {folder_data['type']} folder: {str(v1_error)}")
+            raise ValueError(f"Failed to mount {folder_data['type']} item: {str(v1_error)}")
 
     def _verify_all_mounts(self, folder_info: list, session_id: str):
-        """Verify mount completion status for all folders.
+        """Verify mount completion status for all items (files and folders).
 
         Parameters
         ----------
         folder_info : list
-            List of folder metadata dictionaries.
+            List of item metadata dictionaries.
         session_id : str
             The interactive session ID.
         """
         for folder_data in folder_info:
-            # Extract full path and mount name
             if folder_data["type"] == "S3":
-                full_path = (
-                    f"s3://{folder_data['data']['data']['s3BucketName']}/"
-                    f"{folder_data['data']['data']['s3Prefix']}"
-                )
-                mount_name = folder_data['data']['data']['name']
+                item_data = folder_data['data']['data']
+                key = item_data.get('s3Prefix') or item_data.get('s3ObjectKey', '')
+                full_path = f"s3://{item_data['s3BucketName']}/{key}"
+                mount_name = item_data['name']
+                item_kind = "file" if folder_data['data'].get('type') == 'S3File' else "folder"
             else:
                 full_path = folder_data["path"]
                 mount_name = folder_data['data']['name']
+                item_kind = "file" if folder_data['data'].get('kind') == 'File' else "folder"
+
+            source_label = f"{folder_data['type']} {item_kind}"
 
             try:
-                # Wait for mount completion and check final status
                 final_status = self.wait_for_mount_completion(session_id, mount_name)
 
                 if final_status["status"] == "mounted":
-                    click.secho(f"Successfully mounted {folder_data['type']} folder: {full_path}", fg='green', bold=True)
+                    click.secho(f"Successfully mounted {source_label}: {full_path}", fg='green', bold=True)
                 elif final_status["status"] == "failed":
                     error_msg = final_status.get("errorMessage", "Unknown error")
-                    click.secho(f"Failed to mount {folder_data['type']} folder: {full_path}", fg='red', bold=True)
+                    click.secho(f"Failed to mount {source_label}: {full_path}", fg='red', bold=True)
                     click.secho(f"  Error: {error_msg}", fg='red')
                 else:
-                    click.secho(f"Mount status: {final_status['status']} for {folder_data['type']} folder: {full_path}", fg='yellow', bold=True)
+                    click.secho(f"Mount status: {final_status['status']} for {source_label}: {full_path}", fg='yellow', bold=True)
 
             except ValueError as e:
                 click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
@@ -361,7 +383,7 @@ class Link(Cloudos):
         error : Exception
             The exception that occurred during mounting.
         type_folder : str
-            The type of folder being mounted ("S3" or "File Explorer").
+            The type of item being mounted ("S3" or "File Explorer").
 
         Raises
         ------
@@ -370,12 +392,11 @@ class Link(Cloudos):
         """
         error_str = str(error)
         error_lower = error_str.lower()
-        
-        # Define error patterns and their corresponding messages
+
         error_patterns = {
             ('403', 'forbidden'): {
                 'check': lambda: "already exists" in error_lower or "mounted" in error_lower,
-                'message_if_true': f"Provided {type_folder} folder already exists with 'mounted' status",
+                'message_if_true': f"Provided {type_folder} item already exists with 'mounted' status",
                 'message_if_false': f"Interactive Analysis session is not active or access denied"
             },
             ('401', 'unauthorized'): {
@@ -384,26 +405,22 @@ class Link(Cloudos):
             ('400', 'bad request'): {
                 'check': lambda: "invalid supported dataitem foldertype" in error_lower,
                 'message_if_true': f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.",
-                'message_if_false': f"Cannot link folder: {error_str}"
+                'message_if_false': f"Cannot link item: {error_str}"
             },
             ('404', 'not found'): {
                 'message': f"Session not found or endpoint not available"
             }
         }
-        
-        # Check each pattern
+
         for patterns, config in error_patterns.items():
             if any(pattern in error_lower or pattern in error_str for pattern in patterns):
                 if 'check' in config:
-                    # Conditional message based on additional check
                     message = config['message_if_true'] if config['check']() else config['message_if_false']
                 else:
-                    # Direct message
                     message = config['message']
                 raise ValueError(message)
-        
-        # Generic error if no pattern matched
-        raise ValueError(f"Failed to mount {type_folder} folder: {error_str}")
+
+        raise ValueError(f"Failed to mount {type_folder} item: {error_str}")
 
     def parse_s3_path(self, s3_url):
         """
@@ -489,6 +506,128 @@ class Link(Cloudos):
                 "name": f"{parts[-1]}"
             }
         }
+
+    def is_s3_file_path(self, s3_url: str) -> bool:
+        """Return True if the S3 URL points to a file rather than a folder.
+
+        A path is treated as a file when the last segment contains a dot (.) and the
+        URL does not end with a trailing slash.
+
+        Parameters
+        ----------
+        s3_url : str
+            An S3 URL starting with 's3://'.
+
+        Returns
+        -------
+        bool
+        """
+        if s3_url.endswith('/'):
+            return False
+        parsed = urlparse(s3_url)
+        prefix = parsed.path.lstrip('/')
+        last_part = prefix.rstrip('/').split('/')[-1] if prefix else ''
+        return '.' in last_part
+
+    def parse_s3_file_path(self, s3_url: str) -> dict:
+        """Parse an S3 URL that points to a file and return an S3File data item.
+
+        Parameters
+        ----------
+        s3_url : str
+            The S3 URL to parse. Must start with 's3://'.
+
+        Returns
+        -------
+        dict
+            {"dataItem": {"type": "S3File", "data": {"name": str, "s3BucketName": str, "s3ObjectKey": str}}}
+
+        Raises
+        ------
+        ValueError
+            If the URL is invalid.
+        """
+        if not s3_url.startswith("s3://"):
+            raise ValueError("Invalid S3 URL. Link must start with 's3://'")
+
+        parsed = urlparse(s3_url)
+        bucket = parsed.netloc
+        key = parsed.path.lstrip('/')
+
+        if not key:
+            raise ValueError("S3 URL must include a key after the bucket")
+
+        name = key.split('/')[-1]
+        return {
+            "dataItem": {
+                "type": "S3File",
+                "data": {
+                    "name": name,
+                    "s3BucketName": bucket,
+                    "s3ObjectKey": key
+                }
+            }
+        }
+
+    def _parse_file_explorer_item(self, path: str) -> dict:
+        """Auto-detect whether a File Explorer path is a file or folder and return the data item.
+
+        Performs a single API lookup to determine item type and resolve the ID.
+
+        Parameters
+        ----------
+        path : str
+            The path within the project (e.g., 'Data/results' or 'Data/file.csv').
+
+        Returns
+        -------
+        dict
+            {"dataItem": {"kind": "File"|"Folder", "item": str, "name": str}}
+
+        Raises
+        ------
+        ValueError
+            If the item is not found or is a virtual folder.
+        """
+        stripped = path.strip("/")
+        parts = stripped.split("/")
+        item_name = parts[-1]
+        parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
+
+        ds = generate_datasets_for_project(
+            self.cloudos_url, self.apikey, self.workspace_id, self.project_name, self.verify
+        )
+        contents = ds.list_folder_content(parent_path)
+
+        for item in contents.get("folders", []):
+            if item.get("name") == item_name:
+                if item.get("folderType") == "VirtualFolder":
+                    raise ValueError(
+                        f"Virtual folders cannot be linked. Please use a regular folder or S3 path instead."
+                    )
+                return {
+                    "dataItem": {
+                        "kind": "Folder",
+                        "item": item.get("_id", ""),
+                        "name": item_name
+                    }
+                }
+
+        for item in contents.get("files", []):
+            if item.get("name") == item_name:
+                return {
+                    "dataItem": {
+                        "kind": "File",
+                        "item": item.get("_id", ""),
+                        "name": item_name
+                    }
+                }
+
+        raise ValueError(
+            f"Item '{item_name}' not found in path '{parent_path or '[root]'}' "
+            f"in project '{self.project_name}'. "
+            f"Try using 'cloudos datasets ls' to explore your data structure."
+        )
 
     def get_fuse_filesystems_status(self, session_id: str) -> List[Dict]:
         """Get the status of fuse filesystems for an interactive session.

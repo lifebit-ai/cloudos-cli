@@ -5,6 +5,7 @@ import json
 import time
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
+from cloudos_cli.link import Link
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.interactive_session.interactive_session import (
@@ -534,76 +535,88 @@ def create_session(ctx,
                 click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and add linked folders from --link (S3 or CloudOS)
+        # Parse and add linked items from --link (S3 or CloudOS, files or folders)
         # Flatten comma-separated paths within --link options
         all_link_paths = []
         for link_entry in link:
-            # Split by comma to support comma-separated paths
             paths = [p.strip() for p in link_entry.split(',') if p.strip()]
             all_link_paths.extend(paths)
-        
+
         mount_names_seen = {}  # Track mount names to detect duplicates
         s3_mount_display_info = {}  # Track File Explorer paths for display (not sent to API)
         for link_path in all_link_paths:
             try:
                 # Block all linking on Azure platforms
                 if execution_platform == 'azure':
-                    click.secho(f'Error: Linking folders is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
+                    click.secho(f'Error: Linking is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
                     raise SystemExit(1)
                 parsed = parse_link_path(link_path)
                 if parsed['type'] == 's3':
-                    # S3 folders are only supported on AWS (additional safeguard)
                     if execution_platform != 'aws':
                         click.secho(f'Error: S3 links are only supported on AWS execution platform.', fg='red', err=True)
                         raise SystemExit(1)
-                    # S3 folder: create S3Folder FUSE mount
+                    is_file = parsed.get('is_file', False)
                     if verbose:
-                        print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                    # Generate unique mount name from last segment of prefix, or use provided mount_name (legacy format)
+                        item_kind = "file" if is_file else "folder"
+                        print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                     if 'mount_name' in parsed:
                         mount_name = parsed['mount_name']
                     else:
-                        # Extract last meaningful segment from prefix for unique mount name
                         prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
                         mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
-                    
-                    # Check for duplicate mount names
+
                     if mount_name in mount_names_seen:
                         click.secho(
                             f"Error: Duplicate mount name '{mount_name}' detected. "
-                            f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
-                            f"would both be mounted with the same name. Please use folders with unique names.",
+                            f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
+                            f"would both be mounted with the same name. Please use items with unique names.",
                             fg='red', err=True
                         )
                         raise SystemExit(1)
                     mount_names_seen[mount_name] = link_path
-                    
-                    s3_mount_item = {
-                        "type": "S3Folder",
-                        "data": {
-                            "name": mount_name,
-                            "s3BucketName": parsed["s3_bucket"],
-                            "s3Prefix": parsed["s3_prefix"]
+
+                    if is_file:
+                        s3_mount_item = {
+                            "type": "S3File",
+                            "data": {
+                                "name": mount_name,
+                                "s3BucketName": parsed["s3_bucket"],
+                                "s3ObjectKey": parsed["s3_prefix"]
+                            }
                         }
-                    }
+                    else:
+                        s3_mount_item = {
+                            "type": "S3Folder",
+                            "data": {
+                                "name": mount_name,
+                                "s3BucketName": parsed["s3_bucket"],
+                                "s3Prefix": parsed["s3_prefix"]
+                            }
+                        }
                     parsed_s3_mounts.append(s3_mount_item)
                     if verbose:
                         print(f'\t  ✓ Linked S3: {mount_name}')
 
                 else:  # type == 'cloudos'
-                    # Lifebit Platform folder: resolve via Datasets API
                     folder_project = parsed['project_name']
                     folder_path = parsed['folder_path']
                     if verbose:
-                        print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
-                    # Validate folder using helper function
+                        print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
                     try:
-                        validate_file_explorer_folder(
-                            cloudos_url, apikey, workspace_id,
-                            folder_project, folder_path, link_path, verify_ssl
+                        fe_link = Link(
+                            cloudos_url=cloudos_url,
+                            apikey=apikey,
+                            workspace_id=workspace_id,
+                            project_name=folder_project,
+                            cromwell_token=None,
+                            verify=verify_ssl
                         )
+                        fe_item = fe_link._parse_file_explorer_item(folder_path)
+                        item_kind = fe_item["dataItem"]["kind"]
+                        item_id = fe_item["dataItem"]["item"]
+                        mount_name = fe_item["dataItem"]["name"]
                     except ValueError:
-                        raise  # Re-raise our validation errors
+                        raise
                     except Exception as e:
                         error_msg = str(e)
                         if "404" in error_msg or "not found" in error_msg.lower():
@@ -612,58 +625,48 @@ def create_session(ctx,
                                 f"Please verify the project name exists in your workspace."
                             )
                         else:
-                            raise ValueError(f"Failed to validate folder '{link_path}': {error_msg}")
-                    
-                    # For Lifebit Platform folders, we create a mount item
-                    mount_name = folder_path.split('/')[-1] if folder_path else folder_project
-                    
-                    # Check for duplicate mount names
+                            raise ValueError(f"Failed to resolve item '{link_path}': {error_msg}")
+
                     if mount_name in mount_names_seen:
                         click.secho(
                             f"Error: Duplicate mount name '{mount_name}' detected. "
-                            f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
-                            f"would both be mounted with the same name. Please use folders with unique names.",
+                            f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
+                            f"would both be mounted with the same name. Please use items with unique names.",
                             fg='red', err=True
                         )
                         raise SystemExit(1)
                     mount_names_seen[mount_name] = link_path
-                    
-                    # API payload - no display markers
+
                     cloudos_mount_item = {
-                        "type": "S3Folder",
-                        "data": {
-                            "name": mount_name,
-                            "s3BucketName": folder_project,
-                            "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                        }
+                        "kind": item_kind,
+                        "item": item_id,
+                        "name": mount_name
                     }
                     parsed_s3_mounts.append(cloudos_mount_item)
-                    
-                    # Track display info separately (not sent to API)
+
                     s3_mount_display_info[mount_name] = {
                         "is_file_explorer": True,
                         "original_path": f"{folder_project}/{folder_path}"
                     }
 
                     if verbose:
-                        print(f'\t  ✓ Linked Lifebit Platform folder: {mount_name}')
+                        print(f'\t  ✓ Linked Lifebit Platform {item_kind.lower()}: {mount_name}')
 
             except Exception as e:
-                click.secho(f'Error: Failed to link folder: {str(e)}', fg='red', err=True)
+                click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
         # Create display version of s3_mounts with File Explorer markers
         s3_mounts_for_display = []
         for mount in parsed_s3_mounts:
-            mount_name = mount['data']['name']
+            # FE items use kind/item/name; S3 items use type/data
+            mount_name = mount.get('name') or mount.get('data', {}).get('name', '')
             if mount_name in s3_mount_display_info:
-                # Add display markers for File Explorer folders
                 display_mount = mount.copy()
                 display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
                 display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
                 s3_mounts_for_display.append(display_mount)
             else:
-                # Regular S3 folder - no markers needed
                 s3_mounts_for_display.append(mount)
 
         # Build the session payload
@@ -1304,68 +1307,83 @@ def resume_session(ctx,
                 click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and add linked folders
+        # Parse and add linked items (files and folders)
         parsed_s3_mounts = []
         if link:
             try:
                 # Flatten comma-separated paths within --link options
                 all_link_paths = []
                 for link_entry in link:
-                    # Split by comma to support comma-separated paths
                     paths = [p.strip() for p in link_entry.split(',') if p.strip()]
                     all_link_paths.extend(paths)
-                
+
                 mount_names_seen = {}  # Track mount names to detect duplicates
                 for link_path in all_link_paths:
                     # Block all linking on Azure
                     if execution_platform == 'azure':
-                        click.secho(f'Error: Linking folders is not supported on Azure. Please use --mount instead.', fg='red', err=True)
+                        click.secho(f'Error: Linking is not supported on Azure. Please use --mount instead.', fg='red', err=True)
                         raise SystemExit(1)
                     parsed = parse_link_path(link_path)
                     if parsed['type'] == 's3':
+                        is_file = parsed.get('is_file', False)
                         if verbose:
-                            print(f'\tLinking S3: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        # Generate unique mount name from last segment of prefix, or use provided mount_name (legacy format)
+                            item_kind = "file" if is_file else "folder"
+                            print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                         if 'mount_name' in parsed:
                             mount_name = parsed['mount_name']
                         else:
-                            # Extract last meaningful segment from prefix for unique mount name
                             prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
                             mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
-                        
-                        # Check for duplicate mount names
+
                         if mount_name in mount_names_seen:
                             click.secho(
                                 f"Error: Duplicate mount name '{mount_name}' detected. "
-                                f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
-                                f"would both be mounted with the same name. Please use folders with unique names.",
+                                f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
+                                f"would both be mounted with the same name. Please use items with unique names.",
                                 fg='red', err=True
                             )
                             raise SystemExit(1)
                         mount_names_seen[mount_name] = link_path
-                        
-                        s3_mount_item = {
-                            "type": "S3Folder",
-                            "data": {
-                                "name": mount_name,
-                                "s3BucketName": parsed["s3_bucket"],
-                                "s3Prefix": parsed["s3_prefix"]
+
+                        if is_file:
+                            s3_mount_item = {
+                                "type": "S3File",
+                                "data": {
+                                    "name": mount_name,
+                                    "s3BucketName": parsed["s3_bucket"],
+                                    "s3ObjectKey": parsed["s3_prefix"]
+                                }
                             }
-                        }
+                        else:
+                            s3_mount_item = {
+                                "type": "S3Folder",
+                                "data": {
+                                    "name": mount_name,
+                                    "s3BucketName": parsed["s3_bucket"],
+                                    "s3Prefix": parsed["s3_prefix"]
+                                }
+                            }
                         parsed_s3_mounts.append(s3_mount_item)
-                    else:  # Lifebit Platform folder
+                    else:  # Lifebit Platform item
                         folder_project = parsed['project_name']
                         folder_path = parsed['folder_path']
                         if verbose:
-                            print(f'\tLinking Lifebit Platform folder: {folder_project}/{folder_path}')
-                        # Validate folder using helper function
+                            print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
                         try:
-                            validate_file_explorer_folder(
-                                cloudos_url, apikey, workspace_id,
-                                folder_project, folder_path, link_path, verify_ssl
+                            fe_link = Link(
+                                cloudos_url=cloudos_url,
+                                apikey=apikey,
+                                workspace_id=workspace_id,
+                                project_name=folder_project,
+                                cromwell_token=None,
+                                verify=verify_ssl
                             )
+                            fe_item = fe_link._parse_file_explorer_item(folder_path)
+                            item_kind = fe_item["dataItem"]["kind"]
+                            item_id = fe_item["dataItem"]["item"]
+                            mount_name = fe_item["dataItem"]["name"]
                         except ValueError:
-                            raise  # Re-raise our validation errors
+                            raise
                         except Exception as e:
                             error_msg = str(e)
                             if "404" in error_msg or "not found" in error_msg.lower():
@@ -1374,33 +1392,26 @@ def resume_session(ctx,
                                     f"Please verify the project name exists in your workspace."
                                 )
                             else:
-                                raise ValueError(f"Failed to validate folder '{link_path}': {error_msg}")
-                        
-                        # AWS-only: Create S3Folder mount for Lifebit Platform folders
-                        mount_name = folder_path.split('/')[-1] if folder_path else folder_project
-                        
-                        # Check for duplicate mount names
+                                raise ValueError(f"Failed to resolve item '{link_path}': {error_msg}")
+
                         if mount_name in mount_names_seen:
                             click.secho(
                                 f"Error: Duplicate mount name '{mount_name}' detected. "
-                                f"The folders '{mount_names_seen[mount_name]}' and '{link_path}' "
-                                f"would both be mounted with the same name. Please use folders with unique names.",
+                                f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
+                                f"would both be mounted with the same name. Please use items with unique names.",
                                 fg='red', err=True
                             )
                             raise SystemExit(1)
                         mount_names_seen[mount_name] = link_path
-                        
+
                         cloudos_mount_item = {
-                            "type": "S3Folder",
-                            "data": {
-                                "name": mount_name,
-                                "s3BucketName": folder_project,
-                                "s3Prefix": folder_path + ("/" if folder_path and not folder_path.endswith('/') else "")
-                            }
+                            "kind": item_kind,
+                            "item": item_id,
+                            "name": mount_name
                         }
                         parsed_s3_mounts.append(cloudos_mount_item)
                         if verbose:
-                            print(f'\t  ✓ Linked Lifebit Platform folder: {mount_name}')
+                            print(f'\t  ✓ Linked Lifebit Platform {item_kind.lower()}: {mount_name}')
             except Exception as e:
                 click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
@@ -1454,7 +1465,6 @@ def resume_session(ctx,
         elif 'not in a resumable status' in error_str.lower():
             # Try to fetch the current session status to show the user
             try:
-                from cloudos_cli.interactive_session.interactive_session import get_interactive_session_status, map_status
                 status_response = get_interactive_session_status(
                     cloudos_url=cloudos_url,
                     apikey=apikey,

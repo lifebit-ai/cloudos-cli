@@ -902,13 +902,17 @@ def parse_link_path(link_path_str):
             raise ValueError(f"Invalid S3 path: {link_path_str}. Expected: s3://bucket_name/prefix/")
         bucket = parts[0]
         prefix = parts[1] if len(parts) > 1 else ""
-        # Ensure prefix ends with / for S3 folders
-        if prefix and not prefix.endswith('/'):
+        # Detect whether it is a file (last segment contains a dot, no trailing slash)
+        last_segment = prefix.rstrip('/').split('/')[-1] if prefix else ''
+        is_file = bool(last_segment and '.' in last_segment and not link_path_str.endswith('/'))
+        # Only add trailing slash for folders
+        if not is_file and prefix and not prefix.endswith('/'):
             prefix = prefix + '/'
         return {
             "type": "s3",
             "s3_bucket": bucket,
-            "s3_prefix": prefix
+            "s3_prefix": prefix,
+            "is_file": is_file
         }
     # Check for legacy colon format
     if ':' in link_path_str and '//' not in link_path_str:
@@ -924,7 +928,8 @@ def parse_link_path(link_path_str):
             "type": "s3",
             "mount_name": mount_name,
             "s3_bucket": bucket,
-            "s3_prefix": prefix
+            "s3_prefix": prefix,
+            "is_file": False
         }
     # Otherwise, parse as Lifebit Platform folder path
     # Format: project_name/folder_path or project_name > folder_path
@@ -1250,36 +1255,33 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         if mounted_files:
             table.add_row("Mounted Data", ", ".join(mounted_files))
 
-    # Display linked S3 buckets and File Explorer folders
+    # Display linked S3 buckets and File Explorer items (files and folders)
     if s3_mounts:
         linked_s3 = []
         linked_file_explorer = []
         for s3 in s3_mounts:
             if isinstance(s3, dict):
-                # Check if this is a File Explorer folder
                 if s3.get('_isFileExplorer'):
                     original_path = s3.get('_originalPath', '')
                     if original_path:
                         linked_file_explorer.append(f"File Explorer: {original_path}")
                 else:
-                    # Regular S3 folder
                     data = s3.get('data', {})
                     bucket = data.get('s3BucketName', '')
-                    prefix = data.get('s3Prefix', '')
+                    prefix = data.get('s3Prefix') or data.get('s3ObjectKey', '')
                     if prefix and bucket:
                         linked_s3.append(f"s3://{bucket}/{prefix}")
                     elif bucket:
                         linked_s3.append(f"s3://{bucket}/")
-        
-        # Display both types if present
+
         all_linked = []
         if linked_s3:
             all_linked.extend(linked_s3)
         if linked_file_explorer:
             all_linked.extend(linked_file_explorer)
-        
+
         if all_linked:
-            table.add_row("Linked Folders", "\n".join(all_linked))
+            table.add_row("Linked Items", "\n".join(all_linked))
 
     console.print(table)
     console.print("\n[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.")
