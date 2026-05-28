@@ -9,7 +9,7 @@ from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from cloudos_cli.utils.errors import JoBNotCompletedException
 from cloudos_cli.datasets import Datasets
 from urllib.parse import urlparse
-from cloudos_cli.utils.array_job import extract_project, get_file_or_folder_id, generate_datasets_for_project
+from cloudos_cli.utils.array_job import extract_project, generate_datasets_for_project
 import json
 import time
 import rich_click as click
@@ -62,7 +62,7 @@ class Link(Cloudos):
 
     def link_folders_batch(self,
                           folders: list,
-                          session_id: str) -> None:
+                          session_id: str) -> bool:
         """Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.
 
         Attempts to use API v2 (which supports multiple items per request) first,
@@ -104,7 +104,8 @@ class Link(Cloudos):
 
         # Verify mount completion for all items
         if status_code == 204:
-            self._verify_all_mounts(folder_info, session_id)
+            return self._verify_all_mounts(folder_info, session_id)
+        return True
 
     def _parse_items_to_data_items(self, folders: list, existing_mount_names: set = None) -> tuple:
         """Parse and validate folders/files, extracting data items for API payload.
@@ -345,6 +346,7 @@ class Link(Cloudos):
         session_id : str
             The interactive session ID.
         """
+        all_succeeded = True
         for folder_data in folder_info:
             if folder_data["type"] == "S3":
                 item_data = folder_data['data']['data']
@@ -365,15 +367,38 @@ class Link(Cloudos):
                 if final_status["status"] == "mounted":
                     click.secho(f"Successfully mounted {source_label}: {full_path}", fg='green', bold=True)
                 elif final_status["status"] == "failed":
-                    error_msg = final_status.get("errorMessage", "Unknown error")
+                    raw_error = final_status.get("errorMessage", "Unknown error")
+                    error_msg = self._translate_mount_error(raw_error)
                     click.secho(f"Failed to mount {source_label}: {full_path}", fg='red', bold=True)
                     click.secho(f"  Error: {error_msg}", fg='red')
+                    all_succeeded = False
                 else:
                     click.secho(f"Mount status: {final_status['status']} for {source_label}: {full_path}", fg='yellow', bold=True)
+                    all_succeeded = False
 
             except ValueError as e:
                 click.secho(f"Warning: Could not verify mount status - {str(e)}", fg='yellow', bold=True)
                 click.secho(f"  The linking request was submitted, but verification failed.", fg='yellow')
+                all_succeeded = False
+
+        return all_succeeded
+
+    def _translate_mount_error(self, error_msg: str) -> str:
+        """Translate raw API error messages into user-friendly explanations."""
+        msg_lower = error_msg.lower()
+        if "prefix does not exist" in msg_lower or "key does not exist" in msg_lower:
+            return (
+                f"{error_msg} "
+                "The path may not exist, or the workspace may not have permission to access it. "
+                "Verify the path is correct and that the workspace's cloud account has read access to this bucket."
+            )
+        if "access denied" in msg_lower or "forbidden" in msg_lower:
+            return (
+                f"{error_msg} "
+                "The workspace does not have permission to access this path. "
+                "Verify that the workspace's cloud account has read access to this bucket."
+            )
+        return error_msg
 
     def _handle_mount_error(self, error: Exception, type_folder: str):
         """Handle and convert mount errors to user-friendly messages.
@@ -467,43 +492,6 @@ class Link(Cloudos):
                 "s3BucketName": bucket,
                 "s3Prefix": prefix
             }
-            }
-        }
-
-    def parse_file_explorer_path(self, path):
-        """Parse a File Explorer path and return folder metadata.
-        
-        Note: This method does basic parsing only. Validation of folder existence
-        should be done separately in the calling code if needed.
-
-        Parameters
-        ----------
-        file_path : str
-            The file path to parse.
-
-        Returns
-        -------
-        dict
-            A dictionary containing the parsed file information structured as:
-            {"dataItem": {"type": "File", "data": {"name": str, "fullPath": str}}}
-        """
-        # get folder id
-        folder_id = get_file_or_folder_id(
-            self.cloudos_url,
-            self.apikey,
-            self.workspace_id,
-            self.project_name,
-            self.verify,
-            path.strip("/"),
-            "",
-            is_file=False
-        )
-        parts = path.strip("/").split("/")
-        return {
-            "dataItem": {
-                "kind": "Folder",
-                "item": f"{folder_id}",
-                "name": f"{parts[-1]}"
             }
         }
 
@@ -662,7 +650,11 @@ class Link(Cloudos):
         if r.status_code == 401:
             raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
         elif r.status_code == 404:
-            raise ValueError(f"Interactive session {session_id} not found")
+            raise ValueError(
+                f"Interactive session {session_id} not found. "
+                "The session may not exist, or your API key may not have access to it. "
+                "Verify the session ID and that your API key belongs to a workspace member with access to this session."
+            )
         elif r.status_code != 200:
             raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
 

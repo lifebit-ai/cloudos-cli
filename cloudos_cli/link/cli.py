@@ -189,8 +189,14 @@ def link(ctx,
 
             # Link all paths in one batch (v2 API will send them together)
             try:
-                link_client.link_folders_batch(paths, session_id)
-                print('\nLinking operation completed successfully!')
+                all_succeeded = link_client.link_folders_batch(paths, session_id)
+                if all_succeeded:
+                    print('\nLinking operation completed successfully!')
+                else:
+                    click.secho('\nLinking operation completed with errors. See details above.', fg='red', err=True)
+                    raise SystemExit(1)
+            except SystemExit:
+                raise
             except Exception as e:
                 click.secho(f'\n✗ Failed: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)

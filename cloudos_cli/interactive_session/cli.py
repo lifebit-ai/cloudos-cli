@@ -37,79 +37,17 @@ from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
-def validate_file_explorer_folder(cloudos_url, apikey, workspace_id, folder_project, 
-                                  folder_path, link_path, verify_ssl):
-    """Validate that a File Explorer folder exists and can be linked.
-    
-    Parameters
-    ----------
-    cloudos_url : str
-        The CloudOS API URL
-    apikey : str
-        API key for authentication
-    workspace_id : str
-        Workspace ID
-    folder_project : str
-        Project name containing the folder
-    folder_path : str
-        Path to the folder within the project
-    link_path : str
-        Original link path (for error messages)
-    verify_ssl : bool
-        SSL verification setting
-        
-    Raises
-    ------
-    ValueError
-        If folder doesn't exist, is virtual, is empty, or project not found
-    """
-    datasets_api = Datasets(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        project_name=folder_project,
-        verify=verify_ssl,
-        cromwell_token=None
-    )
-    # Validate project and folder exist
-    _ = datasets_api.list_folder_content("")  # Check if project accessible
-    
-    # If there's a folder path, validate it exists
-    if folder_path:
-        folder_parts = folder_path.strip("/").split("/")
-        parent_path = "/".join(folder_parts[:-1]) if len(folder_parts) > 1 else ""
-        item_name = folder_parts[-1]
-        contents = datasets_api.list_folder_content(parent_path)
-        
-        # Check if the folder exists
-        found = None
-        for item in contents.get("folders", []):
-            if item.get("name") == item_name:
-                found = item
-                break
-        
-        if not found:
-            raise ValueError(
-                f"Folder '{item_name}' not found at path '{parent_path}' in project '{folder_project}'. "
-                f"Please verify the folder exists using 'cloudos datasets ls --project-name {folder_project}'."
-            )
-        
-        # Check if it's a virtual folder
-        if found.get("folderType") == "VirtualFolder":
-            raise ValueError(
-                f"The folder '{link_path}' is a virtual folder and cannot be linked. "
-                f"Virtual folders only exist in File Explorer. Please use a regular folder or S3 path instead."
-            )
-        
-        # Check if the folder is empty
-        folder_contents = datasets_api.list_folder_content(folder_path)
-        has_files = len(folder_contents.get("files", [])) > 0
-        has_folders = len(folder_contents.get("folders", [])) > 0
-        if not has_files and not has_folders:
-            raise ValueError(
-                f"The folder '{link_path}' is empty and cannot be linked. "
-                f"Please add files or subfolders to this folder before linking it."
-            )
+def _check_duplicate_mount_name(mount_name, link_path, seen):
+    """Raise SystemExit(1) if mount_name already exists in seen, otherwise register it."""
+    if mount_name in seen:
+        click.secho(
+            f"Error: Duplicate mount name '{mount_name}' detected. "
+            f"The items '{seen[mount_name]}' and '{link_path}' "
+            f"would both be mounted with the same name. Please use items with unique names.",
+            fg='red', err=True
+        )
+        raise SystemExit(1)
+    seen[mount_name] = link_path
 
 
 # Create the interactive_session group
@@ -565,15 +503,7 @@ def create_session(ctx,
                         prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
                         mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
 
-                    if mount_name in mount_names_seen:
-                        click.secho(
-                            f"Error: Duplicate mount name '{mount_name}' detected. "
-                            f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
-                            f"would both be mounted with the same name. Please use items with unique names.",
-                            fg='red', err=True
-                        )
-                        raise SystemExit(1)
-                    mount_names_seen[mount_name] = link_path
+                    _check_duplicate_mount_name(mount_name, link_path, mount_names_seen)
 
                     if is_file:
                         s3_mount_item = {
@@ -627,15 +557,7 @@ def create_session(ctx,
                         else:
                             raise ValueError(f"Failed to resolve item '{link_path}': {error_msg}")
 
-                    if mount_name in mount_names_seen:
-                        click.secho(
-                            f"Error: Duplicate mount name '{mount_name}' detected. "
-                            f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
-                            f"would both be mounted with the same name. Please use items with unique names.",
-                            fg='red', err=True
-                        )
-                        raise SystemExit(1)
-                    mount_names_seen[mount_name] = link_path
+                    _check_duplicate_mount_name(mount_name, link_path, mount_names_seen)
 
                     cloudos_mount_item = {
                         "kind": item_kind,

@@ -1110,8 +1110,6 @@ def build_resume_payload(
     storage_size=None,
     cost_limit=None,
     shutdown_at=None,
-    data_files=None,
-    s3_mounts=None
 ):
     """Build the resume session payload for the API.
 
@@ -1127,10 +1125,6 @@ def build_resume_payload(
         New compute cost limit (if changing)
     shutdown_at : str, optional
         New auto-shutdown datetime in ISO8601 format (if changing)
-    data_files : list, optional
-        Additional data files to mount
-    s3_mounts : list, optional
-        Additional S3 mounts (AWS only)
 
     Returns
     -------
@@ -1138,7 +1132,7 @@ def build_resume_payload(
         Resume payload for API request
     """
     payload = {
-        "dataItems": data_files or [],
+        "dataItems": [],
         "fileSystemIds": []  # Always empty (deprecated)
     }
     # Only include newInteractiveSessionConfiguration if any config changes are specified
@@ -1158,9 +1152,6 @@ def build_resume_payload(
     # Only add config updates if there are any
     if config_updates:
         payload["newInteractiveSessionConfiguration"] = config_updates
-    # Add S3 mounts if provided (for AWS)
-    if s3_mounts:
-        payload["fuseFileSystems"] = s3_mounts
     return payload
 
 
