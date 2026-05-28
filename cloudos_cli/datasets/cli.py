@@ -4,7 +4,7 @@ import rich_click as click
 import csv
 import sys
 from cloudos_cli.datasets import Datasets
-from cloudos_cli.link import Link
+from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.logging.logger import update_command_context_from_click

@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.92.0 (2026-05-28)
+
+### Feat:
+
+- Moves `cloudos link` into the `interactive-session` module as `cloudos interactive-session link`
+- File Explorer paths now infer the project name from the first path segment (e.g. `my-project/Data/folder`); standard top-level folder names (`Data`, `AnalysesResults`, `Analyses_Results`, `Analyses-Results`, `Cohorts`) are treated as relative to the profile project
+- Removes `--mount` from `cloudos interactive-session create`
+- Introduces `--copy` as an optional flag of `--link` in `cloudos interactive-session create` to copy data into the session
+
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

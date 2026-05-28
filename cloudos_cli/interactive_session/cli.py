@@ -5,7 +5,7 @@ import json
 import time
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.datasets import Datasets
-from cloudos_cli.link import Link
+from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.interactive_session.interactive_session import (
@@ -327,12 +327,12 @@ def list_sessions(ctx,
 @click.option('--shutdown-in',
               help='Auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
               default='12h')
-@click.option('--mount',
-              multiple=True,
-              help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read access. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
+              help='Link a file or folder into the session for read access. Supports S3 files/folders (s3://bucket/path/) and File Explorer files/folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Use --copy to copy data into the session instead. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
+@click.option('--copy',
+              is_flag=True,
+              help='Copy data into the session instead of linking for read access. When specified, the paths provided by --link are copied into the session\'s data volume. Supports Lifebit Platform datasets (project_name/Data/file.csv) and S3 files (s3://bucket/path/to/file).')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -376,8 +376,8 @@ def create_session(ctx,
                    shared,
                    cost_limit,
                    shutdown_in,
-                   mount,
                    link,
+                   copy,
                    r_version,
                    spark_master,
                    spark_core,
@@ -458,22 +458,26 @@ def create_session(ctx,
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and resolve mounted data files (both Lifebit Platform and S3)
+        # Flatten comma-separated paths within --link options
+        all_link_paths = []
+        for link_entry in link:
+            paths = [p.strip() for p in link_entry.split(',') if p.strip()]
+            all_link_paths.extend(paths)
+
         parsed_data_files = []
-        parsed_s3_mounts = []  # S3 folders go into FUSE mounts
-        if mount:
+        parsed_s3_mounts = []  # S3 folders/files go into FUSE mounts
+
+        # When --copy is set, copy data into the session (dataItems) instead of linking
+        if copy and all_link_paths:
             try:
-                for df in mount:
-                    parsed = parse_data_file(df)
+                for link_path in all_link_paths:
+                    parsed = parse_data_file(link_path)
                     if parsed['type'] == 's3':
-                        # S3 files are only supported on AWS
                         if execution_platform != 'aws':
-                            click.secho(f'Error: S3 mounts are only supported on AWS. Use Lifebit Platform file explorer paths for Azure.', fg='red', err=True)
+                            click.secho(f'Error: S3 files are only supported on AWS. Use Lifebit Platform file explorer paths for Azure.', fg='red', err=True)
                             raise SystemExit(1)
-                        # S3 file: add to dataItems as S3File type
                         if verbose:
-                            print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        # Use the full path as the name
+                            print(f'\tCopying S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                         s3_file_item = {
                             "type": "S3File",
                             "data": {
@@ -484,14 +488,12 @@ def create_session(ctx,
                         }
                         parsed_data_files.append(s3_file_item)
                         if verbose:
-                            print(f'\t  ✓ Added S3 file to mount')
+                            print(f'\t  ✓ Added S3 file to copy')
                     else:  # type == 'cloudos'
-                        # Lifebit Platform dataset file: resolve via Datasets API
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
                         if verbose:
-                            print(f'\tResolving dataset: {data_project}/{dataset_path}')
-                        # Create a Datasets API instance for this specific project
+                            print(f'\tCopying dataset: {data_project}/{dataset_path}')
                         datasets_api = Datasets(
                             cloudos_url=cloudos_url,
                             apikey=apikey,
@@ -504,24 +506,20 @@ def create_session(ctx,
                         parsed_data_files.append(resolved)
                         if verbose:
                             print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
+            except SystemExit:
+                raise
             except Exception as e:
-                click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
+                click.secho(f'Error: Failed to resolve data files for copy: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
         # Parse and add linked items from --link (S3 or CloudOS, files or folders)
-        # Flatten comma-separated paths within --link options
-        all_link_paths = []
-        for link_entry in link:
-            paths = [p.strip() for p in link_entry.split(',') if p.strip()]
-            all_link_paths.extend(paths)
-
         mount_names_seen = {}  # Track mount names to detect duplicates
         s3_mount_display_info = {}  # Track File Explorer paths for display (not sent to API)
-        for link_path in all_link_paths:
+        for link_path in all_link_paths if not copy else []:
             try:
                 # Block all linking on Azure platforms
                 if execution_platform == 'azure':
-                    click.secho(f'Error: Linking is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
+                    click.secho(f'Error: Linking is not supported on Azure. Use `--copy` flag with `--link` to copy data into the session instead.', fg='red', err=True)
                     raise SystemExit(1)
                 parsed = parse_link_path(link_path)
                 if parsed['type'] == 's3':

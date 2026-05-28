@@ -2,7 +2,7 @@
 
 import pytest
 from unittest import mock
-from cloudos_cli.link.link import Link
+from cloudos_cli.interactive_session.link import Link
 import responses
 
 CLOUDOS_URL = "https://lifebit.ai"
@@ -101,7 +101,7 @@ class TestParseFileExplorerItem:
             folders=[{"name": "results", "_id": "folder_id_1", "folderType": "S3Folder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
         result = link_instance._parse_file_explorer_item("Data/results")
@@ -114,7 +114,7 @@ class TestParseFileExplorerItem:
             files=[{"name": "data.csv", "_id": "file_id_99"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
         result = link_instance._parse_file_explorer_item("Data/data.csv")
@@ -127,7 +127,7 @@ class TestParseFileExplorerItem:
             folders=[{"name": "vfolder", "_id": "vf_id", "folderType": "VirtualFolder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="Virtual folders cannot be linked"):
@@ -136,7 +136,7 @@ class TestParseFileExplorerItem:
     def test_not_found_raises(self, link_instance, monkeypatch):
         ds = self._make_ds_mock()
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="not found"):

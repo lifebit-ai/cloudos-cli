@@ -1,6 +1,6 @@
 import pytest
 from unittest import mock
-from cloudos_cli.link.link import Link
+from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.requests import retry_requests_post
 import responses
 

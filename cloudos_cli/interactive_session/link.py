@@ -199,7 +199,7 @@ class Link(Cloudos):
             If v2 fails for reasons other than unavailability.
         """
         v2_payload = {"dataItems": data_items}
-        
+
         try:
             status_code = self.mount_fuse_filesystem_v2(
                 session_id=session_id,
@@ -215,11 +215,11 @@ class Link(Cloudos):
             # Session-not-found errors should propagate immediately
             if "Session not found" in error_str:
                 raise  # Re-raise session-not-found errors immediately
-            
+
             should_fallback = (
                 "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower()
             )
-            
+
             if should_fallback:
                 return None  # Trigger v1 fallback
             else:
@@ -259,7 +259,7 @@ class Link(Cloudos):
 
         status_code = None
         mounted_folders = []
-        
+
         for folder_data in folder_info:
             try:
                 status_code = self._mount_single_folder_v1(folder_data, session_id)
@@ -294,7 +294,7 @@ class Link(Cloudos):
             If the mount request fails.
         """
         v1_payload = {"dataItem": folder_data["data"]}
-        
+
         url = (
             f"{self.cloudos_url}/api/v1/"
             f"interactive-sessions/{session_id}/fuse-filesystem/mount"
@@ -304,10 +304,10 @@ class Link(Cloudos):
             "Content-type": "application/json",
             "apikey": self.apikey
         }
-        
+
         try:
             r = retry_requests_post(url, headers=headers, json=v1_payload, verify=self.verify)
-            
+
             if r.status_code >= 400:
                 # Handle v1 errors using consolidated error handling
                 if r.status_code == 403:
@@ -327,9 +327,9 @@ class Link(Cloudos):
                         raise ValueError(f"Bad request (400): Unable to parse error response")
                 else:
                     raise ValueError(f"Failed to mount item: HTTP {r.status_code}")
-            
+
             return r.status_code
-            
+
         except ValueError:
             # Re-raise ValueError as-is
             raise
@@ -662,7 +662,7 @@ class Link(Cloudos):
         response_data = json.loads(r.content)
         return response_data.get("fuseFileSystems", [])
 
-    def wait_for_mount_completion(self, session_id: str, mount_name: str, 
+    def wait_for_mount_completion(self, session_id: str, mount_name: str,
                                 timeout: int = 360, check_interval: int = 2) -> Dict:
         """Wait for a specific mount to complete and return its final status.
 
@@ -847,4 +847,3 @@ class Link(Cloudos):
                 click.secho(f'\tCannot link logs: {error_msg}', fg='red')
             else:
                 click.secho(f'\tFailed to link logs: {error_msg}', fg='red')
-
