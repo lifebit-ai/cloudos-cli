@@ -4,7 +4,6 @@ import rich_click as click
 import json
 import time
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.datasets import Datasets
 from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
@@ -18,7 +17,6 @@ from cloudos_cli.interactive_session.interactive_session import (
     parse_link_path,
     build_session_payload,
     format_session_creation_table,
-    resolve_data_file_id,
     validate_session_id,
     validate_instance_type,
     get_interactive_session_status,
@@ -466,11 +464,15 @@ def create_session(ctx,
 
         parsed_data_files = []
         parsed_s3_mounts = []  # S3 folders/files go into FUSE mounts
+        data_file_display_info = {}  # Track display info for copy loop FE items
 
         # When --copy is set, copy data into the session (dataItems) instead of linking
         if copy and all_link_paths:
             try:
                 for link_path in all_link_paths:
+                    if not link_path.startswith('s3://') and not link_path.startswith('az://'):
+                        norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                        link_path = f"{resolved_project}/{norm_path}"
                     parsed = parse_data_file(link_path)
                     if parsed['type'] == 's3':
                         if execution_platform != 'aws':
@@ -494,23 +496,32 @@ def create_session(ctx,
                         dataset_path = parsed['dataset_path']
                         if verbose:
                             print(f'\tCopying dataset: {data_project}/{dataset_path}')
-                        datasets_api = Datasets(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=data_project,
-                            verify=verify_ssl,
-                            cromwell_token=None
-                        )
-                        resolved = resolve_data_file_id(datasets_api, dataset_path)
+                        fe_link = _make_link_client(cloudos_url, apikey, workspace_id, data_project, verify_ssl)
+                        resolved = fe_link._parse_file_explorer_item(dataset_path)["dataItem"]
+                        item_name = resolved["name"]
+                        data_file_display_info[item_name] = {
+                            "is_file_explorer": True,
+                            "original_path": f"{data_project}/{dataset_path}"
+                        }
                         parsed_data_files.append(resolved)
                         if verbose:
-                            print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
+                            print(f'\t  ✓ Resolved to ID: {resolved["item"]}')
             except SystemExit:
                 raise
             except Exception as e:
                 click.secho(f'Error: Failed to resolve data files for copy: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
+
+        data_files_for_display = []
+        for df in parsed_data_files:
+            item_name = df.get('name') or df.get('data', {}).get('name', '')
+            if item_name in data_file_display_info:
+                display_df = df.copy()
+                display_df['_isFileExplorer'] = data_file_display_info[item_name]['is_file_explorer']
+                display_df['_originalPath'] = data_file_display_info[item_name]['original_path']
+                data_files_for_display.append(display_df)
+            else:
+                data_files_for_display.append(df)
 
         # Parse and add linked items from --link (S3 or CloudOS, files or folders)
         mount_names_seen = {}  # Track mount names to detect duplicates
@@ -521,6 +532,9 @@ def create_session(ctx,
                 if execution_platform == 'azure':
                     click.secho(f'Error: Linking is not supported on Azure. Use `--copy` flag with `--link` to copy data into the session instead.', fg='red', err=True)
                     raise SystemExit(1)
+                if not link_path.startswith('s3://') and not link_path.startswith('az://'):
+                    norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                    link_path = f"{resolved_project}/{norm_path}"
                 parsed = parse_link_path(link_path)
                 if parsed['type'] == 's3':
                     if execution_platform != 'aws':
@@ -662,7 +676,7 @@ def create_session(ctx,
             spark_master=spark_master,
             spark_core=spark_core,
             spark_workers=spark_workers,
-            data_files=parsed_data_files,
+            data_files=data_files_for_display,
             s3_mounts=s3_mounts_for_display,  # Use display version with markers
             shutdown_in=shutdown_in
         )

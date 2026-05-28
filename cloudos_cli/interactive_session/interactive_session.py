@@ -1231,20 +1231,26 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
 
     # Display mounted data files
     if data_files:
-        mounted_files = []
+        mounted_items = []
         for df in data_files:
             if isinstance(df, dict):
-                # Handle Lifebit Platform dataset files
-                if df.get('kind') == 'File':
-                    name = df.get('name', 'Unknown')
-                    mounted_files.append(name)
-                # Handle S3 files
+                if df.get('_isFileExplorer'):
+                    original_path = df.get('_originalPath', '')
+                    if original_path:
+                        mounted_items.append(f"File Explorer: {original_path}")
                 elif df.get('type') == 'S3File':
                     data = df.get('data', {})
-                    name = data.get('name', 'Unknown')
-                    mounted_files.append(f"{name} (S3)")
-        if mounted_files:
-            table.add_row("Mounted Data", ", ".join(mounted_files))
+                    bucket = data.get('s3BucketName', '')
+                    key = data.get('s3ObjectKey', '')
+                    if bucket and key:
+                        mounted_items.append(f"s3://{bucket}/{key}")
+                    elif bucket:
+                        mounted_items.append(f"s3://{bucket}/")
+                elif df.get('kind') in ('File', 'Folder'):
+                    name = df.get('name', 'Unknown')
+                    mounted_items.append(name)
+        if mounted_items:
+            table.add_row("Mounted Data", "\n".join(mounted_items))
 
     # Display linked S3 buckets and File Explorer items (files and folders)
     if s3_mounts:
