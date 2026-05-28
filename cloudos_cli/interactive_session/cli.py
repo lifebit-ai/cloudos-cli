@@ -1177,12 +1177,6 @@ def pause_session(ctx,
 @click.option('--shutdown-in',
               help='Update auto-shutdown duration (e.g., 8h, 2d).',
               default=None)
-@click.option('--mount',
-              multiple=True,
-              help='Mount additional data file. Format: project_name/dataset_path or s3://bucket/path/to/file. Can be used multiple times.')
-@click.option('--link',
-              multiple=True,
-              help='Link additional folder. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
 @click.option('--verbose',
               help='Whether to print information messages or not.',
               is_flag=True)
@@ -1204,8 +1198,6 @@ def resume_session(ctx,
                    storage,
                    cost_limit,
                    shutdown_in,
-                   mount,
-                   link,
                    verbose,
                    disable_ssl_verification,
                    ssl_cert,
@@ -1232,27 +1224,6 @@ def resume_session(ctx,
         print(f'\tResuming session: {session_id}')
 
     try:
-        # Get current session details to determine execution platform
-        try:
-            session_data = get_interactive_session_status(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                session_id=session_id,
-                team_id=workspace_id,
-                verify_ssl=verify_ssl,
-                verbose=False
-            )
-            current_config = session_data.get('interactiveSessionConfiguration', {})
-            execution_platform = current_config.get('executionPlatform', 'aws')
-            if verbose:
-                print(f'\tCurrent session platform: {execution_platform}')
-                print(f'\tCurrent status: {session_data.get("status", "unknown")}')
-        except Exception as e:
-            # If we can't get session details, default to aws
-            execution_platform = 'aws'
-            if verbose:
-                print(f'\tCould not retrieve session details (using default platform: aws)')
-
         # Parse shutdown duration if provided
         shutdown_at_parsed = None
         if shutdown_in:
@@ -1264,166 +1235,12 @@ def resume_session(ctx,
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and resolve mounted data files
-        parsed_data_files = []
-        if mount:
-            try:
-                for df in mount:
-                    parsed = parse_data_file(df)
-                    if parsed['type'] == 's3':
-                        # S3 files are only supported on AWS
-                        if execution_platform != 'aws':
-                            click.secho(f'Error: S3 mounts are only supported on AWS.', fg='red', err=True)
-                            raise SystemExit(1)
-                        if verbose:
-                            print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        s3_file_item = {
-                            "type": "S3File",
-                            "data": {
-                                "name": parsed["s3_prefix"],
-                                "s3BucketName": parsed["s3_bucket"],
-                                "s3ObjectKey": parsed["s3_prefix"]
-                            }
-                        }
-                        parsed_data_files.append(s3_file_item)
-                    else:  # Lifebit Platform dataset
-                        data_project = parsed['project_name']
-                        dataset_path = parsed['dataset_path']
-                        if verbose:
-                            print(f'\tResolving dataset: {data_project}/{dataset_path}')
-                        datasets_api = Datasets(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=data_project,
-                            verify=verify_ssl,
-                            cromwell_token=None
-                        )
-                        resolved = resolve_data_file_id(datasets_api, dataset_path)
-                        parsed_data_files.append(resolved)
-                        if verbose:
-                            print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
-            except Exception as e:
-                click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
-                raise SystemExit(1)
-
-        # Parse and add linked items (files and folders)
-        parsed_s3_mounts = []
-        if link:
-            try:
-                # Flatten comma-separated paths within --link options
-                all_link_paths = []
-                for link_entry in link:
-                    paths = [p.strip() for p in link_entry.split(',') if p.strip()]
-                    all_link_paths.extend(paths)
-
-                mount_names_seen = {}  # Track mount names to detect duplicates
-                for link_path in all_link_paths:
-                    # Block all linking on Azure
-                    if execution_platform == 'azure':
-                        click.secho(f'Error: Linking is not supported on Azure. Please use --mount instead.', fg='red', err=True)
-                        raise SystemExit(1)
-                    parsed = parse_link_path(link_path)
-                    if parsed['type'] == 's3':
-                        is_file = parsed.get('is_file', False)
-                        if verbose:
-                            item_kind = "file" if is_file else "folder"
-                            print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        if 'mount_name' in parsed:
-                            mount_name = parsed['mount_name']
-                        else:
-                            prefix_parts = [p for p in parsed['s3_prefix'].rstrip('/').split('/') if p]
-                            mount_name = prefix_parts[-1] if prefix_parts else parsed['s3_bucket']
-
-                        if mount_name in mount_names_seen:
-                            click.secho(
-                                f"Error: Duplicate mount name '{mount_name}' detected. "
-                                f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
-                                f"would both be mounted with the same name. Please use items with unique names.",
-                                fg='red', err=True
-                            )
-                            raise SystemExit(1)
-                        mount_names_seen[mount_name] = link_path
-
-                        if is_file:
-                            s3_mount_item = {
-                                "type": "S3File",
-                                "data": {
-                                    "name": mount_name,
-                                    "s3BucketName": parsed["s3_bucket"],
-                                    "s3ObjectKey": parsed["s3_prefix"]
-                                }
-                            }
-                        else:
-                            s3_mount_item = {
-                                "type": "S3Folder",
-                                "data": {
-                                    "name": mount_name,
-                                    "s3BucketName": parsed["s3_bucket"],
-                                    "s3Prefix": parsed["s3_prefix"]
-                                }
-                            }
-                        parsed_s3_mounts.append(s3_mount_item)
-                    else:  # Lifebit Platform item
-                        folder_project = parsed['project_name']
-                        folder_path = parsed['folder_path']
-                        if verbose:
-                            print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
-                        try:
-                            fe_link = Link(
-                                cloudos_url=cloudos_url,
-                                apikey=apikey,
-                                workspace_id=workspace_id,
-                                project_name=folder_project,
-                                cromwell_token=None,
-                                verify=verify_ssl
-                            )
-                            fe_item = fe_link._parse_file_explorer_item(folder_path)
-                            item_kind = fe_item["dataItem"]["kind"]
-                            item_id = fe_item["dataItem"]["item"]
-                            mount_name = fe_item["dataItem"]["name"]
-                        except ValueError:
-                            raise
-                        except Exception as e:
-                            error_msg = str(e)
-                            if "404" in error_msg or "not found" in error_msg.lower():
-                                raise ValueError(
-                                    f"Project '{folder_project}' not found. "
-                                    f"Please verify the project name exists in your workspace."
-                                )
-                            else:
-                                raise ValueError(f"Failed to resolve item '{link_path}': {error_msg}")
-
-                        if mount_name in mount_names_seen:
-                            click.secho(
-                                f"Error: Duplicate mount name '{mount_name}' detected. "
-                                f"The items '{mount_names_seen[mount_name]}' and '{link_path}' "
-                                f"would both be mounted with the same name. Please use items with unique names.",
-                                fg='red', err=True
-                            )
-                            raise SystemExit(1)
-                        mount_names_seen[mount_name] = link_path
-
-                        cloudos_mount_item = {
-                            "kind": item_kind,
-                            "item": item_id,
-                            "name": mount_name
-                        }
-                        parsed_s3_mounts.append(cloudos_mount_item)
-                        if verbose:
-                            print(f'\t  ✓ Linked Lifebit Platform {item_kind.lower()}: {mount_name}')
-            except Exception as e:
-                click.secho(f'Error: Failed to parse link path: {str(e)}', fg='red', err=True)
-                raise SystemExit(1)
-
         # Build the resume payload
         payload = build_resume_payload(
             instance_type=instance,
             storage_size=storage,
             cost_limit=cost_limit,
-            shutdown_at=shutdown_at_parsed,
-            data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else None
+            shutdown_at=shutdown_at_parsed
         )
         if verbose:
             print('\tResume payload constructed:')
@@ -1448,10 +1265,6 @@ def resume_session(ctx,
             if shutdown_at_parsed:
                 exec_config = updated_config.get('execution', {})
                 click.echo(f'  Auto-shutdown: {exec_config.get("autoShutdownAtDate", shutdown_at_parsed)}')
-        if parsed_data_files:
-            click.echo(f'\n  {len(parsed_data_files)} additional file(s) mounted')
-        if parsed_s3_mounts:
-            click.echo(f'  {len(parsed_s3_mounts)} additional folder(s) linked')
         click.echo(f'\nSession status: {response.get("status", "unknown")}')
         click.secho(f'\nTip: Check session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow')
 
