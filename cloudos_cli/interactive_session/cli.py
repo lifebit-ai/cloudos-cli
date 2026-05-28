@@ -37,6 +37,41 @@ from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
+_PROJECT_ROOT_FOLDERS = {'data', 'analysesresults', 'analyses_results', 'analyses-results', 'cohorts'}
+
+
+def _normalize_file_explorer_path(path, project_name):
+    """Resolve (folder_path, resolved_project_name) for a File Explorer path.
+
+    If the first path segment is a known top-level folder name (Data,
+    AnalysesResults, Analyses_Results, Analyses-Results, Cohorts) the path is
+    treated as relative to the profile project (project_name).  Otherwise the
+    first segment is treated as the project name and the remainder as the path.
+    S3 / Azure paths are returned unchanged with project_name=None.
+
+    Returns (normalized_path, resolved_project_name).
+    """
+    if path.startswith('s3://') or path.startswith('az://'):
+        return path, None
+    first_segment, _ = path.split('/', 1)
+    if first_segment.lower() in _PROJECT_ROOT_FOLDERS:
+        return path, project_name
+    inferred_project, folder_path = path.split('/', 1)
+    return folder_path, inferred_project
+
+
+def _make_link_client(cloudos_url, apikey, workspace_id, project_name, verify_ssl):
+    """Instantiate a Link client for the given project."""
+    return Link(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        cromwell_token=None,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl
+    )
+
+
 def _check_duplicate_mount_name(mount_name, link_path, seen):
     """Raise SystemExit(1) if mount_name already exists in seen, otherwise register it."""
     if mount_name in seen:
@@ -1239,4 +1274,194 @@ def resume_session(ctx,
         else:
             click.secho(f'Error: Failed to resume session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
+
+
+@interactive_session.command('link')
+@click.argument('path', required=False)
+@click.option('-k',
+              '--apikey',
+              help='Your Lifebit Platform API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific Lifebit Platform workspace id.',
+              required=True)
+@click.option('--session-id',
+              help='The specific Lifebit Platform interactive session id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in Lifebit Platform. When provided, links results, workdir and logs by default.',
+              required=False)
+@click.option('--project-name',
+              help='The name of a Lifebit Platform project. Required for File Explorer paths.',
+              required=False)
+@click.option('--results',
+              help='Link only results folder (only works with --job-id).',
+              is_flag=True)
+@click.option('--workdir',
+              help='Link only working directory (only works with --job-id).',
+              is_flag=True)
+@click.option('--logs',
+              help='Link only logs folder (only works with --job-id).',
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id'])
+def link_session(ctx,
+                 path,
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 session_id,
+                 job_id,
+                 project_name,
+                 results,
+                 workdir,
+                 logs,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    """
+    Link files or folders to an interactive analysis session.
+
+    This command links S3 or File Explorer items (files and folders) to an active
+    interactive analysis session for direct read access.
+
+    PATH: Optional path(s) to link (S3 or File Explorer).
+          Required if --job-id is not provided.
+          Supports comma-separated list for multiple paths.
+          File Explorer paths must include project name (project-name/folder/path).
+
+    Two modes of operation:
+
+    1. Job-based linking (--job-id): Links job-related folders.
+       By default, links results, workdir, and logs folders.
+       Use --results, --workdir, or --logs flags to link only specific folders.
+
+    2. Direct path linking (PATH argument): Links specific path(s).
+       Supports S3 files/folders and Lifebit Platform File Explorer files/folders.
+       Both S3 and File Explorer paths can be combined.
+       S3 paths ending with '/' or without a file extension are treated as folders.
+       S3 paths whose last segment contains a '.' are treated as files.
+
+    Examples:
+
+        # Link all job folders (results, workdir, logs)
+        cloudos interactive-session link --job-id 12345 --session-id abc123
+
+        # Link a single S3 folder
+        cloudos interactive-session link s3://bucket/folder/ --session-id abc123
+
+        # Link a single S3 file
+        cloudos interactive-session link s3://bucket/data/file.csv --session-id abc123
+
+        # Link multiple S3 paths (comma-separated, files and folders mixed)
+        cloudos interactive-session link s3://bucket1/folder1/,s3://bucket2/data/file.csv --session-id abc123
+
+        # Link a File Explorer folder
+        cloudos interactive-session link my-project/Data/folder --session-id abc123 --project-name my-project
+
+        # Link a File Explorer file
+        cloudos interactive-session link my-project/Data/file.csv --session-id abc123 --project-name my-project
+
+        # Combine S3 and File Explorer paths
+        cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123 --project-name my-project
+
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    if not job_id and not path:
+        raise click.UsageError("Either --job-id or PATH argument must be provided.")
+
+    if job_id and path:
+        raise click.UsageError("Cannot use both --job-id and PATH argument. Please provide only one.")
+
+    if (results or workdir or logs) and not job_id:
+        raise click.UsageError("--results, --workdir, and --logs flags can only be used with --job-id.")
+
+    if job_id and not (results or workdir or logs):
+        results = True
+        workdir = True
+        logs = True
+
+    if verbose:
+        print('Using the following parameters:')
+        print(f'\tLifebit Platform url: {cloudos_url}')
+        print(f'\tWorkspace ID: {workspace_id}')
+        print(f'\tSession ID: {session_id}')
+        if job_id:
+            print(f'\tJob ID: {job_id}')
+            print(f'\tLink results: {results}')
+            print(f'\tLink workdir: {workdir}')
+            print(f'\tLink logs: {logs}')
+        else:
+            print(f'\tPath: {path}')
+
+    try:
+        if job_id:
+            link_client = _make_link_client(cloudos_url, apikey, workspace_id, project_name, verify_ssl)
+            print(f'Linking folders from job {job_id} to interactive session {session_id}...\n')
+
+            if results:
+                link_client.link_job_results(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+            if workdir:
+                link_client.link_job_workdir(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+            if logs:
+                link_client.link_job_logs(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+        else:
+            paths = [p.strip() for p in path.split(',') if p.strip()]
+
+            if len(paths) == 0:
+                raise click.UsageError("No valid paths provided.")
+
+            # Normalize paths and group by resolved project name.
+            # S3/Azure paths are keyed under None and sent as their own batch.
+            groups = {}
+            for p in paths:
+                norm_path, resolved = _normalize_file_explorer_path(p, project_name)
+                groups.setdefault(resolved, []).append(norm_path)
+
+            if len(paths) == 1:
+                print(f'Linking path to interactive session {session_id}...\n')
+            else:
+                print(f'Linking {len(paths)} paths to interactive session {session_id}...\n')
+
+            all_succeeded = True
+            try:
+                for grp_project, grp_paths in groups.items():
+                    client = _make_link_client(cloudos_url, apikey, workspace_id, grp_project, verify_ssl)
+                    if not client.link_folders_batch(grp_paths, session_id):
+                        all_succeeded = False
+                if all_succeeded:
+                    print('\nLinking operation completed successfully!')
+                else:
+                    click.secho('\nLinking operation completed with errors. See details above.', fg='red', err=True)
+                    raise SystemExit(1)
+            except SystemExit:
+                raise
+            except Exception as e:
+                click.secho(f'\n✗ Failed: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+
+    except BadRequestException as e:
+        raise ValueError(f"Request failed: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Failed to link folder(s): {str(e)}")
 

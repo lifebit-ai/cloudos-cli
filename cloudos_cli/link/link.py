@@ -355,7 +355,8 @@ class Link(Cloudos):
                 mount_name = item_data['name']
                 item_kind = "file" if folder_data['data'].get('type') == 'S3File' else "folder"
             else:
-                full_path = folder_data["path"]
+                folder_path = folder_data["path"]
+                full_path = f"{self.project_name}/{folder_path}" if self.project_name else folder_path
                 mount_name = folder_data['data']['name']
                 item_kind = "file" if folder_data['data'].get('kind') == 'File' else "folder"
 
