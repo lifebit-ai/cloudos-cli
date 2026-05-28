@@ -2537,7 +2537,7 @@ The command automatically loads from profile (via `@with_profile_config` decorat
 
 #### Resume Interactive Session
 
-Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, auto-shutdown time, and mount additional data files or folders when resuming.
+Resume a paused interactive session with optional configuration updates. You can change instance type, storage, cost limit, and auto-shutdown time when resuming.
 
 
 **Basic Usage**
@@ -2569,19 +2569,6 @@ cloudos interactive-session resume \
   --shutdown-in 12h
 ```
 
-**Mount Additional Data**
-
-Resume and mount additional files:
-
-```bash
-cloudos interactive-session resume \
-  --session-id <SESSION_ID> \
-  --profile my_profile \
-  --mount my-project/Data/new-dataset.csv \
-  --mount s3://my-bucket/data/file.txt
-```
-
-
 **Configuration Updates**
 
 All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
@@ -2590,6 +2577,8 @@ All configuration parameters are optional. If not specified, the session resumes
 - `--storage <GB>` - Update storage size (100-5000 GB)
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
+
+> To link or mount data to a running session, use `cloudos link` or `cloudos datasets link` after the session has resumed.
 
 ### Datasets
 

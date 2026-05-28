@@ -1,5 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.0 (2026-05-28)
+
+### Feat:
+
+- Implements linking of files in interactive session creation
+- Implements linking of files in `cloudos link`
+- Removes support for linking while resuming a paused interactive session
+
+
 ## v2.90.2 (2026-05-07)
 
 ### Patch
