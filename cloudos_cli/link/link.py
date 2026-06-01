@@ -38,14 +38,17 @@ class Link(Cloudos):
     def link_folder(self,
                     folder: str,
                     session_id: str) -> bool:
-        """Link a folder (S3 or File Explorer) to an interactive session.
+        """Link a file or folder (S3 or File Explorer) to an interactive session.
 
         Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.
+        Note: File linking requires the v2 endpoint — the v1 fallback only supports folders.
 
         Parameters
         ----------
         folder : str
-            The folder to link.
+            The file or folder path to link. Accepts S3 URLs (s3://bucket/...) and
+            File Explorer paths (relative to ``self.project_name``). Despite the
+            parameter name, files are also supported.
         session_id : str
             The interactive session ID.
 
@@ -59,9 +62,10 @@ class Link(Cloudos):
         Raises
         ------
         ValueError
-            If the URL already exists with 'mounted' status,
+            If the item already exists with 'mounted' status,
             if the API key is invalid or permissions are insufficient,
-            or if the URL is invalid or the session is not active.
+            if the path is invalid or the session is not active,
+            or if a file is linked while only the v1 endpoint is available.
         """
         # Use batch method for single folder (leverages v2 dataItems array)
         return self.link_folders_batch([folder], session_id)
@@ -333,7 +337,7 @@ class Link(Cloudos):
                 if r.status_code == 403:
                     raise ValueError(f"Provided {folder_data['type']} item already exists with 'mounted' status")
                 elif r.status_code == 401:
-                    raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
+                    raise ValueError("Unauthorized. Invalid API key or insufficient permissions.")
                 elif r.status_code == 400:
                     try:
                         r_content = json.loads(r.content)
@@ -456,7 +460,7 @@ class Link(Cloudos):
             raise ValueError("Interactive Analysis session is not active or access denied")
 
         if matches('401', 'unauthorized'):
-            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
+            raise ValueError("Unauthorized. Invalid API key or insufficient permissions.")
 
         if matches('400', 'bad request'):
             if "invalid supported dataitem foldertype" in error_lower:
@@ -768,7 +772,7 @@ class Link(Cloudos):
             r = retry_requests_get(url, headers=headers, verify=self.verify)
 
             if r.status_code == 401:
-                raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
+                raise ValueError("Unauthorized. Invalid API key or insufficient permissions.")
             elif r.status_code == 404:
                 raise ValueError(
                     f"Interactive session {session_id} not found. "
