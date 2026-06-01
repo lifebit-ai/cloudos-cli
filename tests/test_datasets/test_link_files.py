@@ -81,6 +81,14 @@ class TestParseS3FilePath:
         with pytest.raises(ValueError):
             link_instance.parse_s3_file_path("s3://bucket")
 
+    def test_empty_bucket_raises(self, link_instance):
+        with pytest.raises(ValueError, match="bucket name is empty"):
+            link_instance.parse_s3_file_path("s3:///some/key.csv")
+
+    def test_trailing_slash_key_raises(self, link_instance):
+        with pytest.raises(ValueError, match="folder-like"):
+            link_instance.parse_s3_file_path("s3://bucket/folder/")
+
 
 # ---------------------------------------------------------------------------
 # _parse_file_explorer_item (auto-detect)

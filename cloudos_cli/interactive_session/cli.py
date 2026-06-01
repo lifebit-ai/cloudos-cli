@@ -299,16 +299,20 @@ def list_sessions(ctx,
 @click.option('--link',
               multiple=True,
               help=(
-                  'Link a folder into the session for read access. Supports S3 folders '
-                  '(s3://bucket/path/) and File Explorer folders (project-name/folder/path '
-                  '- must include project name). Both types can be combined. Provide '
-                  'multiple paths as comma-separated values or use --link multiple times. '
-                  'Examples: --link s3://bucket/data/,my-project/Data/results OR '
-                  '--link s3://bucket1/path/ --link my-project/Data. '
-                  'NOTE: format is `<project>/<folder-path>` — the project is part of the '
-                  'path, so a single command can link items from multiple projects. This '
-                  'differs from `cloudos link`, where the project comes from --project-name '
-                  'and must NOT appear in the path.'
+                  'Link a file or folder into the session for read access. Supports '
+                  'S3 files and folders (e.g. s3://bucket/path/file.csv or '
+                  's3://bucket/path/) and File Explorer files and folders '
+                  '(project-name/path/to/item — must include project name). S3 paths '
+                  'whose last segment contains a "." are treated as files; paths ending '
+                  'with "/" or without an extension are treated as folders. Both S3 and '
+                  'File Explorer items can be combined. Provide multiple paths as '
+                  'comma-separated values or use --link multiple times. '
+                  'Examples: --link s3://bucket/data/file.csv,my-project/Data/results '
+                  'OR --link s3://bucket1/path/ --link my-project/Data/file.csv. '
+                  'NOTE: format is `<project>/<relative-path>` — the project is part of '
+                  'the path, so a single command can link items from multiple projects. '
+                  'This differs from `cloudos link`, where the project comes from '
+                  '--project-name and must NOT appear in the path.'
               ))
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),

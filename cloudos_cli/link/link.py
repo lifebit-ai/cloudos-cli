@@ -109,10 +109,14 @@ class Link(Cloudos):
             # v2 failed or not available, fall back to v1
             status_code = self._fallback_mount_v1(folder_info, session_id)
 
-        # Verify mount completion for all items
-        if status_code == 204:
+        # Verify mount completion for all items. Any 2xx is treated as
+        # "request accepted" and we still verify; anything else is an error.
+        if status_code is not None and 200 <= status_code < 300:
             return self._verify_all_mounts(folder_info, session_id)
-        return True
+        raise ValueError(
+            f"Unexpected response from mount API: HTTP {status_code}. "
+            "The mount request did not succeed; nothing has been verified."
+        )
 
     def _parse_items_to_data_items(self, folders: list, existing_mount_names: set = None) -> tuple:
         """Parse and validate folders/files, extracting data items for API payload.
@@ -343,7 +347,7 @@ class Link(Cloudos):
         except Exception as v1_error:
             raise ValueError(f"Failed to mount {folder_data['type']} item: {str(v1_error)}")
 
-    def _verify_all_mounts(self, folder_info: list, session_id: str):
+    def _verify_all_mounts(self, folder_info: list, session_id: str) -> bool:
         """Verify mount completion status for all items (files and folders).
 
         Parameters
@@ -352,6 +356,12 @@ class Link(Cloudos):
             List of item metadata dictionaries.
         session_id : str
             The interactive session ID.
+
+        Returns
+        -------
+        bool
+            True if every item reached 'mounted'; False if any failed,
+            timed out, or could not be verified.
         """
         all_succeeded = True
         for folder_data in folder_info:
@@ -547,8 +557,18 @@ class Link(Cloudos):
         bucket = parsed.netloc
         key = parsed.path.lstrip('/')
 
+        if not bucket:
+            raise ValueError(
+                f"Invalid S3 URL '{s3_url}': bucket name is empty. "
+                "Expected 's3://<bucket>/<key>'."
+            )
         if not key:
             raise ValueError("S3 URL must include a key after the bucket")
+        if key.endswith('/'):
+            raise ValueError(
+                f"Invalid S3 file URL '{s3_url}': key ends with '/' which is folder-like. "
+                "Drop the trailing slash for a file link, or use the folder linking path."
+            )
 
         name = key.split('/')[-1]
         return {

@@ -777,6 +777,13 @@ def link(ctx,
     )
 
     try:
-        link_p.link_folder(path, session_id)
+        succeeded = link_p.link_folder(path, session_id)
     except Exception as e:
         raise ValueError(f"Could not link item. {e}")
+
+    if not succeeded:
+        click.secho(
+            "Linking did not complete successfully. See errors above.",
+            fg='red', err=True,
+        )
+        raise SystemExit(1)
