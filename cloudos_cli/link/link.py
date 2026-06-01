@@ -38,7 +38,7 @@ class Link(Cloudos):
 
     def link_folder(self,
                     folder: str,
-                    session_id: str) -> dict:
+                    session_id: str) -> bool:
         """Link a folder (S3 or File Explorer) to an interactive session.
 
         Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.
@@ -50,12 +50,19 @@ class Link(Cloudos):
         session_id : str
             The interactive session ID.
 
+        Returns
+        -------
+        bool
+            True if the mount completed and was verified as 'mounted'; False if
+            verification reported a failure or timed out. Callers that care
+            about partial failure should observe this value.
+
         Raises
         ------
         ValueError
-            If the URL already exists with 'mounted' status
-            If the API key is invalid or permissions are insufficient
-            If the URL is invalid or the session is not active.
+            If the URL already exists with 'mounted' status,
+            if the API key is invalid or permissions are insufficient,
+            or if the URL is invalid or the session is not active.
         """
         # Use batch method for single folder (leverages v2 dataItems array)
         return self.link_folders_batch([folder], session_id)
@@ -145,38 +152,38 @@ class Link(Cloudos):
                     parsed = self.parse_s3_file_path(folder)
                 else:
                     parsed = self.parse_s3_path(folder)
+                source_type = "S3"
                 mount_name = parsed["dataItem"]["data"]["name"]
-
-                if mount_name in mount_names_seen:
-                    existing = mount_names_seen[mount_name]
-                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
-                    raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
-                        f"Items with the same name cannot be mounted together. "
-                        f"Please use items with unique names."
-                    )
-                mount_names_seen[mount_name] = folder
-
-                data_items.append(parsed["dataItem"])
-                folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
-                parsed = self._parse_file_explorer_item(folder)
+                parsed = self.parse_file_explorer_item(folder)
+                source_type = "File Explorer"
                 mount_name = parsed["dataItem"]["name"]
 
-                if mount_name in mount_names_seen:
-                    existing = mount_names_seen[mount_name]
-                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
-                    raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
-                        f"Items with the same name cannot be mounted together. "
-                        f"Please use items with unique names."
-                    )
-                mount_names_seen[mount_name] = folder
+            self._raise_if_duplicate_mount(mount_name, folder, mount_names_seen)
+            mount_names_seen[mount_name] = folder
 
-                data_items.append(parsed["dataItem"])
-                folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
+            data_items.append(parsed["dataItem"])
+            folder_info.append({"path": folder, "type": source_type, "data": parsed["dataItem"]})
 
         return data_items, folder_info
+
+    @staticmethod
+    def _raise_if_duplicate_mount(mount_name: str, path: str, mount_names_seen: dict) -> None:
+        """Raise ValueError if mount_name already appears in mount_names_seen.
+
+        Distinguishes between collisions with already-mounted session items
+        (value is None) and collisions with another item in the current batch
+        (value is the prior path).
+        """
+        if mount_name not in mount_names_seen:
+            return
+        existing = mount_names_seen[mount_name]
+        conflict = f" and '{path}'" if existing else " (already mounted in session)"
+        raise ValueError(
+            f"Duplicate mount name '{mount_name}' detected{conflict}. "
+            f"Items with the same name cannot be mounted together. "
+            f"Please use items with unique names."
+        )
 
     def _try_mount_v2(self, data_items: list, session_id: str) -> int:
         """Attempt to mount folders using API v2.
@@ -418,32 +425,30 @@ class Link(Cloudos):
         error_str = str(error)
         error_lower = error_str.lower()
 
-        error_patterns = {
-            ('403', 'forbidden'): {
-                'check': lambda: "already exists" in error_lower or "mounted" in error_lower,
-                'message_if_true': f"Provided {type_folder} item already exists with 'mounted' status",
-                'message_if_false': f"Interactive Analysis session is not active or access denied"
-            },
-            ('401', 'unauthorized'): {
-                'message': f"Forbidden. Invalid API key or insufficient permissions."
-            },
-            ('400', 'bad request'): {
-                'check': lambda: "invalid supported dataitem foldertype" in error_lower,
-                'message_if_true': f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.",
-                'message_if_false': f"Cannot link item: {error_str}"
-            },
-            ('404', 'not found'): {
-                'message': f"Session not found or endpoint not available"
-            }
-        }
+        def matches(*tokens):
+            """True if any token appears in the original or lowercased error text."""
+            return any(t in error_lower or t in error_str for t in tokens)
 
-        for patterns, config in error_patterns.items():
-            if any(pattern in error_lower or pattern in error_str for pattern in patterns):
-                if 'check' in config:
-                    message = config['message_if_true'] if config['check']() else config['message_if_false']
-                else:
-                    message = config['message']
-                raise ValueError(message)
+        if matches('403', 'forbidden'):
+            if "already exists" in error_lower or "mounted" in error_lower:
+                raise ValueError(
+                    f"Provided {type_folder} item already exists with 'mounted' status"
+                )
+            raise ValueError("Interactive Analysis session is not active or access denied")
+
+        if matches('401', 'unauthorized'):
+            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
+
+        if matches('400', 'bad request'):
+            if "invalid supported dataitem foldertype" in error_lower:
+                raise ValueError(
+                    f"Invalid Supported DataItem '{type_folder}' folderType. "
+                    "Virtual folders cannot be linked."
+                )
+            raise ValueError(f"Cannot link item: {error_str}")
+
+        if matches('404', 'not found'):
+            raise ValueError("Session not found or endpoint not available")
 
         raise ValueError(f"Failed to mount {type_folder} item: {error_str}")
 
@@ -557,6 +562,14 @@ class Link(Cloudos):
             }
         }
 
+    def parse_file_explorer_item(self, path: str) -> dict:
+        """Public alias for _parse_file_explorer_item.
+
+        Use this from code outside the Link class. The underscore version is
+        retained for internal callers but both behave identically.
+        """
+        return self._parse_file_explorer_item(path)
+
     def _parse_file_explorer_item(self, path: str) -> dict:
         """Auto-detect whether a File Explorer path is a file or folder and return the data item.
 
@@ -565,7 +578,10 @@ class Link(Cloudos):
         Parameters
         ----------
         path : str
-            The path within the project (e.g., 'Data/results' or 'Data/file.csv').
+            The path RELATIVE to the project (e.g., 'Data/results' or
+            'Data/file.csv'). Do NOT include the project name as the leading
+            segment — the project is taken from ``self.project_name`` (set
+            via ``--project-name``).
 
         Returns
         -------
@@ -575,10 +591,30 @@ class Link(Cloudos):
         Raises
         ------
         ValueError
-            If the item is not found or is a virtual folder.
+            If ``self.project_name`` is not set, if the path starts with the
+            project name, or if the item is not found / is a virtual folder.
         """
+        if not self.project_name:
+            raise ValueError(
+                "Cannot resolve File Explorer path without a project. "
+                "Pass --project-name (or set it in your profile)."
+            )
+
         stripped = path.strip("/")
         parts = stripped.split("/")
+
+        # Reject paths that include the project name as the first segment.
+        # The project comes from --project-name only; prepending it in the
+        # path is a common mistake that otherwise produces a confusing
+        # "Folder '<project>' not found in project '<project>'" error.
+        if parts[0] == self.project_name:
+            relative = "/".join(parts[1:]) or "<path>"
+            raise ValueError(
+                f"File Explorer path '{path}' must NOT include the project name. "
+                f"The project is supplied via --project-name ('{self.project_name}'). "
+                f"Use '{relative}' instead."
+            )
+
         item_name = parts[-1]
         parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
 
@@ -740,7 +776,8 @@ class Link(Cloudos):
                 print('\tLinking results directory...')
                 if verbose:
                     print(f'\t\tResults: {results_path}')
-                self.link_folder(results_path, session_id)
+                if not self.link_folder(results_path, session_id):
+                    click.secho('\tResults directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo results found to link.', fg='yellow')
 
@@ -787,7 +824,8 @@ class Link(Cloudos):
                 print('\tLinking working directory...')
                 if verbose:
                     print(f'\t\tWorkdir: {workdir_path}')
-                self.link_folder(workdir_path.strip(), session_id)
+                if not self.link_folder(workdir_path.strip(), session_id):
+                    click.secho('\tWorking directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo working directory found to link.', fg='yellow')
 
@@ -836,7 +874,8 @@ class Link(Cloudos):
                 print('\tLinking logs directory...')
                 if verbose:
                     print(f'\t\tLogs directory: {logs_dir}')
-                self.link_folder(logs_dir, session_id)
+                if not self.link_folder(logs_dir, session_id):
+                    click.secho('\tLogs directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo logs found to link.', fg='yellow')
 

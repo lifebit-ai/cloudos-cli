@@ -338,3 +338,123 @@ class TestBackwardCompatibility:
         link_instance.link_folder("s3://b/path/myfolder/", "sessionABC")
         captured = capsys.readouterr()
         assert "Successfully mounted S3 folder: s3://b/path/myfolder/" in captured.out
+
+
+# ---------------------------------------------------------------------------
+# _parse_file_explorer_item guards (new in 2.91.0)
+# ---------------------------------------------------------------------------
+
+class TestParseFileExplorerItemGuards:
+    """Validate the two defensive checks added at the top of _parse_file_explorer_item."""
+
+    def test_missing_project_name_raises_clear_error(self):
+        link = Link(
+            cloudos_url=CLOUDOS_URL, apikey=APIKEY, workspace_id=WORKSPACE_ID,
+            project_name=None, cromwell_token=None, verify=False,
+        )
+        with pytest.raises(ValueError, match="without a project"):
+            link._parse_file_explorer_item("Data/file.csv")
+
+    def test_path_starting_with_project_name_is_rejected(self, link_instance):
+        # link_instance.project_name == 'test_project'
+        with pytest.raises(ValueError, match="must NOT include the project name"):
+            link_instance._parse_file_explorer_item("test_project/Data/file.csv")
+
+    def test_rejection_message_quotes_the_correct_relative_form(self, link_instance):
+        try:
+            link_instance._parse_file_explorer_item("test_project/Data/file.csv")
+        except ValueError as e:
+            assert "Use 'Data/file.csv' instead." in str(e)
+
+    def test_public_wrapper_matches_private(self, link_instance, monkeypatch):
+        # parse_file_explorer_item should be a thin alias for _parse_file_explorer_item
+        ds = mock.MagicMock()
+        ds.list_folder_content.return_value = {
+            "folders": [{"name": "results", "_id": "rid", "folderType": "S3Folder"}],
+            "files": [],
+        }
+        monkeypatch.setattr(
+            "cloudos_cli.link.link.generate_datasets_for_project",
+            lambda *a, **kw: ds
+        )
+        public = link_instance.parse_file_explorer_item("Data/results")
+        private = link_instance._parse_file_explorer_item("Data/results")
+        assert public == private
+
+
+# ---------------------------------------------------------------------------
+# _translate_mount_error
+# ---------------------------------------------------------------------------
+
+class TestTranslateMountError:
+
+    def test_prefix_does_not_exist_appends_guidance(self, link_instance):
+        raw = "S3 prefix does not exist"
+        out = link_instance._translate_mount_error(raw)
+        assert raw in out
+        assert "workspace's cloud account has read access" in out
+
+    def test_key_does_not_exist_appends_guidance(self, link_instance):
+        raw = "object key does not exist"
+        out = link_instance._translate_mount_error(raw)
+        assert raw in out
+        assert "Verify the path is correct" in out
+
+    def test_access_denied_appends_guidance(self, link_instance):
+        raw = "S3 returned: access denied for bucket"
+        out = link_instance._translate_mount_error(raw)
+        assert raw in out
+        assert "does not have permission" in out
+
+    def test_forbidden_appends_guidance(self, link_instance):
+        raw = "403 Forbidden"
+        out = link_instance._translate_mount_error(raw)
+        assert raw in out
+        assert "does not have permission" in out
+
+    def test_unknown_error_passes_through_unchanged(self, link_instance):
+        raw = "Some unrelated mount failure"
+        assert link_instance._translate_mount_error(raw) == raw
+
+
+# ---------------------------------------------------------------------------
+# v1 fallback rejects file items
+# ---------------------------------------------------------------------------
+
+class TestV1FallbackRejectsFiles:
+
+    @responses.activate
+    def test_v1_fallback_rejects_s3_file(self, link_instance, monkeypatch):
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
+
+        # v2 returns 404 to trigger v1 fallback
+        url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
+        responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
+
+        monkeypatch.setattr(link_instance, "is_s3_file_path", lambda x: True)
+        monkeypatch.setattr(link_instance, "parse_s3_file_path", lambda x: {
+            "dataItem": {
+                "type": "S3File",
+                "data": {"name": "file.csv", "s3BucketName": "b", "s3ObjectKey": "p/file.csv"},
+            }
+        })
+
+        with pytest.raises(ValueError, match="File linking requires API v2"):
+            link_instance.link_folders_batch(["s3://b/p/file.csv"], "sessionABC")
+
+    @responses.activate
+    def test_v1_fallback_rejects_fe_file(self, link_instance, monkeypatch):
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
+
+        url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
+        responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
+
+        # Bypass _parse_file_explorer_item so we land directly in the v1-fallback file check
+        monkeypatch.setattr(link_instance, "parse_file_explorer_item", lambda path: {
+            "dataItem": {"kind": "File", "item": "id1", "name": "data.csv"}
+        })
+
+        with pytest.raises(ValueError, match="File linking requires API v2"):
+            link_instance.link_folders_batch(["Data/data.csv"], "sessionABC")

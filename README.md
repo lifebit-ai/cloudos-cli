@@ -2810,12 +2810,18 @@ cloudos link s3://bucket/data/file.csv --session-id <SESSION_ID> --profile my_pr
 # Link multiple S3 paths (comma-separated, files and folders mixed)
 cloudos link s3://bucket1/data/,s3://bucket2/results/file.csv --session-id <SESSION_ID> --profile my_profile
 
-# Link a File Explorer folder (requires project name)
-cloudos link "my-project/Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+# Link a File Explorer folder (path is RELATIVE to --project-name; do NOT prepend the project)
+cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
 
-# Link a File Explorer file (requires project name)
-cloudos link "my-project/Data/file.csv" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+# Link a File Explorer file (path is RELATIVE to --project-name)
+cloudos link "Data/file.csv" --project-name my-project --session-id <SESSION_ID> --profile my_profile
+
+# Link several File Explorer items at once (all in the same project)
+cloudos link "Data/MyFolder,Data/file.csv,Results/run-1" --project-name my-project --session-id <SESSION_ID> --profile my_profile
 ```
+
+> [!IMPORTANT]
+> **`cloudos link` is single-project for File Explorer paths.** All File Explorer items linked in one invocation must belong to the project named in `--project-name`. The path must be relative to that project — prepending the project name to the path (e.g. `my-project/Data/file.csv`) is rejected. To link items from a different project, run `cloudos link` again with a different `--project-name`.
 
 **Command options:**
 
@@ -2826,7 +2832,7 @@ cloudos link "my-project/Data/file.csv" --project-name my-project --session-id <
 - `--workspace-id`: The specific Lifebit Platform workspace ID (required)
 - `--session-id`: The specific Lifebit Platform interactive session ID (required)
 - `--job-id`: The job ID in Lifebit Platform (links results, workdir, and logs by default)
-- `--project-name`: Lifebit Platform project name (required for File Explorer paths)
+- `--project-name`: Lifebit Platform project name. Required when any PATH is a File Explorer path. All FE paths in one invocation must belong to this project and must be RELATIVE to it (do not prepend the project name)
 - `--results`: Link only results folder (only works with `--job-id`)
 - `--workdir`: Link only working directory (only works with `--job-id`)
 - `--logs`: Link only logs folder (only works with `--job-id`)

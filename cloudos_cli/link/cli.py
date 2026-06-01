@@ -27,7 +27,14 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
               help='The job id in Lifebit Platform. When provided, links results, workdir and logs by default.',
               required=False)
 @click.option('--project-name',
-              help='The name of a Lifebit Platform project. Required for File Explorer paths.',
+              help=(
+                  "Lifebit Platform project that owns the File Explorer items being linked. "
+                  "REQUIRED when any PATH is a File Explorer path. Every File Explorer path "
+                  "in this invocation is resolved against this single project — multi-project "
+                  "linking is not supported. File Explorer paths must be RELATIVE to this "
+                  "project (e.g. 'Data/folder/file.txt'); do not prepend the project name. "
+                  "Not needed for pure S3 linking. Typically set via your profile."
+              ),
               required=False)
 @click.option('--results',
               help='Link only results folder (only works with --job-id).',
@@ -74,7 +81,14 @@ def link(ctx,
     PATH: Optional path(s) to link (S3 or File Explorer).
           Required if --job-id is not provided.
           Supports comma-separated list for multiple paths.
-          File Explorer paths must include project name (project-name/folder/path).
+
+          File Explorer paths must be RELATIVE to the project named in
+          --project-name (do NOT prepend the project name in the path).
+          Multi-project linking in a single command is not supported.
+
+          NOTE: this differs from `cloudos interactive-session create --link`,
+          where the project IS part of each path (format `<project>/<folder>`)
+          so that command can link items from multiple projects at once.
 
     Two modes of operation:
 
@@ -87,6 +101,7 @@ def link(ctx,
        Both S3 and File Explorer paths can be combined.
        S3 paths ending with '/' or without a file extension are treated as folders.
        S3 paths whose last segment contains a '.' are treated as files.
+       File Explorer paths are resolved against --project-name.
 
     Examples:
 
@@ -102,17 +117,20 @@ def link(ctx,
         # Link multiple S3 paths (comma-separated, files and folders mixed)
         cloudos link s3://bucket1/folder1/,s3://bucket2/data/file.csv --session-id abc123
 
-        # Link a File Explorer folder
-        cloudos link my-project/Data/folder --session-id abc123 --project-name my-project
+        # Link a File Explorer folder (path is RELATIVE to --project-name)
+        cloudos link Data/folder --session-id abc123 --project-name my-project
 
-        # Link a File Explorer file
-        cloudos link my-project/Data/file.csv --session-id abc123 --project-name my-project
+        # Link a File Explorer file (path is RELATIVE to --project-name)
+        cloudos link Data/file.csv --session-id abc123 --project-name my-project
 
-        # Combine S3 and File Explorer paths
-        cloudos link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123 --project-name my-project
+        # Link several File Explorer items in the same project
+        cloudos link Data/folder,Data/file.csv,Results/run-1 --session-id abc123 --project-name my-project
+
+        # Combine S3 and File Explorer paths (FE paths still relative to --project-name)
+        cloudos link s3://bucket/data/file.csv,Data/results --session-id abc123 --project-name my-project
 
     """
-    print('Lifebit Platform link functionality: link s3 folders to interactive analysis sessions.\n')
+    print('Lifebit Platform link functionality: link files and folders to interactive analysis sessions.\n')
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -190,15 +208,14 @@ def link(ctx,
             # Link all paths in one batch (v2 API will send them together)
             try:
                 all_succeeded = link_client.link_folders_batch(paths, session_id)
-                if all_succeeded:
-                    print('\nLinking operation completed successfully!')
-                else:
-                    click.secho('\nLinking operation completed with errors. See details above.', fg='red', err=True)
-                    raise SystemExit(1)
-            except SystemExit:
-                raise
             except Exception as e:
                 click.secho(f'\n✗ Failed: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+
+            if all_succeeded:
+                print('\nLinking operation completed successfully!')
+            else:
+                click.secho('\nLinking operation completed with errors. See details above.', fg='red', err=True)
                 raise SystemExit(1)
 
     except BadRequestException as e:

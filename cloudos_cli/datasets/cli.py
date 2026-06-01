@@ -756,9 +756,11 @@ def link(ctx,
     """
     Link a file or folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 file/folder or relative path in File Explorer.
+    PATH [path]: the full path to the S3 file/folder, or a path RELATIVE to
+    the project named in --project-name for File Explorer items. Do NOT
+    prepend the project name to File Explorer paths.
     E.g.: 's3://bucket-name/folder/subfolder', 's3://bucket/data/file.csv',
-    'Data/Downloads', 'Data', or 'my-project/Data/file.csv'.
+    'Data/Downloads', 'Data/file.csv'.
     """
     if not path.startswith("s3://") and project_name is None:
         raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")

@@ -38,14 +38,15 @@ from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 def _check_duplicate_mount_name(mount_name, link_path, seen):
-    """Raise SystemExit(1) if mount_name already exists in seen, otherwise register it."""
-    if mount_name in seen:
-        click.secho(
-            f"Error: Duplicate mount name '{mount_name}' detected. "
-            f"The items '{seen[mount_name]}' and '{link_path}' "
-            f"would both be mounted with the same name. Please use items with unique names.",
-            fg='red', err=True
-        )
+    """Register mount_name in seen, or exit cleanly if already present.
+
+    Delegates duplicate detection to Link._raise_if_duplicate_mount so the
+    error wording stays consistent between this command and `cloudos link`.
+    """
+    try:
+        Link._raise_if_duplicate_mount(mount_name, link_path, seen)
+    except ValueError as e:
+        click.secho(f"Error: {e}", fg='red', err=True)
         raise SystemExit(1)
     seen[mount_name] = link_path
 
@@ -297,7 +298,18 @@ def list_sessions(ctx,
               help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help='Link a folder into the session for read access. Supports S3 folders (s3://bucket/path/) and File Explorer folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
+              help=(
+                  'Link a folder into the session for read access. Supports S3 folders '
+                  '(s3://bucket/path/) and File Explorer folders (project-name/folder/path '
+                  '- must include project name). Both types can be combined. Provide '
+                  'multiple paths as comma-separated values or use --link multiple times. '
+                  'Examples: --link s3://bucket/data/,my-project/Data/results OR '
+                  '--link s3://bucket1/path/ --link my-project/Data. '
+                  'NOTE: format is `<project>/<folder-path>` — the project is part of the '
+                  'path, so a single command can link items from multiple projects. This '
+                  'differs from `cloudos link`, where the project comes from --project-name '
+                  'and must NOT appear in the path.'
+              ))
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -425,7 +437,7 @@ def create_session(ctx,
 
         # Parse and resolve mounted data files (both Lifebit Platform and S3)
         parsed_data_files = []
-        parsed_s3_mounts = []  # S3 folders go into FUSE mounts
+        parsed_link_items = []  # Items go into FUSE mounts (S3 folders/files + File Explorer folders/files)
         if mount:
             try:
                 for df in mount:
@@ -481,7 +493,7 @@ def create_session(ctx,
             all_link_paths.extend(paths)
 
         mount_names_seen = {}  # Track mount names to detect duplicates
-        s3_mount_display_info = {}  # Track File Explorer paths for display (not sent to API)
+        link_display_info = {}  # Track File Explorer paths for display (not sent to API)
         for link_path in all_link_paths:
             try:
                 # Block all linking on Azure platforms
@@ -523,7 +535,7 @@ def create_session(ctx,
                                 "s3Prefix": parsed["s3_prefix"]
                             }
                         }
-                    parsed_s3_mounts.append(s3_mount_item)
+                    parsed_link_items.append(s3_mount_item)
                     if verbose:
                         print(f'\t  ✓ Linked S3: {mount_name}')
 
@@ -541,7 +553,7 @@ def create_session(ctx,
                             cromwell_token=None,
                             verify=verify_ssl
                         )
-                        fe_item = fe_link._parse_file_explorer_item(folder_path)
+                        fe_item = fe_link.parse_file_explorer_item(folder_path)
                         item_kind = fe_item["dataItem"]["kind"]
                         item_id = fe_item["dataItem"]["item"]
                         mount_name = fe_item["dataItem"]["name"]
@@ -564,9 +576,9 @@ def create_session(ctx,
                         "item": item_id,
                         "name": mount_name
                     }
-                    parsed_s3_mounts.append(cloudos_mount_item)
+                    parsed_link_items.append(cloudos_mount_item)
 
-                    s3_mount_display_info[mount_name] = {
+                    link_display_info[mount_name] = {
                         "is_file_explorer": True,
                         "original_path": f"{folder_project}/{folder_path}"
                     }
@@ -578,18 +590,18 @@ def create_session(ctx,
                 click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Create display version of s3_mounts with File Explorer markers
-        s3_mounts_for_display = []
-        for mount in parsed_s3_mounts:
+        # Create display version of link items with File Explorer markers
+        link_items_for_display = []
+        for mount in parsed_link_items:
             # FE items use kind/item/name; S3 items use type/data
             mount_name = mount.get('name') or mount.get('data', {}).get('name', '')
-            if mount_name in s3_mount_display_info:
+            if mount_name in link_display_info:
                 display_mount = mount.copy()
-                display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
-                display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
-                s3_mounts_for_display.append(display_mount)
+                display_mount['_isFileExplorer'] = link_display_info[mount_name]['is_file_explorer']
+                display_mount['_originalPath'] = link_display_info[mount_name]['original_path']
+                link_items_for_display.append(display_mount)
             else:
-                s3_mounts_for_display.append(mount)
+                link_items_for_display.append(mount)
 
         # Build the session payload
         payload = build_session_payload(
@@ -604,7 +616,7 @@ def create_session(ctx,
             shutdown_at=shutdown_at_parsed,
             project_id=project_id,
             data_files=parsed_data_files,
-            s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else [],
+            s3_mounts=parsed_link_items if execution_platform == 'aws' else [],
             r_version=r_version,
             spark_master_type=spark_master,
             spark_core_type=spark_core,
@@ -630,7 +642,7 @@ def create_session(ctx,
             spark_core=spark_core,
             spark_workers=spark_workers,
             data_files=parsed_data_files,
-            s3_mounts=s3_mounts_for_display,  # Use display version with markers
+            s3_mounts=link_items_for_display,  # Use display version with markers
             shutdown_in=shutdown_in
         )
         # Output session link in greppable format for CI/automation
