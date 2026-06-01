@@ -159,7 +159,7 @@ class TestLinkItemsLimit:
 
     @responses.activate
     def test_exceeds_100_item_limit_raises(self, link_instance, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/session1/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/session1/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         existing = [{"mountName": f"item{i}", "status": "mounted"} for i in range(99)]
         responses.add(responses.GET, status_url, json={"fuseFileSystems": existing}, status=200)
 
@@ -177,7 +177,7 @@ class TestLinkItemsLimit:
 
     @responses.activate
     def test_exactly_100_items_succeeds(self, link_instance, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         existing = [{"mountName": f"item{i}", "status": "mounted"} for i in range(99)]
         responses.add(responses.GET, status_url, json={"fuseFileSystems": existing}, status=200)
 
@@ -207,7 +207,7 @@ class TestDuplicateNameCheck:
 
     @responses.activate
     def test_duplicate_against_existing_session_item_raises(self, link_instance, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         existing = [{"mountName": "data.csv", "status": "mounted"}]
         responses.add(responses.GET, status_url, json={"fuseFileSystems": existing}, status=200)
 
@@ -216,7 +216,7 @@ class TestDuplicateNameCheck:
             "dataItem": {"type": "S3File", "data": {"name": "data.csv", "s3BucketName": "b", "s3ObjectKey": "p/data.csv"}}
         })
 
-        with pytest.raises(ValueError, match="already mounted in session"):
+        with pytest.raises(ValueError, match="already mounted in the session"):
             link_instance.link_folders_batch(["s3://b/p/data.csv"], "sessionABC")
 
 
@@ -228,7 +228,7 @@ class TestLinkS3FileV2:
 
     @responses.activate
     def test_s3_file_linked_via_v2(self, link_instance, capsys, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
@@ -258,7 +258,7 @@ class TestLinkFileExplorerFileV2:
 
     @responses.activate
     def test_fe_file_linked_via_v2(self, link_instance, capsys, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
@@ -287,7 +287,7 @@ class TestMixedBatchLinking:
 
     @responses.activate
     def test_mixed_s3_files_and_folders(self, link_instance, capsys, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
@@ -326,7 +326,7 @@ class TestBackwardCompatibility:
 
     @responses.activate
     def test_folder_linking_unchanged(self, link_instance, capsys, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
@@ -433,7 +433,7 @@ class TestV1FallbackRejectsFiles:
 
     @responses.activate
     def test_v1_fallback_rejects_s3_file(self, link_instance, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         # v2 returns 404 to trigger v1 fallback
@@ -453,7 +453,7 @@ class TestV1FallbackRejectsFiles:
 
     @responses.activate
     def test_v1_fallback_rejects_fe_file(self, link_instance, monkeypatch):
-        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}"
+        status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
@@ -500,3 +500,105 @@ class TestDatasetsConstructionErrors:
         monkeypatch.setattr("cloudos_cli.link.link.Datasets", boom)
         with pytest.raises(ValueError, match="Forbidden when accessing the project"):
             link_instance._parse_file_explorer_item("Data/file.csv")
+
+
+# ---------------------------------------------------------------------------
+# Duplicate-mount message names both colliding paths
+# ---------------------------------------------------------------------------
+
+class TestDuplicateMountMessage:
+    """The error must name BOTH colliding paths in a batch-vs-batch collision."""
+
+    def test_batch_collision_mentions_both_paths(self, link_instance):
+        seen = {}
+        # First registration succeeds (returns None)
+        link_instance._raise_if_duplicate_mount("foo", "/first/path", seen)
+        seen["foo"] = "/first/path"
+        # Second one with the same mount name should mention BOTH paths
+        with pytest.raises(ValueError) as excinfo:
+            link_instance._raise_if_duplicate_mount("foo", "/second/path", seen)
+        msg = str(excinfo.value)
+        assert "/first/path" in msg
+        assert "/second/path" in msg
+
+    def test_session_collision_mentions_path_and_session(self, link_instance):
+        # Pre-existing session item → value is None
+        seen = {"foo": None}
+        with pytest.raises(ValueError, match="already mounted in the session"):
+            link_instance._raise_if_duplicate_mount("foo", "/new/path", seen)
+
+
+# ---------------------------------------------------------------------------
+# list_folder_content errors are wrapped as ValueError, not raw BadRequestException
+# ---------------------------------------------------------------------------
+
+class TestListFolderContentErrors:
+
+    def test_forbidden_list_call_becomes_value_error(self, link_instance, monkeypatch):
+        from cloudos_cli.utils.errors import BadRequestException
+
+        class _Resp:
+            status_code = 403
+            content = b'Forbidden'
+
+            def json(self):
+                return {"message": "Forbidden"}
+
+        ds = mock.MagicMock()
+        ds.list_folder_content.side_effect = BadRequestException(_Resp())
+        monkeypatch.setattr("cloudos_cli.link.link.Datasets", lambda *a, **kw: ds)
+
+        with pytest.raises(ValueError, match="Not authorised to list"):
+            link_instance._parse_file_explorer_item("Data/file.csv")
+
+
+# ---------------------------------------------------------------------------
+# get_fuse_filesystems_status paginates correctly
+# ---------------------------------------------------------------------------
+
+class TestFuseFilesystemsPagination:
+
+    @responses.activate
+    def test_single_page_no_pagination_metadata(self, link_instance):
+        url_p1 = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sX/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
+        responses.add(
+            responses.GET, url_p1,
+            json={"fuseFileSystems": [{"_id": "a", "mountName": "a", "status": "mounted"}]},
+            status=200,
+        )
+        items = link_instance.get_fuse_filesystems_status("sX")
+        assert len(items) == 1
+        assert items[0]["mountName"] == "a"
+
+    @responses.activate
+    def test_multi_page_pagination_collects_all_items(self, link_instance):
+        # Page 1: 2 items, total 3 → fetch page 2
+        url_p1 = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sY/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
+        url_p2 = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sY/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=2"
+        responses.add(
+            responses.GET, url_p1,
+            json={
+                "fuseFileSystems": [
+                    {"_id": "1", "mountName": "a", "status": "mounted"},
+                    {"_id": "2", "mountName": "b", "status": "mounted"},
+                ],
+                "paginationMetadata": {
+                    "Pagination-Count": 3, "Pagination-Page": 1, "Pagination-Limit": 2
+                },
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET, url_p2,
+            json={
+                "fuseFileSystems": [
+                    {"_id": "3", "mountName": "c", "status": "mounted"},
+                ],
+                "paginationMetadata": {
+                    "Pagination-Count": 3, "Pagination-Page": 2, "Pagination-Limit": 2
+                },
+            },
+            status=200,
+        )
+        items = link_instance.get_fuse_filesystems_status("sY")
+        assert [i["mountName"] for i in items] == ["a", "b", "c"]

@@ -130,7 +130,7 @@ def test_link_file_explorer_folder_success():
 @responses.activate
 def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     """Test successful S3 folder linking and mounting."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -181,7 +181,7 @@ def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
 @responses.activate
 def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monkeypatch):
     """Test successful File Explorer folder linking and mounting."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -230,7 +230,7 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
 @responses.activate 
 def test_get_fuse_filesystems_status_success(link_instance_test_response):
     """Test successful retrieval of fuse filesystem status."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     mock_response = {
         "fuseFileSystems": [
             {
@@ -253,7 +253,7 @@ def test_get_fuse_filesystems_status_success(link_instance_test_response):
 @responses.activate
 def test_link_folder_v2_success_s3(capsys, link_instance_test_response, monkeypatch):
     """Test successful S3 folder linking using API v2."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -302,7 +302,7 @@ def test_link_folder_v2_success_s3(capsys, link_instance_test_response, monkeypa
 @responses.activate
 def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monkeypatch):
     """Test fallback from API v2 to v1 when v2 is not available."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -354,7 +354,7 @@ def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monk
 @responses.activate
 def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monkeypatch):
     """Test successful File Explorer folder linking using API v2."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -400,7 +400,7 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
 @responses.activate
 def test_link_folders_batch_multiple_s3(capsys, link_instance_test_response, monkeypatch):
     """Test linking multiple S3 folders in one batch request using v2 API."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -471,7 +471,7 @@ def test_link_folders_batch_multiple_s3(capsys, link_instance_test_response, mon
 @responses.activate
 def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_test_response, monkeypatch):
     """Test fallback to v1 API when linking multiple folders."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 
@@ -517,7 +517,7 @@ def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_tes
 @responses.activate
 def test_link_folders_batch_partial_failure_v1_fallback(capsys, link_instance_test_response, monkeypatch):
     """Test error handling when one folder fails during v1 fallback."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     # First GET: pre-mount limit/duplicate check (empty session)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
 

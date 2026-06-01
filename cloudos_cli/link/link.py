@@ -181,9 +181,19 @@ class Link(Cloudos):
         if mount_name not in mount_names_seen:
             return
         existing = mount_names_seen[mount_name]
-        conflict = f" and '{path}'" if existing else " (already mounted in session)"
+        if existing:
+            # Two paths in the current batch share the same mount name.
+            detail = (
+                f": '{existing}' and '{path}' would both mount as '{mount_name}'"
+            )
+        else:
+            # Collision with an item already mounted in the session.
+            detail = (
+                f": '{path}' would collide with '{mount_name}', "
+                "which is already mounted in the session"
+            )
         raise ValueError(
-            f"Duplicate mount name '{mount_name}' detected{conflict}. "
+            f"Duplicate mount name '{mount_name}' detected{detail}. "
             f"Items with the same name cannot be mounted together. "
             f"Please use items with unique names."
         )
@@ -662,7 +672,22 @@ class Link(Cloudos):
                 )
             raise ValueError(f"Failed to access project '{self.project_name}': {e}")
 
-        contents = ds.list_folder_content(parent_path)
+        # list_folder_content can itself raise BadRequestException (401/403/etc.).
+        # Wrap it so callers see a clean ValueError with actionable guidance.
+        try:
+            contents = ds.list_folder_content(parent_path)
+        except BadRequestException as e:
+            msg = str(e)
+            if 'Forbidden' in msg or '403' in msg or '401' in msg:
+                raise ValueError(
+                    f"Not authorised to list '{parent_path or '[project root]'}' "
+                    f"in project '{self.project_name}'. "
+                    "Check your API key and workspace access (Airlock may also be restricting you)."
+                )
+            raise ValueError(
+                f"Failed to list '{parent_path or '[project root]'}' "
+                f"in project '{self.project_name}': {e}"
+            )
 
         for item in contents.get("folders", []):
             if item.get("name") == item_name:
@@ -697,6 +722,11 @@ class Link(Cloudos):
     def get_fuse_filesystems_status(self, session_id: str) -> List[Dict]:
         """Get the status of fuse filesystems for an interactive session.
 
+        Iterates through pages of the paginated API so the caller always sees
+        every mounted item — important for the 100-item cap check, duplicate-
+        name detection, and `wait_for_mount_completion` (which searches by
+        mountName and would otherwise miss items beyond the first page).
+
         Parameters
         ----------
         session_id : str
@@ -705,38 +735,71 @@ class Link(Cloudos):
         Returns
         -------
         List[Dict]
-            List of fuse filesystem objects with their status information.
+            All fuse filesystem objects across every page.
 
         Raises
         ------
         ValueError
             If the API request fails or returns an error.
         """
-        url = (
-            f"{self.cloudos_url}/api/v1/"
-            f"interactive-sessions/{session_id}/fuse-filesystems"
-            f"?teamId={self.workspace_id}"
-        )
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        base_url = (
+            f"{self.cloudos_url}/api/v1/"
+            f"interactive-sessions/{session_id}/fuse-filesystems"
+        )
 
-        r = retry_requests_get(url, headers=headers, verify=self.verify)
+        all_items: List[Dict] = []
+        page = 1
+        # Request the largest sensible page size: the session cap is 100 items,
+        # so one page should normally be enough. The loop is defensive in case
+        # the server clamps the limit below 100.
+        page_limit = 100
+        # Safety bound so a misbehaving server can't induce an infinite loop.
+        max_pages = 50
 
-        if r.status_code == 401:
-            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
-        elif r.status_code == 404:
-            raise ValueError(
-                f"Interactive session {session_id} not found. "
-                "The session may not exist, or your API key may not have access to it. "
-                "Verify the session ID and that your API key belongs to a workspace member with access to this session."
+        while page <= max_pages:
+            url = (
+                f"{base_url}?teamId={self.workspace_id}"
+                f"&limit={page_limit}&page={page}"
             )
-        elif r.status_code != 200:
-            raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
+            r = retry_requests_get(url, headers=headers, verify=self.verify)
 
-        response_data = json.loads(r.content)
-        return response_data.get("fuseFileSystems", [])
+            if r.status_code == 401:
+                raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
+            elif r.status_code == 404:
+                raise ValueError(
+                    f"Interactive session {session_id} not found. "
+                    "The session may not exist, or your API key may not have access to it. "
+                    "Verify the session ID and that your API key belongs to a workspace member with access to this session."
+                )
+            elif r.status_code != 200:
+                raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
+
+            response_data = json.loads(r.content)
+            items = response_data.get("fuseFileSystems", [])
+            all_items.extend(items)
+
+            # Decide whether to fetch the next page. The API returns
+            # paginationMetadata like {"Pagination-Count": <total>,
+            # "Pagination-Page": <current>, "Pagination-Limit": <per-page>}.
+            meta = response_data.get("paginationMetadata") or {}
+            total = meta.get("Pagination-Count")
+            limit = meta.get("Pagination-Limit") or page_limit
+            if total is None:
+                # No pagination metadata — trust what we got and stop.
+                break
+            if len(all_items) >= total or not items:
+                break
+            # Defensive: if the server returned fewer than limit items, assume
+            # we are at the last page.
+            if len(items) < limit:
+                break
+            page += 1
+
+        return all_items
 
     def wait_for_mount_completion(self, session_id: str, mount_name: str, 
                                 timeout: int = 360, check_interval: int = 2) -> Dict:

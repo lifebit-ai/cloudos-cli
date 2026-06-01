@@ -221,4 +221,4 @@ def link(ctx,
     except BadRequestException as e:
         raise ValueError(f"Request failed: {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to link folder(s): {str(e)}")
+        raise ValueError(f"Failed to link item(s): {str(e)}")
