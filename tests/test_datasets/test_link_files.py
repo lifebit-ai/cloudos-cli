@@ -109,7 +109,7 @@ class TestParseFileExplorerItem:
             folders=[{"name": "results", "_id": "folder_id_1", "folderType": "S3Folder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.link.link.Datasets",
             lambda *a, **kw: ds
         )
         result = link_instance._parse_file_explorer_item("Data/results")
@@ -122,7 +122,7 @@ class TestParseFileExplorerItem:
             files=[{"name": "data.csv", "_id": "file_id_99"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.link.link.Datasets",
             lambda *a, **kw: ds
         )
         result = link_instance._parse_file_explorer_item("Data/data.csv")
@@ -135,7 +135,7 @@ class TestParseFileExplorerItem:
             folders=[{"name": "vfolder", "_id": "vf_id", "folderType": "VirtualFolder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.link.link.Datasets",
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="Virtual folders cannot be linked"):
@@ -144,7 +144,7 @@ class TestParseFileExplorerItem:
     def test_not_found_raises(self, link_instance, monkeypatch):
         ds = self._make_ds_mock()
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.link.link.Datasets",
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="not found"):
@@ -382,7 +382,7 @@ class TestParseFileExplorerItemGuards:
             "files": [],
         }
         monkeypatch.setattr(
-            "cloudos_cli.link.link.generate_datasets_for_project",
+            "cloudos_cli.link.link.Datasets",
             lambda *a, **kw: ds
         )
         public = link_instance.parse_file_explorer_item("Data/results")
@@ -466,3 +466,37 @@ class TestV1FallbackRejectsFiles:
 
         with pytest.raises(ValueError, match="File linking requires API v2"):
             link_instance.link_folders_batch(["Data/data.csv"], "sessionABC")
+
+
+# ---------------------------------------------------------------------------
+# Direct Datasets construction (no more sys.exit via helper)
+# ---------------------------------------------------------------------------
+
+class TestDatasetsConstructionErrors:
+    """The Datasets() call inside _parse_file_explorer_item must surface as a
+    plain ValueError — never as sys.exit(1) — so callers can handle it."""
+
+    def test_project_not_found_raises_clean_value_error(self, link_instance, monkeypatch):
+        def boom(*args, **kwargs):
+            raise ValueError("Project 'no-such-project' was not found in workspace 'ws'")
+
+        monkeypatch.setattr("cloudos_cli.link.link.Datasets", boom)
+        with pytest.raises(ValueError, match="Cannot resolve project 'test_project'"):
+            link_instance._parse_file_explorer_item("Data/file.csv")
+
+    def test_forbidden_raises_clean_value_error(self, link_instance, monkeypatch):
+        from cloudos_cli.utils.errors import BadRequestException
+
+        class _FakeResp:
+            status_code = 403
+            content = b'Forbidden'
+
+            def json(self):
+                return {"message": "Forbidden"}
+
+        def boom(*args, **kwargs):
+            raise BadRequestException(_FakeResp())
+
+        monkeypatch.setattr("cloudos_cli.link.link.Datasets", boom)
+        with pytest.raises(ValueError, match="Forbidden when accessing the project"):
+            link_instance._parse_file_explorer_item("Data/file.csv")

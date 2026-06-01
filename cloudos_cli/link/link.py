@@ -6,10 +6,9 @@ from dataclasses import dataclass
 from typing import Union, List, Dict
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
-from cloudos_cli.utils.errors import JoBNotCompletedException
+from cloudos_cli.utils.errors import JoBNotCompletedException, BadRequestException
 from cloudos_cli.datasets import Datasets
 from urllib.parse import urlparse
-from cloudos_cli.utils.array_job import extract_project, generate_datasets_for_project
 import json
 import time
 import rich_click as click
@@ -638,9 +637,31 @@ class Link(Cloudos):
         item_name = parts[-1]
         parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
 
-        ds = generate_datasets_for_project(
-            self.cloudos_url, self.apikey, self.workspace_id, self.project_name, self.verify
-        )
+        # Instantiate Datasets directly (instead of going through
+        # generate_datasets_for_project) so that "project not found" /
+        # "forbidden" surface as ValueError here rather than terminating
+        # the process via sys.exit(1) deep inside the helper.
+        try:
+            ds = Datasets(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                workspace_id=self.workspace_id,
+                project_name=self.project_name,
+                verify=self.verify,
+                cromwell_token=None,
+            )
+        except ValueError as e:
+            raise ValueError(
+                f"Cannot resolve project '{self.project_name}': {e}"
+            )
+        except BadRequestException as e:
+            if 'Forbidden' in str(e):
+                raise ValueError(
+                    "Forbidden when accessing the project. Check your API key, "
+                    "workspace access, and any Airlock restrictions."
+                )
+            raise ValueError(f"Failed to access project '{self.project_name}': {e}")
+
         contents = ds.list_folder_content(parent_path)
 
         for item in contents.get("folders", []):
