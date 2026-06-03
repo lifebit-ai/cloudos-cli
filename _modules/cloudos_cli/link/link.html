@@ -384,10 +384,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoBNotCompletedException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoBNotCompletedException</span><span class="p">,</span> <span class="n">BadRequestException</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Datasets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_project</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">rich_click</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">click</span>
@@ -420,24 +419,35 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_folder">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">link_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                     <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Link a folder (S3 or File Explorer) to an interactive session.</span>
+                    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Link a file or folder (S3 or File Explorer) to an interactive session.</span>
 
 <span class="sd">        Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.</span>
+<span class="sd">        Note: File linking requires the v2 endpoint — the v1 fallback only supports folders.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folder : str</span>
-<span class="sd">            The folder to link.</span>
+<span class="sd">            The file or folder path to link. Accepts S3 URLs (s3://bucket/...) and</span>
+<span class="sd">            File Explorer paths (relative to ``self.project_name``). Despite the</span>
+<span class="sd">            parameter name, files are also supported.</span>
 <span class="sd">        session_id : str</span>
 <span class="sd">            The interactive session ID.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the mount completed and was verified as &#39;mounted&#39;; False if</span>
+<span class="sd">            verification reported a failure or timed out. Callers that care</span>
+<span class="sd">            about partial failure should observe this value.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If the URL already exists with &#39;mounted&#39; status</span>
-<span class="sd">            If the API key is invalid or permissions are insufficient</span>
-<span class="sd">            If the URL is invalid or the session is not active.</span>
+<span class="sd">            If the item already exists with &#39;mounted&#39; status,</span>
+<span class="sd">            if the API key is invalid or permissions are insufficient,</span>
+<span class="sd">            if the path is invalid or the session is not active,</span>
+<span class="sd">            or if a file is linked while only the v1 endpoint is available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Use batch method for single folder (leverages v2 dataItems array)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">link_folders_batch</span><span class="p">([</span><span class="n">folder</span><span class="p">],</span> <span class="n">session_id</span><span class="p">)</span></div>
@@ -447,16 +457,16 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.link_folders_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">link_folders_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                           <span class="n">folders</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
-                          <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Link multiple folders (S3 or File Explorer) to an interactive session in one request.</span>
+                          <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.</span>
 
-<span class="sd">        Attempts to use API v2 (which supports multiple folders per request) first, </span>
+<span class="sd">        Attempts to use API v2 (which supports multiple items per request) first,</span>
 <span class="sd">        with automatic fallback to v1 (individual requests) if v2 is not available.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folders : list</span>
-<span class="sd">            List of folder paths to link.</span>
+<span class="sd">            List of folder/file paths to link.</span>
 <span class="sd">        session_id : str</span>
 <span class="sd">            The interactive session ID.</span>
 
@@ -466,30 +476,46 @@
 <span class="sd">            If any validation fails or API errors occur.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">folders</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No folders provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No paths provided&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Parse and validate all folders</span>
-        <span class="n">data_items</span><span class="p">,</span> <span class="n">folder_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_folders_to_data_items</span><span class="p">(</span><span class="n">folders</span><span class="p">)</span>
+        <span class="c1"># Check 100-item limit against already-linked items</span>
+        <span class="n">current_items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fuse_filesystems_status</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="n">current_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_items</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_count</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">folders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot link more than 100 items&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check for duplicate names against already-mounted items</span>
+        <span class="n">existing_mount_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">fs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mountName&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">current_items</span> <span class="k">if</span> <span class="n">fs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mountName&quot;</span><span class="p">)}</span>
+
+        <span class="c1"># Parse and validate all items</span>
+        <span class="n">data_items</span><span class="p">,</span> <span class="n">folder_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_items_to_data_items</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">existing_mount_names</span><span class="p">)</span>
 
         <span class="c1"># Try v2 API first (supports batch)</span>
         <span class="n">status_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_mount_v2</span><span class="p">(</span><span class="n">data_items</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># v2 failed or not available, fall back to v1</span>
             <span class="n">status_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_mount_v1</span><span class="p">(</span><span class="n">folder_info</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
 
-        <span class="c1"># Verify mount completion for all folders</span>
-        <span class="k">if</span> <span class="n">status_code</span> <span class="o">==</span> <span class="mi">204</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_verify_all_mounts</span><span class="p">(</span><span class="n">folder_info</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span></div>
+        <span class="c1"># Verify mount completion for all items. Any 2xx is treated as</span>
+        <span class="c1"># &quot;request accepted&quot; and we still verify; anything else is an error.</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="mi">200</span> <span class="o">&lt;=</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verify_all_mounts</span><span class="p">(</span><span class="n">folder_info</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unexpected response from mount API: HTTP </span><span class="si">{</span><span class="n">status_code</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="s2">&quot;The mount request did not succeed; nothing has been verified.&quot;</span>
+        <span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_folders_to_data_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folders</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse and validate folders, extracting data items for API payload.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_items_to_data_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folders</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">existing_mount_names</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse and validate folders/files, extracting data items for API payload.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folders : list</span>
-<span class="sd">            List of folder paths to parse.</span>
+<span class="sd">            List of folder/file paths to parse.</span>
+<span class="sd">        existing_mount_names : set, optional</span>
+<span class="sd">            Set of mount names already linked to the session.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -500,56 +526,67 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If any folder path is invalid or uses unsupported storage.</span>
+<span class="sd">            If any path is invalid or uses unsupported storage.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_items</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">folder_info</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">mount_names_seen</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Track mount names to detect duplicates</span>
-        
+        <span class="n">mount_names_seen</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">existing_mount_names</span> <span class="ow">or</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">:</span>
             <span class="c1"># Block Azure Blob Storage URLs</span>
             <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;az://&#39;</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;Azure Blob Storage paths (az://) are not supported for linking. &quot;</span>
-                    <span class="s2">&quot;Azure environments do not support linking folders to Interactive Analysis sessions.&quot;</span>
+                    <span class="s2">&quot;Azure environments do not support linking to Interactive Analysis sessions.&quot;</span>
                 <span class="p">)</span>
 
-            <span class="c1"># Parse folder and extract just the data item (without wrapper)</span>
             <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3://&#39;</span><span class="p">):</span>
-                <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_s3_file_path</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+                    <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_file_path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="n">source_type</span> <span class="o">=</span> <span class="s2">&quot;S3&quot;</span>
                 <span class="n">mount_name</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-                
-                <span class="c1"># Check for duplicate mount names</span>
-                <span class="k">if</span> <span class="n">mount_name</span> <span class="ow">in</span> <span class="n">mount_names_seen</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Duplicate mount name &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39; detected. &quot;</span>  
-                        <span class="sa">f</span><span class="s2">&quot;The folders &#39;</span><span class="si">{</span><span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39; and &#39;</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&#39; &quot;</span>  
-                        <span class="sa">f</span><span class="s2">&quot;would both be mounted with the same name. Please use folders with unique names.&quot;</span>
-                    <span class="p">)</span>
-                <span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">folder</span>
-                
-                <span class="n">data_items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">])</span>
-                <span class="n">folder_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">]})</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># File Explorer path - use basic parsing (validation will be done by API)</span>
-                <span class="c1"># For link command, we don&#39;t pre-validate as it adds complexity</span>
-                <span class="c1"># For interactive-session create/resume, validation happens there</span>
-                <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_file_explorer_path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="n">parsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_file_explorer_item</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="n">source_type</span> <span class="o">=</span> <span class="s2">&quot;File Explorer&quot;</span>
                 <span class="n">mount_name</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-                
-                <span class="c1"># Check for duplicate mount names</span>
-                <span class="k">if</span> <span class="n">mount_name</span> <span class="ow">in</span> <span class="n">mount_names_seen</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Duplicate mount name &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39; detected. &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;The folders &#39;</span><span class="si">{</span><span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39; and &#39;</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;would both be mounted with the same name. Please use folders with unique names.&quot;</span>
-                    <span class="p">)</span>
-                <span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">folder</span>
-                
-                <span class="n">data_items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">])</span>
-                <span class="n">folder_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;File Explorer&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">]})</span>
-        
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raise_if_duplicate_mount</span><span class="p">(</span><span class="n">mount_name</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">mount_names_seen</span><span class="p">)</span>
+            <span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">folder</span>
+
+            <span class="n">data_items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">])</span>
+            <span class="n">folder_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">source_type</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;dataItem&quot;</span><span class="p">]})</span>
+
         <span class="k">return</span> <span class="n">data_items</span><span class="p">,</span> <span class="n">folder_info</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_raise_if_duplicate_mount</span><span class="p">(</span><span class="n">mount_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mount_names_seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raise ValueError if mount_name already appears in mount_names_seen.</span>
+
+<span class="sd">        Distinguishes between collisions with already-mounted session items</span>
+<span class="sd">        (value is None) and collisions with another item in the current batch</span>
+<span class="sd">        (value is the prior path).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mount_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mount_names_seen</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="n">mount_names_seen</span><span class="p">[</span><span class="n">mount_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+            <span class="c1"># Two paths in the current batch share the same mount name.</span>
+            <span class="n">detail</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;: &#39;</span><span class="si">{</span><span class="n">existing</span><span class="si">}</span><span class="s2">&#39; and &#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; would both mount as &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Collision with an item already mounted in the session.</span>
+            <span class="n">detail</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;: &#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; would collide with &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39;, &quot;</span>
+                <span class="s2">&quot;which is already mounted in the session&quot;</span>
+            <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Duplicate mount name &#39;</span><span class="si">{</span><span class="n">mount_name</span><span class="si">}</span><span class="s2">&#39; detected</span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Items with the same name cannot be mounted together. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Please use items with unique names.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_try_mount_v2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_items</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempt to mount folders using API v2.</span>
@@ -617,9 +654,19 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If any folder fails to mount. Note: Earlier folders may have</span>
-<span class="sd">            successfully mounted before the failure.</span>
+<span class="sd">            If any item is a file (v1 only supports folders), or if any folder</span>
+<span class="sd">            fails to mount. Note: Earlier folders may have successfully mounted</span>
+<span class="sd">            before the failure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">folder_info</span><span class="p">:</span>
+            <span class="n">item_type</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">item_kind</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item_type</span> <span class="o">==</span> <span class="s1">&#39;S3File&#39;</span> <span class="ow">or</span> <span class="n">item_kind</span> <span class="o">==</span> <span class="s1">&#39;File&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;File linking requires API v2, which is not available for this session. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Only folder linking is supported via the v1 API fallback.&quot;</span>
+                <span class="p">)</span>
+
         <span class="n">status_code</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">mounted_folders</span> <span class="o">=</span> <span class="p">[]</span>
         
@@ -674,9 +721,9 @@
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
                 <span class="c1"># Handle v1 errors using consolidated error handling</span>
                 <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Provided </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> folder already exists with &#39;mounted&#39; status&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Provided </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> item already exists with &#39;mounted&#39; status&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Forbidden. Invalid API key or insufficient permissions.&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unauthorized. Invalid API key or insufficient permissions.&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">400</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">r_content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
@@ -685,11 +732,11 @@
                         <span class="k">elif</span> <span class="n">r_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Request failed with status code 403&quot;</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interactive Analysis session is not active&quot;</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot link folder&quot;</span><span class="p">)</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot link item&quot;</span><span class="p">)</span>
                     <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bad request (400): Unable to parse error response&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount folder: HTTP </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount item: HTTP </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             
             <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
             
@@ -697,47 +744,77 @@
             <span class="c1"># Re-raise ValueError as-is</span>
             <span class="k">raise</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">v1_error</span><span class="p">:</span>
-            <span class="c1"># v1 failed for this folder</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> folder: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">v1_error</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> item: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">v1_error</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_verify_all_mounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_info</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify mount completion status for all folders.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_verify_all_mounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_info</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify mount completion status for all items (files and folders).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        folder_info : list</span>
-<span class="sd">            List of folder metadata dictionaries.</span>
+<span class="sd">            List of item metadata dictionaries.</span>
 <span class="sd">        session_id : str</span>
 <span class="sd">            The interactive session ID.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if every item reached &#39;mounted&#39;; False if any failed,</span>
+<span class="sd">            timed out, or could not be verified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_succeeded</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">folder_data</span> <span class="ow">in</span> <span class="n">folder_info</span><span class="p">:</span>
-            <span class="c1"># Extract full path and mount name</span>
             <span class="k">if</span> <span class="n">folder_data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;S3&quot;</span><span class="p">:</span>
-                <span class="n">full_path</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
-                <span class="n">mount_name</span> <span class="o">=</span> <span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                <span class="n">item_data</span> <span class="o">=</span> <span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">item_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">item_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3ObjectKey&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">full_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">mount_name</span> <span class="o">=</span> <span class="n">item_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                <span class="n">item_kind</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span> <span class="k">if</span> <span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;S3File&#39;</span> <span class="k">else</span> <span class="s2">&quot;folder&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">full_path</span> <span class="o">=</span> <span class="n">folder_data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
                 <span class="n">mount_name</span> <span class="o">=</span> <span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                <span class="n">item_kind</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span> <span class="k">if</span> <span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;File&#39;</span> <span class="k">else</span> <span class="s2">&quot;folder&quot;</span>
+
+            <span class="n">source_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">item_kind</span><span class="si">}</span><span class="s2">&quot;</span>
 
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># Wait for mount completion and check final status</span>
                 <span class="n">final_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_mount_completion</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">mount_name</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">final_status</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;mounted&quot;</span><span class="p">:</span>
-                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully mounted </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> folder: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully mounted </span><span class="si">{</span><span class="n">source_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">final_status</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span>
-                    <span class="n">error_msg</span> <span class="o">=</span> <span class="n">final_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;errorMessage&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown error&quot;</span><span class="p">)</span>
-                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> folder: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">raw_error</span> <span class="o">=</span> <span class="n">final_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;errorMessage&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown error&quot;</span><span class="p">)</span>
+                    <span class="n">error_msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_translate_mount_error</span><span class="p">(</span><span class="n">raw_error</span><span class="p">)</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">source_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Error: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                    <span class="n">all_succeeded</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mount status: </span><span class="si">{</span><span class="n">final_status</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">folder_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> folder: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mount status: </span><span class="si">{</span><span class="n">final_status</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">source_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">all_succeeded</span> <span class="o">=</span> <span class="kc">False</span>
 
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not verify mount status - </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  The linking request was submitted, but verification failed.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+                <span class="n">all_succeeded</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">all_succeeded</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_translate_mount_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Translate raw API error messages into user-friendly explanations.&quot;&quot;&quot;</span>
+        <span class="n">msg_lower</span> <span class="o">=</span> <span class="n">error_msg</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;prefix does not exist&quot;</span> <span class="ow">in</span> <span class="n">msg_lower</span> <span class="ow">or</span> <span class="s2">&quot;key does not exist&quot;</span> <span class="ow">in</span> <span class="n">msg_lower</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="s2">&quot;The path may not exist, or the workspace may not have permission to access it. &quot;</span>
+                <span class="s2">&quot;Verify the path is correct and that the workspace&#39;s cloud account has read access to this bucket.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;access denied&quot;</span> <span class="ow">in</span> <span class="n">msg_lower</span> <span class="ow">or</span> <span class="s2">&quot;forbidden&quot;</span> <span class="ow">in</span> <span class="n">msg_lower</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="s2">&quot;The workspace does not have permission to access this path. &quot;</span>
+                <span class="s2">&quot;Verify that the workspace&#39;s cloud account has read access to this bucket.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">error_msg</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_handle_mount_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">type_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle and convert mount errors to user-friendly messages.</span>
@@ -747,7 +824,7 @@
 <span class="sd">        error : Exception</span>
 <span class="sd">            The exception that occurred during mounting.</span>
 <span class="sd">        type_folder : str</span>
-<span class="sd">            The type of folder being mounted (&quot;S3&quot; or &quot;File Explorer&quot;).</span>
+<span class="sd">            The type of item being mounted (&quot;S3&quot; or &quot;File Explorer&quot;).</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -756,40 +833,33 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">error_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
         <span class="n">error_lower</span> <span class="o">=</span> <span class="n">error_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        
-        <span class="c1"># Define error patterns and their corresponding messages</span>
-        <span class="n">error_patterns</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="p">(</span><span class="s1">&#39;403&#39;</span><span class="p">,</span> <span class="s1">&#39;forbidden&#39;</span><span class="p">):</span> <span class="p">{</span>
-                <span class="s1">&#39;check&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;already exists&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span> <span class="ow">or</span> <span class="s2">&quot;mounted&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span><span class="p">,</span>
-                <span class="s1">&#39;message_if_true&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Provided </span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2"> folder already exists with &#39;mounted&#39; status&quot;</span><span class="p">,</span>
-                <span class="s1">&#39;message_if_false&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Interactive Analysis session is not active or access denied&quot;</span>
-            <span class="p">},</span>
-            <span class="p">(</span><span class="s1">&#39;401&#39;</span><span class="p">,</span> <span class="s1">&#39;unauthorized&#39;</span><span class="p">):</span> <span class="p">{</span>
-                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Forbidden. Invalid API key or insufficient permissions.&quot;</span>
-            <span class="p">},</span>
-            <span class="p">(</span><span class="s1">&#39;400&#39;</span><span class="p">,</span> <span class="s1">&#39;bad request&#39;</span><span class="p">):</span> <span class="p">{</span>
-                <span class="s1">&#39;check&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;invalid supported dataitem foldertype&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span><span class="p">,</span>
-                <span class="s1">&#39;message_if_true&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Invalid Supported DataItem &#39;</span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2">&#39; folderType. Virtual folders cannot be linked.&quot;</span><span class="p">,</span>
-                <span class="s1">&#39;message_if_false&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Cannot link folder: </span><span class="si">{</span><span class="n">error_str</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">},</span>
-            <span class="p">(</span><span class="s1">&#39;404&#39;</span><span class="p">,</span> <span class="s1">&#39;not found&#39;</span><span class="p">):</span> <span class="p">{</span>
-                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Session not found or endpoint not available&quot;</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        
-        <span class="c1"># Check each pattern</span>
-        <span class="k">for</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">error_patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">error_lower</span> <span class="ow">or</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">error_str</span> <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">):</span>
-                <span class="k">if</span> <span class="s1">&#39;check&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-                    <span class="c1"># Conditional message based on additional check</span>
-                    <span class="n">message</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;message_if_true&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]()</span> <span class="k">else</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;message_if_false&#39;</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Direct message</span>
-                    <span class="n">message</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        
-        <span class="c1"># Generic error if no pattern matched</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2"> folder: </span><span class="si">{</span><span class="n">error_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">matches</span><span class="p">(</span><span class="o">*</span><span class="n">tokens</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;True if any token appears in the original or lowercased error text.&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span> <span class="ow">in</span> <span class="n">error_lower</span> <span class="ow">or</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">error_str</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">matches</span><span class="p">(</span><span class="s1">&#39;403&#39;</span><span class="p">,</span> <span class="s1">&#39;forbidden&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;already exists&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span> <span class="ow">or</span> <span class="s2">&quot;mounted&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Provided </span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2"> item already exists with &#39;mounted&#39; status&quot;</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interactive Analysis session is not active or access denied&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">matches</span><span class="p">(</span><span class="s1">&#39;401&#39;</span><span class="p">,</span> <span class="s1">&#39;unauthorized&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unauthorized. Invalid API key or insufficient permissions.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">matches</span><span class="p">(</span><span class="s1">&#39;400&#39;</span><span class="p">,</span> <span class="s1">&#39;bad request&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;invalid supported dataitem foldertype&quot;</span> <span class="ow">in</span> <span class="n">error_lower</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Invalid Supported DataItem &#39;</span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2">&#39; folderType. &quot;</span>
+                    <span class="s2">&quot;Virtual folders cannot be linked.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot link item: </span><span class="si">{</span><span class="n">error_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">matches</span><span class="p">(</span><span class="s1">&#39;404&#39;</span><span class="p">,</span> <span class="s1">&#39;not found&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Session not found or endpoint not available&quot;</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to mount </span><span class="si">{</span><span class="n">type_folder</span><span class="si">}</span><span class="s2"> item: </span><span class="si">{</span><span class="n">error_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Link.parse_s3_path">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.parse_s3_path">[docs]</a>
@@ -842,50 +912,224 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="Link.parse_file_explorer_path">
-<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.parse_file_explorer_path">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">parse_file_explorer_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a File Explorer path and return folder metadata.</span>
-<span class="sd">        </span>
-<span class="sd">        Note: This method does basic parsing only. Validation of folder existence</span>
-<span class="sd">        should be done separately in the calling code if needed.</span>
+<div class="viewcode-block" id="Link.is_s3_file_path">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.is_s3_file_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_s3_file_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s3_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the S3 URL points to a file rather than a folder.</span>
+
+<span class="sd">        A path is treated as a file when the last segment contains a dot (.) and the</span>
+<span class="sd">        URL does not end with a trailing slash.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        file_path : str</span>
-<span class="sd">            The file path to parse.</span>
+<span class="sd">        s3_url : str</span>
+<span class="sd">            An S3 URL starting with &#39;s3://&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">last_part</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">last_part</span></div>
+
+
+<div class="viewcode-block" id="Link.parse_s3_file_path">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.parse_s3_file_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_s3_file_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s3_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse an S3 URL that points to a file and return an S3File data item.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        s3_url : str</span>
+<span class="sd">            The S3 URL to parse. Must start with &#39;s3://&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            A dictionary containing the parsed file information structured as:</span>
-<span class="sd">            {&quot;dataItem&quot;: {&quot;type&quot;: &quot;File&quot;, &quot;data&quot;: {&quot;name&quot;: str, &quot;fullPath&quot;: str}}}</span>
+<span class="sd">            {&quot;dataItem&quot;: {&quot;type&quot;: &quot;S3File&quot;, &quot;data&quot;: {&quot;name&quot;: str, &quot;s3BucketName&quot;: str, &quot;s3ObjectKey&quot;: str}}}</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the URL is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># get folder id</span>
-        <span class="n">folder_id</span> <span class="o">=</span> <span class="n">get_file_or_folder_id</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
-            <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">),</span>
-            <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">is_file</span><span class="o">=</span><span class="kc">False</span>
-        <span class="p">)</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid S3 URL. Link must start with &#39;s3://&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid S3 URL &#39;</span><span class="si">{</span><span class="n">s3_url</span><span class="si">}</span><span class="s2">&#39;: bucket name is empty. &quot;</span>
+                <span class="s2">&quot;Expected &#39;s3://&lt;bucket&gt;/&lt;key&gt;&#39;.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;S3 URL must include a key after the bucket&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid S3 file URL &#39;</span><span class="si">{</span><span class="n">s3_url</span><span class="si">}</span><span class="s2">&#39;: key ends with &#39;/&#39; which is folder-like. &quot;</span>
+                <span class="s2">&quot;Drop the trailing slash for a file link, or use the folder linking path.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Folder&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;S3File&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="s2">&quot;s3BucketName&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
+                    <span class="s2">&quot;s3ObjectKey&quot;</span><span class="p">:</span> <span class="n">key</span>
+                <span class="p">}</span>
             <span class="p">}</span>
         <span class="p">}</span></div>
 
+
+<div class="viewcode-block" id="Link.parse_file_explorer_item">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.parse_file_explorer_item">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_file_explorer_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Public alias for _parse_file_explorer_item.</span>
+
+<span class="sd">        Use this from code outside the Link class. The underscore version is</span>
+<span class="sd">        retained for internal callers but both behave identically.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_file_explorer_item</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_file_explorer_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Auto-detect whether a File Explorer path is a file or folder and return the data item.</span>
+
+<span class="sd">        Performs a single API lookup to determine item type and resolve the ID.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            The path RELATIVE to the project (e.g., &#39;Data/results&#39; or</span>
+<span class="sd">            &#39;Data/file.csv&#39;). Do NOT include the project name as the leading</span>
+<span class="sd">            segment — the project is taken from ``self.project_name`` (set</span>
+<span class="sd">            via ``--project-name``).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            {&quot;dataItem&quot;: {&quot;kind&quot;: &quot;File&quot;|&quot;Folder&quot;, &quot;item&quot;: str, &quot;name&quot;: str}}</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``self.project_name`` is not set, if the path starts with the</span>
+<span class="sd">            project name, or if the item is not found / is a virtual folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot resolve File Explorer path without a project. &quot;</span>
+                <span class="s2">&quot;Pass --project-name (or set it in your profile).&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">stripped</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">stripped</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Reject paths that include the project name as the first segment.</span>
+        <span class="c1"># The project comes from --project-name only; prepending it in the</span>
+        <span class="c1"># path is a common mistake that otherwise produces a confusing</span>
+        <span class="c1"># &quot;Folder &#39;&lt;project&gt;&#39; not found in project &#39;&lt;project&gt;&#39;&quot; error.</span>
+        <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
+            <span class="n">relative</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="ow">or</span> <span class="s2">&quot;&lt;path&gt;&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;File Explorer path &#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; must NOT include the project name. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;The project is supplied via --project-name (&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;). &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Use &#39;</span><span class="si">{</span><span class="n">relative</span><span class="si">}</span><span class="s2">&#39; instead.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">item_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">parent_path</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Instantiate Datasets directly (instead of going through</span>
+        <span class="c1"># generate_datasets_for_project) so that &quot;project not found&quot; /</span>
+        <span class="c1"># &quot;forbidden&quot; surface as ValueError here rather than terminating</span>
+        <span class="c1"># the process via sys.exit(1) deep inside the helper.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">Datasets</span><span class="p">(</span>
+                <span class="n">cloudos_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+                <span class="n">apikey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+                <span class="n">workspace_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">,</span>
+                <span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span>
+                <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+                <span class="n">cromwell_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot resolve project &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">BadRequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;Forbidden&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Forbidden when accessing the project. Check your API key, &quot;</span>
+                    <span class="s2">&quot;workspace access, and any Airlock restrictions.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to access project &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># list_folder_content can itself raise BadRequestException (401/403/etc.).</span>
+        <span class="c1"># Wrap it so callers see a clean ValueError with actionable guidance.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">parent_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BadRequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;Forbidden&#39;</span> <span class="ow">in</span> <span class="n">msg</span> <span class="ow">or</span> <span class="s1">&#39;403&#39;</span> <span class="ow">in</span> <span class="n">msg</span> <span class="ow">or</span> <span class="s1">&#39;401&#39;</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Not authorised to list &#39;</span><span class="si">{</span><span class="n">parent_path</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;[project root]&#39;</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;in project &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+                    <span class="s2">&quot;Check your API key and workspace access (Airlock may also be restricting you).&quot;</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to list &#39;</span><span class="si">{</span><span class="n">parent_path</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;[project root]&#39;</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;in project &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;folders&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">item_name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;folderType&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;VirtualFolder&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Virtual folders cannot be linked. Please use a regular folder or S3 path instead.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Folder&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">item_name</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">item_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;dataItem&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;File&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">item_name</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Item &#39;</span><span class="si">{</span><span class="n">item_name</span><span class="si">}</span><span class="s2">&#39; not found in path &#39;</span><span class="si">{</span><span class="n">parent_path</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;[root]&#39;</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;in project &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Try using &#39;cloudos datasets ls&#39; to explore your data structure.&quot;</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="Link.get_fuse_filesystems_status">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.link.link.html#cloudos_cli.link.link.Link.get_fuse_filesystems_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_fuse_filesystems_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the status of fuse filesystems for an interactive session.</span>
+
+<span class="sd">        Iterates through pages of the paginated API so the caller always sees</span>
+<span class="sd">        every mounted item — important for the 100-item cap check, duplicate-</span>
+<span class="sd">        name detection, and `wait_for_mount_completion` (which searches by</span>
+<span class="sd">        mountName and would otherwise miss items beyond the first page).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -895,34 +1139,71 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        List[Dict]</span>
-<span class="sd">            List of fuse filesystem objects with their status information.</span>
+<span class="sd">            All fuse filesystem objects across every page.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            If the API request fails or returns an error.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;interactive-sessions/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/fuse-filesystems&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
             <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
+        <span class="n">base_url</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;interactive-sessions/</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">/fuse-filesystems&quot;</span>
+        <span class="p">)</span>
 
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
+        <span class="n">all_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># Request the largest sensible page size: the session cap is 100 items,</span>
+        <span class="c1"># so one page should normally be enough. The loop is defensive in case</span>
+        <span class="c1"># the server clamps the limit below 100.</span>
+        <span class="n">page_limit</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="c1"># Safety bound so a misbehaving server can&#39;t induce an infinite loop.</span>
+        <span class="n">max_pages</span> <span class="o">=</span> <span class="mi">50</span>
 
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Forbidden. Invalid API key or insufficient permissions.&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interactive session </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get fuse filesystem status: HTTP </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">page</span> <span class="o">&lt;=</span> <span class="n">max_pages</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">?teamId=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&amp;limit=</span><span class="si">{</span><span class="n">page_limit</span><span class="si">}</span><span class="s2">&amp;page=</span><span class="si">{</span><span class="n">page</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 
-        <span class="n">response_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fuseFileSystems&quot;</span><span class="p">,</span> <span class="p">[])</span></div>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unauthorized. Invalid API key or insufficient permissions.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Interactive session </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2"> not found. &quot;</span>
+                    <span class="s2">&quot;The session may not exist, or your API key may not have access to it. &quot;</span>
+                    <span class="s2">&quot;Verify the session ID and that your API key belongs to a workspace member with access to this session.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get fuse filesystem status: HTTP </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">response_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fuseFileSystems&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">all_items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+
+            <span class="c1"># Decide whether to fetch the next page. The API returns</span>
+            <span class="c1"># paginationMetadata like {&quot;Pagination-Count&quot;: &lt;total&gt;,</span>
+            <span class="c1"># &quot;Pagination-Page&quot;: &lt;current&gt;, &quot;Pagination-Limit&quot;: &lt;per-page&gt;}.</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;paginationMetadata&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Pagination-Count&quot;</span><span class="p">)</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Pagination-Limit&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">page_limit</span>
+            <span class="k">if</span> <span class="n">total</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># No pagination metadata — trust what we got and stop.</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_items</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">total</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="c1"># Defensive: if the server returned fewer than limit items, assume</span>
+            <span class="c1"># we are at the last page.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">page</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">all_items</span></div>
 
 
 <div class="viewcode-block" id="Link.wait_for_mount_completion">
@@ -1009,7 +1290,8 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking results directory...&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Results: </span><span class="si">{</span><span class="n">results_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Results directory mount did not complete successfully — see error above.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No results found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
 
@@ -1059,7 +1341,8 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking working directory...&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Workdir: </span><span class="si">{</span><span class="n">workdir_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">workdir_path</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">workdir_path</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">session_id</span><span class="p">):</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Working directory mount did not complete successfully — see error above.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No working directory found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
 
@@ -1111,7 +1394,8 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Linking logs directory...&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Logs directory: </span><span class="si">{</span><span class="n">logs_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">link_folder</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Logs directory mount did not complete successfully — see error above.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No logs found to link.&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
 

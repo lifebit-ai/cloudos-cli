@@ -1306,13 +1306,17 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid S3 path: </span><span class="si">{</span><span class="n">link_path_str</span><span class="si">}</span><span class="s2">. Expected: s3://bucket_name/prefix/&quot;</span><span class="p">)</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="c1"># Ensure prefix ends with / for S3 folders</span>
-        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="c1"># Detect whether it is a file (last segment contains a dot, no trailing slash)</span>
+        <span class="n">last_segment</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">is_file</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">last_segment</span> <span class="ow">and</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">last_segment</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+        <span class="c1"># Only add trailing slash for folders</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_file</span> <span class="ow">and</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
-            <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
+            <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">,</span>
+            <span class="s2">&quot;is_file&quot;</span><span class="p">:</span> <span class="n">is_file</span>
         <span class="p">}</span>
     <span class="c1"># Check for legacy colon format</span>
     <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">link_path_str</span> <span class="ow">and</span> <span class="s1">&#39;//&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">link_path_str</span><span class="p">:</span>
@@ -1328,7 +1332,8 @@
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
             <span class="s2">&quot;mount_name&quot;</span><span class="p">:</span> <span class="n">mount_name</span><span class="p">,</span>
             <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span>
-            <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span>
+            <span class="s2">&quot;s3_prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">,</span>
+            <span class="s2">&quot;is_file&quot;</span><span class="p">:</span> <span class="kc">False</span>
         <span class="p">}</span>
     <span class="c1"># Otherwise, parse as Lifebit Platform folder path</span>
     <span class="c1"># Format: project_name/folder_path or project_name &gt; folder_path</span>
@@ -1515,8 +1520,6 @@
     <span class="n">storage_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">cost_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">shutdown_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">data_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">s3_mounts</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the resume session payload for the API.</span>
 
@@ -1532,10 +1535,6 @@
 <span class="sd">        New compute cost limit (if changing)</span>
 <span class="sd">    shutdown_at : str, optional</span>
 <span class="sd">        New auto-shutdown datetime in ISO8601 format (if changing)</span>
-<span class="sd">    data_files : list, optional</span>
-<span class="sd">        Additional data files to mount</span>
-<span class="sd">    s3_mounts : list, optional</span>
-<span class="sd">        Additional S3 mounts (AWS only)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1543,7 +1542,7 @@
 <span class="sd">        Resume payload for API request</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;dataItems&quot;</span><span class="p">:</span> <span class="n">data_files</span> <span class="ow">or</span> <span class="p">[],</span>
+        <span class="s2">&quot;dataItems&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s2">&quot;fileSystemIds&quot;</span><span class="p">:</span> <span class="p">[]</span>  <span class="c1"># Always empty (deprecated)</span>
     <span class="p">}</span>
     <span class="c1"># Only include newInteractiveSessionConfiguration if any config changes are specified</span>
@@ -1563,9 +1562,6 @@
     <span class="c1"># Only add config updates if there are any</span>
     <span class="k">if</span> <span class="n">config_updates</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;newInteractiveSessionConfiguration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_updates</span>
-    <span class="c1"># Add S3 mounts if provided (for AWS)</span>
-    <span class="k">if</span> <span class="n">s3_mounts</span><span class="p">:</span>
-        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;fuseFileSystems&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_mounts</span>
     <span class="k">return</span> <span class="n">payload</span></div>
 
 
@@ -1663,36 +1659,33 @@
         <span class="k">if</span> <span class="n">mounted_files</span><span class="p">:</span>
             <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Mounted Data&quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mounted_files</span><span class="p">))</span>
 
-    <span class="c1"># Display linked S3 buckets and File Explorer folders</span>
+    <span class="c1"># Display linked S3 buckets and File Explorer items (files and folders)</span>
     <span class="k">if</span> <span class="n">s3_mounts</span><span class="p">:</span>
         <span class="n">linked_s3</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">linked_file_explorer</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">s3</span> <span class="ow">in</span> <span class="n">s3_mounts</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="c1"># Check if this is a File Explorer folder</span>
                 <span class="k">if</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_isFileExplorer&#39;</span><span class="p">):</span>
                     <span class="n">original_path</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_originalPath&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">original_path</span><span class="p">:</span>
                         <span class="n">linked_file_explorer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File Explorer: </span><span class="si">{</span><span class="n">original_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Regular S3 folder</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="p">{})</span>
                     <span class="n">bucket</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3BucketName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                    <span class="n">prefix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">prefix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3Prefix&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3ObjectKey&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="n">bucket</span><span class="p">:</span>
                         <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="n">bucket</span><span class="p">:</span>
                         <span class="n">linked_s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Display both types if present</span>
+
         <span class="n">all_linked</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">linked_s3</span><span class="p">:</span>
             <span class="n">all_linked</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">linked_s3</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">linked_file_explorer</span><span class="p">:</span>
             <span class="n">all_linked</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">linked_file_explorer</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">all_linked</span><span class="p">:</span>
-            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Linked Folders&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_linked</span><span class="p">))</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="s2">&quot;Linked Items&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_linked</span><span class="p">))</span>
 
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[yellow]Note:[/yellow] Session provisioning typically takes 3-10 minutes.&quot;</span><span class="p">)</span>

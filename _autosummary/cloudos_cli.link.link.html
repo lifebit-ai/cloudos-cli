@@ -702,12 +702,16 @@ the SSL certificate file. Default is True.</p></li>
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.get_fuse_filesystems_status">
 <span class="sig-name descname"><span class="pre">get_fuse_filesystems_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.get_fuse_filesystems_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.get_fuse_filesystems_status" title="Link to this definition">¶</a></dt>
 <dd><p>Get the status of fuse filesystems for an interactive session.</p>
+<p>Iterates through pages of the paginated API so the caller always sees
+every mounted item — important for the 100-item cap check, duplicate-
+name detection, and <cite>wait_for_mount_completion</cite> (which searches by
+mountName and would otherwise miss items beyond the first page).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>session_id</strong> (<em>str</em>) – The interactive session ID.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of fuse filesystem objects with their status information.</p>
+<dd class="field-even"><p>All fuse filesystem objects across every page.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List[Dict]</p>
@@ -1124,24 +1128,49 @@ the SSL certificate file.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.is_s3_file_path">
+<span class="sig-name descname"><span class="pre">is_s3_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.is_s3_file_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.is_s3_file_path" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if the S3 URL points to a file rather than a folder.</p>
+<p>A path is treated as a file when the last segment contains a dot (.) and the
+URL does not end with a trailing slash.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s3_url</strong> (<em>str</em>) – An S3 URL starting with ‘s3://’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.link_folder">
 <span class="sig-name descname"><span class="pre">link_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.link_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.link_folder" title="Link to this definition">¶</a></dt>
-<dd><p>Link a folder (S3 or File Explorer) to an interactive session.</p>
-<p>Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.</p>
+<dd><p>Link a file or folder (S3 or File Explorer) to an interactive session.</p>
+<p>Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.
+Note: File linking requires the v2 endpoint — the v1 fallback only supports folders.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folder</strong> (<em>str</em>) – The folder to link.</p></li>
+<li><p><strong>folder</strong> (<em>str</em>) – The file or folder path to link. Accepts S3 URLs (s3://bucket/…) and
+File Explorer paths (relative to <code class="docutils literal notranslate"><span class="pre">self.project_name</span></code>). Despite the
+parameter name, files are also supported.</p></li>
 <li><p><strong>session_id</strong> (<em>str</em>) – The interactive session ID.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the URL already exists with ‘mounted’ status
-    If the API key is invalid or permissions are insufficient
-    If the URL is invalid or the session is not active.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the mount completed and was verified as ‘mounted’; False if
+verification reported a failure or timed out. Callers that care
+about partial failure should observe this value.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the item already exists with ‘mounted’ status,
+    if the API key is invalid or permissions are insufficient,
+    if the path is invalid or the session is not active,
+    or if a file is linked while only the v1 endpoint is available.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1149,13 +1178,13 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.link.link.Link.link_folders_batch">
 <span class="sig-name descname"><span class="pre">link_folders_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folders</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.link_folders_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.link_folders_batch" title="Link to this definition">¶</a></dt>
-<dd><p>Link multiple folders (S3 or File Explorer) to an interactive session in one request.</p>
-<p>Attempts to use API v2 (which supports multiple folders per request) first,
+<dd><p>Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.</p>
+<p>Attempts to use API v2 (which supports multiple items per request) first,
 with automatic fallback to v1 (individual requests) if v2 is not available.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>folders</strong> (<em>list</em>) – List of folder paths to link.</p></li>
+<li><p><strong>folders</strong> (<em>list</em>) – List of folder/file paths to link.</p></li>
 <li><p><strong>session_id</strong> (<em>str</em>) – The interactive session ID.</p></li>
 </ul>
 </dd>
@@ -1163,7 +1192,7 @@ with automatic fallback to v1 (individual requests) if v2 is not available.</p>
 <dd class="field-even"><p><strong>ValueError</strong> – If any validation fails or API errors occur.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1264,21 +1293,37 @@ the SSL certificate file.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.parse_file_explorer_path">
-<span class="sig-name descname"><span class="pre">parse_file_explorer_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.parse_file_explorer_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.parse_file_explorer_path" title="Link to this definition">¶</a></dt>
-<dd><p>Parse a File Explorer path and return folder metadata.</p>
-<p>Note: This method does basic parsing only. Validation of folder existence
-should be done separately in the calling code if needed.</p>
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.parse_file_explorer_item">
+<span class="sig-name descname"><span class="pre">parse_file_explorer_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.parse_file_explorer_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.parse_file_explorer_item" title="Link to this definition">¶</a></dt>
+<dd><p>Public alias for _parse_file_explorer_item.</p>
+<p>Use this from code outside the Link class. The underscore version is
+retained for internal callers but both behave identically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – The file path to parse.</p>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.link.link.Link.parse_s3_file_path">
+<span class="sig-name descname"><span class="pre">parse_s3_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/link/link.html#Link.parse_s3_file_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.link.link.Link.parse_s3_file_path" title="Link to this definition">¶</a></dt>
+<dd><p>Parse an S3 URL that points to a file and return an S3File data item.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s3_url</strong> (<em>str</em>) – The S3 URL to parse. Must start with ‘s3://’.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary containing the parsed file information structured as:
-{“dataItem”: {“type”: “File”, “data”: {“name”: str, “fullPath”: str}}}</p>
+<dd class="field-even"><p>{“dataItem”: {“type”: “S3File”, “data”: {“name”: str, “s3BucketName”: str, “s3ObjectKey”: str}}}</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the URL is invalid.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1666,13 +1711,15 @@ the SSL certificate file.</p></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.get_workflow_list"><code class="docutils literal notranslate"><span class="pre">Link.get_workflow_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.get_workflow_max_pagination"><code class="docutils literal notranslate"><span class="pre">Link.get_workflow_max_pagination()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.is_module"><code class="docutils literal notranslate"><span class="pre">Link.is_module()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.is_s3_file_path"><code class="docutils literal notranslate"><span class="pre">Link.is_s3_file_path()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.link_folder"><code class="docutils literal notranslate"><span class="pre">Link.link_folder()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.link_folders_batch"><code class="docutils literal notranslate"><span class="pre">Link.link_folders_batch()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.link_job_logs"><code class="docutils literal notranslate"><span class="pre">Link.link_job_logs()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.link_job_results"><code class="docutils literal notranslate"><span class="pre">Link.link_job_results()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.link_job_workdir"><code class="docutils literal notranslate"><span class="pre">Link.link_job_workdir()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.mount_fuse_filesystem_v2"><code class="docutils literal notranslate"><span class="pre">Link.mount_fuse_filesystem_v2()</span></code></a></li>
-<li><a class="reference internal" href="#cloudos_cli.link.link.Link.parse_file_explorer_path"><code class="docutils literal notranslate"><span class="pre">Link.parse_file_explorer_path()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.parse_file_explorer_item"><code class="docutils literal notranslate"><span class="pre">Link.parse_file_explorer_item()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.link.link.Link.parse_s3_file_path"><code class="docutils literal notranslate"><span class="pre">Link.parse_s3_file_path()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.parse_s3_path"><code class="docutils literal notranslate"><span class="pre">Link.parse_s3_path()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.process_job_list"><code class="docutils literal notranslate"><span class="pre">Link.process_job_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.link.link.Link.process_project_list"><code class="docutils literal notranslate"><span class="pre">Link.process_project_list()</span></code></a></li>
