@@ -130,16 +130,19 @@ def test_link_file_explorer_folder_success():
 @responses.activate
 def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     """Test successful S3 folder linking and mounting."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint to return 404 (testing fallback to v1)
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
-    
+
     # Mock v1 endpoint
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
 
-    # Mock the GET request for checking fuse filesystem status
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {
@@ -159,7 +162,6 @@ def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    # Patch `parse_s3_path` to return a mocked S3 folder structure
     monkeypatch.setattr(link_instance_test_response, "parse_s3_path", lambda x: {
         "dataItem": {
             "type": "S3Folder",
@@ -179,16 +181,19 @@ def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
 @responses.activate
 def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monkeypatch):
     """Test successful File Explorer folder linking and mounting."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint to return 404 (testing fallback to v1)
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
-    
+
     # Mock v1 endpoint
     url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url, status=204)
 
-    # Mock the GET request for checking fuse filesystem status
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {
@@ -208,7 +213,8 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    monkeypatch.setattr(link_instance_test_response, "parse_file_explorer_path", lambda x: {
+    # Patch _parse_file_explorer_item (replaces parse_file_explorer_path in batch path)
+    monkeypatch.setattr(link_instance_test_response, "_parse_file_explorer_item", lambda x: {
         "dataItem": {
             "kind": "Folder",
             "item": "456",
@@ -224,7 +230,7 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
 @responses.activate 
 def test_get_fuse_filesystems_status_success(link_instance_test_response):
     """Test successful retrieval of fuse filesystem status."""
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
     mock_response = {
         "fuseFileSystems": [
             {
@@ -247,12 +253,15 @@ def test_get_fuse_filesystems_status_success(link_instance_test_response):
 @responses.activate
 def test_link_folder_v2_success_s3(capsys, link_instance_test_response, monkeypatch):
     """Test successful S3 folder linking using API v2."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=204)
 
-    # Mock the GET request for checking fuse filesystem status
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {
@@ -272,7 +281,6 @@ def test_link_folder_v2_success_s3(capsys, link_instance_test_response, monkeypa
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    # Patch `parse_s3_path` to return a mocked S3 folder structure
     monkeypatch.setattr(link_instance_test_response, "parse_s3_path", lambda x: {
         "dataItem": {
             "type": "S3Folder",
@@ -294,6 +302,10 @@ def test_link_folder_v2_success_s3(capsys, link_instance_test_response, monkeypa
 @responses.activate
 def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monkeypatch):
     """Test fallback from API v2 to v1 when v2 is not available."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint to return 404 (not found)
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
@@ -302,8 +314,7 @@ def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monk
     url_v1 = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v1, status=204)
 
-    # Mock the GET request for checking fuse filesystem status
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {
@@ -323,7 +334,6 @@ def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monk
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    # Patch `parse_s3_path` to return a mocked S3 folder structure
     monkeypatch.setattr(link_instance_test_response, "parse_s3_path", lambda x: {
         "dataItem": {
             "type": "S3Folder",
@@ -344,12 +354,15 @@ def test_link_folder_v2_fallback_to_v1(capsys, link_instance_test_response, monk
 @responses.activate
 def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monkeypatch):
     """Test successful File Explorer folder linking using API v2."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=204)
 
-    # Mock the GET request for checking fuse filesystem status
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
+    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {
@@ -369,7 +382,8 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    monkeypatch.setattr(link_instance_test_response, "parse_file_explorer_path", lambda x: {
+    # Patch _parse_file_explorer_item (replaces parse_file_explorer_path in batch path)
+    monkeypatch.setattr(link_instance_test_response, "_parse_file_explorer_item", lambda x: {
         "dataItem": {
             "kind": "Folder",
             "item": "456",
@@ -386,14 +400,17 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
 @responses.activate
 def test_link_folders_batch_multiple_s3(capsys, link_instance_test_response, monkeypatch):
     """Test linking multiple S3 folders in one batch request using v2 API."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint for batch request
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=204)
 
     # Mock the GET request for checking fuse filesystem status for each folder
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
-    
-    # First call - returns folder1
+
+    # Second call - returns folder1
     mock_response_1 = {
         "fuseFileSystems": [{
             "_id": "123",
@@ -454,6 +471,10 @@ def test_link_folders_batch_multiple_s3(capsys, link_instance_test_response, mon
 @responses.activate
 def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_test_response, monkeypatch):
     """Test fallback to v1 API when linking multiple folders."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint to return 404
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
@@ -465,7 +486,6 @@ def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_tes
     responses.add(responses.POST, url_v1, status=204)  # folder3
 
     # Mock status checks
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "1", "mountName": "folder1", "status": "mounted"}]}, status=200)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "2", "mountName": "folder2", "status": "mounted"}]}, status=200)
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "3", "mountName": "folder3", "status": "mounted"}]}, status=200)
@@ -494,9 +514,13 @@ def test_link_folders_batch_v2_fallback_to_v1_multiple(capsys, link_instance_tes
     assert "Successfully mounted S3 folder: s3://bucket3/path3/folder3/" in captured.out
 
 
-@responses.activate  
+@responses.activate
 def test_link_folders_batch_partial_failure_v1_fallback(capsys, link_instance_test_response, monkeypatch):
     """Test error handling when one folder fails during v1 fallback."""
+    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123&limit=100&page=1"
+    # First GET: pre-mount limit/duplicate check (empty session)
+    responses.add(responses.GET, status_url, json={"fuseFileSystems": [], "paginationMetadata": {}}, status=200)
+
     # Mock v2 endpoint to return 404 (forcing v1 fallback)
     url_v2 = f"https://lifebit.ai/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId=team123"
     responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
@@ -507,7 +531,6 @@ def test_link_folders_batch_partial_failure_v1_fallback(capsys, link_instance_te
     responses.add(responses.POST, url_v1, status=403, json={"message": "Folder already mounted"})  # folder2 fails
 
     # Mock status check for successful folder1
-    status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
     responses.add(responses.GET, status_url, json={"fuseFileSystems": [{"_id": "1", "mountName": "folder1", "status": "mounted"}]}, status=200)
 
     def mock_parse_s3_path(url):

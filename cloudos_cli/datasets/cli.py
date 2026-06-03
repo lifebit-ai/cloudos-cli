@@ -754,13 +754,15 @@ def link(ctx,
          ssl_cert,
          profile):
     """
-    Link a folder (S3 or File Explorer) to an active interactive analysis.
+    Link a file or folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 folder to link or relative to File Explorer.
-    E.g.: 's3://bucket-name/folder/subfolder', 'Data/Downloads' or 'Data'.
+    PATH [path]: the full path to the S3 file/folder, or a path RELATIVE to
+    the project named in --project-name for File Explorer items. Do NOT
+    prepend the project name to File Explorer paths.
+    E.g.: 's3://bucket-name/folder/subfolder', 's3://bucket/data/file.csv',
+    'Data/Downloads', 'Data/file.csv'.
     """
     if not path.startswith("s3://") and project_name is None:
-        # for non-s3 paths we need the project, for S3 we don't
         raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -774,75 +776,14 @@ def link(ctx,
         verify=verify_ssl
     )
 
-    # Minimal folder validation and improved error messages
-    is_s3 = path.startswith("s3://")
-    is_folder = True
-    if is_s3:
-        # S3 path validation - use heuristics to determine if it's likely a folder
-        try:
-            # If path ends with '/', it's likely a folder
-            if path.endswith('/'):
-                is_folder = True
-            else:
-                # Check the last part of the path
-                path_parts = path.rstrip("/").split("/")
-                if path_parts:
-                    last_part = path_parts[-1]
-                    # If the last part has no dot, it's likely a folder
-                    if '.' not in last_part:
-                        is_folder = True
-                    else:
-                        # If it has a dot, it might be a file - set to None for warning
-                        is_folder = None
-                else:
-                    # Empty path parts, set to None for uncertainty
-                    is_folder = None
-        except Exception:
-            # If we can't parse the S3 path, set to None for uncertainty
-            is_folder = None
-    else:
-        # File Explorer path validation (existing logic)
-        try:
-            datasets = Datasets(
-                cloudos_url=cloudos_url,
-                apikey=apikey,
-                workspace_id=workspace_id,
-                project_name=project_name,
-                verify=verify_ssl,
-                cromwell_token=None
-            )
-            parts = path.strip("/").split("/")
-            parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
-            item_name = parts[-1]
-            contents = datasets.list_folder_content(parent_path)
-            found = None
-            for item in contents.get("folders", []):
-                if item.get("name") == item_name:
-                    found = item
-                    break
-            if not found:
-                for item in contents.get("files", []):
-                    if item.get("name") == item_name:
-                        found = item
-                        break
-            if found and ("folderType" not in found):
-                is_folder = False
-        except Exception:
-            is_folder = None
-
-    if is_folder is False:
-        if is_s3:
-            raise ValueError("The S3 path appears to point to a file, not a folder. You can only link folders. Please link the parent folder instead.")
-        else:
-            raise ValueError("Linking files or virtual folders is not supported. Link the S3 parent folder instead.", err=True)
-        return
-    elif is_folder is None and is_s3:
-        click.secho("Unable to verify whether the S3 path is a folder. Proceeding with linking; " +
-                   "however, if the operation fails, please confirm that you are linking a folder rather than a file.", fg='yellow', bold=True)
-
     try:
-        link_p.link_folder(path, session_id)
+        succeeded = link_p.link_folder(path, session_id)
     except Exception as e:
-        if is_s3:
-            print("If you are linking an S3 path, please ensure it is a folder.")
-        raise ValueError(f"Could not link folder. {e}")
+        raise ValueError(f"Could not link item. {e}")
+
+    if not succeeded:
+        click.secho(
+            "Linking did not complete successfully. See errors above.",
+            fg='red', err=True,
+        )
+        raise SystemExit(1)
