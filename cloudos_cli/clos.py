@@ -1711,6 +1711,34 @@ class Cloudos:
         else:
             return content['projects']
 
+    def get_project_members(self, project_id, verify=True):
+        """Get members from a Lifebit Platform project.
+
+        Parameters
+        ----------
+        project_id : string
+            The Lifebit Platform project id to collect members from.
+        verify: [bool|string]
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file.
+
+        Returns
+        -------
+        list | dict
+            The parsed server response with project members.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        r = retry_requests_get(
+            "{}/api/v1/projects/{}/members".format(self.cloudos_url, project_id),
+            headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)
+
     @staticmethod
     def process_project_list(r, all_fields=False):
         """Process a server response from a self.get_project_list call.
@@ -2615,4 +2643,3 @@ class Cloudos:
         # Return the status code (204 No Content is success)
         return r.status_code
     
-
