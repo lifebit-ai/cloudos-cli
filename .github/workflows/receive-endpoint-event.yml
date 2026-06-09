@@ -72,171 +72,88 @@ jobs:
           EOJSON
           fi
 
-      - name: Call AI agent and write files
-        env:
-          # AGENT_PR_PAT is a classic PAT with repo+workflow scope.
-          # github.token cannot call models.github.ai — a real user PAT is required.
-          GITHUB_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+      - name: Build Copilot issue body
         run: |
           python3 - <<'EOF'
-          import json, urllib.request, os, pathlib
+          import json, pathlib, textwrap
 
-          payload = json.load(open("/tmp/payload.json"))
+          payload   = json.load(open("/tmp/payload.json"))
 
-          # Skip if the detected change is not relevant to this repo
           if not payload.get("relevant", True):
             print("Payload marked as not relevant — skipping.")
             import sys; sys.exit(0)
 
           endpoints = payload["changed_endpoints"]
+          source_pr = payload.get("source_pr_url", "manual trigger")
           manifest  = json.load(open("supported-endpoints.json"))
+          version   = open("cloudos_cli/_version.py").read().strip()
+          changelog = open("CHANGELOG.md").read()[-1000:]
 
-          # Read repo context inline — no helper scripts needed.
-          # cloudos_cli/clos.py is the primary command implementation file.
-          # The project uses cloudos_cli/_version.py (not pyproject.toml) for versioning.
-          style_ref   = open("cloudos_cli/clos.py").read()[:4000]   # first 4000 chars as style guide
-          test_ref    = open(next(pathlib.Path("tests").glob("test_*.py"))).read()
-          changelog   = open("CHANGELOG.md").read()[-3000:]   # last ~3000 chars
-          version_raw = open("cloudos_cli/_version.py").read()
-          # version_raw is like: __version__ = '2.91.0'
-          version     = version_raw.strip()
+          # Filter manifest to relevant entries only
+          changed_prefixes = set()
+          for ep in endpoints:
+            parts = ep["path"].strip("/").split("/")
+            changed_prefixes.add("/".join(parts[:3]))
+          relevant = [e for e in manifest["endpoints"] if any(
+            e["path"].strip("/").startswith(p) for p in changed_prefixes
+          )] or manifest["endpoints"][:5]
 
-          prompt = f"""You are an expert Python developer maintaining cloudos-cli,
-          a CLI tool that wraps a REST API. An API endpoint has changed and you must
-          update the CLI to reflect it.
+          body = f"""## API endpoint change detected
 
-          CHANGE DETAILS:
-          {json.dumps(endpoints, indent=2)}
+**Source PR:** {source_pr}
 
-          Change types you may encounter and how to handle them:
-          - added: create a new CLI command and register it
-          - modified: update the existing command, its parameters and/or output handling
-          - removed: delete or deprecate the existing CLI command gracefully
-          - refactored: update internals only — keep the CLI interface identical
+### Changed endpoints
+```json
+{json.dumps(endpoints, indent=2)}
+```
 
-          STYLE REFERENCE (follow this exactly):
-          {style_ref}
+### Change type guide
+- `added`: create a new CLI command and register it
+- `modified`: update the existing command, parameters and/or output handling
+- `removed`: deprecate and delete the existing CLI command gracefully
+- `refactored`: update internals only — keep the CLI interface identical
 
-          TEST REFERENCE (follow this pattern):
-          {test_ref}
+### What to implement
+- Increment the patch version in `cloudos_cli/_version.py` (currently: `{version}`)
+- Add a CHANGELOG entry at the top of `CHANGELOG.md` matching the existing format
+- Create or modify the relevant module file under `cloudos_cli/<module>/`
+  - Commands live in `cloudos_cli/clos.py` or module files like `cloudos_cli/jobs/job.py`, `cloudos_cli/datasets/datasets.py`
+  - There is **no** `cloudos_cli/commands/` directory — do not create one
+- Write at least 2 unit tests in `tests/` using pytest + responses + mock
+- Update `supported-endpoints.json` to reflect the change
 
-          CHANGELOG FORMAT (match this exactly):
-          {changelog}
+### Relevant existing manifest entries
+```json
+{json.dumps(relevant, indent=2)}
+```
 
-          CURRENT VERSION LINE:
-          {version}
+### Recent changelog (match this format exactly)
+```
+{changelog}
+```
+"""
 
-          CURRENT SUPPORTED ENDPOINTS MANIFEST:
-          {json.dumps(manifest, indent=2)}
-
-          PROJECT STRUCTURE NOTES:
-          - Commands are implemented as methods in cloudos_cli/clos.py or in
-            module files under cloudos_cli/<module>/ (e.g. cloudos_cli/jobs/job.py,
-            cloudos_cli/datasets/datasets.py, cloudos_cli/procurement/images.py).
-            There is NO cloudos_cli/commands/ directory — do not create one.
-          - Version is stored in cloudos_cli/_version.py as: __version__ = 'X.Y.Z'
-            There is NO pyproject.toml — do not create one.
-          - Tests live under tests/ and use pytest + responses + mock libraries.
-
-          INSTRUCTIONS:
-          - Increment the patch version in cloudos_cli/_version.py
-          - Add a CHANGELOG entry at the top of CHANGELOG.md matching the format above
-          - Create or modify the relevant module file under cloudos_cli/<module>/
-          - Write at least 2 unit tests in tests/
-          - Update supported-endpoints.json to reflect the change
-          - For removed endpoints: add a deprecation notice in the changelog, remove
-            the command implementation, and remove the entry from supported-endpoints.json
-
-          Respond with ONLY a JSON object — no explanation, no markdown fences:
-          {{
-            "pr_title": "feat|fix|chore: short description",
-            "pr_body": "markdown PR description",
-            "files": [
-              {{
-                "path": "relative/path/from/repo/root.py",
-                "action": "create|modify|delete",
-                "content": "full file content as string (omit for delete)"
-              }}
-            ]
-          }}
-          """
-
-          # Testing models.inference.ai.azure.com with gpt-4o
-          body = json.dumps({
-            "model": "gpt-4o",
-            "max_tokens": 32768,
-            "messages": [{"role": "user", "content": prompt}]
-          }).encode()
-
-          req = urllib.request.Request(
-            "https://models.inference.ai.azure.com/chat/completions",
-            data=body,
-            headers={
-              "Content-Type": "application/json",
-              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"
-            }
-          )
-          try:
-            with urllib.request.urlopen(req) as r:
-              result = json.loads(r.read())
-          except urllib.error.HTTPError as e:
-            body_bytes = e.read()
-            print(f"GitHub Models API error {e.code}: {body_bytes.decode()}", flush=True)
-            raise
-
-          # OpenAI format: choices[0].message.content
-          raw_text = result["choices"][0]["message"]["content"].strip()
-          # Strip markdown code fences if the model wrapped the JSON response
-          if raw_text.startswith("```"):
-            raw_text = raw_text.split("\n", 1)[1]   # drop the ```json line
-            raw_text = raw_text.rsplit("```", 1)[0].strip()
-          response = json.loads(raw_text)
-
-          # Write generated files
-          for f in response["files"]:
-            p = pathlib.Path(f["path"])
-            if f["action"] == "delete":
-              p.unlink(missing_ok=True)
-            else:
-              p.parent.mkdir(parents=True, exist_ok=True)
-              p.write_text(f["content"])
-
-          # Write PR metadata for subsequent steps
-          open("/tmp/pr-title.txt", "w").write(response["pr_title"])
-          open("/tmp/pr-body.md",   "w").write(response["pr_body"])
+          open("/tmp/issue-body.md", "w").write(body)
+          ep = endpoints[0]
+          title = f"{ep['change_type']}: {ep['method']} {ep['path']}"
+          open("/tmp/issue-title.txt", "w").write(title)
           EOF
 
-      - name: Create branch and commit
-        id: branch
-        run: |
-          # Extract the first endpoint path from the resolved payload (works for all trigger types)
-          SLUG=$(python3 -c "import json; p=json.load(open('/tmp/payload.json')); print(p['changed_endpoints'][0]['path'])" \
-            | tr '/' '-' | tr -d '{}' | sed 's/^-//')
-          BRANCH="agent/endpoint-$(date +%Y%m%d%H%M%S)-${SLUG}"
-          git config user.name "cloudos-agent[bot]"
-          git config user.email "cloudos-agent@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add -A
-          # Only commit if there are actual changes; exit cleanly otherwise
-          if git diff --cached --quiet; then
-            echo "No files were changed by the agent — nothing to commit."
-            exit 1
-          fi
-          git commit -m "$(cat /tmp/pr-title.txt)"
-          git push origin "$BRANCH"
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-
-      - name: Open draft PR
+      - name: Create issue and assign to Copilot coding agent
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
-          gh pr create \
-            --draft \
-            --base main \
-            --head "${{ steps.branch.outputs.branch }}" \
-            --title "$(cat /tmp/pr-title.txt)" \
-            --body-file /tmp/pr-body.md \
-            --label "agent-generated"
+          ISSUE_URL=$(gh issue create \
+            --title "$(cat /tmp/issue-title.txt)" \
+            --body-file /tmp/issue-body.md \
+            --label "agent-generated")
+          ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
+          echo "Created issue #$ISSUE_NUMBER: $ISSUE_URL"
+
+          # Assigning to @github-copilot triggers the coding agent
+          gh api repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/assignees \
+            -f "assignees[]=github-copilot"
+          echo "Copilot agent triggered on issue #$ISSUE_NUMBER"
 
       - name: Open fallback issue on failure
         if: failure()
@@ -244,6 +161,6 @@ jobs:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
           gh issue create \
-            --title "Agent failed: endpoint change requires manual wrapping" \
+            --title "Agent workflow failed: could not create Copilot task issue" \
             --body "The agent workflow failed. Trigger payload: $(cat /tmp/payload.json)" \
             --label "agent-failed"
