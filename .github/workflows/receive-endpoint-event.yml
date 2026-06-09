@@ -138,9 +138,10 @@ jobs:
           ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
           echo "Created issue #$ISSUE_NUMBER: $ISSUE_URL"
 
-          # Assigning to @github-copilot triggers the coding agent
-          gh api repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/assignees \
-            -f "assignees[]=github-copilot"
+          # Trigger the Copilot coding agent by posting a comment mention.
+          # This is equivalent to clicking "Start coding session" in the GitHub UI.
+          gh api repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments \
+            -f "body=@github-copilot Please implement the changes described in this issue."
           echo "Copilot agent triggered on issue #$ISSUE_NUMBER"
 
       - name: Open fallback issue on failure
