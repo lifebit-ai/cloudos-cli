@@ -131,17 +131,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
-          ISSUE_NUMBER=$(gh issue create \
+          gh issue create \
             --title "$(cat /tmp/issue-title.txt)" \
             --body-file /tmp/issue-body.md \
             --label "agent-generated" \
-            --json number \
-            --jq '.number')
-          echo "Created issue #$ISSUE_NUMBER"
-
-          # Assign copilot-swe-agent to trigger the Copilot coding agent
-          gh issue edit "$ISSUE_NUMBER" --add-assignee copilot-swe-agent
-          echo "Copilot agent triggered on issue #$ISSUE_NUMBER"
+            --assignee copilot-swe-agent
+          echo "Issue created and assigned to copilot-swe-agent"
 
       - name: Open fallback issue on failure
         if: failure()
