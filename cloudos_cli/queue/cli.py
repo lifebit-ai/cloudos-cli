@@ -1,8 +1,9 @@
 """CLI commands for Lifebit Platform job queue management."""
 
+import sys
 import rich_click as click
 import json
-from cloudos_cli.queue.queue import Queue
+from cloudos_cli.queue.queue import Queue, QUEUE_PRESETS
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -93,3 +94,111 @@ def list_queues(ctx,
             o.write(json.dumps(my_queues))
         print(f'\tJob queue list collected with a total of {len(my_queues)} queues.')
         print(f'\tJob queue list saved to {outfile}')
+
+
+@queue.command('create')
+@click.option('-k',
+              '--apikey',
+              help='Your Lifebit Platform API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific Lifebit Platform workspace id.',
+              required=True)
+@click.option('--label',
+              help='Name (label) for the new job queue.',
+              required=True)
+@click.option('--description',
+              help='Short description of the new job queue.',
+              default='',
+              required=False)
+@click.option('--preset',
+              help=(
+                  'Preset template to use. Choices: '
+                  + ', '.join(QUEUE_PRESETS.keys())
+                  + '. Default=standard-stable.'
+              ),
+              type=click.Choice(list(QUEUE_PRESETS.keys()), case_sensitive=False),
+              default='standard-stable',
+              show_default=True,
+              required=False)
+@click.option('--executor',
+              help='Workflow executor for the queue. Default=nextflow.',
+              default='nextflow',
+              show_default=True,
+              required=False)
+@click.option('-y',
+              '--yes',
+              'skip_confirmation',
+              help='Skip the confirmation prompt and proceed immediately.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is '
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id'])
+def create_queue(ctx,
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 label,
+                 description,
+                 preset,
+                 executor,
+                 skip_confirmation,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    """Create a new job queue in a Lifebit Platform workspace using a preset template."""
+
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Resolve the preset to show the user what will be created
+    preset_info = QUEUE_PRESETS[preset]
+    ce_name = preset_info['computeEnvironmentName']
+    cr = preset_info['computeResources']
+    resource_type = cr.get('type', 'EC2')
+    max_vcpus = cr.get('maxvCpus', 'N/A')
+    instance_count = len(cr.get('instanceTypes', []))
+    template_name = preset_info['templateName']
+
+    if not skip_confirmation:
+        click.echo('\nYou are about to create the following job queue:')
+        click.echo(f'  Label              : {label}')
+        click.echo(f'  Description        : {description or "(none)"}')
+        click.echo(f'  Preset             : {template_name}')
+        click.echo(f'  Compute env name   : {ce_name}')
+        click.echo(f'  Resource type      : {resource_type}')
+        click.echo(f'  Max vCPUs          : {max_vcpus}')
+        click.echo(f'  Instance types     : {instance_count} types')
+        click.echo(f'  Executor           : {executor}')
+        click.echo(f'  Workspace          : {workspace_id}')
+        click.echo('')
+        if not click.confirm('Proceed with queue creation?'):
+            click.echo('Aborted.')
+            sys.exit(0)
+
+    print('Executing queue create...')
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+
+    try:
+        queue_id = j_queue.create_job_queue(
+            label=label,
+            description=description,
+            preset_name=preset,
+            executor=executor,
+        )
+        print(f'\tQueue "{label}" created successfully.')
+        print(f'\tQueue ID : {queue_id}')
+        print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
+    except Exception as e:
+        print(f'\tError creating queue: {str(e)}')
+        sys.exit(1)
