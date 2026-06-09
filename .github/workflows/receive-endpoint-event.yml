@@ -205,11 +205,8 @@ jobs:
         id: branch
         run: |
           # Extract the first endpoint path from the resolved payload (works for all trigger types)
-          SLUG=$(python3 -c "
-import json, sys
-p = json.load(open('/tmp/payload.json'))
-print(p['changed_endpoints'][0]['path'])
-" | tr '/' '-' | tr -d '{}' | sed 's/^-//')
+          SLUG=$(python3 -c "import json; p=json.load(open('/tmp/payload.json')); print(p['changed_endpoints'][0]['path'])" \
+            | tr '/' '-' | tr -d '{}' | sed 's/^-//')
           BRANCH="agent/endpoint-$(date +%Y%m%d%H%M%S)-${SLUG}"
           git config user.name "cloudos-agent[bot]"
           git config user.email "cloudos-agent@users.noreply.github.com"
