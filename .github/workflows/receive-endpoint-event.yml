@@ -163,7 +163,7 @@ jobs:
           # GitHub Models — OpenAI-compatible chat completions, authenticated with GITHUB_TOKEN.
           # Find available model IDs at: github.com/marketplace/models
           body = json.dumps({
-            "model": "claude-3-7-sonnet",
+            "model": "claude-3-7-sonnet-20250219",
             "max_tokens": 16000,
             "messages": [{"role": "user", "content": prompt}]
           }).encode()
@@ -176,8 +176,13 @@ jobs:
               "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"
             }
           )
-          with urllib.request.urlopen(req) as r:
-            result = json.loads(r.read())
+          try:
+            with urllib.request.urlopen(req) as r:
+              result = json.loads(r.read())
+          except urllib.error.HTTPError as e:
+            body_bytes = e.read()
+            print(f"GitHub Models API error {e.code}: {body_bytes.decode()}", flush=True)
+            raise
 
           # OpenAI format: choices[0].message.content
           raw_text = result["choices"][0]["message"]["content"].strip()
