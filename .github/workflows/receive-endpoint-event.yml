@@ -74,8 +74,9 @@ jobs:
 
       - name: Call AI agent and write files
         env:
-          # Built-in token — no secret needed. GitHub Models is available to Copilot-licensed orgs.
-          GITHUB_TOKEN: ${{ github.token }}
+          # AGENT_PR_PAT is a classic PAT with repo+workflow scope.
+          # github.token cannot call models.github.ai — a real user PAT is required.
+          GITHUB_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
           python3 - <<'EOF'
           import json, urllib.request, os, pathlib
