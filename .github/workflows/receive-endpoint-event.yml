@@ -161,16 +161,15 @@ jobs:
           }}
           """
 
-          # GitHub Models (new catalog endpoint) — OpenAI-compatible, authenticated with GITHUB_TOKEN.
-          # gpt-4.1: 1M input tokens, 32K output — best for large context code generation.
+          # Testing models.inference.ai.azure.com with gpt-4o
           body = json.dumps({
-            "model": "openai/gpt-4.1",
+            "model": "gpt-4o",
             "max_tokens": 32768,
             "messages": [{"role": "user", "content": prompt}]
           }).encode()
 
           req = urllib.request.Request(
-            "https://models.github.ai/inference/chat/completions",
+            "https://models.inference.ai.azure.com/chat/completions",
             data=body,
             headers={
               "Content-Type": "application/json",
