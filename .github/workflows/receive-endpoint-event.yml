@@ -1,0 +1,235 @@
+name: Receive endpoint change and generate CLI PR
+
+on:
+  repository_dispatch:
+    types: [endpoint-changed]
+  workflow_dispatch:
+    inputs:
+      mock_payload_json:
+        description: "Full client_payload JSON (paste the mock payload)"
+        required: false
+        default: ''
+      mock_endpoint_path:
+        description: "Quick mock — endpoint path (e.g. /projects/{id}/members)"
+        required: false
+        default: '/projects/{id}/members'
+      change_type:
+        description: "added, modified, removed, or refactored"
+        required: false
+        default: 'added'
+
+jobs:
+  generate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.AGENT_PR_PAT }}
+          fetch-depth: 0
+
+      - name: Resolve payload
+        id: payload
+        env:
+          # Use env vars to safely pass user inputs — avoids single-quote injection
+          # when the JSON payload contains quotes.
+          MOCK_PAYLOAD_JSON: ${{ inputs.mock_payload_json }}
+          MOCK_ENDPOINT_PATH: ${{ inputs.mock_endpoint_path }}
+          CHANGE_TYPE: ${{ inputs.change_type }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "$MOCK_PAYLOAD_JSON" ]; then
+              # Write via env var — safe against single-quote injection
+              printf '%s' "$MOCK_PAYLOAD_JSON" > /tmp/payload.json
+            else
+              python3 -c "
+          import json, os
+          payload = {
+            'relevant': True,
+            'source_pr_url': 'mock',
+            'changed_endpoints': [{
+              'method': 'GET',
+              'path': os.environ['MOCK_ENDPOINT_PATH'],
+              'change_type': os.environ['CHANGE_TYPE'],
+              'auth': ['userApiToken'],
+              'summary': 'Mock endpoint for testing'
+            }]
+          }
+          print(json.dumps(payload))
+          " > /tmp/payload.json
+            fi
+          else
+            # repository_dispatch: client_payload is already JSON — write via tojson filter
+            cat <<'EOJSON' > /tmp/payload.json
+          ${{ toJson(github.event.client_payload) }}
+          EOJSON
+          fi
+
+      - name: Call AI agent and write files
+        env:
+          # Built-in token — no secret needed. GitHub Models is available to Copilot-licensed orgs.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'EOF'
+          import json, urllib.request, os, pathlib
+
+          payload = json.load(open("/tmp/payload.json"))
+
+          # Skip if the detected change is not relevant to this repo
+          if not payload.get("relevant", True):
+            print("Payload marked as not relevant — skipping.")
+            import sys; sys.exit(0)
+
+          endpoints = payload["changed_endpoints"]
+          manifest  = json.load(open("supported-endpoints.json"))
+
+          # Read repo context inline — no helper scripts needed.
+          # cloudos_cli/clos.py is the primary command implementation file.
+          # The project uses cloudos_cli/_version.py (not pyproject.toml) for versioning.
+          style_ref   = open("cloudos_cli/clos.py").read()[:4000]   # first 4000 chars as style guide
+          test_ref    = open(next(pathlib.Path("tests").glob("test_*.py"))).read()
+          changelog   = open("CHANGELOG.md").read()[-3000:]   # last ~3000 chars
+          version_raw = open("cloudos_cli/_version.py").read()
+          # version_raw is like: __version__ = '2.91.0'
+          version     = version_raw.strip()
+
+          prompt = f"""You are an expert Python developer maintaining cloudos-cli,
+          a CLI tool that wraps a REST API. An API endpoint has changed and you must
+          update the CLI to reflect it.
+
+          CHANGE DETAILS:
+          {json.dumps(endpoints, indent=2)}
+
+          Change types you may encounter and how to handle them:
+          - added: create a new CLI command and register it
+          - modified: update the existing command, its parameters and/or output handling
+          - removed: delete or deprecate the existing CLI command gracefully
+          - refactored: update internals only — keep the CLI interface identical
+
+          STYLE REFERENCE (follow this exactly):
+          {style_ref}
+
+          TEST REFERENCE (follow this pattern):
+          {test_ref}
+
+          CHANGELOG FORMAT (match this exactly):
+          {changelog}
+
+          CURRENT VERSION LINE:
+          {version}
+
+          CURRENT SUPPORTED ENDPOINTS MANIFEST:
+          {json.dumps(manifest, indent=2)}
+
+          PROJECT STRUCTURE NOTES:
+          - Commands are implemented as methods in cloudos_cli/clos.py or in
+            module files under cloudos_cli/<module>/ (e.g. cloudos_cli/jobs/job.py,
+            cloudos_cli/datasets/datasets.py, cloudos_cli/procurement/images.py).
+            There is NO cloudos_cli/commands/ directory — do not create one.
+          - Version is stored in cloudos_cli/_version.py as: __version__ = 'X.Y.Z'
+            There is NO pyproject.toml — do not create one.
+          - Tests live under tests/ and use pytest + responses + mock libraries.
+
+          INSTRUCTIONS:
+          - Increment the patch version in cloudos_cli/_version.py
+          - Add a CHANGELOG entry at the top of CHANGELOG.md matching the format above
+          - Create or modify the relevant module file under cloudos_cli/<module>/
+          - Write at least 2 unit tests in tests/
+          - Update supported-endpoints.json to reflect the change
+          - For removed endpoints: add a deprecation notice in the changelog, remove
+            the command implementation, and remove the entry from supported-endpoints.json
+
+          Respond with ONLY a JSON object — no explanation, no markdown fences:
+          {{
+            "pr_title": "feat|fix|chore: short description",
+            "pr_body": "markdown PR description",
+            "files": [
+              {{
+                "path": "relative/path/from/repo/root.py",
+                "action": "create|modify|delete",
+                "content": "full file content as string (omit for delete)"
+              }}
+            ]
+          }}
+          """
+
+          # GitHub Models — OpenAI-compatible chat completions, authenticated with GITHUB_TOKEN.
+          # Find available model IDs at: github.com/marketplace/models
+          body = json.dumps({
+            "model": "claude-3-7-sonnet",
+            "max_tokens": 16000,
+            "messages": [{"role": "user", "content": prompt}]
+          }).encode()
+
+          req = urllib.request.Request(
+            "https://models.inference.ai.azure.com/chat/completions",
+            data=body,
+            headers={
+              "Content-Type": "application/json",
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"
+            }
+          )
+          with urllib.request.urlopen(req) as r:
+            result = json.loads(r.read())
+
+          # OpenAI format: choices[0].message.content
+          raw_text = result["choices"][0]["message"]["content"].strip()
+          # Strip markdown code fences if the model wrapped the JSON response
+          if raw_text.startswith("```"):
+            raw_text = raw_text.split("\n", 1)[1]   # drop the ```json line
+            raw_text = raw_text.rsplit("```", 1)[0].strip()
+          response = json.loads(raw_text)
+
+          # Write generated files
+          for f in response["files"]:
+            p = pathlib.Path(f["path"])
+            if f["action"] == "delete":
+              p.unlink(missing_ok=True)
+            else:
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text(f["content"])
+
+          # Write PR metadata for subsequent steps
+          open("/tmp/pr-title.txt", "w").write(response["pr_title"])
+          open("/tmp/pr-body.md",   "w").write(response["pr_body"])
+          EOF
+
+      - name: Create branch and commit
+        id: branch
+        run: |
+          SLUG=$(echo '${{ inputs.mock_endpoint_path || github.event.client_payload.changed_endpoints[0].path }}' \
+            | tr '/' '-' | tr -d '{}' | sed 's/^-//')
+          BRANCH="agent/endpoint-$(date +%Y%m%d%H%M%S)-${SLUG}"
+          git config user.name "cloudos-agent[bot]"
+          git config user.email "cloudos-agent@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A
+          # Only commit if there are actual changes; exit cleanly otherwise
+          if git diff --cached --quiet; then
+            echo "No files were changed by the agent — nothing to commit."
+            exit 1
+          fi
+          git commit -m "$(cat /tmp/pr-title.txt)"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Open draft PR
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+        run: |
+          gh pr create \
+            --draft \
+            --base main \
+            --head "${{ steps.branch.outputs.branch }}" \
+            --title "$(cat /tmp/pr-title.txt)" \
+            --body-file /tmp/pr-body.md \
+            --label "agent-generated"
+
+      - name: Open fallback issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+        run: |
+          gh issue create \
+            --title "Agent failed: endpoint change requires manual wrapping" \
+            --body "The agent workflow failed. Trigger payload: $(cat /tmp/payload.json)" \
+            --label "agent-failed"
