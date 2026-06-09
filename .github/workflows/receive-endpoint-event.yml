@@ -164,7 +164,7 @@ jobs:
           # GitHub Models (new catalog endpoint) — OpenAI-compatible, authenticated with GITHUB_TOKEN.
           # codestral-2501 is purpose-built for code generation; swap for openai/gpt-4.1 if preferred.
           body = json.dumps({
-            "model": "mistral-ai/codestral-2501",
+            "model": "openai/gpt-5",
             "max_tokens": 16000,
             "messages": [{"role": "user", "content": prompt}]
           }).encode()

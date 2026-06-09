@@ -7,7 +7,7 @@
       "path": "/api/v1/projects/{id}/members",
       "change_type": "added",
       "auth": ["userApiToken"],
-      "summary": "Returns members of a project"
+      "summary": "Returns members of a project "
     }
   ]
 }
