@@ -17,6 +17,11 @@ on:
         description: "added, modified, removed, or refactored"
         required: false
         default: 'added'
+  push:
+    branches:
+      - ai-server-cli
+    paths:
+      - '.github/test-trigger.json'
 
 jobs:
   generate-pr:
@@ -36,7 +41,10 @@ jobs:
           MOCK_ENDPOINT_PATH: ${{ inputs.mock_endpoint_path }}
           CHANGE_TYPE: ${{ inputs.change_type }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # Sentinel-file trigger: payload is read directly from the committed file
+            cp .github/test-trigger.json /tmp/payload.json
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             if [ -n "$MOCK_PAYLOAD_JSON" ]; then
               # Write via env var — safe against single-quote injection
               printf '%s' "$MOCK_PAYLOAD_JSON" > /tmp/payload.json
@@ -196,8 +204,12 @@ jobs:
       - name: Create branch and commit
         id: branch
         run: |
-          SLUG=$(echo '${{ inputs.mock_endpoint_path || github.event.client_payload.changed_endpoints[0].path }}' \
-            | tr '/' '-' | tr -d '{}' | sed 's/^-//')
+          # Extract the first endpoint path from the resolved payload (works for all trigger types)
+          SLUG=$(python3 -c "
+import json, sys
+p = json.load(open('/tmp/payload.json'))
+print(p['changed_endpoints'][0]['path'])
+" | tr '/' '-' | tr -d '{}' | sed 's/^-//')
           BRANCH="agent/endpoint-$(date +%Y%m%d%H%M%S)-${SLUG}"
           git config user.name "cloudos-agent[bot]"
           git config user.email "cloudos-agent@users.noreply.github.com"
