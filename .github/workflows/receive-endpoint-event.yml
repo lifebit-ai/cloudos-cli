@@ -20,8 +20,6 @@ on:
   push:
     branches:
       - ai-server-cli
-    paths:
-      - '.github/test-trigger.json'
 
 jobs:
   generate-pr:
@@ -98,40 +96,30 @@ jobs:
             e["path"].strip("/").startswith(p) for p in changed_prefixes
           )] or manifest["endpoints"][:5]
 
-          body = f"""## API endpoint change detected
-
-**Source PR:** {source_pr}
-
-### Changed endpoints
-```json
-{json.dumps(endpoints, indent=2)}
-```
-
-### Change type guide
-- `added`: create a new CLI command and register it
-- `modified`: update the existing command, parameters and/or output handling
-- `removed`: deprecate and delete the existing CLI command gracefully
-- `refactored`: update internals only — keep the CLI interface identical
-
-### What to implement
-- Increment the patch version in `cloudos_cli/_version.py` (currently: `{version}`)
-- Add a CHANGELOG entry at the top of `CHANGELOG.md` matching the existing format
-- Create or modify the relevant module file under `cloudos_cli/<module>/`
-  - Commands live in `cloudos_cli/clos.py` or module files like `cloudos_cli/jobs/job.py`, `cloudos_cli/datasets/datasets.py`
-  - There is **no** `cloudos_cli/commands/` directory — do not create one
-- Write at least 2 unit tests in `tests/` using pytest + responses + mock
-- Update `supported-endpoints.json` to reflect the change
-
-### Relevant existing manifest entries
-```json
-{json.dumps(relevant, indent=2)}
-```
-
-### Recent changelog (match this format exactly)
-```
-{changelog}
-```
-"""
+          fence = "```"
+          body = (
+            "## API endpoint change detected\n\n"
+            f"**Source PR:** {source_pr}\n\n"
+            "### Changed endpoints\n"
+            f"{fence}json\n{json.dumps(endpoints, indent=2)}\n{fence}\n\n"
+            "### Change type guide\n"
+            "- `added`: create a new CLI command and register it\n"
+            "- `modified`: update the existing command, parameters and/or output handling\n"
+            "- `removed`: deprecate and delete the existing CLI command gracefully\n"
+            "- `refactored`: update internals only - keep the CLI interface identical\n\n"
+            "### What to implement\n"
+            f"- Increment the patch version in `cloudos_cli/_version.py` (currently: `{version}`)\n"
+            "- Add a CHANGELOG entry at the top of `CHANGELOG.md` matching the existing format\n"
+            "- Create or modify the relevant module file under `cloudos_cli/<module>/`\n"
+            "  - Commands live in `cloudos_cli/clos.py` or module files like `cloudos_cli/jobs/job.py`\n"
+            "  - There is **no** `cloudos_cli/commands/` directory - do not create one\n"
+            "- Write at least 2 unit tests in `tests/` using pytest + responses + mock\n"
+            "- Update `supported-endpoints.json` to reflect the change\n\n"
+            "### Relevant existing manifest entries\n"
+            f"{fence}json\n{json.dumps(relevant, indent=2)}\n{fence}\n\n"
+            "### Recent changelog (match this format exactly)\n"
+            f"{fence}\n{changelog}\n{fence}\n"
+          )
 
           open("/tmp/issue-body.md", "w").write(body)
           ep = endpoints[0]
