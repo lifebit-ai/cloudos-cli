@@ -160,16 +160,16 @@ jobs:
           }}
           """
 
-          # GitHub Models — OpenAI-compatible chat completions, authenticated with GITHUB_TOKEN.
-          # Find available model IDs at: github.com/marketplace/models
+          # GitHub Models (new catalog endpoint) — OpenAI-compatible, authenticated with GITHUB_TOKEN.
+          # codestral-2501 is purpose-built for code generation; swap for openai/gpt-4.1 if preferred.
           body = json.dumps({
-            "model": "claude-3-7-sonnet-20250219",
+            "model": "mistral-ai/codestral-2501",
             "max_tokens": 16000,
             "messages": [{"role": "user", "content": prompt}]
           }).encode()
 
           req = urllib.request.Request(
-            "https://models.inference.ai.azure.com/chat/completions",
+            "https://models.github.ai/inference/chat/completions",
             data=body,
             headers={
               "Content-Type": "application/json",
