@@ -268,7 +268,7 @@ class TestLinkFileExplorerFileV2:
 
         link_instance.link_folders_batch(["Data/observations.csv"], "sessionABC")
         captured = capsys.readouterr()
-        assert "Successfully mounted File Explorer file: Data/observations.csv" in captured.out
+        assert "Successfully mounted File Explorer file: test_project/Data/observations.csv" in captured.out
 
 
 # ---------------------------------------------------------------------------

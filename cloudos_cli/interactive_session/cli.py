@@ -51,6 +51,8 @@ def _normalize_file_explorer_path(path, project_name):
     """
     if path.startswith('s3://') or path.startswith('az://'):
         return path, None
+    if '/' not in path:
+        return path, project_name
     first_segment, _ = path.split('/', 1)
     if first_segment.lower() in _PROJECT_ROOT_FOLDERS:
         return path, project_name
@@ -580,20 +582,11 @@ def create_session(ctx,
                     if verbose:
                         print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
                     try:
-                        fe_link = Link(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=folder_project,
-                            cromwell_token=None,
-                            verify=verify_ssl
-                        )
+                        fe_link = _make_link_client(cloudos_url, apikey, workspace_id, folder_project, verify_ssl)
                         fe_item = fe_link._parse_file_explorer_item(folder_path)
                         item_kind = fe_item["dataItem"]["kind"]
                         item_id = fe_item["dataItem"]["item"]
                         mount_name = fe_item["dataItem"]["name"]
-                    except ValueError:
-                        raise
                     except Exception as e:
                         error_msg = str(e)
                         if "404" in error_msg or "not found" in error_msg.lower():
@@ -1356,7 +1349,15 @@ def link_session(ctx,
     PATH: Optional path(s) to link (S3 or File Explorer).
           Required if --job-id is not provided.
           Supports comma-separated list for multiple paths.
-          File Explorer paths must include project name (project-name/folder/path).
+
+          File Explorer path formats:
+
+          - project-name/Data/folder — project is inferred from the first path segment.
+            --project-name is not needed.
+
+          - Data/folder — path starts with a known top-level folder name (Data,
+            AnalysesResults, Cohorts, etc.). --project-name must be supplied so the
+            CLI knows which project to look in.
 
     Two modes of operation:
 
@@ -1384,14 +1385,14 @@ def link_session(ctx,
         # Link multiple S3 paths (comma-separated, files and folders mixed)
         cloudos interactive-session link s3://bucket1/folder1/,s3://bucket2/data/file.csv --session-id abc123
 
-        # Link a File Explorer folder
-        cloudos interactive-session link my-project/Data/folder --session-id abc123 --project-name my-project
+        # Link a File Explorer folder (project inferred from first path segment)
+        cloudos interactive-session link my-project/Data/folder --session-id abc123
 
-        # Link a File Explorer file
-        cloudos interactive-session link my-project/Data/file.csv --session-id abc123 --project-name my-project
+        # Link a File Explorer folder whose path starts with a top-level folder name
+        cloudos interactive-session link Data/folder --session-id abc123 --project-name my-project
 
         # Combine S3 and File Explorer paths
-        cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123 --project-name my-project
+        cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123
 
     """
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -1448,6 +1449,11 @@ def link_session(ctx,
             groups = {}
             for p in paths:
                 norm_path, resolved = _normalize_file_explorer_path(p, project_name)
+                if resolved is None and not p.startswith('s3://') and not p.startswith('az://'):
+                    raise click.UsageError(
+                        f"--project-name is required for File Explorer paths that start with a known "
+                        f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{p}'"
+                    )
                 groups.setdefault(resolved, []).append(norm_path)
 
             if len(paths) == 1:
@@ -1457,10 +1463,12 @@ def link_session(ctx,
 
             all_succeeded = True
             try:
+                committed = 0
                 for grp_project, grp_paths in groups.items():
                     client = _make_link_client(cloudos_url, apikey, workspace_id, grp_project, verify_ssl)
-                    if not client.link_folders_batch(grp_paths, session_id):
+                    if not client.link_folders_batch(grp_paths, session_id, committed_count=committed):
                         all_succeeded = False
+                    committed += len(grp_paths)
                 if all_succeeded:
                     print('\nLinking operation completed successfully!')
                 else:
@@ -1473,7 +1481,9 @@ def link_session(ctx,
                 raise SystemExit(1)
 
     except BadRequestException as e:
-        raise ValueError(f"Request failed: {str(e)}")
+        click.secho(f'Error: Request failed: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
     except Exception as e:
-        raise ValueError(f"Failed to link folder(s): {str(e)}")
+        click.secho(f'Error: Failed to link: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
 

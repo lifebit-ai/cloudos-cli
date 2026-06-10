@@ -56,7 +56,7 @@ class TestInteractiveSessionCreateCommand:
         assert '--shared' in result.output
         assert '--cost-limit' in result.output
         assert '--shutdown-in' in result.output
-        assert '--mount' in result.output
+        assert '--copy' in result.output
         assert '--link' in result.output
         assert '--r-version' in result.output
         assert '--spark-master' in result.output
@@ -119,27 +119,19 @@ class TestInteractiveSessionCreateIntegration:
         # Command should execute (may fail at config loading but not at argument parsing)
         assert 'Error' not in result.output or result.exit_code == 0
 
-    @patch('cloudos_cli.interactive_session.cli.resolve_data_file_id')
-    @patch('cloudos_cli.interactive_session.cli.Datasets')
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
-    def test_create_session_with_all_options(self, mock_config, mock_cloudos, mock_datasets, mock_resolve):
+    def test_create_session_with_all_options(self, mock_config, mock_cloudos):
         """Test creating a session with all options specified."""
         runner = CliRunner()
-        
+
         mock_config.return_value = {
             'apikey': 'test_key',
             'cloudos_url': 'http://test.com',
             'workspace_id': 'test_team',
             'project_name': 'my_project'
         }
-        
-        # Mock Datasets API for resolving mounted files
-        mock_resolve.return_value = {
-            'type': 'CloudOSFile',
-            'item': 'file_id_123'
-        }
-        
+
         mock_cloudos_instance = MagicMock()
         mock_cloudos.return_value = mock_cloudos_instance
         mock_cloudos_instance.create_interactive_session.return_value = {
@@ -147,7 +139,7 @@ class TestInteractiveSessionCreateIntegration:
             'name': 'Advanced Session',
             'status': 'provisioning'
         }
-        
+
         result = runner.invoke(run_cloudos_cli, [
             'interactive-session', 'create',
             '--apikey', 'test_key',
@@ -162,9 +154,8 @@ class TestInteractiveSessionCreateIntegration:
             '--shared',
             '--cost-limit', '50.0',
             '--shutdown-in', '8h',
-            '--mount', 'MyDataset/datafile.csv'
         ])
-        
+
         # Command should be invoked without syntax errors
         assert result.exit_code == 0
 
@@ -425,12 +416,6 @@ class TestSessionCreatorHelpers:
         assert result5['type'] == 's3'
         assert result5['s3_bucket'] == 'my-bucket'
         assert result5['s3_prefix'] == 'file.txt'
-
-    def test_resolve_data_file_id_function_exists(self):
-        """Test that resolve_data_file_id function exists."""
-        from cloudos_cli.interactive_session.interactive_session import resolve_data_file_id
-        
-        assert callable(resolve_data_file_id)
 
     def test_build_session_payload_function_exists(self):
         """Test that build_session_payload function exists."""

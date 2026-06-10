@@ -224,10 +224,10 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
 
     link_instance_test_response.link_folder("/home/user/data", "sessionABC")
     captured = capsys.readouterr()
-    assert "Successfully mounted File Explorer folder: /home/user/data" in captured.out
+    assert "Successfully mounted File Explorer folder: test_project/home/user/data" in captured.out
 
 
-@responses.activate 
+@responses.activate
 def test_get_fuse_filesystems_status_success(link_instance_test_response):
     """Test successful retrieval of fuse filesystem status."""
     status_url = f"https://lifebit.ai/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId=team123"
@@ -393,8 +393,7 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
 
     link_instance_test_response.link_folder("/home/user/data", "sessionABC")
     captured = capsys.readouterr()
-    assert "Successfully mounted File Explorer folder: /home/user/data" in captured.out
-
+    assert "Successfully mounted File Explorer folder: test_project/home/user/data" in captured.out
 
 
 @responses.activate

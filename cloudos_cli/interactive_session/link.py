@@ -2,17 +2,18 @@
 This is the main class for linking files to interactive sessions.
 """
 
+import json
+import time
 from dataclasses import dataclass
 from typing import Union, List, Dict
+from urllib.parse import urlparse
+
+import rich_click as click
+
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
 from cloudos_cli.utils.errors import JoBNotCompletedException
-from cloudos_cli.datasets import Datasets
-from urllib.parse import urlparse
-from cloudos_cli.utils.array_job import extract_project, generate_datasets_for_project
-import json
-import time
-import rich_click as click
+from cloudos_cli.utils.array_job import generate_datasets_for_project
 
 
 @dataclass
@@ -62,7 +63,8 @@ class Link(Cloudos):
 
     def link_folders_batch(self,
                           folders: list,
-                          session_id: str) -> bool:
+                          session_id: str,
+                          committed_count: int = 0) -> bool:
         """Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.
 
         Attempts to use API v2 (which supports multiple items per request) first,
@@ -74,6 +76,10 @@ class Link(Cloudos):
             List of folder/file paths to link.
         session_id : str
             The interactive session ID.
+        committed_count : int, optional
+            Number of items already submitted in earlier batches during this CLI invocation
+            but not yet visible in the session status. Added to the current count when
+            enforcing the 100-item limit.
 
         Raises
         ------
@@ -83,9 +89,9 @@ class Link(Cloudos):
         if not folders:
             raise ValueError("No paths provided")
 
-        # Check 100-item limit against already-linked items
+        # Check 100-item limit against already-linked items plus any in-flight batches
         current_items = self.get_fuse_filesystems_status(session_id)
-        current_count = len(current_items)
+        current_count = len(current_items) + committed_count
         if current_count + len(folders) > 100:
             raise ValueError("Cannot link more than 100 items")
 
@@ -356,7 +362,7 @@ class Link(Cloudos):
                 item_kind = "file" if folder_data['data'].get('type') == 'S3File' else "folder"
             else:
                 folder_path = folder_data["path"]
-                full_path = f"{self.project_name}/{folder_path}" if self.project_name else folder_path
+                full_path = f"{self.project_name}/{folder_path.lstrip('/')}" if self.project_name else folder_path
                 mount_name = folder_data['data']['name']
                 item_kind = "file" if folder_data['data'].get('kind') == 'File' else "folder"
 
@@ -487,12 +493,12 @@ class Link(Cloudos):
         base = parts[-1] # Last segment (file or folder)
         return {
             "dataItem": {
-            "type": "S3Folder",
-            "data": {
-                "name": base,
-                "s3BucketName": bucket,
-                "s3Prefix": prefix
-            }
+                "type": "S3Folder",
+                "data": {
+                    "name": base,
+                    "s3BucketName": bucket,
+                    "s3Prefix": prefix
+                }
             }
         }
 
@@ -733,9 +739,7 @@ class Link(Cloudos):
             if verbose:
                 print('\tFetching job results...')
 
-            # Create a temporary Cloudos client for API calls
-            cl = Cloudos(self.cloudos_url, self.apikey, None)
-            results_path = cl.get_job_results(job_id, workspace_id, verify_ssl)
+            results_path = self.get_job_results(job_id, workspace_id, verify_ssl)
 
             if results_path:
                 print('\tLinking results directory...')
@@ -780,9 +784,7 @@ class Link(Cloudos):
             if verbose:
                 print('\tFetching job working directory...')
 
-            # Create a temporary Cloudos client for API calls
-            cl = Cloudos(self.cloudos_url, self.apikey, None)
-            workdir_path = cl.get_job_workdir(job_id, workspace_id, verify_ssl)
+            workdir_path = self.get_job_workdir(job_id, workspace_id, verify_ssl)
 
             if workdir_path:
                 print('\tLinking working directory...')
@@ -825,9 +827,7 @@ class Link(Cloudos):
             if verbose:
                 print('\tFetching job logs...')
 
-            # Create a temporary Cloudos client for API calls
-            cl = Cloudos(self.cloudos_url, self.apikey, None)
-            logs_dict = cl.get_job_logs(job_id, workspace_id, verify_ssl)
+            logs_dict = self.get_job_logs(job_id, workspace_id, verify_ssl)
 
             if logs_dict:
                 # Extract the parent logs directory from any log file path
