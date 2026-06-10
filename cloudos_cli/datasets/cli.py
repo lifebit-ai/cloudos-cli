@@ -755,6 +755,7 @@ def link(ctx,
          profile):
     """
     Link a file or folder (S3 or File Explorer) to an active interactive analysis.
+    Link a file or folder (S3 or File Explorer) to an active interactive analysis.
 
     PATH [path]: the full path to the S3 file/folder or relative path in File Explorer.
     E.g.: 's3://bucket-name/folder/subfolder', 's3://bucket/data/file.csv',

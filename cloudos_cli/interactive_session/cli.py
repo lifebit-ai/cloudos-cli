@@ -553,7 +553,10 @@ def create_session(ctx,
                         click.secho(f'Error: S3 links are only supported on AWS execution platform.', fg='red', err=True)
                         raise SystemExit(1)
                     is_file = parsed.get('is_file', False)
+                    is_file = parsed.get('is_file', False)
                     if verbose:
+                        item_kind = "file" if is_file else "folder"
+                        print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                         item_kind = "file" if is_file else "folder"
                         print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                     if 'mount_name' in parsed:
@@ -626,6 +629,7 @@ def create_session(ctx,
 
             except Exception as e:
                 click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
+                click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
         # Create display version of s3_mounts with File Explorer markers
@@ -635,9 +639,9 @@ def create_session(ctx,
             mount_name = mount.get('name') or mount.get('data', {}).get('name', '')
             if mount_name in s3_mount_display_info:
                 display_mount = mount.copy()
-                display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
-                display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
-                s3_mounts_for_display.append(display_mount)
+                display_mount['_isFileExplorer'] = link_display_info[mount_name]['is_file_explorer']
+                display_mount['_originalPath'] = link_display_info[mount_name]['original_path']
+                link_items_for_display.append(display_mount)
             else:
                 s3_mounts_for_display.append(mount)
 

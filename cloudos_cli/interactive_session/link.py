@@ -39,24 +39,35 @@ class Link(Cloudos):
 
     def link_folder(self,
                     folder: str,
-                    session_id: str) -> dict:
-        """Link a folder (S3 or File Explorer) to an interactive session.
+                    session_id: str) -> bool:
+        """Link a file or folder (S3 or File Explorer) to an interactive session.
 
         Attempts to use API v2 first, with automatic fallback to v1 if v2 is not available.
+        Note: File linking requires the v2 endpoint — the v1 fallback only supports folders.
 
         Parameters
         ----------
         folder : str
-            The folder to link.
+            The file or folder path to link. Accepts S3 URLs (s3://bucket/...) and
+            File Explorer paths (relative to ``self.project_name``). Despite the
+            parameter name, files are also supported.
         session_id : str
             The interactive session ID.
+
+        Returns
+        -------
+        bool
+            True if the mount completed and was verified as 'mounted'; False if
+            verification reported a failure or timed out. Callers that care
+            about partial failure should observe this value.
 
         Raises
         ------
         ValueError
-            If the URL already exists with 'mounted' status
-            If the API key is invalid or permissions are insufficient
-            If the URL is invalid or the session is not active.
+            If the item already exists with 'mounted' status,
+            if the API key is invalid or permissions are insufficient,
+            if the path is invalid or the session is not active,
+            or if a file is linked while only the v1 endpoint is available.
         """
         # Use batch method for single folder (leverages v2 dataItems array)
         return self.link_folders_batch([folder], session_id)
@@ -183,6 +194,34 @@ class Link(Cloudos):
                 folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
 
         return data_items, folder_info
+
+    @staticmethod
+    def _raise_if_duplicate_mount(mount_name: str, path: str, mount_names_seen: dict) -> None:
+        """Raise ValueError if mount_name already appears in mount_names_seen.
+
+        Distinguishes between collisions with already-mounted session items
+        (value is None) and collisions with another item in the current batch
+        (value is the prior path).
+        """
+        if mount_name not in mount_names_seen:
+            return
+        existing = mount_names_seen[mount_name]
+        if existing:
+            # Two paths in the current batch share the same mount name.
+            detail = (
+                f": '{existing}' and '{path}' would both mount as '{mount_name}'"
+            )
+        else:
+            # Collision with an item already mounted in the session.
+            detail = (
+                f": '{path}' would collide with '{mount_name}', "
+                "which is already mounted in the session"
+            )
+        raise ValueError(
+            f"Duplicate mount name '{mount_name}' detected{detail}. "
+            f"Items with the same name cannot be mounted together. "
+            f"Please use items with unique names."
+        )
 
     def _try_mount_v2(self, data_items: list, session_id: str) -> int:
         """Attempt to mount folders using API v2.
@@ -319,7 +358,7 @@ class Link(Cloudos):
                 if r.status_code == 403:
                     raise ValueError(f"Provided {folder_data['type']} item already exists with 'mounted' status")
                 elif r.status_code == 401:
-                    raise ValueError(f"Forbidden. Invalid API key or insufficient permissions.")
+                    raise ValueError("Unauthorized. Invalid API key or insufficient permissions.")
                 elif r.status_code == 400:
                     try:
                         r_content = json.loads(r.content)
@@ -351,6 +390,12 @@ class Link(Cloudos):
             List of item metadata dictionaries.
         session_id : str
             The interactive session ID.
+
+        Returns
+        -------
+        bool
+            True if every item reached 'mounted'; False if any failed,
+            timed out, or could not be verified.
         """
         all_succeeded = True
         for folder_data in folder_info:
@@ -549,8 +594,15 @@ class Link(Cloudos):
         bucket = parsed.netloc
         key = parsed.path.lstrip('/')
 
+        if not bucket:
+            raise ValueError("Invalid S3 URL: bucket name is empty. Expected: s3://bucket/path/to/file")
         if not key:
             raise ValueError("S3 URL must include a key after the bucket")
+        if s3_url.endswith('/'):
+            raise ValueError(
+                f"S3 URL '{s3_url}' looks folder-like (trailing slash). "
+                "Use s3://bucket/path/to/file for files, or use --link for folders."
+            )
 
         name = key.split('/')[-1]
         return {
@@ -627,6 +679,11 @@ class Link(Cloudos):
     def get_fuse_filesystems_status(self, session_id: str) -> List[Dict]:
         """Get the status of fuse filesystems for an interactive session.
 
+        Iterates through pages of the paginated API so the caller always sees
+        every mounted item — important for the 100-item cap check, duplicate-
+        name detection, and `wait_for_mount_completion` (which searches by
+        mountName and would otherwise miss items beyond the first page).
+
         Parameters
         ----------
         session_id : str
@@ -635,38 +692,71 @@ class Link(Cloudos):
         Returns
         -------
         List[Dict]
-            List of fuse filesystem objects with their status information.
+            All fuse filesystem objects across every page.
 
         Raises
         ------
         ValueError
             If the API request fails or returns an error.
         """
-        url = (
-            f"{self.cloudos_url}/api/v1/"
-            f"interactive-sessions/{session_id}/fuse-filesystems"
-            f"?teamId={self.workspace_id}"
-        )
         headers = {
             "Content-type": "application/json",
             "apikey": self.apikey
         }
+        base_url = (
+            f"{self.cloudos_url}/api/v1/"
+            f"interactive-sessions/{session_id}/fuse-filesystems"
+        )
 
-        r = retry_requests_get(url, headers=headers, verify=self.verify)
+        all_items: List[Dict] = []
+        page = 1
+        # Request the largest sensible page size: the session cap is 100 items,
+        # so one page should normally be enough. The loop is defensive in case
+        # the server clamps the limit below 100.
+        page_limit = 100
+        # Safety bound so a misbehaving server can't induce an infinite loop.
+        max_pages = 50
 
-        if r.status_code == 401:
-            raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
-        elif r.status_code == 404:
-            raise ValueError(
-                f"Interactive session {session_id} not found. "
-                "The session may not exist, or your API key may not have access to it. "
-                "Verify the session ID and that your API key belongs to a workspace member with access to this session."
+        while page <= max_pages:
+            url = (
+                f"{base_url}?teamId={self.workspace_id}"
+                f"&limit={page_limit}&page={page}"
             )
-        elif r.status_code != 200:
-            raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
+            r = retry_requests_get(url, headers=headers, verify=self.verify)
 
-        response_data = json.loads(r.content)
-        return response_data.get("fuseFileSystems", [])
+            if r.status_code == 401:
+                raise ValueError("Forbidden. Invalid API key or insufficient permissions.")
+            elif r.status_code == 404:
+                raise ValueError(
+                    f"Interactive session {session_id} not found. "
+                    "The session may not exist, or your API key may not have access to it. "
+                    "Verify the session ID and that your API key belongs to a workspace member with access to this session."
+                )
+            elif r.status_code != 200:
+                raise ValueError(f"Failed to get fuse filesystem status: HTTP {r.status_code}")
+
+            response_data = json.loads(r.content)
+            items = response_data.get("fuseFileSystems", [])
+            all_items.extend(items)
+
+            # Decide whether to fetch the next page. The API returns
+            # paginationMetadata like {"Pagination-Count": <total>,
+            # "Pagination-Page": <current>, "Pagination-Limit": <per-page>}.
+            meta = response_data.get("paginationMetadata") or {}
+            total = meta.get("Pagination-Count")
+            limit = meta.get("Pagination-Limit") or page_limit
+            if total is None:
+                # No pagination metadata — trust what we got and stop.
+                break
+            if len(all_items) >= total or not items:
+                break
+            # Defensive: if the server returned fewer than limit items, assume
+            # we are at the last page.
+            if len(items) < limit:
+                break
+            page += 1
+
+        return all_items
 
     def wait_for_mount_completion(self, session_id: str, mount_name: str,
                                 timeout: int = 360, check_interval: int = 2) -> Dict:
@@ -745,7 +835,8 @@ class Link(Cloudos):
                 print('\tLinking results directory...')
                 if verbose:
                     print(f'\t\tResults: {results_path}')
-                self.link_folder(results_path, session_id)
+                if not self.link_folder(results_path, session_id):
+                    click.secho('\tResults directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo results found to link.', fg='yellow')
 
@@ -790,7 +881,8 @@ class Link(Cloudos):
                 print('\tLinking working directory...')
                 if verbose:
                     print(f'\t\tWorkdir: {workdir_path}')
-                self.link_folder(workdir_path.strip(), session_id)
+                if not self.link_folder(workdir_path.strip(), session_id):
+                    click.secho('\tWorking directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo working directory found to link.', fg='yellow')
 
@@ -837,7 +929,8 @@ class Link(Cloudos):
                 print('\tLinking logs directory...')
                 if verbose:
                     print(f'\t\tLogs directory: {logs_dir}')
-                self.link_folder(logs_dir, session_id)
+                if not self.link_folder(logs_dir, session_id):
+                    click.secho('\tLogs directory mount did not complete successfully — see error above.', fg='red')
             else:
                 click.secho('\tNo logs found to link.', fg='yellow')
 
