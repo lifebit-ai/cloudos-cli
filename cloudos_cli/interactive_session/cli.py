@@ -639,9 +639,9 @@ def create_session(ctx,
             mount_name = mount.get('name') or mount.get('data', {}).get('name', '')
             if mount_name in s3_mount_display_info:
                 display_mount = mount.copy()
-                display_mount['_isFileExplorer'] = link_display_info[mount_name]['is_file_explorer']
-                display_mount['_originalPath'] = link_display_info[mount_name]['original_path']
-                link_items_for_display.append(display_mount)
+                display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
+                display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
+                s3_mounts_for_display.append(display_mount)
             else:
                 s3_mounts_for_display.append(mount)
 
