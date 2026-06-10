@@ -474,6 +474,11 @@ def create_session(ctx,
                 for link_path in all_link_paths:
                     if not link_path.startswith('s3://') and not link_path.startswith('az://'):
                         norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                        if resolved_project is None:
+                            raise click.UsageError(
+                                f"--project-name is required for File Explorer paths that start with a known "
+                                f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{link_path}'"
+                            )
                         link_path = f"{resolved_project}/{norm_path}"
                     parsed = parse_data_file(link_path)
                     if parsed['type'] == 's3':
@@ -536,6 +541,11 @@ def create_session(ctx,
                     raise SystemExit(1)
                 if not link_path.startswith('s3://') and not link_path.startswith('az://'):
                     norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                    if resolved_project is None:
+                        raise click.UsageError(
+                            f"--project-name is required for File Explorer paths that start with a known "
+                            f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{link_path}'"
+                        )
                     link_path = f"{resolved_project}/{norm_path}"
                 parsed = parse_link_path(link_path)
                 if parsed['type'] == 's3':

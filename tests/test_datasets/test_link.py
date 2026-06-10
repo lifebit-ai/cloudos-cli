@@ -213,7 +213,7 @@ def test_link_folder_204_file_explorer(capsys, link_instance_test_response, monk
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    # Patch _parse_file_explorer_item (replaces parse_file_explorer_path in batch path)
+    # Patch _parse_file_explorer_item
     monkeypatch.setattr(link_instance_test_response, "_parse_file_explorer_item", lambda x: {
         "dataItem": {
             "kind": "Folder",
@@ -382,7 +382,7 @@ def test_link_folder_v2_file_explorer(capsys, link_instance_test_response, monke
     }
     responses.add(responses.GET, status_url, json=mock_response, status=200)
 
-    # Patch _parse_file_explorer_item (replaces parse_file_explorer_path in batch path)
+    # Patch _parse_file_explorer_item
     monkeypatch.setattr(link_instance_test_response, "_parse_file_explorer_item", lambda x: {
         "dataItem": {
             "kind": "Folder",

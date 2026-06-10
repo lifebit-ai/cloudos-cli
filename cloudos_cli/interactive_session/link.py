@@ -679,7 +679,7 @@ class Link(Cloudos):
         mount_name : str
             The name of the mount to check.
         timeout : int, optional
-            Maximum time to wait in seconds (default: 60).
+            Maximum time to wait in seconds (default: 360).
         check_interval : int, optional
             Time between status checks in seconds (default: 2).
 

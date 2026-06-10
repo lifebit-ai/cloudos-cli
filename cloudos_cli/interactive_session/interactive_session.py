@@ -1013,6 +1013,8 @@ def build_resume_payload(
         Resume payload for API request
     """
     payload = {
+        # dataItems is intentionally empty: linking during resume is not supported.
+        # The API requires the field to be present; omitting it causes a 400.
         "dataItems": [],
         "fileSystemIds": []  # Always empty (deprecated)
     }
