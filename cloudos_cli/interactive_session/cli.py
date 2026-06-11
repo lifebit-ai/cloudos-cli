@@ -1312,7 +1312,7 @@ def resume_session(ctx,
               help='The job id in Lifebit Platform. When provided, links results, workdir and logs by default.',
               required=False)
 @click.option('--project-name',
-              help='The name of a Lifebit Platform project. Required for File Explorer paths.',
+              help='Fallback Lifebit Platform project name for File Explorer paths that start with a known root folder (Data/, AnalysesResults/, Cohorts/, etc.). Not needed when PATH includes the project as the first segment (e.g. my-project/Data/file.csv).',
               required=False)
 @click.option('--results',
               help='Link only results folder (only works with --job-id).',
