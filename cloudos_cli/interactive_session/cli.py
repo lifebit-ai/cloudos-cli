@@ -467,7 +467,7 @@ def create_session(ctx,
 
         parsed_data_files = []
         parsed_s3_mounts = []  # S3 folders/files go into FUSE mounts
-        data_file_display_info = {}  # Track display info for copy loop FE items
+        _data_file_display_meta = []  # Parallel list: display metadata per entry in parsed_data_files
 
         # When --copy is set, copy data into the session (dataItems) instead of linking
         if copy and all_link_paths:
@@ -497,6 +497,7 @@ def create_session(ctx,
                             }
                         }
                         parsed_data_files.append(s3_file_item)
+                        _data_file_display_meta.append(None)
                         if verbose:
                             print(f'\t  ✓ Added S3 file to copy')
                     else:  # type == 'cloudos'
@@ -506,12 +507,11 @@ def create_session(ctx,
                             print(f'\tCopying dataset: {data_project}/{dataset_path}')
                         fe_link = _make_link_client(cloudos_url, apikey, workspace_id, data_project, verify_ssl)
                         resolved = fe_link._parse_file_explorer_item(dataset_path)["dataItem"]
-                        item_name = resolved["name"]
-                        data_file_display_info[item_name] = {
+                        parsed_data_files.append(resolved)
+                        _data_file_display_meta.append({
                             "is_file_explorer": True,
                             "original_path": f"{data_project}/{dataset_path}"
-                        }
-                        parsed_data_files.append(resolved)
+                        })
                         if verbose:
                             print(f'\t  ✓ Resolved to ID: {resolved["item"]}')
             except SystemExit:
@@ -521,12 +521,11 @@ def create_session(ctx,
                 raise SystemExit(1)
 
         data_files_for_display = []
-        for df in parsed_data_files:
-            item_name = df.get('name') or df.get('data', {}).get('name', '')
-            if item_name in data_file_display_info:
+        for df, meta in zip(parsed_data_files, _data_file_display_meta or [None] * len(parsed_data_files)):
+            if meta is not None:
                 display_df = df.copy()
-                display_df['_isFileExplorer'] = data_file_display_info[item_name]['is_file_explorer']
-                display_df['_originalPath'] = data_file_display_info[item_name]['original_path']
+                display_df['_isFileExplorer'] = meta['is_file_explorer']
+                display_df['_originalPath'] = meta['original_path']
                 data_files_for_display.append(display_df)
             else:
                 data_files_for_display.append(df)
