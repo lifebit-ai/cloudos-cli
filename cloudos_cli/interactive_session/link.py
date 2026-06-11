@@ -73,9 +73,9 @@ class Link(Cloudos):
         return self.link_folders_batch([folder], session_id)
 
     def link_folders_batch(self,
-                          folders: list,
-                          session_id: str,
-                          committed_count: int = 0) -> bool:
+                           folders: list,
+                           session_id: str,
+                           committed_count: int = 0) -> bool:
         """Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.
 
         Attempts to use API v2 (which supports multiple items per request) first,
@@ -163,33 +163,15 @@ class Link(Cloudos):
                 else:
                     parsed = self.parse_s3_path(folder)
                 mount_name = parsed["dataItem"]["data"]["name"]
-
-                if mount_name in mount_names_seen:
-                    existing = mount_names_seen[mount_name]
-                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
-                    raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
-                        f"Items with the same name cannot be mounted together. "
-                        f"Please use items with unique names."
-                    )
+                self._raise_if_duplicate_mount(mount_name, folder, mount_names_seen)
                 mount_names_seen[mount_name] = folder
-
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
                 parsed = self._parse_file_explorer_item(folder)
                 mount_name = parsed["dataItem"]["name"]
-
-                if mount_name in mount_names_seen:
-                    existing = mount_names_seen[mount_name]
-                    conflict = f" and '{folder}'" if existing else f" (already mounted in session)"
-                    raise ValueError(
-                        f"Duplicate mount name '{mount_name}' detected{conflict}. "
-                        f"Items with the same name cannot be mounted together. "
-                        f"Please use items with unique names."
-                    )
+                self._raise_if_duplicate_mount(mount_name, folder, mount_names_seen)
                 mount_names_seen[mount_name] = folder
-
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "File Explorer", "data": parsed["dataItem"]})
 
@@ -453,7 +435,7 @@ class Link(Cloudos):
         return error_msg
 
     def _handle_mount_error(self, error: Exception, type_folder: str):
-        """Handle and convert mount errors to user-friendly messages.
+        """Translate a raw mount exception into a user-friendly ValueError.
 
         Parameters
         ----------
@@ -470,34 +452,26 @@ class Link(Cloudos):
         error_str = str(error)
         error_lower = error_str.lower()
 
-        error_patterns = {
-            ('403', 'forbidden'): {
-                'check': lambda: "already exists" in error_lower or "mounted" in error_lower,
-                'message_if_true': f"Provided {type_folder} item already exists with 'mounted' status",
-                'message_if_false': f"Interactive Analysis session is not active or access denied"
-            },
-            ('401', 'unauthorized'): {
-                'message': f"Forbidden. Invalid API key or insufficient permissions."
-            },
-            ('400', 'bad request'): {
-                'check': lambda: "invalid supported dataitem foldertype" in error_lower,
-                'message_if_true': f"Invalid Supported DataItem '{type_folder}' folderType. Virtual folders cannot be linked.",
-                'message_if_false': f"Cannot link item: {error_str}"
-            },
-            ('404', 'not found'): {
-                'message': f"Session not found or endpoint not available"
-            }
-        }
+        if '403' in error_str or 'forbidden' in error_lower:
+            if 'already exists' in error_lower or 'mounted' in error_lower:
+                raise ValueError(f"Provided {type_folder} item already exists with 'mounted' status")
+            raise ValueError('Interactive Analysis session is not active or access denied')
 
-        for patterns, config in error_patterns.items():
-            if any(pattern in error_lower or pattern in error_str for pattern in patterns):
-                if 'check' in config:
-                    message = config['message_if_true'] if config['check']() else config['message_if_false']
-                else:
-                    message = config['message']
-                raise ValueError(message)
+        if '401' in error_str or 'unauthorized' in error_lower:
+            raise ValueError('Forbidden. Invalid API key or insufficient permissions.')
 
-        raise ValueError(f"Failed to mount {type_folder} item: {error_str}")
+        if '400' in error_str or 'bad request' in error_lower:
+            if 'invalid supported dataitem foldertype' in error_lower:
+                raise ValueError(
+                    f"Invalid Supported DataItem '{type_folder}' folderType. "
+                    'Virtual folders cannot be linked.'
+                )
+            raise ValueError(f'Cannot link item: {error_str}')
+
+        if '404' in error_str or 'not found' in error_lower:
+            raise ValueError('Session not found or endpoint not available')
+
+        raise ValueError(f'Failed to mount {type_folder} item: {error_str}')
 
     def parse_s3_path(self, s3_url):
         """
@@ -529,13 +503,13 @@ class Link(Cloudos):
 
         parsed = urlparse(s3_url)
         bucket = parsed.netloc
-        prefix = parsed.path.lstrip('/') # Remove leading slash
+        prefix = parsed.path.lstrip('/')  # Remove leading slash
 
         if not prefix:
             raise ValueError("S3 URL must include a key after the bucket")
 
         parts = prefix.rstrip('/').split('/')
-        base = parts[-1] # Last segment (file or folder)
+        base = parts[-1]  # Last segment (file or folder)
         return {
             "dataItem": {
                 "type": "S3Folder",
@@ -759,7 +733,7 @@ class Link(Cloudos):
         return all_items
 
     def wait_for_mount_completion(self, session_id: str, mount_name: str,
-                                timeout: int = 360, check_interval: int = 2) -> Dict:
+                                  timeout: int = 360, check_interval: int = 2) -> Dict:
         """Wait for a specific mount to complete and return its final status.
 
         Parameters

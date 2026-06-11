@@ -326,8 +326,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
         if folder_type in ("VirtualFolder", "Folder"):
             target_kind = "Folder"
         elif folder_type == "S3Folder":
-            raise ValueError(f"Unable to move item '{source_item_name}' to '{destination_path}'. " +
-                       "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.")
+            raise ValueError(f"Unable to move item '{source_item_name}' to '{destination_path}'. "
+                             "The destination is an S3 folder, and only virtual folders can be selected as valid move destinations.")
         elif isinstance(folder_type, bool) and folder_type:  # legacy dataset structure
             target_kind = "Dataset"
         else:
@@ -335,8 +335,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
 
     except Exception as e:
         raise ValueError(f"Could not resolve destination path '{destination_path}'. {str(e)}")
-    print(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' " +
-               f"in project '{destination_project_name} ...")
+    print(f"Moving {source_kind} '{source_item_name}' to '{destination_path}' "
+          f"in project '{destination_project_name} ...")
     # === Perform Move ===
     try:
         response = source_client.move_files_and_folders(
@@ -755,11 +755,11 @@ def link(ctx,
          profile):
     """
     Link a file or folder (S3 or File Explorer) to an active interactive analysis.
-    Link a file or folder (S3 or File Explorer) to an active interactive analysis.
 
-    PATH [path]: the full path to the S3 file/folder or relative path in File Explorer.
+    PATH [path]: the full path to the S3 file/folder or relative path in File Explorer
+    (relative to the project specified by --project-name).
     E.g.: 's3://bucket-name/folder/subfolder', 's3://bucket/data/file.csv',
-    'Data/Downloads', 'Data', or 'my-project/Data/file.csv'.
+    'Data/Downloads', 'Data', or 'Data/file.csv'.
     """
     if not path.startswith("s3://") and project_name is None:
         raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
@@ -776,6 +776,8 @@ def link(ctx,
     )
 
     try:
-        link_p.link_folder(path, session_id)
+        success = link_p.link_folder(path, session_id)
     except Exception as e:
         raise ValueError(f"Could not link item. {e}")
+    if not success:
+        raise click.ClickException("Linking failed: mount verification did not reach 'mounted' status.")

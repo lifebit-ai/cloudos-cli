@@ -185,7 +185,7 @@ def list_sessions(ctx,
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     # Validate table columns if specified
 
-    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
+    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project',
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
                      'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
@@ -226,9 +226,10 @@ def list_sessions(ctx,
         pagination_metadata = result.get('pagination_metadata', None)
 
         # Create callback function for fetching additional pages
-        fetch_page = lambda page_num: fetch_interactive_session_page(
-            cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
-        )
+        def fetch_page(page_num):
+            return fetch_interactive_session_page(
+                cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
+            )
 
         # Handle empty results
         if len(sessions) == 0:
@@ -251,7 +252,7 @@ def list_sessions(ctx,
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
             print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
-            print(f'\tInteractive session list saved to {outfile}')        
+            print(f'\tInteractive session list saved to {outfile}')
         else:
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
@@ -329,7 +330,7 @@ def list_sessions(ctx,
               default='12h')
 @click.option('--link',
               multiple=True,
-              help='Link a file or folder into the session for read access. Supports S3 files/folders (s3://bucket/path/) and File Explorer files/folders (project-name/folder/path - must include project name). Both types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Use --copy to copy data into the session instead. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link my-project/Data')
+              help='Link a file or folder into the session for read access. Supports S3 files/folders (s3://bucket/path/) and File Explorer files/folders. File Explorer paths can be given in two forms: (1) include the project name explicitly (e.g. my-project/Data/results) or (2) start with a known root folder (Data/, AnalysesResults/, Cohorts/, etc.) and --project-name or a profile project will be used to resolve the project. Both S3 and File Explorer types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Use --copy to copy data into the session instead. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link Data/results')
 @click.option('--copy',
               is_flag=True,
               help='Copy data into the session instead of linking for read access. When specified, the paths provided by --link are copied into the session\'s data volume. Supports Lifebit Platform datasets (project_name/Data/file.csv) and S3 files (s3://bucket/path/to/file).')
@@ -389,7 +390,7 @@ def create_session(ctx,
                    verbose):
     """Create a new interactive session."""
 
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Default execution_platform to 'aws' if not specified by user or profile
     if execution_platform is None:
         execution_platform = 'aws'
@@ -553,10 +554,7 @@ def create_session(ctx,
                         click.secho(f'Error: S3 links are only supported on AWS execution platform.', fg='red', err=True)
                         raise SystemExit(1)
                     is_file = parsed.get('is_file', False)
-                    is_file = parsed.get('is_file', False)
                     if verbose:
-                        item_kind = "file" if is_file else "folder"
-                        print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                         item_kind = "file" if is_file else "folder"
                         print(f'\tLinking S3 {item_kind}: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                     if 'mount_name' in parsed:
@@ -628,7 +626,6 @@ def create_session(ctx,
                         print(f'\t  ✓ Linked Lifebit Platform {item_kind.lower()}: {mount_name}')
 
             except Exception as e:
-                click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
@@ -1010,7 +1007,7 @@ def pause_session(ctx,
             click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
             click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             raise SystemExit(1)
-        elif  api_status == 'aborting':
+        elif api_status == 'aborting':
             click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
             click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             raise SystemExit(1)
@@ -1271,7 +1268,7 @@ def resume_session(ctx,
                     click.secho(f'Tip: Terminated sessions cannot be resumed. Please create a new session instead.', fg='yellow', err=True)
                 else:
                     click.secho(f'Tip: Wait for the session to reach "paused" status, or check: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-            except:
+            except Exception:
                 # Fallback if we can't fetch status
                 click.secho(f'Error: Cannot resume session - it is not in a resumable status.', fg='red', err=True)
                 click.secho(f'Only sessions with status "paused" can be resumed.', fg='yellow', err=True)
@@ -1500,4 +1497,3 @@ def link_session(ctx,
     except Exception as e:
         click.secho(f'Error: Failed to link: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
-

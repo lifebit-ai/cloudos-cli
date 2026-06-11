@@ -143,7 +143,6 @@ def test_link_folder_204_s3(capsys, link_instance_test_response, monkeypatch):
     responses.add(responses.POST, url, status=204)
 
     # Second GET: post-mount status verification
-    # Second GET: post-mount status verification
     mock_response = {
         "fuseFileSystems": [
             {

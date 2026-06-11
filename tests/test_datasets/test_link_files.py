@@ -215,7 +215,7 @@ class TestDuplicateNameCheck:
             "dataItem": {"type": "S3File", "data": {"name": "data.csv", "s3BucketName": "b", "s3ObjectKey": "p/data.csv"}}
         })
 
-        with pytest.raises(ValueError, match="already mounted in session"):
+        with pytest.raises(ValueError, match="already mounted in the session"):
             link_instance.link_folders_batch(["s3://b/p/data.csv"], "sessionABC")
 
 
