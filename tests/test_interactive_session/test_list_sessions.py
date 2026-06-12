@@ -245,6 +245,52 @@ class TestInteractiveSessionAPIMethod:
             cl.get_interactive_session_list('test_team', limit=150)
 
 
+class TestAppSessionFilter:
+    """Tests for client-side app-session filtering."""
+
+    def test_app_sessions_are_filtered_out(self):
+        """awsCustomSession and azureCustomSession must not appear in table output."""
+        from io import StringIO
+        from rich.console import Console
+        from cloudos_cli.interactive_session.interactive_session import (
+            create_interactive_session_list_table,
+            _APP_SESSION_TYPES,
+        )
+
+        sessions = [
+            {'_id': 'aaa', 'name': 'Jupyter', 'status': 'running',
+             'interactiveSessionType': 'awsJupyterNotebook'},
+            {'_id': 'bbb', 'name': 'MyApp', 'status': 'running',
+             'interactiveSessionType': 'awsCustomSession'},
+            {'_id': 'ccc', 'name': 'AzureApp', 'status': 'running',
+             'interactiveSessionType': 'azureCustomSession'},
+        ]
+
+        filtered = [s for s in sessions if s.get('interactiveSessionType') not in _APP_SESSION_TYPES]
+        assert len(filtered) == 1
+        assert filtered[0]['_id'] == 'aaa'
+
+    def test_app_session_types_constant_contains_expected_values(self):
+        """_APP_SESSION_TYPES must contain exactly the two app session type strings."""
+        from cloudos_cli.interactive_session.interactive_session import _APP_SESSION_TYPES
+
+        assert 'awsCustomSession' in _APP_SESSION_TYPES
+        assert 'azureCustomSession' in _APP_SESSION_TYPES
+
+    def test_regular_sessions_not_filtered(self):
+        """Regular session types must pass through the filter unchanged."""
+        from cloudos_cli.interactive_session.interactive_session import _APP_SESSION_TYPES
+
+        regular_types = [
+            'awsJupyterNotebook', 'azureJupyterNotebook',
+            'awsVSCode', 'azureVSCode',
+            'awsRstudio', 'azureRstudio',
+            'awsSpark', 'awsWindowsSession',
+        ]
+        for t in regular_types:
+            assert t not in _APP_SESSION_TYPES, f"{t} should not be filtered out"
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
 

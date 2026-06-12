@@ -31,7 +31,8 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_stop_success_output,
     poll_session_termination,
     build_resume_payload,
-    fetch_interactive_session_page
+    fetch_interactive_session_page,
+    _APP_SESSION_TYPES
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -151,9 +152,9 @@ def list_sessions(ctx,
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     # Validate table columns if specified
 
-    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
+    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project',
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
-                     'spot', 'cost_limit', 'time_left', 'container_image'}
+                     'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
 
     if selected_columns:
@@ -197,8 +198,8 @@ def list_sessions(ctx,
         )
 
         # Filter out app sessions (awsCustomSession / azureCustomSession) — not supported via API key
-        APP_SESSION_TYPES = {'awsCustomSession', 'azureCustomSession'}
-        sessions = [s for s in sessions if s.get('interactiveSessionType') not in APP_SESSION_TYPES]
+        # Client-side filter; the API has no type-exclusion parameter
+        sessions = [s for s in sessions if s.get('interactiveSessionType') not in _APP_SESSION_TYPES]
 
         # Handle empty results
         if len(sessions) == 0:
