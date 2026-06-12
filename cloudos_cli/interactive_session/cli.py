@@ -153,7 +153,7 @@ def list_sessions(ctx,
 
     valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
-                     'spot', 'cost_limit', 'time_left'}
+                     'spot', 'cost_limit', 'time_left', 'container_image'}
     selected_columns = table_columns
 
     if selected_columns:
@@ -196,6 +196,10 @@ def list_sessions(ctx,
             cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
         )
 
+        # Filter out app sessions (awsCustomSession / azureCustomSession) — not supported via API key
+        APP_SESSION_TYPES = {'awsCustomSession', 'azureCustomSession'}
+        sessions = [s for s in sessions if s.get('interactiveSessionType') not in APP_SESSION_TYPES]
+
         # Handle empty results
         if len(sessions) == 0:
             if filter_status:
@@ -217,7 +221,7 @@ def list_sessions(ctx,
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
             print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
-            print(f'\tInteractive session list saved to {outfile}')        
+            print(f'\tInteractive session list saved to {outfile}')
         else:
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 

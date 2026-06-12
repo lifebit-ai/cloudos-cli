@@ -83,12 +83,14 @@ def _map_session_type_to_friendly_name(session_type):
         'azureSpark': 'Spark',
         'awsRStudio': 'RStudio',  # Handle both capitalizations
         'azureRStudio': 'RStudio',
-        'awsWindowsSession': 'Windows'
+        'awsWindowsSession': 'Windows',
+        'awsCustomSession': 'App',
+        'azureCustomSession': 'App'
     }
     return type_mapping.get(session_type, session_type)
 
 
-def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None):
+def create_interactive_session_list_table(sessions, pagination_metadata=None, selected_columns=None, page_size=10, fetch_page_callback=None, title='Interactive Sessions'):
     """Create a rich table displaying interactive sessions with interactive pagination.
 
     Parameters
@@ -106,6 +108,8 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
     fetch_page_callback : callable, optional
         Callback function to fetch a specific page of results.
         Should accept page number (1-indexed) and return dict with 'sessions' and 'pagination_metadata' keys.
+    title : str, optional
+        Title for the table. Default='Interactive Sessions'.
     """
     console = Console()
     # Define all available columns with their configuration
@@ -201,6 +205,13 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             'max_width': 15,
             'accessor': 'interactiveSessionType'
         },
+        'container_image': {
+            'header': 'Container Image',
+            'style': 'cyan',
+            'overflow': 'ellipsis',
+            'max_width': 30,
+            'accessor': 'containerImage.name'
+        },
         'version': {
             'header': 'Version',
             'style': 'white',
@@ -293,7 +304,7 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
         # Clear console first
         console.clear()
         # Create table
-        table = Table(title='Interactive Sessions')
+        table = Table(title=title)
         # Add columns to table
         for col_name in columns_to_show:
             if col_name not in all_columns:
