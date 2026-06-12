@@ -248,38 +248,61 @@ class TestInteractiveSessionAPIMethod:
 class TestAppSessionFilter:
     """Tests for client-side app-session filtering."""
 
-    def test_app_sessions_are_filtered_out(self):
-        """awsCustomSession and azureCustomSession must not appear in table output."""
-        from io import StringIO
-        from rich.console import Console
-        from cloudos_cli.interactive_session.interactive_session import (
-            create_interactive_session_list_table,
-            _APP_SESSION_TYPES,
-        )
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_app_sessions_are_filtered_out(self, mock_config, mock_cloudos):
+        """list_sessions CLI must exclude awsCustomSession and azureCustomSession from its output."""
+        runner = CliRunner()
+        mock_config.return_value = {}
+        mock_cloudos_instance = mock.MagicMock()
+        mock_cloudos.return_value = mock_cloudos_instance
+        mock_cloudos_instance.get_interactive_session_list.return_value = {
+            'sessions': [
+                {'_id': 'aaa', 'name': 'Jupyter', 'status': 'running',
+                 'interactiveSessionType': 'awsJupyterNotebook',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+                {'_id': 'bbb', 'name': 'MyApp', 'status': 'running',
+                 'interactiveSessionType': 'awsCustomSession',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+                {'_id': 'ccc', 'name': 'AzureApp', 'status': 'running',
+                 'interactiveSessionType': 'azureCustomSession',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+            ],
+            'pagination_metadata': {'count': 3, 'page': 1, 'limit': 10, 'totalPages': 1}
+        }
 
-        sessions = [
-            {'_id': 'aaa', 'name': 'Jupyter', 'status': 'running',
-             'interactiveSessionType': 'awsJupyterNotebook'},
-            {'_id': 'bbb', 'name': 'MyApp', 'status': 'running',
-             'interactiveSessionType': 'awsCustomSession'},
-            {'_id': 'ccc', 'name': 'AzureApp', 'status': 'running',
-             'interactiveSessionType': 'azureCustomSession'},
-        ]
+        with runner.isolated_filesystem():
+            result = runner.invoke(run_cloudos_cli, [
+                'interactive-session', 'list',
+                '--apikey', 'test_key',
+                '--cloudos-url', 'http://test.com',
+                '--workspace-id', 'test_team',
+                '--output-format', 'json',
+            ])
 
-        filtered = [s for s in sessions if s.get('interactiveSessionType') not in _APP_SESSION_TYPES]
-        assert len(filtered) == 1
-        assert filtered[0]['_id'] == 'aaa'
+            assert result.exit_code == 0, result.output
+            with open('interactive_sessions_list.json') as f:
+                saved_sessions = json.load(f)
+
+        saved_ids = {s['_id'] for s in saved_sessions}
+        assert 'aaa' in saved_ids, "Regular session must be kept"
+        assert 'bbb' not in saved_ids, "awsCustomSession must be filtered out"
+        assert 'ccc' not in saved_ids, "azureCustomSession must be filtered out"
+        assert len(saved_sessions) == 1
 
     def test_app_session_types_constant_contains_expected_values(self):
-        """_APP_SESSION_TYPES must contain exactly the two app session type strings."""
-        from cloudos_cli.interactive_session.interactive_session import _APP_SESSION_TYPES
+        """APP_SESSION_TYPES must contain exactly the two app session type strings."""
+        from cloudos_cli.interactive_session.interactive_session import APP_SESSION_TYPES
 
-        assert 'awsCustomSession' in _APP_SESSION_TYPES
-        assert 'azureCustomSession' in _APP_SESSION_TYPES
+        assert len(APP_SESSION_TYPES) == 2, (
+            f"APP_SESSION_TYPES must have exactly 2 entries, got {len(APP_SESSION_TYPES)}: {APP_SESSION_TYPES}"
+        )
+        assert 'awsCustomSession' in APP_SESSION_TYPES
+        assert 'azureCustomSession' in APP_SESSION_TYPES
 
     def test_regular_sessions_not_filtered(self):
         """Regular session types must pass through the filter unchanged."""
-        from cloudos_cli.interactive_session.interactive_session import _APP_SESSION_TYPES
+        from cloudos_cli.interactive_session.interactive_session import APP_SESSION_TYPES
 
         regular_types = [
             'awsJupyterNotebook', 'azureJupyterNotebook',
@@ -288,7 +311,7 @@ class TestAppSessionFilter:
             'awsSpark', 'awsWindowsSession',
         ]
         for t in regular_types:
-            assert t not in _APP_SESSION_TYPES, f"{t} should not be filtered out"
+            assert t not in APP_SESSION_TYPES, f"{t} should not be filtered out"
 
 
 if __name__ == '__main__':

@@ -57,7 +57,7 @@ def validate_instance_type(instance_type, execution_platform='aws'):
     return True, None
 
 
-_APP_SESSION_TYPES = frozenset({'awsCustomSession', 'azureCustomSession'})
+APP_SESSION_TYPES = frozenset({'awsCustomSession', 'azureCustomSession'})
 
 
 def _map_session_type_to_friendly_name(session_type):
