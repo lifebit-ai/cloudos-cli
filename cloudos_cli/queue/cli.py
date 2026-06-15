@@ -546,6 +546,10 @@ def queue():
 @click.option('--exclude-system-queues',
               help='Exclude system job queues from the list.',
               is_flag=True)
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
+              type=click.Choice(['aws', 'azure', 'hpc']),
+              default='aws')
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
@@ -563,6 +567,7 @@ def list_queues(ctx,
                 output_format,
                 all_fields,
                 exclude_system_queues,
+                execution_platform,
                 disable_ssl_verification,
                 ssl_cert,
                 profile):
@@ -570,6 +575,16 @@ def list_queues(ctx,
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Batch job queues are an AWS-only feature; they are not available in
+    # Azure workspaces.
+    if execution_platform == 'azure':
+        Console().print(
+            '[yellow]Warning:[/yellow] Batch job queues are not available in '
+            'Azure workspaces.'
+        )
+        sys.exit(0)
+
     print('Executing list...')
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
     my_queues = j_queue.get_job_queues(exclude_system_queues=exclude_system_queues)
@@ -699,6 +714,10 @@ def list_queues(ctx,
               'skip_confirmation',
               help='Skip the confirmation prompt and proceed immediately.',
               is_flag=True)
+@click.option('--execution-platform',
+              help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
+              type=click.Choice(['aws', 'azure', 'hpc']),
+              default='aws')
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is '
                     'not generally recommended for security reasons.'),
@@ -729,6 +748,7 @@ def create_queue(ctx,
                  iops,
                  throughput,
                  skip_confirmation,
+                 execution_platform,
                  disable_ssl_verification,
                  ssl_cert,
                  profile):
@@ -740,6 +760,15 @@ def create_queue(ctx,
     """
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    # Batch job queues are an AWS-only feature; they are not available in
+    # Azure workspaces.
+    if execution_platform == 'azure':
+        Console().print(
+            '[yellow]Warning:[/yellow] Batch job queues are not available in '
+            'Azure workspaces.'
+        )
+        sys.exit(0)
 
     if from_scratch and add_compute_env:
         raise click.UsageError(
