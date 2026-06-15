@@ -124,6 +124,43 @@ QUEUE_PRESETS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Custom ("from scratch") queue creation options
+# ---------------------------------------------------------------------------
+
+# Provisioning type -> AWS Batch compute environment resource type.
+PROVISIONING_TYPES = {
+    "on-demand": "EC2",
+    "spot": "SPOT",
+}
+
+# Allocation strategies allowed for each provisioning type.
+ALLOCATION_STRATEGIES = {
+    "on-demand": ["BEST_FIT", "BEST_FIT_PROGRESSIVE"],
+    "spot": ["BEST_FIT", "BEST_FIT_PROGRESSIVE", "SPOT_CAPACITY_OPTIMIZED"],
+}
+
+# vCPU bounds.
+MAX_VCPUS_LIMIT = 20000
+DEFAULT_MAX_VCPUS = 512
+DEFAULT_MIN_VCPUS = 0
+
+# Volume types and their size/IOPS/throughput specifications. Each spec stores
+# (default, minimum, maximum). ``throughput`` is ``None`` when not applicable.
+VOLUME_SPECS = {
+    "gp3": {
+        "size": (1000, 50, 16384),
+        "iops": (3000, 3000, 16000),
+        "throughput": (125, 125, 1000),
+    },
+    "io2": {
+        "size": (1000, 50, 16384),
+        "iops": (3000, 100, 64000),
+        "throughput": None,
+    },
+}
+
+
 @dataclass
 class Queue(Cloudos):
     """Class to store and operate job queues.
@@ -365,6 +402,26 @@ class Queue(Cloudos):
             "templateDescription": preset["templateDescription"],
             "isDefault": False,
         }
+        return self._post_job_queue(payload)
+
+    def _post_job_queue(self, payload):
+        """POST a job queue payload to the Lifebit Platform and return its ID.
+
+        Parameters
+        ----------
+        payload : dict
+            The fully-built job queue creation payload.
+
+        Returns
+        -------
+        queue_id : str
+            The Lifebit Platform ID assigned to the newly created queue.
+
+        Raises
+        ------
+        BadRequestException
+            If the API returns a 4xx or 5xx response.
+        """
         headers = {
             "Content-Type": "application/json",
             "apikey": self.apikey,
@@ -381,3 +438,120 @@ class Queue(Cloudos):
             raise BadRequestException(r)
         response_data = json.loads(r.content)
         return response_data.get("id") or response_data.get("_id", "")
+
+    def create_job_queue_from_scratch(self,
+                                      label,
+                                      description,
+                                      provisioning_type,
+                                      allocation_strategy,
+                                      max_vcpus,
+                                      min_vcpus,
+                                      instance_types,
+                                      volume_type,
+                                      size,
+                                      iops,
+                                      throughput=None,
+                                      executor="nextflow"):
+        """Create a custom job queue without using a preset template.
+
+        Parameters
+        ----------
+        label : str
+            Human-readable name for the queue. Also used as the compute
+            environment name.
+        description : str
+            Short description of the queue's purpose.
+        provisioning_type : str
+            One of ``'on-demand'`` or ``'spot'``.
+        allocation_strategy : str
+            AWS Batch allocation strategy. Must be valid for the chosen
+            ``provisioning_type`` (see ``ALLOCATION_STRATEGIES``).
+        max_vcpus : int
+            Maximum number of vCPUs for the compute environment.
+        min_vcpus : int
+            Minimum number of vCPUs for the compute environment.
+        instance_types : list[str]
+            Instance types to allow (e.g. ``['optimal']`` or a list from
+            ``_STANDARD_INSTANCE_TYPES``).
+        volume_type : str
+            One of ``'gp3'`` or ``'io2'``.
+        size : int
+            Volume size in GiB.
+        iops : int
+            Provisioned IOPS for the volume.
+        throughput : int or None, optional
+            Volume throughput in MB/s. Only applicable to ``gp3`` volumes.
+        executor : str, optional
+            Workflow executor. Defaults to ``'nextflow'``.
+
+        Returns
+        -------
+        queue_id : str
+            The Lifebit Platform ID assigned to the newly created queue.
+
+        Raises
+        ------
+        ValueError
+            If the provisioning type, allocation strategy or volume type are
+            not recognised, or the allocation strategy is incompatible with
+            the provisioning type.
+        BadRequestException
+            If the API returns a 4xx or 5xx response.
+        """
+        if provisioning_type not in PROVISIONING_TYPES:
+            valid = ', '.join(PROVISIONING_TYPES.keys())
+            raise ValueError(
+                f"Unknown provisioning type '{provisioning_type}'. "
+                f"Valid options are: {valid}"
+            )
+        allowed_strategies = ALLOCATION_STRATEGIES[provisioning_type]
+        if allocation_strategy not in allowed_strategies:
+            valid = ', '.join(allowed_strategies)
+            raise ValueError(
+                f"Allocation strategy '{allocation_strategy}' is not valid for "
+                f"'{provisioning_type}' provisioning. Valid options are: {valid}"
+            )
+        if volume_type not in VOLUME_SPECS:
+            valid = ', '.join(VOLUME_SPECS.keys())
+            raise ValueError(
+                f"Unknown volume type '{volume_type}'. Valid options are: {valid}"
+            )
+
+        resource_type = PROVISIONING_TYPES[provisioning_type]
+        volume = {
+            "type": volume_type,
+            "size": {"usageQuantity": size, "usageUnit": "Gb"},
+            "iops": iops,
+            "deviceName": "/dev/xvda",
+            "deleteOnTermination": False,
+            "encrypted": False,
+        }
+        if volume_type == "gp3" and throughput is not None:
+            volume["throughput"] = throughput
+
+        compute_resources = {
+            "allocationStrategy": allocation_strategy,
+            "instanceTypes": instance_types,
+            "maxvCpus": max_vcpus,
+            "type": resource_type,
+            "minvCpus": min_vcpus,
+            "volume": volume,
+        }
+        if provisioning_type == "spot":
+            compute_resources["bidPercentage"] = 100
+
+        payload = {
+            "id": "",
+            "label": label,
+            "description": description,
+            "executor": executor,
+            "status": "ToCreate",
+            "environment": {
+                "computeEnvironmentName": label,
+                "computeResources": compute_resources,
+            },
+            "templateName": "",
+            "templateDescription": "",
+            "isDefault": False,
+        }
+        return self._post_job_queue(payload)
