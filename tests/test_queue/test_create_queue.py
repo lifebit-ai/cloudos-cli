@@ -7,7 +7,10 @@ import requests_mock as requests_mock_module
 from click.testing import CliRunner
 
 from cloudos_cli.queue.queue import Queue, QUEUE_PRESETS
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import (
+    BadRequestException,
+    ComputeEnvAuthorizationException,
+)
 from cloudos_cli.__main__ import run_cloudos_cli
 from tests.functions_for_pytest import load_json_file
 
@@ -25,6 +28,47 @@ SYSTEM_QUEUES_FILE = 'tests/test_data/queue/system_queues.json'
 with open(CREATE_RESPONSE_FILE) as f:
     CREATE_RESPONSE_JSON_STR = f.read()
     CREATE_RESPONSE_JSON_DICT = json.loads(CREATE_RESPONSE_JSON_STR)
+
+
+def _mock_get_queues_with_total_ces(m, total_ces, n_queues=1):
+    """Mock the GET job-queues endpoints with queues totalling ``total_ces`` CEs.
+
+    The compute environments are spread across ``n_queues`` team queues. The
+    system-job-queues endpoint is mocked with an empty list.
+    """
+    per_queue = []
+    remaining = total_ces
+    for i in range(n_queues):
+        count = remaining if i == n_queues - 1 else remaining // (n_queues - i)
+        remaining -= count
+        per_queue.append(count)
+    queues = [
+        {
+            'id': f'q{i}',
+            'name': f'queue-{i}',
+            'label': f'queue-{i}',
+            'description': '',
+            'isDefault': False,
+            'resourceType': '',
+            'executor': 'nextflow',
+            'computeEnvironments': [
+                {'label': f'CE-{i}-{j}', 'environment': {}, 'status': 'Ready'}
+                for j in range(count)
+            ],
+            'status': 'Ready',
+        }
+        for i, count in enumerate(per_queue)
+    ]
+    m.get(
+        f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
+        text=json.dumps(queues),
+        status_code=200,
+    )
+    m.get(
+        f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+        text='[]',
+        status_code=200,
+    )
 
 
 # ===========================================================================
@@ -229,6 +273,7 @@ class TestCreateQueueCLI:
     def test_create_queue_success_with_yes_flag(self):
         runner = CliRunner()
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=CREATE_RESPONSE_JSON_STR,
@@ -242,6 +287,7 @@ class TestCreateQueueCLI:
     def test_create_queue_shows_url_on_success(self):
         runner = CliRunner()
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=CREATE_RESPONSE_JSON_STR,
@@ -260,9 +306,12 @@ class TestCreateQueueCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Test Queue',
+            '--description', 'A test queue',
             '--preset', 'standard-stable',
         ]
-        result = runner.invoke(run_cloudos_cli, args, input='n\n')
+        with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
+            result = runner.invoke(run_cloudos_cli, args, input='n\n')
         assert result.exit_code == 0
         assert 'Aborted' in result.output
 
@@ -274,9 +323,11 @@ class TestCreateQueueCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Test Queue',
+            '--description', 'A test queue',
             '--preset', 'standard-stable',
         ]
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=CREATE_RESPONSE_JSON_STR,
@@ -290,6 +341,7 @@ class TestCreateQueueCLI:
         runner = CliRunner()
         error_body = json.dumps({'statusCode': 400, 'message': 'Bad Request.'})
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=error_body,
@@ -298,6 +350,15 @@ class TestCreateQueueCLI:
             result = runner.invoke(run_cloudos_cli, self._base_args())
         assert result.exit_code == 1
         assert 'Error' in result.output
+
+    def test_create_queue_workspace_limit_reached_exits(self):
+        runner = CliRunner()
+        with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 10, n_queues=4)
+            result = runner.invoke(run_cloudos_cli, self._base_args())
+        assert result.exit_code == 0
+        assert 'reached the limit for compute environments in your workspace' \
+            in result.output
 
     def test_create_queue_invalid_preset_rejected(self):
         runner = CliRunner()
@@ -324,6 +385,21 @@ class TestCreateQueueCLI:
         ]
         result = runner.invoke(run_cloudos_cli, args)
         assert result.exit_code != 0
+
+    def test_create_queue_missing_description_fails(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'Test Queue',
+            '--preset', 'standard-stable',
+            '--yes',
+        ]
+        result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code != 0
+        assert 'Missing option --description' in result.output
 
 
 # ===========================================================================
@@ -458,9 +534,11 @@ class TestCreateQueueFromScratchCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Custom Queue',
+            '--description', 'A custom queue',
             '--from-scratch', '--yes',
         ]
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=CREATE_RESPONSE_JSON_STR,
@@ -470,6 +548,24 @@ class TestCreateQueueFromScratchCLI:
         assert result.exit_code == 0
         assert 'created successfully' in result.output
 
+    def test_from_scratch_workspace_limit_reached_exits(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'Custom Queue',
+            '--description', 'A custom queue',
+            '--from-scratch', '--yes',
+        ]
+        with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 10, n_queues=3)
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 0
+        assert 'reached the limit for compute environments in your workspace' \
+            in result.output
+
     def test_from_scratch_mutually_exclusive_with_preset(self):
         runner = CliRunner()
         args = [
@@ -478,6 +574,7 @@ class TestCreateQueueFromScratchCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Custom Queue',
+            '--description', 'A custom queue',
             '--from-scratch', '--preset', 'standard-gpu', '--yes',
         ]
         result = runner.invoke(run_cloudos_cli, args)
@@ -535,6 +632,7 @@ class TestCreateQueueFromScratchCLI:
             '--apikey', APIKEY,
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
+            '--description', 'A wizard queue',
             '--from-scratch',
         ]
         # Wizard answers: name, provisioning, strategy, max, min, instances,
@@ -552,6 +650,7 @@ class TestCreateQueueFromScratchCLI:
             '125',
         ]) + '\n'
         with requests_mock_module.Mocker() as m:
+            _mock_get_queues_with_total_ces(m, 1)
             m.post(
                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
                 text=CREATE_RESPONSE_JSON_STR,
@@ -639,6 +738,33 @@ class TestFindAndAddComputeEnvironment:
         q = self._make_queue()
         assert q.find_job_queue_by_label('does-not-exist') is None
 
+    def test_count_workspace_compute_environments_from_list(self):
+        q = self._make_queue()
+        queues = [
+            {'computeEnvironments': [{}, {}]},
+            {'computeEnvironments': [{}]},
+            {},
+        ]
+        assert q.count_workspace_compute_environments(queues=queues) == 3
+
+    @responses.activate
+    def test_count_workspace_compute_environments_fetches_queues(self):
+        # System queues are excluded from the workspace CE count, so only the
+        # team job-queues endpoint contributes.
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
+            body=QUEUES_LIST_STR,
+            status=200,
+            content_type='application/json',
+        )
+        q = self._make_queue()
+        team_queues = json.loads(QUEUES_LIST_STR)
+        expected = sum(
+            len(x.get('computeEnvironments', [])) for x in team_queues
+        )
+        assert q.count_workspace_compute_environments() == expected
+
     @responses.activate
     def test_add_compute_environment_posts_correct_payload(self):
         queue_id = 'q123'
@@ -665,8 +791,11 @@ class TestFindAndAddComputeEnvironment:
             iops=3000,
             throughput=125,
         )
-        payload = json.loads(responses.calls[0].request.body)
-        assert payload['label'] == 'my-queue'
+        request = responses.calls[0].request
+        assert request.headers['apikey'] == APIKEY
+        payload = json.loads(request.body)
+        # Only the environment object should be sent in the body.
+        assert list(payload.keys()) == ['environment']
         env = payload['environment']
         assert env['computeEnvironmentName'] == 'New_spot_CE'
         cr = env['computeResources']
@@ -688,6 +817,27 @@ class TestFindAndAddComputeEnvironment:
         )
         q = self._make_queue()
         with pytest.raises(BadRequestException):
+            q.add_compute_environment(
+                queue_id=queue_id, queue_label='my-queue', ce_name='CE',
+                provisioning_type='on-demand',
+                allocation_strategy='BEST_FIT_PROGRESSIVE', max_vcpus=512,
+                min_vcpus=0, instance_types=['optimal'], volume_type='gp3',
+                size=1000, iops=3000, throughput=125,
+            )
+
+    @responses.activate
+    def test_add_compute_environment_raises_on_401(self):
+        queue_id = 'q123'
+        responses.add(
+            responses.POST,
+            url=(f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/{queue_id}/"
+                 f"compute-environment?teamId={WORKSPACE_ID}"),
+            body='',
+            status=401,
+            content_type='application/json',
+        )
+        q = self._make_queue()
+        with pytest.raises(ComputeEnvAuthorizationException):
             q.add_compute_environment(
                 queue_id=queue_id, queue_label='my-queue', ce_name='CE',
                 provisioning_type='on-demand',
@@ -767,6 +917,45 @@ class TestAddComputeEnvironmentCLI:
             result = runner.invoke(run_cloudos_cli, args)
         assert result.exit_code == 0
         assert 'reached the limit' in result.output
+
+    def test_add_compute_env_workspace_limit_reached_exits(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'my-queue',
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        # Target queue has only 1 CE (under per-queue limit) but the workspace
+        # already holds 10 CEs in total across all queues.
+        queues = [
+            {
+                'id': 'qok', 'name': 'my-queue', 'label': 'my-queue',
+                'description': '', 'isDefault': False, 'resourceType': '',
+                'executor': 'nextflow', 'status': 'Ready',
+                'computeEnvironments': [
+                    {'label': 'CE-0', 'environment': {}, 'status': 'Ready'}
+                ],
+            },
+            {
+                'id': 'qother', 'name': 'other', 'label': 'other',
+                'description': '', 'isDefault': False, 'resourceType': '',
+                'executor': 'nextflow', 'status': 'Ready',
+                'computeEnvironments': [
+                    {'label': f'CE-{i}', 'environment': {}, 'status': 'Ready'}
+                    for i in range(9)
+                ],
+            },
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, json.dumps(queues))
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 0
+        assert 'reached the limit for compute environments in your workspace' \
+            in result.output
 
     def test_add_compute_env_success(self):
         runner = CliRunner()

@@ -17,6 +17,8 @@ from cloudos_cli.queue.queue import (
     DEFAULT_MIN_VCPUS,
     MAX_COMPUTE_ENVS,
     CE_LIMIT_REACHED_MESSAGE,
+    MAX_WORKSPACE_COMPUTE_ENVS,
+    WORKSPACE_CE_LIMIT_REACHED_MESSAGE,
     _STANDARD_INSTANCE_TYPES,
 )
 from cloudos_cli.utils.resources import ssl_selector
@@ -480,6 +482,27 @@ def _check_range(name, value, spec):
         )
 
 
+def _check_workspace_ce_limit(console, j_queue, queues=None):
+    """Exit with a warning if the workspace has reached its CE limit.
+
+    Parameters
+    ----------
+    console : rich.console.Console
+        The console used for rich output.
+    j_queue : Queue
+        The queue client used to count compute environments.
+    queues : list or None, optional
+        A pre-fetched list of job queue dicts. If ``None``, the queues are
+        fetched.
+    """
+    count = j_queue.count_workspace_compute_environments(queues=queues)
+    if count >= MAX_WORKSPACE_COMPUTE_ENVS:
+        console.print(
+            f"[yellow]Warning:[/yellow] {WORKSPACE_CE_LIMIT_REACHED_MESSAGE}"
+        )
+        sys.exit(0)
+
+
 
 
 # Create the queue group
@@ -586,7 +609,8 @@ def list_queues(ctx,
               required=False,
               default=None)
 @click.option('--description',
-              help='Short description of the new job queue.',
+              help=('Short description of the new job queue. Required when '
+                    'creating a queue (not used with --add-compute-env).'),
               default='',
               required=False)
 @click.option('--preset',
@@ -744,6 +768,11 @@ def create_queue(ctx,
         )
         return
 
+    # --description is required when creating a queue (both preset and
+    # from-scratch paths). It is not used when adding a compute environment.
+    if not description:
+        raise click.UsageError('Missing option --description.')
+
     if from_scratch:
         _create_queue_from_scratch(
             ctx=ctx,
@@ -779,6 +808,11 @@ def create_queue(ctx,
     instance_count = len(cr.get('instanceTypes', []))
     template_name = preset_info['templateName']
 
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+
+    # Creating a queue creates a compute environment; enforce the workspace limit.
+    _check_workspace_ce_limit(Console(), j_queue)
+
     if not skip_confirmation:
         click.echo('\nYou are about to create the following job queue:')
         click.echo(f'  Label              : {label}')
@@ -795,8 +829,8 @@ def create_queue(ctx,
             click.echo('Aborted.')
             sys.exit(0)
 
+    console = Console()
     print('Executing queue create...')
-    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
 
     try:
         queue_id = j_queue.create_job_queue(
@@ -805,11 +839,11 @@ def create_queue(ctx,
             preset_name=preset,
             executor=executor,
         )
-        print(f'\tQueue "{label}" created successfully.')
+        console.print(f'\t[green]Queue "{label}" created successfully.[/green]')
         print(f'\tQueue ID : {queue_id}')
         print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
     except Exception as e:
-        print(f'\tError creating queue: {str(e)}')
+        console.print(f'\t[red]Error creating queue:[/red] {str(e)}')
         sys.exit(1)
 
 
@@ -843,6 +877,8 @@ def _create_queue_from_scratch(ctx,
     if ctx.get_parameter_source('preset') == click.core.ParameterSource.COMMANDLINE:
         raise click.UsageError('--from-scratch cannot be combined with --preset.')
 
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+
     if skip_confirmation:
         params = {
             'label': label,
@@ -859,11 +895,14 @@ def _create_queue_from_scratch(ctx,
         if params['label'] is None:
             raise click.UsageError('Missing option --label for --from-scratch -y.')
         _validate_from_scratch_flags(params)
+        # Creating a queue creates a compute environment; enforce the limit.
+        _check_workspace_ce_limit(console, j_queue)
     else:
+        # Creating a queue creates a compute environment; enforce the limit.
+        _check_workspace_ce_limit(console, j_queue)
         params = _from_scratch_wizard(console)
 
     print('Executing queue create...')
-    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
 
     try:
         queue_id = j_queue.create_job_queue_from_scratch(
@@ -880,11 +919,13 @@ def _create_queue_from_scratch(ctx,
             throughput=params['throughput'],
             executor=executor,
         )
-        print(f'\tQueue "{params["label"]}" created successfully.')
+        console.print(
+            f'\t[green]Queue "{params["label"]}" created successfully.[/green]'
+        )
         print(f'\tQueue ID : {queue_id}')
         print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
     except Exception as e:
-        print(f'\tError creating queue: {str(e)}')
+        console.print(f'\t[red]Error creating queue:[/red] {str(e)}')
         sys.exit(1)
 
 
@@ -919,8 +960,13 @@ def _add_compute_environment(ctx,
 
     j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
 
-    # The queue must already exist to add a compute environment to it.
-    target_queue = j_queue.find_job_queue_by_label(label)
+    # The queue must already exist to add a compute environment to it. Compute
+    # environments can only be added to created (non-system) queues, and system
+    # queues do not count towards the workspace limit.
+    team_queues = j_queue.get_job_queues(exclude_system_queues=True)
+    target_queue = next(
+        (q for q in team_queues if q.get('label') == label), None
+    )
     if target_queue is None:
         console.print(
             f"[red]Error:[/red] No job queue with label '{label}' was found. "
@@ -937,6 +983,9 @@ def _add_compute_environment(ctx,
             f"[yellow]Warning:[/yellow] {CE_LIMIT_REACHED_MESSAGE}"
         )
         sys.exit(0)
+
+    # Adding a compute environment must not exceed the workspace limit.
+    _check_workspace_ce_limit(console, j_queue, queues=team_queues)
 
     if skip_confirmation:
         if compute_env_name is None:
@@ -978,12 +1027,14 @@ def _add_compute_environment(ctx,
             iops=params['iops'],
             throughput=params['throughput'],
         )
-        print(f'\tCompute environment "{params["label"]}" added successfully '
-              f'to queue "{label}".')
+        console.print(
+            f'\t[green]Compute environment "{params["label"]}" added '
+            f'successfully to queue "{label}".[/green]'
+        )
         print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
         # Inform the user if this addition reached the compute environment limit.
         if current_ce_count + 1 >= MAX_COMPUTE_ENVS:
-            print(f'\t{CE_LIMIT_REACHED_MESSAGE}')
+            console.print(f'\t[yellow]Warning:[/yellow] {CE_LIMIT_REACHED_MESSAGE}')
     except Exception as e:
-        print(f'\tError adding compute environment: {str(e)}')
+        console.print(f'\t[red]Error adding compute environment:[/red] {str(e)}')
         sys.exit(1)

@@ -8,7 +8,10 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import (
+    BadRequestException,
+    ComputeEnvAuthorizationException,
+)
 from cloudos_cli.utils.requests import retry_requests_post
 
 
@@ -167,6 +170,15 @@ MAX_COMPUTE_ENVS = 3
 CE_LIMIT_REACHED_MESSAGE = (
     "You have reached the limit for compute environments for this job queue. "
     "Job queues can have up to 3 compute environments."
+)
+
+# Maximum number of compute environments a workspace can hold across all queues.
+MAX_WORKSPACE_COMPUTE_ENVS = 10
+
+# Message shown once a workspace reaches the compute environment limit.
+WORKSPACE_CE_LIMIT_REACHED_MESSAGE = (
+    "You have reached the limit for compute environments in your workspace. "
+    "Workspaces can have up to 10 compute environments."
 )
 
 
@@ -642,6 +654,27 @@ class Queue(Cloudos):
                 return q
         return None
 
+    def count_workspace_compute_environments(self, queues=None):
+        """Count the total compute environments across all queues in the workspace.
+
+        System job queues are not counted towards the workspace limit.
+
+        Parameters
+        ----------
+        queues : list or None, optional
+            A list of (non-system) job queue dicts as returned by
+            ``get_job_queues(exclude_system_queues=True)``. If ``None``, the
+            queues are fetched, excluding system queues.
+
+        Returns
+        -------
+        count : int
+            The total number of compute environments in the workspace.
+        """
+        if queues is None:
+            queues = self.get_job_queues(exclude_system_queues=True)
+        return sum(len(q.get('computeEnvironments', [])) for q in queues)
+
     def add_compute_environment(self,
                                 queue_id,
                                 queue_label,
@@ -710,8 +743,9 @@ class Queue(Cloudos):
             iops=iops,
             throughput=throughput,
         )
+        # The add-compute-environment endpoint only accepts the ``environment``
+        # object in the request body (see apiAddComputeEnvironmentToJobQueue).
         payload = {
-            "label": queue_label,
             "environment": {
                 "computeEnvironmentName": ce_name,
                 "computeResources": compute_resources,
@@ -729,6 +763,12 @@ class Queue(Cloudos):
             json=payload,
             verify=self.verify,
         )
+        if r.status_code == 401:
+            # The add-compute-environment endpoint
+            # (apiAddComputeEnvironmentToJobQueue) only accepts session/bearer
+            # authentication; API keys are not authorised for it. Surface a
+            # clear, actionable message instead of a raw "Unauthorized".
+            raise ComputeEnvAuthorizationException(queue_label)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
