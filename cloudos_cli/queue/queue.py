@@ -384,7 +384,8 @@ class Queue(Cloudos):
             raise BadRequestException(r)
         return json.loads(r.content)
 
-    def create_job_queue(self, label, description, preset_name, executor="nextflow"):
+    def create_job_queue(self, label, description, preset_name, executor="nextflow",
+                         is_default=False):
         """Create a new job queue in the workspace using a preset template.
 
         Parameters
@@ -397,6 +398,9 @@ class Queue(Cloudos):
             One of the supported preset keys (see ``QUEUE_PRESETS``).
         executor : str, optional
             Workflow executor.  Defaults to ``'nextflow'``.
+        is_default : bool, optional
+            Whether to set the queue as the workspace default. Defaults to
+            ``False``.
 
         Returns
         -------
@@ -421,7 +425,7 @@ class Queue(Cloudos):
             },
             "templateName": preset["templateName"],
             "templateDescription": preset["templateDescription"],
-            "isDefault": False,
+            "isDefault": is_default,
         }
         return self._post_job_queue(payload)
 
@@ -472,7 +476,8 @@ class Queue(Cloudos):
                                       size,
                                       iops,
                                       throughput=None,
-                                      executor="nextflow"):
+                                      executor="nextflow",
+                                      is_default=False):
         """Create a custom job queue without using a preset template.
 
         Parameters
@@ -504,6 +509,9 @@ class Queue(Cloudos):
             Volume throughput in MB/s. Only applicable to ``gp3`` volumes.
         executor : str, optional
             Workflow executor. Defaults to ``'nextflow'``.
+        is_default : bool, optional
+            Whether to set the queue as the workspace default. Defaults to
+            ``False``.
 
         Returns
         -------
@@ -542,7 +550,7 @@ class Queue(Cloudos):
             },
             "templateName": "",
             "templateDescription": "",
-            "isDefault": False,
+            "isDefault": is_default,
         }
         return self._post_job_queue(payload)
 

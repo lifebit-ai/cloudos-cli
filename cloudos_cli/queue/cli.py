@@ -714,6 +714,9 @@ def list_queues(ctx,
               'skip_confirmation',
               help='Skip the confirmation prompt and proceed immediately.',
               is_flag=True)
+@click.option('--set-default',
+              help='Set the new job queue as the workspace default. Default=False.',
+              is_flag=True)
 @click.option('--execution-platform',
               help='Name of the execution platform implemented in your Lifebit Platform. Default=aws.',
               type=click.Choice(['aws', 'azure', 'hpc']),
@@ -748,6 +751,7 @@ def create_queue(ctx,
                  iops,
                  throughput,
                  skip_confirmation,
+                 set_default,
                  execution_platform,
                  disable_ssl_verification,
                  ssl_cert,
@@ -822,6 +826,7 @@ def create_queue(ctx,
             iops=iops,
             throughput=throughput,
             skip_confirmation=skip_confirmation,
+            set_default=set_default,
         )
         return
 
@@ -852,6 +857,7 @@ def create_queue(ctx,
         click.echo(f'  Max vCPUs          : {max_vcpus_preset}')
         click.echo(f'  Instance types     : {instance_count} types')
         click.echo(f'  Executor           : {executor}')
+        click.echo(f'  Set as default     : {set_default}')
         click.echo(f'  Workspace          : {workspace_id}')
         click.echo('')
         if not click.confirm('Proceed with queue creation?'):
@@ -867,6 +873,7 @@ def create_queue(ctx,
             description=description,
             preset_name=preset,
             executor=executor,
+            is_default=set_default,
         )
         console.print(f'\t[green]Queue "{label}" created successfully.[/green]')
         print(f'\tQueue ID : {queue_id}')
@@ -893,7 +900,8 @@ def _create_queue_from_scratch(ctx,
                                size,
                                iops,
                                throughput,
-                               skip_confirmation):
+                               skip_confirmation,
+                               set_default):
     """Handle the --from-scratch branch of ``cloudos queue create``.
 
     When ``skip_confirmation`` is False, an interactive wizard collects all the
@@ -947,6 +955,7 @@ def _create_queue_from_scratch(ctx,
             iops=params['iops'],
             throughput=params['throughput'],
             executor=executor,
+            is_default=set_default,
         )
         console.print(
             f'\t[green]Queue "{params["label"]}" created successfully.[/green]'
