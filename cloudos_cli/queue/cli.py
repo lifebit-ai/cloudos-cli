@@ -15,6 +15,8 @@ from cloudos_cli.queue.queue import (
     MAX_VCPUS_LIMIT,
     DEFAULT_MAX_VCPUS,
     DEFAULT_MIN_VCPUS,
+    MAX_COMPUTE_ENVS,
+    CE_LIMIT_REACHED_MESSAGE,
     _STANDARD_INSTANCE_TYPES,
 )
 from cloudos_cli.utils.resources import ssl_selector
@@ -99,13 +101,20 @@ def _styled_prompt(label, **kwargs):
     return click.prompt(text, **kwargs)
 
 
-def _from_scratch_wizard(console):
+def _from_scratch_wizard(console, for_compute_env=False, queue_label=None):
     """Interactively collect custom queue parameters, emulating the UI flow.
 
     Parameters
     ----------
     console : rich.console.Console
         The console used for rich output.
+    for_compute_env : bool, optional
+        When True, the wizard collects a compute environment to add to an
+        existing queue (step 1 asks for the compute environment name) rather
+        than a brand new queue.
+    queue_label : str or None, optional
+        The label of the target queue, shown in the intro when
+        ``for_compute_env`` is True.
 
     Returns
     -------
@@ -113,26 +122,40 @@ def _from_scratch_wizard(console):
         A dict with keys: ``label``, ``provisioning_type``,
         ``allocation_strategy``, ``max_vcpus``, ``min_vcpus``,
         ``instance_types``, ``volume_type``, ``size``, ``iops`` and
-        ``throughput``.
+        ``throughput``. When ``for_compute_env`` is True, ``label`` holds the
+        compute environment name.
     """
     total = 9
     console.print()
-    console.print(
-        Panel.fit(
+    if for_compute_env:
+        intro = (
+            "[bold cyan]Add a compute environment to a job queue[/bold cyan]\n"
+            f"[grey62]Target queue: [white]{queue_label}[/white]. Answer the "
+            "prompts below to configure the new compute environment.[/grey62]"
+        )
+    else:
+        intro = (
             "[bold cyan]Create a job queue from scratch[/bold cyan]\n"
             "[grey62]Answer the prompts below to configure your custom "
-            "compute environment.[/grey62]",
-            border_style="cyan",
-            padding=(1, 4),
+            "compute environment.[/grey62]"
         )
+    console.print(
+        Panel.fit(intro, border_style="cyan", padding=(1, 4))
     )
 
-    # 1. Name of the queue
-    _print_section(
-        console, 1, total, "Name",
-        subtitle="A human-readable name for your job queue.",
-    )
-    label = _styled_prompt("Name of the queue", type=str)
+    # 1. Name
+    if for_compute_env:
+        _print_section(
+            console, 1, total, "Name",
+            subtitle="A human-readable name for the new compute environment.",
+        )
+        label = _styled_prompt("Name of the compute environment", type=str)
+    else:
+        _print_section(
+            console, 1, total, "Name",
+            subtitle="A human-readable name for your job queue.",
+        )
+        label = _styled_prompt("Name of the queue", type=str)
 
     # 2. Provisioning type
     _print_section(
@@ -287,11 +310,11 @@ def _from_scratch_wizard(console):
         "iops": iops,
         "throughput": throughput,
     }
-    _print_summary(console, params)
+    _print_summary(console, params, for_compute_env=for_compute_env)
     return params
 
 
-def _print_summary(console, params):
+def _print_summary(console, params, for_compute_env=False):
     """Print a styled summary table of the collected wizard parameters.
 
     Parameters
@@ -302,7 +325,11 @@ def _print_summary(console, params):
         The collected from-scratch parameters.
     """
     table = Table(
-        title="[bold cyan]Queue configuration summary[/bold cyan]",
+        title=(
+            "[bold cyan]Compute environment configuration summary[/bold cyan]"
+            if for_compute_env
+            else "[bold cyan]Queue configuration summary[/bold cyan]"
+        ),
         show_header=False,
         box=None,
         padding=(0, 2),
@@ -311,8 +338,9 @@ def _print_summary(console, params):
     table.add_column(style="white")
 
     instance_label = ", ".join(params["instance_types"])
+    name_label = "Compute environment" if for_compute_env else "Name"
     rows = [
-        ("Name", params["label"]),
+        (name_label, params["label"]),
         ("Provisioning type", params["provisioning_type"]),
         ("Allocation strategy", params["allocation_strategy"]),
         ("Max vCPUs", str(params["max_vcpus"])),
@@ -582,6 +610,17 @@ def list_queues(ctx,
                     'create non-interactively using the options below. Mutually '
                     'exclusive with --preset.'),
               is_flag=True)
+@click.option('--add-compute-env',
+              help=('Add a compute environment to an existing job queue '
+                    '(identified by --label, which is required). By default '
+                    'this launches an interactive wizard; combine with -y/--yes '
+                    'to add non-interactively using the options below. A queue '
+                    f'can hold up to {MAX_COMPUTE_ENVS} compute environments.'),
+              is_flag=True)
+@click.option('--compute-env-name',
+              help=('Name for the new compute environment when using '
+                    '--add-compute-env with -y/--yes.'),
+              default=None)
 @click.option('--provisioning-type',
               help='Provisioning type for --from-scratch. Default=on-demand.',
               type=click.Choice(list(PROVISIONING_TYPES.keys()), case_sensitive=False),
@@ -654,6 +693,8 @@ def create_queue(ctx,
                  preset,
                  executor,
                  from_scratch,
+                 add_compute_env,
+                 compute_env_name,
                  provisioning_type,
                  allocation_strategy,
                  max_vcpus,
@@ -671,9 +712,37 @@ def create_queue(ctx,
 
     By default a preset template is used. Pass --from-scratch to build a custom
     queue, either interactively (default) or non-interactively with -y/--yes.
+    Pass --add-compute-env to add a compute environment to an existing queue.
     """
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    if from_scratch and add_compute_env:
+        raise click.UsageError(
+            '--from-scratch and --add-compute-env cannot be used together.'
+        )
+
+    if add_compute_env:
+        _add_compute_environment(
+            ctx=ctx,
+            cloudos_url=cloudos_url,
+            apikey=apikey,
+            workspace_id=workspace_id,
+            verify_ssl=verify_ssl,
+            label=label,
+            compute_env_name=compute_env_name,
+            provisioning_type=provisioning_type,
+            allocation_strategy=allocation_strategy,
+            max_vcpus=max_vcpus,
+            min_vcpus=min_vcpus,
+            instance_types=instance_types,
+            volume_type=volume_type,
+            size=size,
+            iops=iops,
+            throughput=throughput,
+            skip_confirmation=skip_confirmation,
+        )
+        return
 
     if from_scratch:
         _create_queue_from_scratch(
@@ -816,4 +885,105 @@ def _create_queue_from_scratch(ctx,
         print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
     except Exception as e:
         print(f'\tError creating queue: {str(e)}')
+        sys.exit(1)
+
+
+def _add_compute_environment(ctx,
+                             cloudos_url,
+                             apikey,
+                             workspace_id,
+                             verify_ssl,
+                             label,
+                             compute_env_name,
+                             provisioning_type,
+                             allocation_strategy,
+                             max_vcpus,
+                             min_vcpus,
+                             instance_types,
+                             volume_type,
+                             size,
+                             iops,
+                             throughput,
+                             skip_confirmation):
+    """Handle the --add-compute-env branch of ``cloudos queue create``.
+
+    Adds a compute environment to an existing queue (identified by ``label``).
+    The queue must exist and have fewer than ``MAX_COMPUTE_ENVS`` compute
+    environments. When ``skip_confirmation`` is False an interactive wizard
+    collects the compute environment configuration.
+    """
+    console = Console()
+
+    if label is None:
+        raise click.UsageError('Missing option --label for --add-compute-env.')
+
+    j_queue = Queue(cloudos_url, apikey, None, workspace_id, verify=verify_ssl)
+
+    # The queue must already exist to add a compute environment to it.
+    target_queue = j_queue.find_job_queue_by_label(label)
+    if target_queue is None:
+        console.print(
+            f"[red]Error:[/red] No job queue with label '{label}' was found. "
+            "Compute environments can only be added to existing queues."
+        )
+        sys.exit(1)
+
+    queue_id = target_queue.get('id') or target_queue.get('_id', '')
+    current_ce_count = len(target_queue.get('computeEnvironments', []))
+
+    # A queue cannot exceed the compute environment limit.
+    if current_ce_count >= MAX_COMPUTE_ENVS:
+        console.print(
+            f"[yellow]Warning:[/yellow] {CE_LIMIT_REACHED_MESSAGE}"
+        )
+        sys.exit(0)
+
+    if skip_confirmation:
+        if compute_env_name is None:
+            raise click.UsageError(
+                'Missing option --compute-env-name for --add-compute-env -y.'
+            )
+        params = {
+            'label': compute_env_name,
+            'provisioning_type': provisioning_type,
+            'allocation_strategy': allocation_strategy,
+            'max_vcpus': max_vcpus,
+            'min_vcpus': min_vcpus,
+            'instance_types': _parse_instance_types(instance_types),
+            'volume_type': volume_type,
+            'size': size,
+            'iops': iops,
+            'throughput': throughput,
+        }
+        _validate_from_scratch_flags(params)
+    else:
+        params = _from_scratch_wizard(
+            console, for_compute_env=True, queue_label=label
+        )
+
+    print('Executing add compute environment...')
+
+    try:
+        j_queue.add_compute_environment(
+            queue_id=queue_id,
+            queue_label=label,
+            ce_name=params['label'],
+            provisioning_type=params['provisioning_type'],
+            allocation_strategy=params['allocation_strategy'],
+            max_vcpus=params['max_vcpus'],
+            min_vcpus=params['min_vcpus'],
+            instance_types=params['instance_types'],
+            volume_type=params['volume_type'],
+            size=params['size'],
+            iops=params['iops'],
+            throughput=params['throughput'],
+        )
+        print(f'\tCompute environment "{params["label"]}" added successfully '
+              f'to queue "{label}".')
+        print(f'\tView at  : {cloudos_url}/app/job-queues/{queue_id}')
+        # Inform the user if this addition reached the compute environment limit.
+        if current_ce_count + 1 >= MAX_COMPUTE_ENVS:
+            print(f'\t{CE_LIMIT_REACHED_MESSAGE}')
+    except Exception as e:
+        print(f'\tError adding compute environment: {str(e)}')
         sys.exit(1)

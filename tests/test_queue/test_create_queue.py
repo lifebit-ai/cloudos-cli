@@ -561,3 +561,321 @@ class TestCreateQueueFromScratchCLI:
         assert result.exit_code == 0
         assert 'created successfully' in result.output
 
+
+# ===========================================================================
+# Unit tests – Queue.find_job_queue_by_label() & add_compute_environment()
+# ===========================================================================
+
+QUEUES_LIST_FILE = 'tests/test_data/queue/queues.json'
+SYSTEM_QUEUES_LIST_FILE = 'tests/test_data/queue/system_queues.json'
+
+with open(QUEUES_LIST_FILE) as f:
+    QUEUES_LIST_STR = f.read()
+with open(SYSTEM_QUEUES_LIST_FILE) as f:
+    SYSTEM_QUEUES_LIST_STR = f.read()
+
+
+def _queue_with_n_ces(label, queue_id, n):
+    """Build a single-queue list JSON string with ``n`` compute environments."""
+    ces = [
+        {
+            'label': f'CE-{i}',
+            'environment': {},
+            'status': 'Ready',
+        }
+        for i in range(n)
+    ]
+    return json.dumps([
+        {
+            'id': queue_id,
+            'name': label,
+            'label': label,
+            'description': '',
+            'isDefault': False,
+            'resourceType': '',
+            'executor': 'nextflow',
+            'computeEnvironments': ces,
+            'status': 'Ready',
+        }
+    ])
+
+
+class TestFindAndAddComputeEnvironment:
+    def _make_queue(self):
+        return Queue(
+            cloudos_url=CLOUDOS_URL,
+            apikey=APIKEY,
+            cromwell_token=None,
+            workspace_id=WORKSPACE_ID,
+        )
+
+    def _add_get_queues(self):
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
+            body=QUEUES_LIST_STR,
+            status=200,
+            content_type='application/json',
+        )
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+            body=SYSTEM_QUEUES_LIST_STR,
+            status=200,
+            content_type='application/json',
+        )
+
+    @responses.activate
+    def test_find_job_queue_by_label_found(self):
+        self._add_get_queues()
+        q = self._make_queue()
+        found = q.find_job_queue_by_label('test_queue_label')
+        assert found is not None
+        assert found['label'] == 'test_queue_label'
+
+    @responses.activate
+    def test_find_job_queue_by_label_not_found(self):
+        self._add_get_queues()
+        q = self._make_queue()
+        assert q.find_job_queue_by_label('does-not-exist') is None
+
+    @responses.activate
+    def test_add_compute_environment_posts_correct_payload(self):
+        queue_id = 'q123'
+        responses.add(
+            responses.POST,
+            url=(f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/{queue_id}/"
+                 f"compute-environment?teamId={WORKSPACE_ID}"),
+            body=QUEUES_LIST_STR,
+            status=200,
+            content_type='application/json',
+        )
+        q = self._make_queue()
+        q.add_compute_environment(
+            queue_id=queue_id,
+            queue_label='my-queue',
+            ce_name='New_spot_CE',
+            provisioning_type='spot',
+            allocation_strategy='SPOT_CAPACITY_OPTIMIZED',
+            max_vcpus=512,
+            min_vcpus=0,
+            instance_types=['optimal'],
+            volume_type='gp3',
+            size=1000,
+            iops=3000,
+            throughput=125,
+        )
+        payload = json.loads(responses.calls[0].request.body)
+        assert payload['label'] == 'my-queue'
+        env = payload['environment']
+        assert env['computeEnvironmentName'] == 'New_spot_CE'
+        cr = env['computeResources']
+        assert cr['type'] == 'SPOT'
+        assert cr['bidPercentage'] == 100
+        assert cr['allocationStrategy'] == 'SPOT_CAPACITY_OPTIMIZED'
+        assert cr['volume']['throughput'] == 125
+
+    @responses.activate
+    def test_add_compute_environment_raises_on_400(self):
+        queue_id = 'q123'
+        responses.add(
+            responses.POST,
+            url=(f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/{queue_id}/"
+                 f"compute-environment?teamId={WORKSPACE_ID}"),
+            body=json.dumps({'statusCode': 400, 'message': 'Bad Request.'}),
+            status=400,
+            content_type='application/json',
+        )
+        q = self._make_queue()
+        with pytest.raises(BadRequestException):
+            q.add_compute_environment(
+                queue_id=queue_id, queue_label='my-queue', ce_name='CE',
+                provisioning_type='on-demand',
+                allocation_strategy='BEST_FIT_PROGRESSIVE', max_vcpus=512,
+                min_vcpus=0, instance_types=['optimal'], volume_type='gp3',
+                size=1000, iops=3000, throughput=125,
+            )
+
+
+# ===========================================================================
+# CLI integration tests – `cloudos queue create --add-compute-env`
+# ===========================================================================
+
+class TestAddComputeEnvironmentCLI:
+    def _mock_get_queues(self, m, queues_str):
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
+            text=queues_str,
+            status_code=200,
+        )
+        m.get(
+            f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+            text='[]',
+            status_code=200,
+        )
+
+    def test_add_compute_env_options_in_help(self):
+        runner = CliRunner()
+        result = runner.invoke(run_cloudos_cli, ['queue', 'create', '--help'])
+        assert result.exit_code == 0
+        assert '--add-compute-env' in result.output
+        assert '--compute-env-name' in result.output
+
+    def test_add_compute_env_missing_label_fails(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code != 0
+
+    def test_add_compute_env_queue_not_found(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'no-such-queue',
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('other', 'q1', 1))
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 1
+        assert 'was found' in result.output or 'No job queue' in result.output
+
+    def test_add_compute_env_limit_reached_exits(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'full-queue',
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('full-queue', 'qfull', 3))
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 0
+        assert 'reached the limit' in result.output
+
+    def test_add_compute_env_success(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'my-queue',
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('my-queue', 'qok', 1))
+            m.post(
+                f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/qok/"
+                f"compute-environment?teamId={WORKSPACE_ID}",
+                text=QUEUES_LIST_STR,
+                status_code=200,
+            )
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 0
+        assert 'added successfully' in result.output
+        assert 'reached the limit' not in result.output
+
+    def test_add_compute_env_third_ce_shows_limit_message(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'two-ce-queue',
+            '--add-compute-env', '--yes',
+            '--compute-env-name', 'CE-third',
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('two-ce-queue', 'q2ce', 2))
+            m.post(
+                f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/q2ce/"
+                f"compute-environment?teamId={WORKSPACE_ID}",
+                text=QUEUES_LIST_STR,
+                status_code=200,
+            )
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code == 0
+        assert 'added successfully' in result.output
+        assert 'reached the limit' in result.output
+
+    def test_add_compute_env_missing_ce_name_fails(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'my-queue',
+            '--add-compute-env', '--yes',
+        ]
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('my-queue', 'qok', 1))
+            result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code != 0
+
+    def test_add_compute_env_conflicts_with_from_scratch(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'my-queue',
+            '--add-compute-env', '--from-scratch', '--yes',
+            '--compute-env-name', 'CE-new',
+        ]
+        result = runner.invoke(run_cloudos_cli, args)
+        assert result.exit_code != 0
+
+    def test_add_compute_env_interactive_wizard_success(self):
+        runner = CliRunner()
+        args = [
+            'queue', 'create',
+            '--apikey', APIKEY,
+            '--cloudos-url', CLOUDOS_URL,
+            '--workspace-id', WORKSPACE_ID,
+            '--label', 'my-queue',
+            '--add-compute-env',
+        ]
+        wizard_input = '\n'.join([
+            'My Wizard CE',
+            'spot',
+            'SPOT_CAPACITY_OPTIMIZED',
+            '512',
+            '0',
+            'optimal',
+            'gp3',
+            '1000',
+            '3000',
+            '125',
+        ]) + '\n'
+        with requests_mock_module.Mocker() as m:
+            self._mock_get_queues(m, _queue_with_n_ces('my-queue', 'qwiz', 1))
+            m.post(
+                f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue/qwiz/"
+                f"compute-environment?teamId={WORKSPACE_ID}",
+                text=QUEUES_LIST_STR,
+                status_code=200,
+            )
+            result = runner.invoke(run_cloudos_cli, args, input=wizard_input)
+        assert result.exit_code == 0
+        assert 'added successfully' in result.output
+

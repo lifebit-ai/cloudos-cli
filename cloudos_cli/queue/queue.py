@@ -160,6 +160,15 @@ VOLUME_SPECS = {
     },
 }
 
+# Maximum number of compute environments a single job queue can hold.
+MAX_COMPUTE_ENVS = 3
+
+# Message shown once a job queue reaches the compute environment limit.
+CE_LIMIT_REACHED_MESSAGE = (
+    "You have reached the limit for compute environments for this job queue. "
+    "Job queues can have up to 3 compute environments."
+)
+
 
 @dataclass
 class Queue(Cloudos):
@@ -498,6 +507,79 @@ class Queue(Cloudos):
         BadRequestException
             If the API returns a 4xx or 5xx response.
         """
+        compute_resources = self._build_compute_resources(
+            provisioning_type=provisioning_type,
+            allocation_strategy=allocation_strategy,
+            max_vcpus=max_vcpus,
+            min_vcpus=min_vcpus,
+            instance_types=instance_types,
+            volume_type=volume_type,
+            size=size,
+            iops=iops,
+            throughput=throughput,
+        )
+        payload = {
+            "id": "",
+            "label": label,
+            "description": description,
+            "executor": executor,
+            "status": "ToCreate",
+            "environment": {
+                "computeEnvironmentName": label,
+                "computeResources": compute_resources,
+            },
+            "templateName": "",
+            "templateDescription": "",
+            "isDefault": False,
+        }
+        return self._post_job_queue(payload)
+
+    @staticmethod
+    def _build_compute_resources(provisioning_type,
+                                 allocation_strategy,
+                                 max_vcpus,
+                                 min_vcpus,
+                                 instance_types,
+                                 volume_type,
+                                 size,
+                                 iops,
+                                 throughput=None):
+        """Validate inputs and build an AWS Batch ``computeResources`` dict.
+
+        Parameters
+        ----------
+        provisioning_type : str
+            One of ``'on-demand'`` or ``'spot'``.
+        allocation_strategy : str
+            AWS Batch allocation strategy. Must be valid for the chosen
+            ``provisioning_type`` (see ``ALLOCATION_STRATEGIES``).
+        max_vcpus : int
+            Maximum number of vCPUs.
+        min_vcpus : int
+            Minimum number of vCPUs.
+        instance_types : list[str]
+            Instance types to allow.
+        volume_type : str
+            One of ``'gp3'`` or ``'io2'``.
+        size : int
+            Volume size in GiB.
+        iops : int
+            Provisioned IOPS for the volume.
+        throughput : int or None, optional
+            Volume throughput in MB/s. Only applicable to ``gp3`` volumes.
+
+        Returns
+        -------
+        compute_resources : dict
+            The assembled ``computeResources`` dict.
+
+        Raises
+        ------
+        ValueError
+            If the provisioning type, allocation strategy or volume type are
+            not recognised, or the allocation strategy is incompatible with
+            the provisioning type.
+        """
         if provisioning_type not in PROVISIONING_TYPES:
             valid = ', '.join(PROVISIONING_TYPES.keys())
             raise ValueError(
@@ -539,19 +621,114 @@ class Queue(Cloudos):
         }
         if provisioning_type == "spot":
             compute_resources["bidPercentage"] = 100
+        return compute_resources
 
+    def find_job_queue_by_label(self, label):
+        """Find a job queue in the workspace by its label.
+
+        Parameters
+        ----------
+        label : str
+            The label of the job queue to find.
+
+        Returns
+        -------
+        queue : dict or None
+            The matching job queue dict, or ``None`` if no queue with that
+            label exists.
+        """
+        for q in self.get_job_queues():
+            if q.get('label') == label:
+                return q
+        return None
+
+    def add_compute_environment(self,
+                                queue_id,
+                                queue_label,
+                                ce_name,
+                                provisioning_type,
+                                allocation_strategy,
+                                max_vcpus,
+                                min_vcpus,
+                                instance_types,
+                                volume_type,
+                                size,
+                                iops,
+                                throughput=None):
+        """Add a compute environment to an existing job queue.
+
+        Parameters
+        ----------
+        queue_id : str
+            The Lifebit Platform ID of the target job queue.
+        queue_label : str
+            The label of the target job queue.
+        ce_name : str
+            Name for the new compute environment.
+        provisioning_type : str
+            One of ``'on-demand'`` or ``'spot'``.
+        allocation_strategy : str
+            AWS Batch allocation strategy. Must be valid for the chosen
+            ``provisioning_type`` (see ``ALLOCATION_STRATEGIES``).
+        max_vcpus : int
+            Maximum number of vCPUs for the compute environment.
+        min_vcpus : int
+            Minimum number of vCPUs for the compute environment.
+        instance_types : list[str]
+            Instance types to allow.
+        volume_type : str
+            One of ``'gp3'`` or ``'io2'``.
+        size : int
+            Volume size in GiB.
+        iops : int
+            Provisioned IOPS for the volume.
+        throughput : int or None, optional
+            Volume throughput in MB/s. Only applicable to ``gp3`` volumes.
+
+        Returns
+        -------
+        response_data : dict
+            The updated job queue as returned by the API.
+
+        Raises
+        ------
+        ValueError
+            If the provisioning type, allocation strategy or volume type are
+            not recognised, or the allocation strategy is incompatible with
+            the provisioning type.
+        BadRequestException
+            If the API returns a 4xx or 5xx response.
+        """
+        compute_resources = self._build_compute_resources(
+            provisioning_type=provisioning_type,
+            allocation_strategy=allocation_strategy,
+            max_vcpus=max_vcpus,
+            min_vcpus=min_vcpus,
+            instance_types=instance_types,
+            volume_type=volume_type,
+            size=size,
+            iops=iops,
+            throughput=throughput,
+        )
         payload = {
-            "id": "",
-            "label": label,
-            "description": description,
-            "executor": executor,
-            "status": "ToCreate",
+            "label": queue_label,
             "environment": {
-                "computeEnvironmentName": label,
+                "computeEnvironmentName": ce_name,
                 "computeResources": compute_resources,
             },
-            "templateName": "",
-            "templateDescription": "",
-            "isDefault": False,
         }
-        return self._post_job_queue(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "apikey": self.apikey,
+        }
+        r = retry_requests_post(
+            "{}/api/v1/teams/aws/v2/job-queue/{}/compute-environment?teamId={}".format(
+                self.cloudos_url, queue_id, self.workspace_id
+            ),
+            headers=headers,
+            json=payload,
+            verify=self.verify,
+        )
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)
