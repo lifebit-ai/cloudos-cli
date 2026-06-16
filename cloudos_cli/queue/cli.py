@@ -301,7 +301,7 @@ def _from_scratch_wizard(console, for_compute_env=False, queue_label=None):
     if spec["throughput"] is not None:
         tp_default, tp_min, tp_max = spec["throughput"]
         _print_section(
-            console, 9, total, "Throughput (MB/s)",
+            console, 10, total + 1, "Throughput (MB/s)",
             subtitle="Volume throughput in MB/s.",
             hint=f"Min {tp_min}, max {tp_max}. Default {tp_default}.",
         )
@@ -588,11 +588,11 @@ def list_queues(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     # Batch job queues are an AWS-only feature; they are not available in
-    # Azure workspaces.
-    if execution_platform == 'azure':
+    # Azure or HPC workspaces.
+    if execution_platform in ('azure', 'hpc'):
         Console().print(
             '[yellow]Warning:[/yellow] Batch job queues are not available in '
-            'Azure workspaces.'
+            f'{execution_platform.upper()} workspaces.'
         )
         sys.exit(0)
 
@@ -778,11 +778,11 @@ def create_queue(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
     # Batch job queues are an AWS-only feature; they are not available in
-    # Azure workspaces.
-    if execution_platform == 'azure':
+    # Azure or HPC workspaces.
+    if execution_platform in ('azure', 'hpc'):
         Console().print(
             '[yellow]Warning:[/yellow] Batch job queues are not available in '
-            'Azure workspaces.'
+            f'{execution_platform.upper()} workspaces.'
         )
         sys.exit(0)
 
