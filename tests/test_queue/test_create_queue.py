@@ -378,6 +378,7 @@ class TestCreateQueueCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Test Queue',
+            '--description', 'A test queue',
             '--preset', 'not-a-real-preset',
             '--yes',
         ]
@@ -391,6 +392,7 @@ class TestCreateQueueCLI:
             '--apikey', APIKEY,
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
+            '--description', 'A test queue',
             '--yes',
         ]
         result = runner.invoke(run_cloudos_cli, args)
@@ -599,6 +601,7 @@ class TestCreateQueueFromScratchCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Custom Queue',
+            '--description', 'A custom queue',
             '--from-scratch', '--yes',
             '--provisioning-type', 'on-demand',
             '--allocation-strategy', 'SPOT_CAPACITY_OPTIMIZED',
@@ -614,6 +617,7 @@ class TestCreateQueueFromScratchCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Custom Queue',
+            '--description', 'A custom queue',
             '--from-scratch', '--yes',
             '--volume-type', 'gp3',
             '--iops', '100',
@@ -629,6 +633,7 @@ class TestCreateQueueFromScratchCLI:
             '--cloudos-url', CLOUDOS_URL,
             '--workspace-id', WORKSPACE_ID,
             '--label', 'Custom Queue',
+            '--description', 'A custom queue',
             '--from-scratch', '--yes',
             '--instance-types', 'not-an-instance',
         ]

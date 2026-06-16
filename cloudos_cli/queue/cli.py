@@ -137,7 +137,7 @@ def _from_scratch_wizard(console, for_compute_env=False, queue_label=None):
         ``throughput``. When ``for_compute_env`` is True, ``label`` holds the
         compute environment name.
     """
-    total = 9
+    total = 10
     console.print()
     if for_compute_env:
         intro = (
@@ -301,7 +301,7 @@ def _from_scratch_wizard(console, for_compute_env=False, queue_label=None):
     if spec["throughput"] is not None:
         tp_default, tp_min, tp_max = spec["throughput"]
         _print_section(
-            console, 10, total + 1, "Throughput (MB/s)",
+            console, 10, total, "Throughput (MB/s)",
             subtitle="Volume throughput in MB/s.",
             hint=f"Min {tp_min}, max {tp_max}. Default {tp_default}.",
         )
