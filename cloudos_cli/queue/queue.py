@@ -608,6 +608,14 @@ class Queue(Cloudos):
             raise ValueError(
                 f"Unknown volume type '{volume_type}'. Valid options are: {valid}"
             )
+        if max_vcpus < 0 or max_vcpus > MAX_VCPUS_LIMIT:
+            raise ValueError(
+                f"max_vcpus ({max_vcpus}) must be between 0 and {MAX_VCPUS_LIMIT}."
+            )
+        if min_vcpus < 0 or min_vcpus > MAX_VCPUS_LIMIT:
+            raise ValueError(
+                f"min_vcpus ({min_vcpus}) must be between 0 and {MAX_VCPUS_LIMIT}."
+            )
         if min_vcpus > max_vcpus:
             raise ValueError(
                 f"min_vcpus ({min_vcpus}) cannot be greater than max_vcpus ({max_vcpus})."
