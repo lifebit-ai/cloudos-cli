@@ -1,5 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.93.0 (2026-06-16)
+
+### Feat:
+
+- Adds `cloudos queue create` with preset templates (e.g. `standard-stable`, `standard-gpu`)
+- Adds `--from-scratch` to build custom queues via an interactive wizard or flags
+- Adds `--add-compute-env` to add a compute environment to an existing queue
+- Adds `--set-default` to mark a new queue as the workspace default
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
