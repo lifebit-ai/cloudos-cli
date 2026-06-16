@@ -25,7 +25,6 @@ _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 def _plain(text):
     """Return ``text`` with ANSI escape sequences removed."""
     return _ANSI_RE.sub("", text)
-from tests.functions_for_pytest import load_json_file
 
 # ---------------------------------------------------------------------------
 # Constants shared across tests
@@ -35,8 +34,6 @@ APIKEY = 'vnoiweur89u2ongs'
 CLOUDOS_URL = 'https://cloudos.lifebit.ai'
 WORKSPACE_ID = 'lv89ufc838sdig'
 CREATE_RESPONSE_FILE = 'tests/test_data/queue/create_queue_response.json'
-QUEUES_FILE = 'tests/test_data/queue/queues.json'
-SYSTEM_QUEUES_FILE = 'tests/test_data/queue/system_queues.json'
 
 with open(CREATE_RESPONSE_FILE) as f:
     CREATE_RESPONSE_JSON_STR = f.read()

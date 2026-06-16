@@ -457,6 +457,11 @@ def _validate_from_scratch_flags(params):
             f"{', '.join(allowed_strategies)}."
         )
 
+    if params["min_vcpus"] > params["max_vcpus"]:
+        raise click.BadParameter(
+            f"--min-vcpus cannot be greater than --max-vcpus (got {params['min_vcpus']} > {params['max_vcpus']})."
+        )
+
     spec = VOLUME_SPECS[params["volume_type"]]
     _check_range("--size", params["size"], spec["size"])
     _check_range("--iops", params["iops"], spec["iops"])
