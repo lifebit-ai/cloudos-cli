@@ -50,7 +50,7 @@ _GPU_INSTANCE_TYPES = [
 
 # Union of every selectable instance type (standard + GPU families), used to
 # validate user-supplied instance types for custom (from-scratch) queues.
-_ALL_INSTANCE_TYPES = sorted(set(_STANDARD_INSTANCE_TYPES) | set(_GPU_INSTANCE_TYPES))
+ALL_INSTANCE_TYPES = sorted(set(_STANDARD_INSTANCE_TYPES) | set(_GPU_INSTANCE_TYPES))
 
 QUEUE_PRESETS = {
     "standard-stable": {
@@ -622,7 +622,7 @@ class Queue(Cloudos):
             )
         if not instance_types:
             raise ValueError("At least one instance type is required.")
-        invalid = [t for t in instance_types if t not in _ALL_INSTANCE_TYPES]
+        invalid = [t for t in instance_types if t not in ALL_INSTANCE_TYPES]
         if invalid:
             raise ValueError(
                 f"Invalid instance type(s): {', '.join(invalid)}. "

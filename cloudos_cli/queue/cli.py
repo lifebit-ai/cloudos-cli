@@ -16,10 +16,9 @@ from cloudos_cli.queue.queue import (
     DEFAULT_MAX_VCPUS,
     DEFAULT_MIN_VCPUS,
     MAX_COMPUTE_ENVS,
-    CE_LIMIT_REACHED_MESSAGE,
     MAX_WORKSPACE_COMPUTE_ENVS,
     WORKSPACE_CE_LIMIT_REACHED_MESSAGE,
-    _ALL_INSTANCE_TYPES,
+    ALL_INSTANCE_TYPES,
 )
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
@@ -390,7 +389,7 @@ def _prompt_instance_types(console):
     while True:
         raw = _styled_prompt("Instance types", type=str, default="optimal")
         instance_types = [item.strip() for item in raw.split(",") if item.strip()]
-        invalid = [item for item in instance_types if item not in _ALL_INSTANCE_TYPES]
+        invalid = [item for item in instance_types if item not in ALL_INSTANCE_TYPES]
         if not instance_types:
             console.print("[red]Please provide at least one instance type.[/red]")
             continue
@@ -424,7 +423,7 @@ def _parse_instance_types(raw):
     instance_types = [item.strip() for item in raw.split(",") if item.strip()]
     if not instance_types:
         raise click.BadParameter("At least one instance type is required.")
-    invalid = [item for item in instance_types if item not in _ALL_INSTANCE_TYPES]
+    invalid = [item for item in instance_types if item not in ALL_INSTANCE_TYPES]
     if invalid:
         raise click.BadParameter(
             f"Invalid instance type(s): {', '.join(invalid)}. "
