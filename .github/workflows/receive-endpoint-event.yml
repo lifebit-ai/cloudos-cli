@@ -1,22 +1,14 @@
 name: Receive endpoint change and generate CLI PR
 
 on:
-  repository_dispatch:
-    types: [endpoint-changed]
-  # workflow_dispatch:
-  #   inputs:
-  #     mock_payload_json:
-  #       description: "Full client_payload JSON (paste the mock payload)"
-  #       required: false
-  #       default: ''
-  #     mock_endpoint_path:
-  #       description: "Quick mock — endpoint path (e.g. /projects/{id}/members)"
-  #       required: false
-  #       default: '/projects/{id}/members'
-  #     change_type:
-  #       description: "added, modified, removed, or refactored"
-  #       required: false
-  #       default: 'added'
+  # repository_dispatch:
+  #   types: [endpoint-changed]
+  workflow_dispatch:
+    inputs:
+      client_payload:
+        description: "Full client_payload JSON (the object under client_payload from the dispatch body)"
+        required: true
+        default: '{"relevant": true, "source_pr_url": "", "changed_endpoints": [{"method": "GET", "path": "/test/mock", "change_type": "added", "auth": ["userApiToken"], "summary": "Test dispatch"}]}'
   # push:
   #   branches:
   #     - ai-server-cli
@@ -35,34 +27,15 @@ jobs:
         env:
           # Use env vars to safely pass user inputs — avoids single-quote injection
           # when the JSON payload contains quotes.
-          MOCK_PAYLOAD_JSON: ${{ inputs.mock_payload_json }}
-          MOCK_ENDPOINT_PATH: ${{ inputs.mock_endpoint_path }}
-          CHANGE_TYPE: ${{ inputs.change_type }}
+          CLIENT_PAYLOAD: ${{ inputs.client_payload }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             # Sentinel-file trigger: payload is read directly from the committed file
             cp .github/test-trigger.json /tmp/payload.json
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "$MOCK_PAYLOAD_JSON" ]; then
-              # Write via env var — safe against single-quote injection
-              printf '%s' "$MOCK_PAYLOAD_JSON" > /tmp/payload.json
-            else
-              python3 -c "
-          import json, os
-          payload = {
-            'relevant': True,
-            'source_pr_url': 'mock',
-            'changed_endpoints': [{
-              'method': 'GET',
-              'path': os.environ['MOCK_ENDPOINT_PATH'],
-              'change_type': os.environ['CHANGE_TYPE'],
-              'auth': ['userApiToken'],
-              'summary': 'Mock endpoint for testing'
-            }]
-          }
-          print(json.dumps(payload))
-          " > /tmp/payload.json
-            fi
+            # workflow_dispatch receives the client_payload object as a JSON string
+            # input — write it via env var (safe against single-quote injection).
+            printf '%s' "$CLIENT_PAYLOAD" > /tmp/payload.json
           else
             # repository_dispatch: client_payload is already JSON — write via tojson filter
             cat <<'EOJSON' > /tmp/payload.json
