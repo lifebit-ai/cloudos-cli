@@ -365,7 +365,8 @@ class Queue(Cloudos):
             raise ValueError(
                 f"Unknown preset '{preset_name}'. Valid presets are: {valid}"
             )
-        return QUEUE_PRESETS[preset_name]
+        import copy
+        return copy.deepcopy(QUEUE_PRESETS[preset_name])
 
     def create_job_queue(self, label, description, preset_name, executor="nextflow",
                          is_default=False):
@@ -611,6 +612,27 @@ class Queue(Cloudos):
             raise ValueError(
                 f"min_vcpus ({min_vcpus}) cannot be greater than max_vcpus ({max_vcpus})."
             )
+        if not instance_types:
+            raise ValueError("At least one instance type is required.")
+        invalid = [t for t in instance_types if t not in _ALL_INSTANCE_TYPES]
+        if invalid:
+            raise ValueError(
+                f"Invalid instance type(s): {', '.join(invalid)}. "
+                "Allowed values are 'optimal' or standard/GPU instance types."
+            )
+        spec = VOLUME_SPECS[volume_type]
+        for field, value in (("size", size), ("iops", iops)):
+            _, minimum, maximum = spec[field]
+            if value < minimum or value > maximum:
+                raise ValueError(
+                    f"{field} ({value}) must be between {minimum} and {maximum} for volume type '{volume_type}'."
+                )
+        if spec["throughput"] is not None and throughput is not None:
+            _, minimum, maximum = spec["throughput"]
+            if throughput < minimum or throughput > maximum:
+                raise ValueError(
+                    f"throughput ({throughput}) must be between {minimum} and {maximum} for volume type '{volume_type}'."
+                )
 
         resource_type = PROVISIONING_TYPES[provisioning_type]
         volume = {
