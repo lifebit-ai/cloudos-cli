@@ -3,23 +3,23 @@ name: Receive endpoint change and generate CLI PR
 on:
   repository_dispatch:
     types: [endpoint-changed]
-  workflow_dispatch:
-    inputs:
-      mock_payload_json:
-        description: "Full client_payload JSON (paste the mock payload)"
-        required: false
-        default: ''
-      mock_endpoint_path:
-        description: "Quick mock — endpoint path (e.g. /projects/{id}/members)"
-        required: false
-        default: '/projects/{id}/members'
-      change_type:
-        description: "added, modified, removed, or refactored"
-        required: false
-        default: 'added'
-  push:
-    branches:
-      - ai-server-cli
+  # workflow_dispatch:
+  #   inputs:
+  #     mock_payload_json:
+  #       description: "Full client_payload JSON (paste the mock payload)"
+  #       required: false
+  #       default: ''
+  #     mock_endpoint_path:
+  #       description: "Quick mock — endpoint path (e.g. /projects/{id}/members)"
+  #       required: false
+  #       default: '/projects/{id}/members'
+  #     change_type:
+  #       description: "added, modified, removed, or refactored"
+  #       required: false
+  #       default: 'added'
+  # push:
+  #   branches:
+  #     - ai-server-cli
 
 jobs:
   generate-pr:
