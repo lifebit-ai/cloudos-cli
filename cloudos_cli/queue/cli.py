@@ -19,7 +19,7 @@ from cloudos_cli.queue.queue import (
     CE_LIMIT_REACHED_MESSAGE,
     MAX_WORKSPACE_COMPUTE_ENVS,
     WORKSPACE_CE_LIMIT_REACHED_MESSAGE,
-    _STANDARD_INSTANCE_TYPES,
+    _ALL_INSTANCE_TYPES,
 )
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
@@ -29,6 +29,16 @@ from cloudos_cli.utils.details import create_queue_list_table
 
 # Union of all allocation strategies, used for the CLI option choices.
 _ALL_ALLOCATION_STRATEGIES = ["BEST_FIT", "BEST_FIT_PROGRESSIVE", "SPOT_CAPACITY_OPTIMIZED"]
+
+# Workflow executors supported for job queues.
+_EXECUTORS = ["nextflow", "cromwell"]
+
+# Default volume parameters for the non-interactive --from-scratch flags. These
+# mirror the gp3 spec (the default volume type) in VOLUME_SPECS so the CLI
+# defaults never drift from the validated specification.
+_DEFAULT_SIZE = VOLUME_SPECS["gp3"]["size"][0]
+_DEFAULT_IOPS = VOLUME_SPECS["gp3"]["iops"][0]
+_DEFAULT_THROUGHPUT = VOLUME_SPECS["gp3"]["throughput"][0]
 
 # ---------------------------------------------------------------------------
 # Wizard styling helpers
@@ -222,7 +232,8 @@ def _from_scratch_wizard(console, for_compute_env=False, queue_label=None):
         console, 6, total, "Instance types",
         subtitle="Optimal or a combination of instances.",
         hint="Enter 'optimal' or a comma-separated list of instance types "
-             "from the standard families (c5, r5, m5, c4, r4, m4).",
+             "from the standard (c5, r5, m5, c4, r4, m4) or GPU (p3, g4dn) "
+             "families.",
     )
     instance_types = _prompt_instance_types(console)
 
@@ -379,14 +390,14 @@ def _prompt_instance_types(console):
     while True:
         raw = _styled_prompt("Instance types", type=str, default="optimal")
         instance_types = [item.strip() for item in raw.split(",") if item.strip()]
-        invalid = [item for item in instance_types if item not in _STANDARD_INSTANCE_TYPES]
+        invalid = [item for item in instance_types if item not in _ALL_INSTANCE_TYPES]
         if not instance_types:
             console.print("[red]Please provide at least one instance type.[/red]")
             continue
         if invalid:
             console.print(
                 f"[red]Invalid instance type(s): {', '.join(invalid)}.[/red] "
-                "[dim]Allowed values are 'optimal' or standard instance types.[/dim]"
+                "[dim]Allowed values are 'optimal' or standard/GPU instance types.[/dim]"
             )
             continue
         return instance_types
@@ -413,11 +424,11 @@ def _parse_instance_types(raw):
     instance_types = [item.strip() for item in raw.split(",") if item.strip()]
     if not instance_types:
         raise click.BadParameter("At least one instance type is required.")
-    invalid = [item for item in instance_types if item not in _STANDARD_INSTANCE_TYPES]
+    invalid = [item for item in instance_types if item not in _ALL_INSTANCE_TYPES]
     if invalid:
         raise click.BadParameter(
             f"Invalid instance type(s): {', '.join(invalid)}. "
-            "Allowed values are 'optimal' or standard instance types."
+            "Allowed values are 'optimal' or standard/GPU instance types."
         )
     return instance_types
 
@@ -640,6 +651,7 @@ def list_queues(ctx,
               required=False)
 @click.option('--executor',
               help='Workflow executor for the queue. Default=nextflow.',
+              type=click.Choice(_EXECUTORS, case_sensitive=False),
               default='nextflow',
               show_default=True,
               required=False)
@@ -684,7 +696,7 @@ def list_queues(ctx,
               show_default=True)
 @click.option('--instance-types',
               help=("Instance types for --from-scratch. 'optimal' or a "
-                    'comma-separated list of standard instance types. '
+                    'comma-separated list of standard or GPU instance types. '
                     'Default=optimal.'),
               default='optimal',
               show_default=True)
@@ -694,20 +706,20 @@ def list_queues(ctx,
               default='gp3',
               show_default=True)
 @click.option('--size',
-              help='Volume size in GiB for --from-scratch. Default=1000.',
+              help=f'Volume size in GiB for --from-scratch. Default={_DEFAULT_SIZE}.',
               type=int,
-              default=1000,
+              default=_DEFAULT_SIZE,
               show_default=True)
 @click.option('--iops',
-              help='Provisioned IOPS for --from-scratch. Default=3000.',
+              help=f'Provisioned IOPS for --from-scratch. Default={_DEFAULT_IOPS}.',
               type=int,
-              default=3000,
+              default=_DEFAULT_IOPS,
               show_default=True)
 @click.option('--throughput',
               help=('Volume throughput in MB/s for --from-scratch (gp3 only). '
-                    'Default=125.'),
+                    f'Default={_DEFAULT_THROUGHPUT}.'),
               type=int,
-              default=125,
+              default=_DEFAULT_THROUGHPUT,
               show_default=True)
 @click.option('-y',
               '--yes',

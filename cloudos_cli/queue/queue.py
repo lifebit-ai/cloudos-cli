@@ -2,7 +2,6 @@
 This is the main class to create job queues.
 """
 
-import requests
 import json
 import pandas as pd
 from dataclasses import dataclass
@@ -11,8 +10,9 @@ from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import (
     BadRequestException,
     ComputeEnvAuthorizationException,
+    NoJobQueuesAvailableException,
 )
-from cloudos_cli.utils.requests import retry_requests_post
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
 
 
 # ---------------------------------------------------------------------------
@@ -47,6 +47,10 @@ _GPU_INSTANCE_TYPES = [
     "r5.xlarge", "r5.2xlarge", "r5.4xlarge", "r5.8xlarge",
     "r5.12xlarge", "r5.16xlarge", "r5.24xlarge", "r5.metal",
 ]
+
+# Union of every selectable instance type (standard + GPU families), used to
+# validate user-supplied instance types for custom (from-scratch) queues.
+_ALL_INSTANCE_TYPES = sorted(set(_STANDARD_INSTANCE_TYPES) | set(_GPU_INSTANCE_TYPES))
 
 QUEUE_PRESETS = {
     "standard-stable": {
@@ -169,7 +173,7 @@ MAX_COMPUTE_ENVS = 3
 # Message shown once a job queue reaches the compute environment limit.
 CE_LIMIT_REACHED_MESSAGE = (
     "You have reached the limit for compute environments for this job queue. "
-    "Job queues can have up to 3 compute environments."
+    f"Job queues can have up to {MAX_COMPUTE_ENVS} compute environments."
 )
 
 # Maximum number of compute environments a workspace can hold across all queues.
@@ -178,7 +182,7 @@ MAX_WORKSPACE_COMPUTE_ENVS = 10
 # Message shown once a workspace reaches the compute environment limit.
 WORKSPACE_CE_LIMIT_REACHED_MESSAGE = (
     "You have reached the limit for compute environments in your workspace. "
-    "Workspaces can have up to 10 compute environments."
+    f"Workspaces can have up to {MAX_WORKSPACE_COMPUTE_ENVS} compute environments."
 )
 
 
@@ -218,9 +222,9 @@ class Queue(Cloudos):
             A list of dicts, each corresponding to a job queue.
         """
         headers = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
-                                                                              self.workspace_id),
-                         headers=headers, verify=self.verify)
+        r = retry_requests_get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
+                                                                                    self.workspace_id),
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         queues = json.loads(r.content)
@@ -240,9 +244,9 @@ class Queue(Cloudos):
             A list of dicts, each corresponding to a system job queue.
         """
         headers = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/teams/aws/v2/system-job-queues?teamId={}".format(self.cloudos_url,
-                                                                                       self.workspace_id),
-                         headers=headers, verify=self.verify)
+        r = retry_requests_get("{}/api/v1/teams/aws/v2/system-job-queues?teamId={}".format(self.cloudos_url,
+                                                                                            self.workspace_id),
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
@@ -314,8 +318,7 @@ class Queue(Cloudos):
         available_queues = [q for q in job_queues if q['status'] == 'Ready' and
                             q['executor'] == workflow_type]
         if len(available_queues) == 0:
-            raise Exception(f'There are no available job queues for {workflow_type} ' +
-                            'workflows. Consider creating one using Lifebit Platform UI.')
+            raise NoJobQueuesAvailableException(workflow_type)
         default_queue = [q for q in available_queues if q.get('isDefault', False)]
         if len(default_queue) > 0:
             default_queue_id = default_queue[0]['id']
@@ -363,26 +366,6 @@ class Queue(Cloudos):
                 f"Unknown preset '{preset_name}'. Valid presets are: {valid}"
             )
         return QUEUE_PRESETS[preset_name]
-
-    def get_available_instances(self):
-        """Return the list of available AWS instance types for the workspace.
-
-        Returns
-        -------
-        instances : list
-            A list of dicts describing available instance types.
-        """
-        headers = {"apikey": self.apikey}
-        r = requests.get(
-            "{}/api/v1/aws/instances?teamId={}".format(
-                self.cloudos_url, self.workspace_id
-            ),
-            headers=headers,
-            verify=self.verify,
-        )
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        return json.loads(r.content)
 
     def create_job_queue(self, label, description, preset_name, executor="nextflow",
                          is_default=False):
@@ -462,7 +445,13 @@ class Queue(Cloudos):
         if r.status_code >= 400:
             raise BadRequestException(r)
         response_data = json.loads(r.content)
-        return response_data.get("id") or response_data.get("_id", "")
+        queue_id = response_data.get("id") or response_data.get("_id")
+        if not queue_id:
+            raise RuntimeError(
+                "Job queue creation succeeded but the server response did not "
+                "include a queue ID."
+            )
+        return queue_id
 
     def create_job_queue_from_scratch(self,
                                       label,
