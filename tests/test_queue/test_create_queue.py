@@ -1,6 +1,7 @@
 """Tests for the queue create command and Queue.create_job_queue() method."""
 
 import json
+import re
 import pytest
 import responses
 import requests_mock as requests_mock_module
@@ -12,6 +13,18 @@ from cloudos_cli.utils.errors import (
     ComputeEnvAuthorizationException,
 )
 from cloudos_cli.__main__ import run_cloudos_cli
+
+# rich_click renders usage errors in a styled panel and highlights option
+# tokens (e.g. ``--description``) with ANSI escape codes. When colour output is
+# enabled (as in CI), those escape codes are inserted between the surrounding
+# text and the option token, breaking naive substring assertions. Strip ANSI
+# escape sequences before asserting on the human-readable message.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _plain(text):
+    """Return ``text`` with ANSI escape sequences removed."""
+    return _ANSI_RE.sub("", text)
 from tests.functions_for_pytest import load_json_file
 
 # ---------------------------------------------------------------------------
@@ -399,7 +412,7 @@ class TestCreateQueueCLI:
         ]
         result = runner.invoke(run_cloudos_cli, args)
         assert result.exit_code != 0
-        assert 'Missing option --description' in result.output
+        assert 'Missing option --description' in _plain(result.output)
 
 
 # ===========================================================================
@@ -579,7 +592,7 @@ class TestCreateQueueFromScratchCLI:
         ]
         result = runner.invoke(run_cloudos_cli, args)
         assert result.exit_code != 0
-        assert 'cannot be combined with --preset' in result.output
+        assert 'cannot be combined with --preset' in _plain(result.output)
 
     def test_from_scratch_incompatible_strategy_rejected(self):
         runner = CliRunner()
