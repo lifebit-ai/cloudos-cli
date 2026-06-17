@@ -133,55 +133,27 @@ jobs:
           open("/tmp/issue-title.txt", "w").write(title)
           EOF
 
-      - name: Create issue and assign to the coding agent
+      - name: Create issue and assign to Copilot coding agent
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
-          # The agent's bot login. Must appear in the repo's suggestedActors
-          # (CAN_BE_ASSIGNED). Options: copilot-swe-agent, anthropic-code-agent, ...
           ASSIGNEE: copilot-swe-agent
-          REPO: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          OWNER="${REPO%/*}"
-          NAME="${REPO#*/}"
-
-          # 1) Create the issue (no assignee yet) and capture its GraphQL node id.
+          # switch agent: anthropic-code-agent; copilot-swe-agent; codex-code-agent?
+          # Create the issue first WITHOUT an assignee, then assign separately.
           ISSUE_URL=$(gh issue create \
             --title "$(cat /tmp/issue-title.txt)" \
             --body-file /tmp/issue-body.md \
             --label "agent-generated")
           echo "Created issue: $ISSUE_URL"
-          ISSUE_NUMBER="${ISSUE_URL##*/}"
-          ISSUE_ID=$(gh api "repos/$OWNER/$NAME/issues/$ISSUE_NUMBER" --jq '.node_id')
+          ISSUE_NUMBER=$(basename "$ISSUE_URL")
 
-          # 2) Resolve the agent's bot node id from suggestedActors. REST
-          #    --assignee attaches the bot but does NOT start an agent session;
-          #    the GraphQL replaceActorsForAssignable mutation (what the UI uses)
-          #    is what actually bootstraps the run.
-          ACTOR_ID=$(gh api graphql -f query='
-            query($owner:String!,$name:String!){
-              repository(owner:$owner,name:$name){
-                suggestedActors(capabilities:[CAN_BE_ASSIGNED], first:50){
-                  nodes{ login __typename ... on Bot { id } ... on User { id } }
-                }
-              }
-            }' -F owner="$OWNER" -F name="$NAME" \
-            --jq ".data.repository.suggestedActors.nodes[] | select(.login==\"$ASSIGNEE\") | .id")
+          # Give GitHub a moment to fully index the new issue before assigning the
+          # coding agent — assigning too quickly can fail to start the agent session.
+          sleep 30
 
-          if [ -z "$ACTOR_ID" ]; then
-            echo "::error::Agent '$ASSIGNEE' not found in suggestedActors (CAN_BE_ASSIGNED)."
-            exit 1
-          fi
-
-          # 3) Assign the agent via GraphQL — this triggers the agent session.
-          gh api graphql -f query='
-            mutation($assignable:ID!,$actor:ID!){
-              replaceActorsForAssignable(input:{assignableId:$assignable, actorIds:[$actor]}){
-                assignable { ... on Issue { number } }
-              }
-            }' -F assignable="$ISSUE_ID" -F actor="$ACTOR_ID"
-
-          echo "Issue #$ISSUE_NUMBER assigned to $ASSIGNEE via GraphQL"
+          gh issue edit "$ISSUE_NUMBER" \
+            --add-assignee "$ASSIGNEE"
+          echo "Issue #$ISSUE_NUMBER assigned to $ASSIGNEE"
 
       - name: Open fallback issue on failure
         if: failure()
