@@ -1,0 +1,24 @@
+[
+  {
+    "id": "projects-create",
+    "method": "POST",
+    "path": "/api/v1/projects",
+    "query_params": [
+      "teamId"
+    ],
+    "cli_command": "cloudos project create",
+    "source_file": "cloudos_cli/clos.py",
+    "added_in_version": "2.91.0",
+    "notes": null
+  },
+  {
+    "id": "projects-members",
+    "method": "GET",
+    "path": "/api/v1/projects/{id}/members",
+    "query_params": [],
+    "cli_command": "cloudos project members",
+    "source_file": "cloudos_cli/projects/cli.py",
+    "added_in_version": "2.91.1",
+    "notes": null
+  }
+]

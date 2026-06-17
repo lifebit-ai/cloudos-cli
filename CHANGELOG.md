@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-17)
+
+### Patch
+
+- Adds `cloudos project members` to retrieve members for a Lifebit Platform project
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
