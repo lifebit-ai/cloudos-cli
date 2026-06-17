@@ -129,8 +129,8 @@ jobs:
 
       - name: Create PR and assign to Copilot coding agent
         run: |
-          echo "${{ secrets.AGENT_PR_PAT }}" | gh auth login --with-token
-          gh auth status
+          echo "${{ secrets.AGENT_PR_PAT }}" | gh auth login --with-token |
+          gh auth status |
           gh agent-task create \
             --from-file /tmp/issue-body.md \
             --base main
