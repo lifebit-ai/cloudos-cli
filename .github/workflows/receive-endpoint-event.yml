@@ -135,8 +135,8 @@ jobs:
             --title "$(cat /tmp/issue-title.txt)" \
             --body-file /tmp/issue-body.md \
             --label "agent-generated" \
-            --assignee copilot-swe-agent
-          echo "Issue created and assigned to copilot-swe-agent"
+            --assignee openai-code-agent
+          echo "Issue created and assigned to openai-code-agent"
 
       - name: Open fallback issue on failure
         if: failure()
