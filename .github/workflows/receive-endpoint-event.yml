@@ -96,8 +96,18 @@ jobs:
           # coding agent — assigning too quickly can fail to start the agent session.
           sleep 30
 
-          gh issue edit "$ISSUE_NUMBER" \
-            --add-assignee "$ASSIGNEE"
+          # Retry: unassign then re-assign to nudge the agent session into starting.
+          for i in 1 2 3; do
+            gh issue edit "$ISSUE_NUMBER" \
+              --remove-assignee "$ASSIGNEE" || true
+
+            sleep 5
+
+            gh issue edit "$ISSUE_NUMBER" \
+              --add-assignee "$ASSIGNEE" && break
+
+            sleep 30
+          done
           echo "Issue #$ISSUE_NUMBER assigned to $ASSIGNEE"
 
       - name: Open fallback issue on failure
