@@ -225,16 +225,16 @@ def create_project(ctx,
 @click.option('--profile', help='Profile to use from the config file', default=None)
 @click.pass_context
 @with_profile_config(required_params=['apikey'])
-def list_project_members(ctx,
-                         apikey,
-                         cloudos_url,
-                         project_id,
-                         output_basename,
-                         output_format,
-                         verbose,
-                         disable_ssl_verification,
-                         ssl_cert,
-                         profile):
+def project_members(ctx,
+                    apikey,
+                    cloudos_url,
+                    project_id,
+                    output_basename,
+                    output_format,
+                    verbose,
+                    disable_ssl_verification,
+                    ssl_cert,
+                    profile):
     """Collect and display all members from a Lifebit Platform project."""
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if output_format != 'stdout':
@@ -243,18 +243,18 @@ def list_project_members(ctx,
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, None)
-    members = cl.get_project_members(project_id, verify_ssl)
+    project_members_response = cl.get_project_members(project_id, verify_ssl)
 
-    if isinstance(members, dict):
-        member_count = len(members.get('members', members))
+    if isinstance(project_members_response, dict):
+        member_count = len(project_members_response.get('members', project_members_response))
     else:
-        member_count = len(members)
+        member_count = len(project_members_response)
 
     if output_format == 'stdout':
-        print(json.dumps(members, indent=2))
+        print(json.dumps(project_members_response, indent=2))
     elif output_format == 'json':
         with open(outfile, 'w') as o:
-            o.write(json.dumps(members))
+            o.write(json.dumps(project_members_response))
         print(f'\tProject member list collected with a total of {member_count} members.')
         print(f'\tProject member list saved to {outfile}')
     else:
