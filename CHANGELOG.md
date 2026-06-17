@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-17)
+
+### Patch
+
+- Adds `cloudos project list-members` command to retrieve members of a project via `GET /api/v1/projects/{id}/members`.
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

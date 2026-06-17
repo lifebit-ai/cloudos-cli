@@ -2155,6 +2155,39 @@ class Cloudos:
         content = json.loads(r.content)
         return content['_id']
 
+    def get_project_members(self, project_id, verify=True):
+        """Get members of a project from Lifebit Platform.
+
+        Parameters
+        ----------
+        project_id : str
+            The Lifebit Platform project ID whose members to retrieve.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        list
+            A list of member objects belonging to the project.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        r = retry_requests_get(
+            "{}/api/v1/projects/{}/members".format(self.cloudos_url, project_id),
+            headers=headers, verify=verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)
+
     def get_workflow_max_pagination(self, workspace_id, workflow_name, verify=True):
         """Retrieve the workflows max pages from API.
 

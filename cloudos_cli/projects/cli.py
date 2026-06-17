@@ -186,3 +186,71 @@ def create_project(ctx,
     except Exception as e:
         print(f'\tError creating project: {str(e)}')
         sys.exit(1)
+
+
+@project.command('members')
+@click.option('-k',
+              '--apikey',
+              help='Your Lifebit Platform API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--project-id',
+              help='The Lifebit Platform project ID whose members to retrieve.',
+              required=True)
+@click.option('--output-basename',
+              help='Output file base name to save member list. Default=project_members',
+              default='project_members',
+              required=False)
+@click.option('--output-format',
+              help=('Output format for member list. Options: '
+                    'stdout (print as JSON to terminal), '
+                    'json (save as JSON file). Default=stdout.'),
+              type=click.Choice(['stdout', 'json'], case_sensitive=False),
+              default='stdout')
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is '
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey'])
+def list_project_members(ctx,
+                         apikey,
+                         cloudos_url,
+                         project_id,
+                         output_basename,
+                         output_format,
+                         verbose,
+                         disable_ssl_verification,
+                         ssl_cert,
+                         profile):
+    """Retrieve and display members of a Lifebit Platform project."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+    if output_format != 'stdout':
+        outfile = output_basename + '.' + output_format
+    print('Executing list-members...')
+    if verbose:
+        print('\t...Preparing objects')
+    cl = Cloudos(cloudos_url, apikey, None)
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+        print(f'\tRetrieving members for project: {project_id}')
+    members = cl.get_project_members(project_id, verify_ssl)
+    if output_format == 'stdout':
+        print(json.dumps(members, indent=2))
+    elif output_format == 'json':
+        with open(outfile, 'w') as o:
+            o.write(json.dumps(members))
+        print(f'\tProject members saved to {outfile}')
+    else:
+        raise ValueError('Unrecognised output format. Please use one of [stdout|json]')
