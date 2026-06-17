@@ -738,7 +738,7 @@ class Job(Cloudos):
                                                command=command,
                                                cpus=cpus,
                                                memory=memory)
-        r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
+        r = retry_requests_post("{}/api/v3/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
         if r.status_code >= 400:
@@ -1364,7 +1364,7 @@ class Job(Cloudos):
         }
         clean_payload = self.fix_boolean_strings(cloned_payload)
 
-        r = retry_requests_post(f"{self.cloudos_url}/api/v2/jobs?teamId={self.workspace_id}",
+        r = retry_requests_post(f"{self.cloudos_url}/api/v3/jobs?teamId={self.workspace_id}",
                                 data=json.dumps(clean_payload),
                                 headers=headers,
                                 verify=verify)
@@ -1449,7 +1449,7 @@ class Job(Cloudos):
                 "teamId": workspace_id
             }
 
-            url = f"{self.cloudos_url}/api/v2/jobs"
+            url = f"{self.cloudos_url}/api/v3/jobs"
             response = retry_requests_get(url, params=params, headers=headers, verify=verify)
 
             if response.status_code >= 400:

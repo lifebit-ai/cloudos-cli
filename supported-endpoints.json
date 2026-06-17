@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "cli_version": "2.91.0",
+  "cli_version": "2.91.1",
   "description": "Single source of truth mapping every API endpoint wrapped by cloudos-cli to the CLI command that wraps it. Used by the AI agent PR workflow to detect breaking changes in the api-server repo.",
   "notes": [
     "Path parameters are expressed as {param_name}.",
@@ -12,12 +12,12 @@
     {
       "id": "jobs-run",
       "method": "POST",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["teamId"],
       "cli_command": "cloudos job run",
       "source_file": "cloudos_cli/jobs/job.py",
-      "added_in_version": "2.91.0",
-      "notes": "Also called by 'cloudos bash job' and 'cloudos bash array-job'"
+      "added_in_version": "2.91.1",
+      "notes": "Also called by 'cloudos bash job' and 'cloudos bash array-job' (renamed from /api/v2/jobs)"
     },
     {
       "id": "jobs-array-metadata",
@@ -52,22 +52,22 @@
     {
       "id": "jobs-list",
       "method": "GET",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["teamId", "page", "limit"],
       "cli_command": "cloudos job list",
       "source_file": "cloudos_cli/clos.py",
-      "added_in_version": "2.91.0",
-      "notes": null
+      "added_in_version": "2.91.1",
+      "notes": "Renamed from /api/v2/jobs"
     },
     {
       "id": "jobs-list-related-by-workdir",
       "method": "GET",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["workDirectory.folderId", "teamId"],
       "cli_command": "cloudos job related",
       "source_file": "cloudos_cli/jobs/job.py",
-      "added_in_version": "2.91.0",
-      "notes": "Filters jobs by shared work-directory folder to find related analyses"
+      "added_in_version": "2.91.1",
+      "notes": "Filters jobs by shared work-directory folder to find related analyses (renamed from /api/v2/jobs)"
     },
     {
       "id": "jobs-abort",
@@ -112,12 +112,12 @@
     {
       "id": "jobs-clone-resume-submit",
       "method": "POST",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["teamId"],
       "cli_command": "cloudos job resume",
       "source_file": "cloudos_cli/jobs/job.py",
-      "added_in_version": "2.91.0",
-      "notes": "POST after fetching the request-payload; also used by 'cloudos job clone'"
+      "added_in_version": "2.91.1",
+      "notes": "POST after fetching the request-payload; also used by 'cloudos job clone' (renamed from /api/v2/jobs)"
     },
     {
       "id": "jobs-git-branches",
@@ -152,12 +152,12 @@
     {
       "id": "bash-job",
       "method": "POST",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["teamId"],
       "cli_command": "cloudos bash job",
       "source_file": "cloudos_cli/jobs/job.py",
-      "added_in_version": "2.91.0",
-      "notes": "Bash job submission"
+      "added_in_version": "2.91.1",
+      "notes": "Bash job submission (renamed from /api/v2/jobs)"
     },
     {
       "id": "bash-array-job-metadata",
@@ -172,12 +172,12 @@
     {
       "id": "bash-array-job-submit",
       "method": "POST",
-      "path": "/api/v2/jobs",
+      "path": "/api/v3/jobs",
       "query_params": ["teamId"],
       "cli_command": "cloudos bash array-job",
       "source_file": "cloudos_cli/jobs/job.py",
-      "added_in_version": "2.91.0",
-      "notes": null
+      "added_in_version": "2.91.1",
+      "notes": "Renamed from /api/v2/jobs"
     },
     {
       "id": "queue-list-user",

@@ -1,5 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-17)
+
+### Patch
+
+- Updates `POST /api/v2/jobs` to `POST /api/v3/jobs` for job submission endpoints
+  (`job run`, `bash job`, `bash array-job`, `job clone`, `job resume`)
+- Updates `GET /api/v2/jobs` to `GET /api/v3/jobs` for job listing endpoints
+  (`job list`, `job related`)
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
