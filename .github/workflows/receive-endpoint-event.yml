@@ -17,10 +17,6 @@ on:
         description: "added, modified, removed, or refactored"
         required: false
         default: 'added'
-      model:
-        description: "Agent model: '' (auto/Copilot), claude-sonnet-4.6, claude-opus-4.6, gpt-5.2-codex, gpt-5.4, ..."
-        required: false
-        default: 'claude-sonnet-4.6'
   push:
     branches:
       - test-friday
@@ -138,11 +134,7 @@ jobs:
           # tokens) are NOT supported.
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
           REPO: ${{ github.repository }}
-          # Which engine runs the task. The agent tasks API selects the underlying
-          # MODEL (not the bot identity): leave empty for auto/Copilot, or set e.g.
-          # claude-sonnet-4.6 / claude-opus-4.6 (Anthropic) or gpt-5.4 / gpt-5.2-codex
-          # (OpenAI). Allowed values depend on your Copilot plan and org policy.
-          AGENT_MODEL: ${{ inputs.model }}
+          AGENT_MODEL: claude-sonnet-4.6
         run: |
           set -euo pipefail
           gh auth status
