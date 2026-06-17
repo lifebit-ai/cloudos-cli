@@ -63,7 +63,7 @@ def test_filter_by_status():
     }
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=MOCK_JOB_LIST,
         match=[matchers.query_param_matcher(expected_params)],
         status=200
@@ -86,7 +86,7 @@ def test_filter_by_job_name():
     }
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=MOCK_JOB_LIST,
         match=[matchers.query_param_matcher(expected_params)],
         status=200
@@ -107,7 +107,7 @@ def test_filter_by_job_id():
     }
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=MOCK_JOB_LIST,
         match=[matchers.query_param_matcher(expected_params)],
         status=200
@@ -134,7 +134,7 @@ def test_filter_only_mine():
     }
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=MOCK_JOB_LIST,
         match=[matchers.query_param_matcher(expected_params)],
         status=200
@@ -150,7 +150,7 @@ def test_filter_by_queue(mock_get_queues):
     mock_get_queues.return_value = MOCK_QUEUE_LIST
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=MOCK_JOB_LIST,
         status=200
     )
@@ -195,7 +195,7 @@ def test_filter_by_system_queue(mock_get_queues):
     
     responses.add(
         responses.GET,
-        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        url=f"{CLOUDOS_URL}/api/v3/jobs",
         json=mock_job_with_system_queue,
         status=200
     )

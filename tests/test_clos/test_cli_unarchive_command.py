@@ -64,12 +64,12 @@ def test_job_unarchive_invalid_job_ids():
     with requests_mock.Mocker() as m:
         # Mock the job status check to fail (job doesn't exist in either list)
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=test_workspace&archived.status=true&page=1&limit=1&id=invalid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=test_workspace&archived.status=true&page=1&limit=1&id=invalid_job",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=test_workspace&archived.status=false&page=1&limit=1&id=invalid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=test_workspace&archived.status=false&page=1&limit=1&id=invalid_job",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )

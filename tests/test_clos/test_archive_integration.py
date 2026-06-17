@@ -13,14 +13,14 @@ def test_job_archive_successful_flow():
     with requests_mock.Mocker() as m:
         # Mock checking if job is archived (should return empty for unarchived job)
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job_123",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job_123",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
 
         # Mock checking if job exists in unarchived list (should return the job)
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job_123",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job_123",
             status_code=200,
             json={"jobs": [{"_id": "valid_job_123", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
@@ -54,14 +54,14 @@ def test_job_archive_multiple_jobs_successful_flow():
         for job_id in ['job1', 'job2', 'job3']:
             # Mock checking if job is archived (should return empty for unarchived jobs)
             m.get(
-                f"https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id={job_id}",
+                f"https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id={job_id}",
                 status_code=200,
                 json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
             )
 
             # Mock checking if job exists in unarchived list (should return the job)
             m.get(
-                f"https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id={job_id}",
+                f"https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id={job_id}",
                 status_code=200,
                 json={"jobs": [{"_id": job_id, "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
             )
@@ -93,24 +93,24 @@ def test_job_archive_mixed_valid_invalid_jobs():
     with requests_mock.Mocker() as m:
         # Mock job status check - valid job (not archived)
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=valid_job",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=valid_job",
             status_code=200,
             json={"jobs": [{"_id": "valid_job", "status": "completed"}], "pagination_metadata": {"Pagination-Count": 1}}
         )
 
         # Mock job status check - invalid job (not in either list)
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=invalid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=true&page=1&limit=1&id=invalid_job",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )
         m.get(
-            "https://cloudos.lifebit.ai/api/v2/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=invalid_job",
+            "https://cloudos.lifebit.ai/api/v3/jobs?teamId=workspace_123&archived.status=false&page=1&limit=1&id=invalid_job",
             status_code=200,
             json={"jobs": [], "pagination_metadata": {"Pagination-Count": 0}}
         )

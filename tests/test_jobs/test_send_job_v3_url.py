@@ -1,4 +1,4 @@
-"""pytest is added for checking Job.workflow_id"""
+"""Test that send_job uses the v3 API endpoint."""
 from io import StringIO
 import sys
 import mock
@@ -16,20 +16,18 @@ WORKFLOW_NAME = "nf-core-deepvariant"
 INPUT_PROJECT = "tests/test_data/projects.json"
 INPUT_WORKFLOW = "tests/test_data/workflows.json"
 PAGE_SIZE = 10
-PAGE = 1
-ARCHIVED_STATUS = "false"
 
 param_dict = {
     "config": "cloudos_cli/examples/rnatoy.config"
-    }
+}
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
 @responses.activate
-def test_send_job():
+def test_send_job_posts_to_v3_endpoint():
     """
-    Test 'send_job' to work as intended
-    API request is mocked and replicated with json files
+    Test that send_job sends the POST request to /api/v3/jobs
+    and NOT to /api/v2/jobs.
     """
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
@@ -39,43 +37,42 @@ def test_send_job():
     params_pagination_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID}
     params_workflows = {"search": WORKFLOW_NAME, "teamId": WORKSPACE_ID, "pageSize": PAGE_SIZE}
     header = {
-            "Content-type": "application/json",
-            "apikey": APIKEY
-        }
+        "Content-type": "application/json",
+        "apikey": APIKEY
+    }
     search_str = f"teamId={WORKSPACE_ID}"
     search_str_projects = f"teamId={WORKSPACE_ID}&search={PROJECT_NAME}"
     search_str_pagination_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}"
     search_str_workflows = f"teamId={WORKSPACE_ID}&search={WORKFLOW_NAME}&pageSize={PAGE_SIZE}"
-    # mock GET method with the .json
+    # Mock v3 POST endpoint
     responses.add(
-            responses.POST,
-            url=f"{CLOUDOS_URL}/api/v3/jobs?{search_str}",
-            body=create_json,
-            headers=header,
-            match=[matchers.query_param_matcher(params_job)],
-            status=200)
+        responses.POST,
+        url=f"{CLOUDOS_URL}/api/v3/jobs?{search_str}",
+        body=create_json,
+        headers=header,
+        match=[matchers.query_param_matcher(params_job)],
+        status=200)
     responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v2/projects?{search_str_projects}",
-            body=create_json_project,
-            headers=header,
-            match=[matchers.query_param_matcher(params_projects)],
-            status=200)
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/projects?{search_str_projects}",
+        body=create_json_project,
+        headers=header,
+        match=[matchers.query_param_matcher(params_projects)],
+        status=200)
     responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_pagination_workflows}",
-            body=create_json_workflow,
-            headers=header,
-            match=[matchers.query_param_matcher(params_pagination_workflows)],
-            status=200)
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_pagination_workflows}",
+        body=create_json_workflow,
+        headers=header,
+        match=[matchers.query_param_matcher(params_pagination_workflows)],
+        status=200)
     responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_workflows}",
-            body=create_json_workflow,
-            headers=header,
-            match=[matchers.query_param_matcher(params_workflows)],
-            status=200)
-    # start cloudOS service
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v3/workflows?{search_str_workflows}",
+        body=create_json_workflow,
+        headers=header,
+        match=[matchers.query_param_matcher(params_workflows)],
+        status=200)
     job = Job(apikey=APIKEY,
               cloudos_url=CLOUDOS_URL,
               workspace_id=WORKSPACE_ID,
@@ -85,7 +82,11 @@ def test_send_job():
     output = StringIO()
     sys.stdout = output
     job_json = job.send_job(param_dict["config"])
-    result_string = output.getvalue().rstrip()
+    sys.stdout = sys.__stdout__
 
     assert isinstance(job_json, str)
-    assert "Job successfully launched to Lifebit Platform, please check the following link:" in result_string
+    # Verify the POST was made to the v3 endpoint
+    post_calls = [c for c in responses.calls if c.request.method == 'POST']
+    assert len(post_calls) == 1
+    assert '/api/v3/jobs' in post_calls[0].request.url
+    assert '/api/v2/jobs' not in post_calls[0].request.url
