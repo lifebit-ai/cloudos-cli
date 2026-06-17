@@ -143,18 +143,9 @@ jobs:
           # This starts the agent directly instead of assigning an issue, so it
           # doesn't depend on the issue-assignment session bootstrap that was failing.
           # Include "model" only when AGENT_MODEL is set (empty => auto selection).
-          jq -n \
-            --rawfile prompt /tmp/issue-body.md \
-            --arg base "main" \
-            --arg model "${AGENT_MODEL:-}" \
-            '{prompt: $prompt, base_ref: $base, create_pull_request: true}
-             + (if $model == "" then {} else {model: $model} end)' \
-          | gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/agents/repos/$REPO/tasks" \
-              --input -
+          gh agent-task create \
+            --from-file /tmp/issue-body.md \
+            --base main
 
           echo "Cloud agent task created for $REPO (model: ${AGENT_MODEL:-auto})"
 
