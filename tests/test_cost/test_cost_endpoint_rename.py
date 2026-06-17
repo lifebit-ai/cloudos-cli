@@ -1,12 +1,9 @@
 """Tests for the cost endpoint rename from /costs/compute to /costs/computation"""
-import json
 import mock
 import pytest
 import requests
 import responses
-from unittest.mock import MagicMock
 from cloudos_cli.cost.cost import CostViewer
-from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = "tests/test_data/get_job_costs.json"
