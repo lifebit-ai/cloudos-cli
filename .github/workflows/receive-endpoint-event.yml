@@ -136,7 +136,7 @@ jobs:
       - name: Create issue and assign to Copilot coding agent
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
-          ASSIGNEE: anthropic-code-agent
+          ASSIGNEE: copilot-swe-agent
         run: |
           # switch agent: anthropic-code-agent; copilot-swe-agent; codex-code-agent?
           gh issue create \
