@@ -128,13 +128,13 @@ jobs:
           EOF
 
       - name: Create PR and assign to Copilot coding agent
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
-          echo "${{ secrets.AGENT_PR_PAT }}" | gh auth login --with-token |
-          gh auth status |
+          gh auth status
           gh agent-task create \
             --from-file /tmp/issue-body.md \
             --base main
-          echo "PR created and assigned to Copilot coding agent"
 
       - name: Open fallback issue on failure
         if: failure()
