@@ -103,13 +103,15 @@ jobs:
       - name: Create issue and assign to Copilot coding agent
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+          ASSIGNEE: anthropic-code-agent
         run: |
+          # switch agent: anthropic-code-agent; copilot-swe-agent; codex-code-agent?
           gh issue create \
             --title "$(cat /tmp/issue-title.txt)" \
             --body-file /tmp/issue-body.md \
             --label "agent-generated" \
-            --assignee copilot-swe-agent
-          echo "Issue created and assigned to copilot-swe-agent"
+            --assignee $ASSIGNEE
+          echo "Issue created and assigned to $ASSIGNEE"
 
       - name: Open fallback issue on failure
         if: failure()
