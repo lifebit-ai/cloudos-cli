@@ -237,7 +237,7 @@ def list_project_members(ctx,
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     if output_format != 'stdout':
         outfile = output_basename + '.' + output_format
-    print('Executing list-members...')
+    print('Executing members...')
     if verbose:
         print('\t...Preparing objects')
     cl = Cloudos(cloudos_url, apikey, None)

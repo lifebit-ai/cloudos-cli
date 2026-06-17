@@ -4,7 +4,7 @@
 
 ### Patch
 
-- Adds `cloudos project list-members` command to retrieve members of a project via `GET /api/v1/projects/{id}/members`.
+- Adds `cloudos project members` command to retrieve members of a project via `GET /api/v1/projects/{id}/members`.
 
 ## v2.91.0 (2026-05-28)
 
