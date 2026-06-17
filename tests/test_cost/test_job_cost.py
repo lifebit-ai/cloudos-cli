@@ -50,7 +50,7 @@ class TestCostViewer:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -325,7 +325,7 @@ class TestCloudosJobCosts:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -361,7 +361,7 @@ class TestCloudosJobCosts:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -387,7 +387,7 @@ class TestCloudosJobCosts:
         # mock GET method with error
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             json={"error": "Job not found"},
             headers=header,
             status=404

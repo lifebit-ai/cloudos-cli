@@ -1,0 +1,107 @@
+[
+  {
+    "id": "send_job",
+    "method": "POST",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos job run",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "send_bash_job",
+    "method": "POST",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos bash job",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "send_bash_array_job",
+    "method": "POST",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos bash array-job",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "clone_job",
+    "method": "POST",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos job clone",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "resume_job",
+    "method": "POST",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos job resume",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "get_job_status",
+    "method": "GET",
+    "path": "/api/v1/jobs/{job_id}",
+    "cli_command": "cloudos job status",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "get_job_logs",
+    "method": "GET",
+    "path": "/api/v1/jobs/{job_id}",
+    "cli_command": "cloudos job logs",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "get_job_results",
+    "method": "GET",
+    "path": "/api/v1/jobs/{job_id}",
+    "cli_command": "cloudos job results",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "get_job_workdir",
+    "method": "GET",
+    "path": "/api/v1/jobs/{job_id}",
+    "cli_command": "cloudos job workdir",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "get_job_related",
+    "method": "GET",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos job related",
+    "source_file": "cloudos_cli/jobs/job.py"
+  },
+  {
+    "id": "get_job_list",
+    "method": "GET",
+    "path": "/api/v2/jobs",
+    "cli_command": "cloudos job list",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "archive_jobs",
+    "method": "PUT",
+    "path": "/api/v1/jobs",
+    "cli_command": "cloudos job archive",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "unarchive_jobs",
+    "method": "PUT",
+    "path": "/api/v1/jobs",
+    "cli_command": "cloudos job unarchive",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "abort_job",
+    "method": "PUT",
+    "path": "/api/v2/jobs/{job_id}/abort",
+    "cli_command": "cloudos job abort",
+    "source_file": "cloudos_cli/clos.py"
+  },
+  {
+    "id": "get_job_costs",
+    "method": "GET",
+    "path": "/api/v1/jobs/{job_id}/costs/computation",
+    "cli_command": "cloudos job cost",
+    "source_file": "cloudos_cli/cost/cost.py"
+  }
+]

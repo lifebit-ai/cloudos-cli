@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-17)
+
+### Patch
+
+- Renames cost endpoint from `/api/v1/jobs/{job_id}/costs/compute` to `/api/v1/jobs/{job_id}/costs/computation` to match API server changes
+- Adds `supported-endpoints.json` documenting all CLI-to-API endpoint mappings
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
