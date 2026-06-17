@@ -70,7 +70,7 @@ jobs:
           EOJSON
           fi
 
-      - name: Build Copilot issue body
+      - name: Build Copilot PR body
         run: |
           python3 - <<'EOF'
           import json, pathlib, textwrap
@@ -127,16 +127,14 @@ jobs:
           open("/tmp/issue-title.txt", "w").write(title)
           EOF
 
-      - name: Create issue and assign to Copilot coding agent
+      - name: Create PR and assign to Copilot coding agent
         env:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
-          gh issue create \
-            --title "$(cat /tmp/issue-title.txt)" \
-            --body-file /tmp/issue-body.md \
-            --label "agent-generated" \
-            --assignee openai-code-agent
-          echo "Issue created and assigned to openai-code-agent"
+          gh agent-task create \
+            --from-file /tmp/issue-body.md \
+            --base main
+          echo "PR created and assigned to Copilot coding agent"
 
       - name: Open fallback issue on failure
         if: failure()
