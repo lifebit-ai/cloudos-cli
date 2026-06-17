@@ -19,7 +19,7 @@ on:
         default: 'added'
   push:
     branches:
-      - ai-server-cli
+      - test-friday
 
 jobs:
   generate-pr:
