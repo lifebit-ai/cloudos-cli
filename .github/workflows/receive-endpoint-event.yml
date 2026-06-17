@@ -128,8 +128,6 @@ jobs:
           EOF
 
       - name: Create PR and assign to Copilot coding agent
-        env:
-          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
           echo "${{ secrets.AGENT_PR_PAT }}" | gh auth login --with-token
           gh auth status
