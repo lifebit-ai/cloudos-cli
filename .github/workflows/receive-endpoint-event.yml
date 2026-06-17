@@ -46,9 +46,9 @@ jobs:
       - name: Build Copilot issue body
         run: |
           python3 - <<'EOF'
-          import json, pathlib, textwrap
+          import json
 
-          payload   = json.load(open("/tmp/payload.json"))
+          payload = json.load(open("/tmp/payload.json"))
 
           if not payload.get("relevant", True):
             print("Payload marked as not relevant — skipping.")
@@ -56,42 +56,75 @@ jobs:
 
           endpoints = payload["changed_endpoints"]
           source_pr = payload.get("source_pr_url", "manual trigger")
-          manifest  = json.load(open("supported-endpoints.json"))
           version   = open("cloudos_cli/_version.py").read().strip()
-          changelog = open("CHANGELOG.md").read()[-1000:]
-
-          # Filter manifest to relevant entries only
-          changed_prefixes = set()
-          for ep in endpoints:
-            parts = ep["path"].strip("/").split("/")
-            changed_prefixes.add("/".join(parts[:3]))
-          relevant = [e for e in manifest["endpoints"] if any(
-            e["path"].strip("/").startswith(p) for p in changed_prefixes
-          )] or manifest["endpoints"][:5]
 
           fence = "```"
           body = (
-            "## API endpoint change detected\n\n"
+            "## Task: implement a CloudOS API endpoint change in the CLI\n\n"
+            "You are a coding agent working on the **cloudos-cli** Python package. An "
+            "endpoint changed in the CloudOS API server and the CLI must be brought in "
+            "sync. Follow the existing codebase conventions exactly — do not invent new "
+            "patterns or directories.\n\n"
             f"**Source PR:** {source_pr}\n\n"
-            "### Changed endpoints\n"
+            "### Changed endpoint(s)\n"
             f"{fence}json\n{json.dumps(endpoints, indent=2)}\n{fence}\n\n"
             "### Change type guide\n"
-            "- `added`: create a new CLI command and register it\n"
-            "- `modified`: update the existing command, parameters and/or output handling\n"
-            "- `removed`: deprecate and delete the existing CLI command gracefully\n"
-            "- `refactored`: update internals only - keep the CLI interface identical\n\n"
-            "### What to implement\n"
-            f"- Increment the patch version in `cloudos_cli/_version.py` (currently: `{version}`)\n"
-            "- Add a CHANGELOG entry at the top of `CHANGELOG.md` matching the existing format\n"
-            "- Create or modify the relevant module file under `cloudos_cli/<module>/`\n"
-            "  - Commands live in `cloudos_cli/clos.py` or module files like `cloudos_cli/jobs/job.py`\n"
-            "  - There is **no** `cloudos_cli/commands/` directory - do not create one\n"
-            "- Write at least 2 unit tests in `tests/` using pytest + responses + mock\n"
-            "- Update `supported-endpoints.json` to reflect the change\n\n"
-            "### Relevant existing manifest entries\n"
-            f"{fence}json\n{json.dumps(relevant, indent=2)}\n{fence}\n\n"
-            "### Recent changelog (match this format exactly)\n"
-            f"{fence}\n{changelog}\n{fence}\n"
+            "- `added`: create a new CLI command and register it.\n"
+            "- `modified`: update the existing command, its parameters and/or output "
+            "handling.\n"
+            "- `removed`: deprecate and delete the existing CLI command gracefully.\n"
+            "- `refactored`: update internals only — keep the CLI interface identical.\n\n"
+            "### Step 1 — locate the affected area\n"
+            "- The CLI is **rich-click** based. The root group is defined in "
+            "`cloudos_cli/__main__.py`, which imports each module's command group from "
+            "its `cli.py` and registers it via `add_command()`.\n"
+            "- Each feature lives in its own subdirectory under `cloudos_cli/` "
+            "(e.g. `jobs/`, `workflows/`, `projects/`, `datasets/`, `queue/`). Inside "
+            "each module:\n"
+            "  - `cli.py` defines the Click group and command options.\n"
+            "  - `<module>.py` (e.g. `jobs/job.py`) holds the logic class that performs "
+            "the actual API calls.\n"
+            "- Map the changed `path` to the right module using "
+            "`supported-endpoints.json`: each entry has `id`, `method`, `path`, "
+            "`cli_command` and `source_file`. Use `source_file` to find the exact file "
+            "to edit. There is **no** `cloudos_cli/commands/` directory — do not create "
+            "one.\n\n"
+            "### Step 2 — follow the API-call conventions\n"
+            "- Logic classes inherit from the `Cloudos` dataclass in "
+            "`cloudos_cli/clos.py`, which holds `cloudos_url` and `apikey`.\n"
+            "- Build requests with headers "
+            "`{\"Content-type\": \"application/json\", \"apikey\": self.apikey}` and the "
+            "base URL `f\"{self.cloudos_url}/api/v1/...\"` (use the API version the "
+            "endpoint `path` specifies).\n"
+            "- Always use the retry-aware wrappers in `cloudos_cli/utils/requests.py` "
+            "(`retry_requests_get`, `retry_requests_post`, `retry_requests_put`, "
+            "`retry_requests_delete`) — never call `requests` directly.\n"
+            "- Raise the shared exceptions from `cloudos_cli/utils/errors.py` "
+            "(e.g. `BadRequestException`, `NotAuthorisedException`) for error handling.\n"
+            "- For user-facing output, reuse the table/DataFrame formatting helpers in "
+            "`cloudos_cli/utils/details.py` rather than printing raw JSON.\n\n"
+            "### Step 3 — apply the change consistent with the conventions above\n"
+            "- Edit the module `cli.py` and its logic class to add/modify/remove the "
+            "command according to the change type, matching the style of neighbouring "
+            "commands (option naming, docstrings, return shapes).\n"
+            "- If a new command group is introduced, register it in "
+            "`cloudos_cli/__main__.py` exactly like the existing ones.\n\n"
+            "### Step 4 — tests\n"
+            "- Add or update tests under `tests/`, grouped by module "
+            "(e.g. `tests/test_jobs/`), file names prefixed with `test_`.\n"
+            "- Use `pytest`, `responses` (`@responses.activate` to mock the endpoint) "
+            "and `unittest.mock`, following the pattern in existing tests such as "
+            "`tests/test_jobs/test_send_job.py`. Write at least 2 unit tests covering "
+            "the change.\n\n"
+            "### Step 5 — bookkeeping\n"
+            f"- Increment the patch version in `cloudos_cli/_version.py` (currently: "
+            f"`{version}`).\n"
+            "- Add a new entry at the **top** of `CHANGELOG.md`, keeping the exact "
+            "existing format: a `## v<VERSION> (YYYY-MM-DD)` heading followed by the "
+            "relevant category section(s) (`### Feat:`, `### Patch`, `### Breaking:`) "
+            "with bulleted one-line summaries. Match the most recent entry's style.\n"
+            "- Update `supported-endpoints.json` so the affected entry reflects the new "
+            "`method`/`path`/`cli_command`/`source_file` (or add/remove the entry).\n"
           )
 
           open("/tmp/issue-body.md", "w").write(body)
