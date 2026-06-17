@@ -17,6 +17,10 @@ on:
         description: "added, modified, removed, or refactored"
         required: false
         default: 'added'
+      model:
+        description: "Agent model: '' (auto/Copilot), claude-sonnet-4.6, claude-opus-4.6, gpt-5.2-codex, gpt-5.4, ..."
+        required: false
+        default: 'claude-sonnet-4.6'
   push:
     branches:
       - test-friday
@@ -134,6 +138,11 @@ jobs:
           # tokens) are NOT supported.
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
           REPO: ${{ github.repository }}
+          # Which engine runs the task. The agent tasks API selects the underlying
+          # MODEL (not the bot identity): leave empty for auto/Copilot, or set e.g.
+          # claude-sonnet-4.6 / claude-opus-4.6 (Anthropic) or gpt-5.4 / gpt-5.2-codex
+          # (OpenAI). Allowed values depend on your Copilot plan and org policy.
+          AGENT_MODEL: ${{ inputs.model }}
         run: |
           set -euo pipefail
           gh auth status
@@ -141,10 +150,13 @@ jobs:
           # Native cloud-agent session: POST /agents/repos/{owner}/{repo}/tasks.
           # This starts the agent directly instead of assigning an issue, so it
           # doesn't depend on the issue-assignment session bootstrap that was failing.
+          # Include "model" only when AGENT_MODEL is set (empty => auto selection).
           jq -n \
             --rawfile prompt /tmp/issue-body.md \
             --arg base "main" \
-            '{prompt: $prompt, base_ref: $base, create_pull_request: true}' \
+            --arg model "${AGENT_MODEL:-}" \
+            '{prompt: $prompt, base_ref: $base, create_pull_request: true}
+             + (if $model == "" then {} else {model: $model} end)' \
           | gh api \
               --method POST \
               -H "Accept: application/vnd.github+json" \
@@ -152,7 +164,7 @@ jobs:
               "/agents/repos/$REPO/tasks" \
               --input -
 
-          echo "Cloud agent task created for $REPO"
+          echo "Cloud agent task created for $REPO (model: ${AGENT_MODEL:-auto})"
 
       - name: Open fallback issue on failure
         if: failure()
