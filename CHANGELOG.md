@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-18)
+
+### Patch
+
+- Syncs with CloudOS API endpoint changes: `POST /api/v2/jobs`, `GET /api/v2/jobs`, and `PUT /api/v2/jobs/{job_id}/abort` are now served at `/api/v2/jobsNew`, `/api/v2/jobsNew`, and `/api/v2/jobsNew/{id}/abort` respectively. Updates all affected CLI commands (`cloudos job run`, `cloudos job list`, `cloudos job abort`, `cloudos job clone`, `cloudos job resume`, `cloudos bash job`, `cloudos bash array-job`) to use the new paths.
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

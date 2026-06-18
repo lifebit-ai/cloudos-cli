@@ -1205,7 +1205,7 @@ class Cloudos:
         while True:
             params["page"] = current_page
 
-            r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params, headers=headers, verify=verify)
+            r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobsNew", params=params, headers=headers, verify=verify)
             if r.status_code >= 400:
                 raise BadRequestException(r)
 
@@ -1883,7 +1883,7 @@ class Cloudos:
             "apikey": apikey
         }
         force_abort = "true" if force else "false"
-        r = retry_requests_put("{}/api/v2/jobs/{}/abort?forceAbort={}&teamId={}".format(cloudos_url, job, force_abort, workspace_id),
+        r = retry_requests_put("{}/api/v2/jobsNew/{}/abort?forceAbort={}&teamId={}".format(cloudos_url, job, force_abort, workspace_id),
                                headers=headers, verify=verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
