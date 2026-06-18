@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-18)
+
+### Patch:
+
+- Syncs `cloudos job cost` with API endpoint rename: `GET /api/v1/jobs/{jobId}/costs/compute` → `GET /api/v1/jobs/{jobId}/costs/computation`
+- Confirms `cloudos job archive` / `cloudos job unarchive` already pass `teamId` query param as required by the updated `PUT /api/v1/jobs` specification
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

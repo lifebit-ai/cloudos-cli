@@ -47,7 +47,7 @@ class CostViewer:
             "apikey": self.apikey
         }
 
-        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/costs/compute"
+        url = f"{self.cloudos_url}/api/v1/jobs/{job_id}/costs/computation"
         params = {
             "page": page,
             "limit": limit,
