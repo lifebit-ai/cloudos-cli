@@ -8,7 +8,7 @@ on:
       client_payload:
         description: "Full client_payload JSON (the object under client_payload from the dispatch body)"
         required: true
-        default: '{"relevant": true, "source_pr_url": "", "changed_endpoints": [{"method": "GET", "path": "/test/mock", "change_type": "added", "auth": ["userApiToken"], "summary": "Test dispatch"}]}'
+        default: '{"relevant": true, "source_pr_url": "", "commit": "", "summary": "1 supported endpoint(s) affected: GET /api/v1/analytics/team", "changed_files": ["src/api/analytics/router.ts"], "changed_endpoints": [{"method": "GET", "path": "/api/v1/analytics/team", "change_type": "modified", "auth": ["userApiToken"], "summary": "team analytics", "source": "typescript", "api_server_files": ["src/api/analytics/router.ts"], "id": "analytics-team", "cli_command": "cloudos analytics team", "cli_source_file": "cloudos_cli/analytics/analytics.py", "query_params": ["teamId"]}]}'
   # push:
   #   branches:
   #     - ai-server-cli
@@ -47,34 +47,131 @@ jobs:
         run: |
           python3 - <<'EOF'
           import json
+          import sys
 
           payload = json.load(open("/tmp/payload.json"))
 
           if not payload.get("relevant", True):
             print("Payload marked as not relevant — skipping.")
-            import sys; sys.exit(0)
+            sys.exit(0)
 
-          endpoints = payload["changed_endpoints"]
-          source_pr = payload.get("source_pr_url", "manual trigger")
-          version   = open("cloudos_cli/_version.py").read().strip()
+          endpoints = payload.get("changed_endpoints", [])
+          if not endpoints:
+            print("No changed endpoints in payload — skipping.")
+            sys.exit(0)
+
+          source_pr = payload.get("source_pr_url") or "manual trigger"
+          commit = payload.get("commit", "")
+          overall = payload.get("summary", "")
+          changed_files = payload.get("changed_files", [])
+          version = open("cloudos_cli/_version.py").read().strip()
 
           fence = "```"
-          body = (
-            "## Sync CLI with a CloudOS API endpoint change\n\n"
-            f"**Source PR:** {source_pr}\n\n"
-            "### Changed endpoint(s)\n"
-            f"{fence}json\n{json.dumps(endpoints, indent=2)}\n{fence}\n\n"
-            "### Steps\n"
-            "1. Find the file via `source_file` in `supported-endpoints.json`; CLI groups register in `cloudos_cli/__main__.py`, each module has `cli.py` (commands) + `<module>.py` (logic class extending `Cloudos` in `cloudos_cli/clos.py`).\n"
-            "2. Apply the change per `change_type` (added/modified/removed/refactored), using `cloudos_cli/utils/requests.py` wrappers, `apikey` header, and matching neighbouring command style.\n"
-            "3. Add ≥2 tests under `tests/<module>/` with pytest + `responses` (`@responses.activate`).\n"
-            f"4. Bump patch version in `cloudos_cli/_version.py` (now `{version}`) and add a top `CHANGELOG.md` entry in the existing format.\n"
-            "5. Update `supported-endpoints.json` to reflect the change.\n"
+
+          def fmt_list(items):
+            return ", ".join(items) if items else "—"
+
+          # Group endpoints by the CLI source file they map to, so the agent can
+          # tackle one module at a time.
+          by_file = {}
+          for ep in endpoints:
+            by_file.setdefault(ep.get("cli_source_file") or "(unknown)", []).append(ep)
+
+          lines = []
+          lines.append("## Sync cloudos-cli with a CloudOS API endpoint change\n")
+          lines.append(f"**Source PR:** {source_pr}  ")
+          if commit:
+            lines.append(f"**api-server commit:** `{commit}`  ")
+          lines.append(f"**Summary:** {overall}\n")
+
+          lines.append("### What changed (and where to act)\n")
+          lines.append(
+            "Each endpoint below was detected as changed in the api-server. "
+            "`source` tells you whether the change was found in the OpenAPI "
+            "`specification.yaml` (`specification`), in the TypeScript route/handler "
+            "code (`typescript`), or both. A `typescript`-only change means the "
+            "public contract may have shifted WITHOUT a spec update — read the "
+            "linked api-server files carefully before assuming the request/response "
+            "shape.\n"
           )
 
+          for ep in endpoints:
+            method = ep.get("method") or ""
+            path = ep.get("path") or ""
+            change = ep.get("change_type") or "modified"
+            header = f"#### `{change}` — {method} {path}".strip()
+            lines.append(header)
+            if ep.get("new_path"):
+              lines.append(f"- **Renamed/new path:** `{ep['new_path']}`")
+            if ep.get("id"):
+              lines.append(f"- **Endpoint id:** `{ep['id']}` (key in `supported-endpoints.json`)")
+            if ep.get("cli_command"):
+              lines.append(f"- **CLI command to update:** `{ep['cli_command']}`")
+            if ep.get("cli_source_file"):
+              lines.append(f"- **CLI source file:** `{ep['cli_source_file']}`")
+            if ep.get("query_params"):
+              lines.append(f"- **Query params:** {fmt_list(ep['query_params'])}")
+            if ep.get("auth"):
+              lines.append(f"- **Auth strategies:** {fmt_list(ep['auth'])}")
+            lines.append(f"- **Detection source:** {ep.get('source', 'specification')}")
+            if ep.get("api_server_files"):
+              lines.append(
+                "- **api-server files that changed:** "
+                + fmt_list([f"`{f}`" for f in ep["api_server_files"]])
+              )
+            if ep.get("summary"):
+              lines.append(f"- **Notes:** {ep['summary']}")
+            lines.append("")
+
+          if changed_files:
+            lines.append("<details><summary>All changed api-server files</summary>\n")
+            for f in changed_files:
+              lines.append(f"- `{f}`")
+            lines.append("\n</details>\n")
+
+          lines.append("### Full machine-readable payload\n")
+          lines.append(f"{fence}json\n{json.dumps(endpoints, indent=2)}\n{fence}\n")
+
+          lines.append("### How cloudos-cli is structured\n")
+          lines.append(
+            "- CLI command groups register in `cloudos_cli/__main__.py`.\n"
+            "- Each module under `cloudos_cli/<module>/` has a `cli.py` (Click "
+            "commands / options) plus a logic class (e.g. `<module>.py`) that "
+            "usually extends `Cloudos` in `cloudos_cli/clos.py`.\n"
+            "- All HTTP calls go through the wrappers in "
+            "`cloudos_cli/utils/requests.py` and send the `apikey` header.\n"
+            "- `supported-endpoints.json` is the source of truth mapping each "
+            "endpoint to its `cli_command` and `source_file`.\n"
+          )
+
+          lines.append("### Required steps\n")
+          lines.append(
+            "1. For every endpoint above, open its `cli_source_file` (fall back to "
+            "looking it up by `id` in `supported-endpoints.json` if missing) and "
+            "the api-server files listed, to understand the exact contract change.\n"
+            "2. Apply the change according to `change_type`:\n"
+            "   - `added`: add the new command/option and wrapper call.\n"
+            "   - `modified`: update params, request body, response parsing, and "
+            "any affected Click options to match the new contract.\n"
+            "   - `removed`: deprecate/remove the wrapping command and its tests.\n"
+            "   - renamed (`new_path` present): update the request path/URL builder.\n"
+            "3. Route all HTTP changes through `cloudos_cli/utils/requests.py`, keep "
+            "the `apikey` header, and match the style of neighbouring commands.\n"
+            "4. Add or update at least 2 tests under `tests/<module>/` using pytest "
+            "and `responses` (`@responses.activate`), covering happy path and one "
+            "failure/edge case.\n"
+            f"5. Bump the patch version in `cloudos_cli/_version.py` (currently "
+            f"`{version}`) and add a top `CHANGELOG.md` entry in the existing format.\n"
+            "6. Update `supported-endpoints.json` so the mapping reflects the new "
+            "path/params/method (and bump its `cli_version` if you change behaviour).\n"
+          )
+
+          body = "\n".join(lines)
           open("/tmp/pr-body.md", "w").write(body)
+
           ep = endpoints[0]
-          title = f"{ep['change_type']}: {ep['method']} {ep['path']}"
+          extra = f" (+{len(endpoints) - 1} more)" if len(endpoints) > 1 else ""
+          title = f"{ep.get('change_type', 'update')}: {ep.get('method', '')} {ep.get('path', '')}{extra}".strip()
           open("/tmp/pr-title.txt", "w").write(title)
           EOF
 
