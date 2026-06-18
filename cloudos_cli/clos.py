@@ -2109,6 +2109,41 @@ class Cloudos:
 
         return project_id
 
+    def get_project_members(self, project_id, verify=True):
+        """Get the list of members for a project.
+
+        Parameters
+        ----------
+        project_id : str
+            The Lifebit Platform project ID.
+        verify : [bool | str], optional
+            Whether to use SSL verification or not. Alternatively, if
+            a string is passed, it will be interpreted as the path to
+            the SSL certificate file. Default is True.
+
+        Returns
+        -------
+        list
+            A list of member objects belonging to the project.
+
+        Raises
+        ------
+        BadRequestException
+            If the request fails with a status code indicating an error.
+        """
+        headers = {
+            "Content-type": "application/json",
+            "apikey": self.apikey
+        }
+        url = f"{self.cloudos_url}/api/v1/projects/{project_id}/members"
+        r = retry_requests_get(url, headers=headers, verify=verify)
+        if r.status_code == 401:
+            raise ValueError('It seems your API key is not authorised. Please check if ' +
+                             'you have used the correct API key for the selected workspace')
+        elif r.status_code >= 400:
+            raise BadRequestException(r)
+        return json.loads(r.content)
+
     def create_project(self, workspace_id, project_name, verify=True):
         """Create a new project in Lifebit Platform.
 

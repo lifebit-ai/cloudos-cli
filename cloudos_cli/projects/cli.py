@@ -127,6 +127,60 @@ def list_projects(ctx,
         raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
 
+@project.command('members')
+@click.option('-k',
+              '--apikey',
+              help='Your Lifebit Platform API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--project-id',
+              help='The Lifebit Platform project ID to retrieve members for.',
+              required=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey'])
+def list_project_members(ctx,
+                         apikey,
+                         cloudos_url,
+                         project_id,
+                         verbose,
+                         disable_ssl_verification,
+                         ssl_cert,
+                         profile):
+    """List members of a Lifebit Platform project."""
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    if verbose:
+        print(f'\tUsing Lifebit Platform URL: {cloudos_url}')
+        print(f'\tProject ID: {project_id}')
+
+    cl = Cloudos(cloudos_url=cloudos_url, apikey=apikey, cromwell_token=None)
+
+    if verbose:
+        print('\tThe following Cloudos object was created:')
+        print('\t' + str(cl) + '\n')
+
+    try:
+        members = cl.get_project_members(project_id, verify_ssl)
+        print(json.dumps(members, indent=2))
+    except Exception as e:
+        print(f'\tError retrieving project members: {str(e)}')
+        sys.exit(1)
+
+
 @project.command('create')
 @click.option('-k',
               '--apikey',

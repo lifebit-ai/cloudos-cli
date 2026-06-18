@@ -1,0 +1,16 @@
+[
+    {
+        "_id": "60bf3b9b303ee601a69e4856",
+        "name": "Test",
+        "surname": "User",
+        "email": "test.user@lifebit.ai",
+        "role": "owner"
+    },
+    {
+        "_id": "71cf4c0c414ff712b7af5967",
+        "name": "Jane",
+        "surname": "Smith",
+        "email": "jane.smith@lifebit.ai",
+        "role": "member"
+    }
+]
