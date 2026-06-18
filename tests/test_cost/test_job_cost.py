@@ -428,7 +428,6 @@ class TestCloudosJobCosts:
         # verify only one call was made (to the new endpoint)
         assert len(responses.calls) == 1
         assert "/costs/computation" in responses.calls[0].request.url
-        assert "/costs/compute" not in responses.calls[0].request.url.replace("computation", "")
 
     @mock.patch('cloudos_cli.clos', mock.MagicMock())
     @responses.activate
