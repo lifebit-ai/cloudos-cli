@@ -50,7 +50,7 @@ class TestCostViewer:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -325,7 +325,7 @@ class TestCloudosJobCosts:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -361,7 +361,7 @@ class TestCloudosJobCosts:
         # mock GET method with the .json
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             body=create_json,
             headers=header,
             status=200
@@ -387,7 +387,7 @@ class TestCloudosJobCosts:
         # mock GET method with error
         responses.add(
             responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
             json={"error": "Job not found"},
             headers=header,
             status=404
@@ -396,3 +396,74 @@ class TestCloudosJobCosts:
         # expect BadRequestException
         with pytest.raises(BadRequestException):
             self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID)
+
+    @mock.patch('cloudos_cli.clos', mock.MagicMock())
+    @responses.activate
+    def test_get_job_costs_uses_computation_endpoint(self):
+        """
+        Test that get_job_costs uses the renamed /costs/computation endpoint
+        (not the old /costs/compute endpoint).
+        """
+        create_json = load_json_file(INPUT)
+        header = {
+            "Content-type": "application/json",
+            "apikey": APIKEY
+        }
+
+        # mock only the new /costs/computation endpoint
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
+            body=create_json,
+            headers=header,
+            status=200
+        )
+
+        # request should succeed against the new endpoint
+        response = self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID)
+        assert isinstance(response, dict)
+        assert "master" in response
+        assert "workers" in response
+
+        # verify only one call was made (to the new endpoint)
+        assert len(responses.calls) == 1
+        assert "/costs/computation" in responses.calls[0].request.url
+
+    @mock.patch('cloudos_cli.clos', mock.MagicMock())
+    @responses.activate
+    def test_get_job_costs_old_compute_endpoint_not_used(self):
+        """
+        Test that the old /costs/compute endpoint is NOT called;
+        only the renamed /costs/computation endpoint is used.
+        """
+        header = {
+            "Content-type": "application/json",
+            "apikey": APIKEY
+        }
+
+        # register only the old endpoint with a 200 — any call to it would
+        # indicate the rename was not applied
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/compute",
+            json={"error": "wrong endpoint"},
+            headers=header,
+            status=200
+        )
+
+        # the new endpoint returns 404 to trigger BadRequestException
+        responses.add(
+            responses.GET,
+            url=f"{CLOUDOS_URL}/api/v1/jobs/{JOB_ID}/costs/computation",
+            json={"error": "not found"},
+            headers=header,
+            status=404
+        )
+
+        # the call should reach /costs/computation (404) and raise BadRequestException
+        with pytest.raises(BadRequestException):
+            self.cost_viewer.get_job_costs(JOB_ID, WORKSPACE_ID)
+
+        # only one call should have been made, and it must be to the new URL
+        assert len(responses.calls) == 1
+        assert "/costs/computation" in responses.calls[0].request.url
