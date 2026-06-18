@@ -65,7 +65,7 @@ def test_send_bash_array_job():
     # mock GET method with the .json
     responses.add(
             responses.POST,
-            url=f"{CLOUDOS_URL}/api/v2/jobs?{search_str}",
+            url=f"{CLOUDOS_URL}/api/v2/jobsNew?{search_str}",
             body=create_json,
             headers=header,
             match=[matchers.query_param_matcher(params_job)],

@@ -82,7 +82,7 @@ def test_resume_job_basic():
     # Mock POST request for job creation
     responses.add(
         responses.POST,
-        url=f"{CLOUDOS_URL}/api/v2/jobs?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v2/jobsNew?teamId={WORKSPACE_ID}",
         body=clone_response,
         headers=headers,
         status=200
@@ -185,7 +185,7 @@ def test_resume_job_with_overrides():
     # Mock POST request for job creation  
     responses.add(
         responses.POST,
-        url=f"{CLOUDOS_URL}/api/v2/jobs?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v2/jobsNew?teamId={WORKSPACE_ID}",
         body=clone_response,
         headers=headers,
         status=200
@@ -285,7 +285,7 @@ def test_resume_job_with_queue_override(mock_queue_class):
     # Mock POST request for job creation
     responses.add(
         responses.POST,
-        url=f"{CLOUDOS_URL}/api/v2/jobs?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v2/jobsNew?teamId={WORKSPACE_ID}",
         body=clone_response,
         headers=headers,
         status=200
@@ -379,7 +379,7 @@ def test_resume_job_with_project_override():
     # Mock POST request for job creation
     responses.add(
         responses.POST,
-        url=f"{CLOUDOS_URL}/api/v2/jobs?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v2/jobsNew?teamId={WORKSPACE_ID}",
         body=clone_response,
         headers=headers,
         status=200
@@ -543,7 +543,7 @@ def test_resume_job_create_error():
 
     responses.add(
         responses.POST,
-        url=f"{CLOUDOS_URL}/api/v2/jobs?teamId={WORKSPACE_ID}",
+        url=f"{CLOUDOS_URL}/api/v2/jobsNew?teamId={WORKSPACE_ID}",
         body=error_json,
         headers=headers,
         status=400
