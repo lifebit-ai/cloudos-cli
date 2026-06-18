@@ -212,6 +212,6 @@ jobs:
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
         run: |
           gh issue create \
-            --title "Agent workflow failed: could not create Copilot task issue" \
+            --title "Agent workflow failed: could not create Copilot task PR" \
             --body "The agent workflow failed. Trigger payload: $(cat /tmp/payload.json)" \
             --label "agent-failed"
