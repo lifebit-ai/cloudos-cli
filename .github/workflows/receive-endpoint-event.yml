@@ -43,7 +43,7 @@ jobs:
           EOJSON
           fi
 
-      - name: Build Copilot issue body
+      - name: Build Copilot PR body
         run: |
           python3 - <<'EOF'
           import json
@@ -72,43 +72,42 @@ jobs:
             "5. Update `supported-endpoints.json` to reflect the change.\n"
           )
 
-          open("/tmp/issue-body.md", "w").write(body)
+          open("/tmp/pr-body.md", "w").write(body)
           ep = endpoints[0]
           title = f"{ep['change_type']}: {ep['method']} {ep['path']}"
-          open("/tmp/issue-title.txt", "w").write(title)
+          open("/tmp/pr-title.txt", "w").write(title)
           EOF
 
-      - name: Create issue and assign to Copilot coding agent
+      - name: Start Copilot cloud agent task (create session)
         env:
+          # Agent tasks API requires a USER-to-server token (classic PAT / OAuth /
+          # GitHub App user token). Server-to-server (GITHUB_TOKEN / App installation
+          # tokens) are NOT supported.
           GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
-          ASSIGNEE: copilot-swe-agent
+          REPO: ${{ github.repository }}
+          AGENT_MODEL: claude-sonnet-4.6
         run: |
-          # switch agent: anthropic-code-agent; copilot-swe-agent; codex-code-agent?
-          # Create the issue first WITHOUT an assignee, then assign separately.
-          ISSUE_URL=$(gh issue create \
-            --title "$(cat /tmp/issue-title.txt)" \
-            --body-file /tmp/issue-body.md \
-            --label "agent-generated")
-          echo "Created issue: $ISSUE_URL"
-          ISSUE_NUMBER=$(basename "$ISSUE_URL")
+          set -euo pipefail
+          gh auth status
 
-          # Give GitHub a moment to fully index the new issue before assigning the
-          # coding agent — assigning too quickly can fail to start the agent session.
-          sleep 30
+          # Native cloud-agent session: POST /agents/repos/{owner}/{repo}/tasks.
+          # This starts the agent directly instead of assigning an issue, so it
+          # doesn't depend on the issue-assignment session bootstrap that was failing.
+          # Include "model" only when AGENT_MODEL is set (empty => auto selection).
+          jq -n \
+            --rawfile prompt /tmp/pr-body.md \
+            --arg base "main" \
+            --arg model "${AGENT_MODEL:-}" \
+            '{prompt: $prompt, base_ref: $base, create_pull_request: true}
+             + (if $model == "" then {} else {model: $model} end)' \
+          | gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/agents/repos/$REPO/tasks" \
+              --input -
 
-          # Retry: unassign then re-assign to nudge the agent session into starting.
-          for i in 1 2 3; do
-            gh issue edit "$ISSUE_NUMBER" \
-              --remove-assignee "$ASSIGNEE" || true
-
-            sleep 5
-
-            gh issue edit "$ISSUE_NUMBER" \
-              --add-assignee "$ASSIGNEE" && break
-
-            sleep 30
-          done
-          echo "Issue #$ISSUE_NUMBER assigned to $ASSIGNEE"
+          echo "Cloud agent task created for $REPO (model: ${AGENT_MODEL:-auto})"
 
       - name: Open fallback issue on failure
         if: failure()
