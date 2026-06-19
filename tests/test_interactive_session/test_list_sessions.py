@@ -314,6 +314,86 @@ class TestAppSessionFilter:
             assert t not in APP_SESSION_TYPES, f"{t} should not be filtered out"
 
 
+class TestBuildAppFilteredPageFetcher:
+    """Tests for build_app_filtered_page_fetcher, the factory used as fetch_page_callback."""
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_filters_app_sessions_from_page(self, mock_fetch):
+        """App sessions must be removed from the returned sessions list."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        mock_fetch.return_value = {
+            'sessions': [
+                {'_id': 'aaa', 'interactiveSessionType': 'awsJupyterNotebook'},
+                {'_id': 'bbb', 'interactiveSessionType': 'awsCustomSession'},
+                {'_id': 'ccc', 'interactiveSessionType': 'azureCustomSession'},
+            ],
+            'pagination_metadata': {'count': 3, 'page': 2, 'totalPages': 3}
+        }
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(2)
+
+        mock_fetch.assert_called_once_with(cl, 'ws1', 2, 10, None, False, False, True)
+        returned_ids = {s['_id'] for s in result['sessions']}
+        assert 'aaa' in returned_ids, "Regular session must be kept"
+        assert 'bbb' not in returned_ids, "awsCustomSession must be filtered"
+        assert 'ccc' not in returned_ids, "azureCustomSession must be filtered"
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_passes_all_params_to_api(self, mock_fetch):
+        """Factory closure must forward every captured parameter to fetch_interactive_session_page."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        mock_fetch.return_value = {'sessions': [], 'pagination_metadata': {}}
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 20, ('running',), True, False, True)
+        fetcher(5)
+
+        mock_fetch.assert_called_once_with(cl, 'ws1', 5, 20, ('running',), True, False, True)
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_keeps_all_regular_sessions(self, mock_fetch):
+        """Non-app session types must be returned unchanged."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        regular_sessions = [
+            {'_id': 'j1', 'interactiveSessionType': 'awsJupyterNotebook'},
+            {'_id': 'v1', 'interactiveSessionType': 'awsVSCode'},
+            {'_id': 'r1', 'interactiveSessionType': 'awsRstudio'},
+        ]
+        mock_fetch.return_value = {
+            'sessions': regular_sessions,
+            'pagination_metadata': {'count': 3, 'page': 1, 'totalPages': 1}
+        }
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(1)
+
+        assert len(result['sessions']) == 3
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_pagination_metadata_preserved(self, mock_fetch):
+        """pagination_metadata from the API response must be returned intact."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        expected_meta = {'count': 10, 'page': 3, 'totalPages': 5}
+        mock_fetch.return_value = {'sessions': [], 'pagination_metadata': expected_meta}
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(3)
+
+        assert result['pagination_metadata'] == expected_meta
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
 
