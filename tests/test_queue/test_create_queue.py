@@ -677,16 +677,13 @@ class TestCreateQueueFromScratchCLI:
 
 
 # ===========================================================================
-# Unit tests – Queue.find_job_queue_by_label() & add_compute_environment()
+# Unit tests – Queue.add_compute_environment()
 # ===========================================================================
 
 QUEUES_LIST_FILE = 'tests/test_data/queue/queues.json'
-SYSTEM_QUEUES_LIST_FILE = 'tests/test_data/queue/system_queues.json'
 
 with open(QUEUES_LIST_FILE) as f:
     QUEUES_LIST_STR = f.read()
-with open(SYSTEM_QUEUES_LIST_FILE) as f:
-    SYSTEM_QUEUES_LIST_STR = f.read()
 
 
 def _queue_with_n_ces(label, queue_id, n):
@@ -722,36 +719,6 @@ class TestFindAndAddComputeEnvironment:
             cromwell_token=None,
             workspace_id=WORKSPACE_ID,
         )
-
-    def _add_get_queues(self):
-        responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
-            body=QUEUES_LIST_STR,
-            status=200,
-            content_type='application/json',
-        )
-        responses.add(
-            responses.GET,
-            url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
-            body=SYSTEM_QUEUES_LIST_STR,
-            status=200,
-            content_type='application/json',
-        )
-
-    @responses.activate
-    def test_find_job_queue_by_label_found(self):
-        self._add_get_queues()
-        q = self._make_queue()
-        found = q.find_job_queue_by_label('test_queue_label')
-        assert found is not None
-        assert found['label'] == 'test_queue_label'
-
-    @responses.activate
-    def test_find_job_queue_by_label_not_found(self):
-        self._add_get_queues()
-        q = self._make_queue()
-        assert q.find_job_queue_by_label('does-not-exist') is None
 
     def test_count_workspace_compute_environments_from_list(self):
         q = self._make_queue()

@@ -666,25 +666,6 @@ class Queue(Cloudos):
             compute_resources["bidPercentage"] = 100
         return compute_resources
 
-    def find_job_queue_by_label(self, label):
-        """Find a job queue in the workspace by its label.
-
-        Parameters
-        ----------
-        label : str
-            The label of the job queue to find.
-
-        Returns
-        -------
-        queue : dict or None
-            The matching job queue dict, or ``None`` if no queue with that
-            label exists.
-        """
-        for q in self.get_job_queues():
-            if q.get('label') == label:
-                return q
-        return None
-
     def count_workspace_compute_environments(self, queues=None):
         """Count the total compute environments across all queues in the workspace.
 
