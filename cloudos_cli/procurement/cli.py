@@ -1,10 +1,11 @@
 """CLI commands for Lifebit Platform procurement management."""
 
 import rich_click as click
+from rich.console import Console
+
+from cloudos_cli.configure.configure import CLOUDOS_URL, with_profile_config
 from cloudos_cli.procurement.images import Images
 from cloudos_cli.utils.resources import ssl_selector
-from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
-from rich.console import Console
 
 
 @click.group()
@@ -89,10 +90,11 @@ def list_images(ctx,
                   'SparkInteractiveSessions',
                   'RStudioInteractiveSessions',
                   'JupyterInteractiveSessions',
+                  'VSCodeInteractiveSessions',
                   'JobDefault',
                   'NextflowBatchComputeEnvironment']))
-@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
-@click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
+@click.option('--provider', help='The cloud provider. Only aws and azure are supported.', required=True, type=click.Choice(['aws', 'azure']), default='aws')
+@click.option('--region', help='The cloud region. Only aws and azure regions are supported.', required=True)
 @click.option('--image-id', help='The new image id value.', required=True)
 @click.option('--image-name', help='The new image name value.', required=False)
 @click.option('--image-version', help='The new image version value.', required=True)
@@ -165,10 +167,11 @@ def set_organisation_image(ctx,
                   'SparkInteractiveSessions',
                   'RStudioInteractiveSessions',
                   'JupyterInteractiveSessions',
+                  'VSCodeInteractiveSessions',
                   'JobDefault',
                   'NextflowBatchComputeEnvironment']))
-@click.option('--provider', help='The cloud provider. Only aws is supported.', required=True, type=click.Choice(['aws']), default='aws')
-@click.option('--region', help='The cloud region. Only aws regions are supported.', required=True)
+@click.option('--provider', help='The cloud provider. Only aws and azure are supported.', required=True, type=click.Choice(['aws', 'azure']), default='aws')
+@click.option('--region', help='The cloud region. Only aws and azure regions are supported.', required=True)
 @click.option('--disable-ssl-verification',
               help=('Disable SSL certificate verification. Please, remember that this option is ' +
                     'not generally recommended for security reasons.'),
