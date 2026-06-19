@@ -90,9 +90,6 @@ def test_reset_procurement_organisation_image_different_types():
     image_types = [
         "RegularInteractiveSessions",
         "SparkInteractiveSessions",
-        "RStudioInteractiveSessions",
-        "JupyterInteractiveSessions",
-        "VSCodeInteractiveSessions",
         "NextflowBatchComputeEnvironment",
     ]
 
@@ -317,55 +314,3 @@ def test_reset_procurement_organisation_image_azure_different_regions():
         assert result["region"] == region
         assert result["isLifebitManaged"] is True
 
-
-@responses.activate
-def test_reset_procurement_organisation_image_vscode_interactive_sessions():
-    """Test resetting VSCodeInteractiveSessions image type specifically"""
-
-    mock_response = {
-        "id": "config-vscode-123",
-        "organisationId": ORGANISATION_ID,
-        "imageType": "VSCodeInteractiveSessions",
-        "provider": "aws",
-        "region": "eu-west-2",
-        "imageId": "ami-lifebit-vscode-default",
-        "imageName": "Lifebit Default VSCode Interactive Sessions Image",
-        "isLifebitManaged": True,
-        "lastUpdatedBy": "Lifebit System",
-        "organisationName": "Test-Organisation",
-        "updatedAt": "2025-07-28T12:00:00",
-    }
-
-    expected_payload = {
-        "organisationId": ORGANISATION_ID,
-        "imageType": "VSCodeInteractiveSessions",
-        "provider": "aws",
-        "region": "eu-west-2",
-    }
-
-    responses.add(
-        responses.PUT,
-        url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
-        body=json.dumps(mock_response),
-        match=[matchers.json_params_matcher(expected_payload)],
-        status=200,
-    )
-
-    procurement_images = Images(
-        cloudos_url=CLOUDOS_URL,
-        apikey=APIKEY,
-        procurement_id=PROCUREMENT_ID,
-        verify=True,
-        cromwell_token=None,
-    )
-
-    result = procurement_images.reset_procurement_organisation_image(
-        organisation_id=ORGANISATION_ID,
-        image_type="VSCodeInteractiveSessions",
-        provider="aws",
-        region="eu-west-2",
-    )
-
-    assert result["imageType"] == "VSCodeInteractiveSessions"
-    assert result["isLifebitManaged"] is True
-    assert "vscode" in result["imageId"].lower()

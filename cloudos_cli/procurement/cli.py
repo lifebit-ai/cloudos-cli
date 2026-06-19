@@ -88,9 +88,6 @@ def list_images(ctx,
               type=click.Choice([
                   'RegularInteractiveSessions',
                   'SparkInteractiveSessions',
-                  'RStudioInteractiveSessions',
-                  'JupyterInteractiveSessions',
-                  'VSCodeInteractiveSessions',
                   'JobDefault',
                   'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws and azure are supported.', required=True, type=click.Choice(['aws', 'azure']), default='aws')
@@ -165,9 +162,6 @@ def set_organisation_image(ctx,
               type=click.Choice([
                   'RegularInteractiveSessions',
                   'SparkInteractiveSessions',
-                  'RStudioInteractiveSessions',
-                  'JupyterInteractiveSessions',
-                  'VSCodeInteractiveSessions',
                   'JobDefault',
                   'NextflowBatchComputeEnvironment']))
 @click.option('--provider', help='The cloud provider. Only aws and azure are supported.', required=True, type=click.Choice(['aws', 'azure']), default='aws')

@@ -94,9 +94,6 @@ class Images(Cloudos):
             The image type. Possible values are:
             RegularInteractiveSessions
             SparkInteractiveSessions
-            RStudioInteractiveSessions
-            JupyterInteractiveSessions
-            VSCodeInteractiveSessions
             JobDefault
             NextflowBatchComputeEnvironment
         provider
@@ -152,9 +149,6 @@ class Images(Cloudos):
             The image type. Possible values are:
             RegularInteractiveSessions
             SparkInteractiveSessions
-            RStudioInteractiveSessions
-            JupyterInteractiveSessions
-            VSCodeInteractiveSessions
             JobDefault
             NextflowBatchComputeEnvironment
         provider
