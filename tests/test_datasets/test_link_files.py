@@ -90,7 +90,7 @@ class TestParseS3FilePath:
             link_instance.parse_s3_file_path("s3://bucket/folder/")
 
 # ---------------------------------------------------------------------------
-# _parse_file_explorer_item (auto-detect)
+# parse_file_explorer_item (auto-detect)
 # ---------------------------------------------------------------------------
 
 class TestParseFileExplorerItem:
@@ -111,7 +111,7 @@ class TestParseFileExplorerItem:
             "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
-        result = link_instance._parse_file_explorer_item("Data/results")
+        result = link_instance.parse_file_explorer_item("Data/results")
         assert result["dataItem"]["kind"] == "Folder"
         assert result["dataItem"]["item"] == "folder_id_1"
         assert result["dataItem"]["name"] == "results"
@@ -124,7 +124,7 @@ class TestParseFileExplorerItem:
             "cloudos_cli.interactive_session.link.generate_datasets_for_project",
             lambda *a, **kw: ds
         )
-        result = link_instance._parse_file_explorer_item("Data/data.csv")
+        result = link_instance.parse_file_explorer_item("Data/data.csv")
         assert result["dataItem"]["kind"] == "File"
         assert result["dataItem"]["item"] == "file_id_99"
         assert result["dataItem"]["name"] == "data.csv"
@@ -138,7 +138,7 @@ class TestParseFileExplorerItem:
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="Virtual folders cannot be linked"):
-            link_instance._parse_file_explorer_item("Data/vfolder")
+            link_instance.parse_file_explorer_item("Data/vfolder")
 
     def test_not_found_raises(self, link_instance, monkeypatch):
         ds = self._make_ds_mock()
@@ -147,7 +147,7 @@ class TestParseFileExplorerItem:
             lambda *a, **kw: ds
         )
         with pytest.raises(ValueError, match="not found"):
-            link_instance._parse_file_explorer_item("Data/missing_item")
+            link_instance.parse_file_explorer_item("Data/missing_item")
 
 
 # ---------------------------------------------------------------------------
@@ -269,7 +269,7 @@ class TestLinkFileExplorerFileV2:
             status=200
         )
 
-        monkeypatch.setattr(link_instance, "_parse_file_explorer_item", lambda x: {
+        monkeypatch.setattr(link_instance, "parse_file_explorer_item", lambda x: {
             "dataItem": {"kind": "File", "item": "file_abc", "name": "observations.csv"}
         })
 
@@ -415,7 +415,7 @@ class TestV1FallbackRejectsFiles:
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
         responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
 
-        monkeypatch.setattr(link_instance, "_parse_file_explorer_item", lambda path: {
+        monkeypatch.setattr(link_instance, "parse_file_explorer_item", lambda path: {
             "dataItem": {"kind": "File", "item": "id1", "name": "data.csv"}
         })
 
