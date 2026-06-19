@@ -1,17 +1,12 @@
 name: Receive endpoint change and generate CLI PR
 
 on:
-  # repository_dispatch:
-  #   types: [endpoint-changed]
   workflow_dispatch:
     inputs:
       client_payload:
         description: "Full client_payload JSON (the object under client_payload from the dispatch body)"
         required: true
         default: '{"relevant": true, "source_pr_url": "", "commit": "", "summary": "1 supported endpoint(s) affected: GET /api/v1/analytics/team", "changed_files": ["src/api/analytics/router.ts"], "changed_endpoints": [{"method": "GET", "path": "/api/v1/analytics/team", "change_type": "modified", "auth": ["userApiToken"], "summary": "team analytics", "source": "typescript", "api_server_files": ["src/api/analytics/router.ts"], "id": "analytics-team", "cli_command": "cloudos analytics team", "cli_source_file": "cloudos_cli/analytics/analytics.py", "query_params": ["teamId"]}]}'
-  # push:
-  #   branches:
-  #     - ai-server-cli
 
 jobs:
   generate-pr:
