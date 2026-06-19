@@ -119,8 +119,8 @@ class Link(Cloudos):
             # v2 failed or not available, fall back to v1
             status_code = self._fallback_mount_v1(folder_info, session_id)
 
-        # Verify mount completion for all items
-        if status_code == 204:
+        # Verify mount completion for all items (any 2xx response means success)
+        if status_code is not None and 200 <= status_code < 300:
             return self._verify_all_mounts(folder_info, session_id)
         return True
 
@@ -168,7 +168,7 @@ class Link(Cloudos):
                 data_items.append(parsed["dataItem"])
                 folder_info.append({"path": folder, "type": "S3", "data": parsed["dataItem"]})
             else:
-                parsed = self._parse_file_explorer_item(folder)
+                parsed = self.parse_file_explorer_item(folder)
                 mount_name = parsed["dataItem"]["name"]
                 self._raise_if_duplicate_mount(mount_name, folder, mount_names_seen)
                 mount_names_seen[mount_name] = folder
@@ -590,7 +590,7 @@ class Link(Cloudos):
             }
         }
 
-    def _parse_file_explorer_item(self, path: str) -> dict:
+    def parse_file_explorer_item(self, path: str) -> dict:
         """Auto-detect whether a File Explorer path is a file or folder and return the data item.
 
         Performs a single API lookup to determine item type and resolve the ID.

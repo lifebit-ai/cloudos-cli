@@ -497,7 +497,7 @@ class TestCreateSessionCopyFlag:
             'dataset_path': 'Data/file.csv',
         }
         fe_link = MagicMock()
-        fe_link._parse_file_explorer_item.return_value = {
+        fe_link.parse_file_explorer_item.return_value = {
             'dataItem': {'item': 'item_id_123', 'name': 'file.csv', 'kind': 'File'}
         }
         mock_link_client.return_value = fe_link
@@ -511,7 +511,7 @@ class TestCreateSessionCopyFlag:
 
         assert result.exit_code == 0
         mock_parse.assert_called_once_with('my_project/Data/file.csv')
-        fe_link._parse_file_explorer_item.assert_called_once_with('Data/file.csv')
+        fe_link.parse_file_explorer_item.assert_called_once_with('Data/file.csv')
 
     @patch('cloudos_cli.interactive_session.cli._make_link_client')
     @patch('cloudos_cli.interactive_session.cli.parse_data_file')

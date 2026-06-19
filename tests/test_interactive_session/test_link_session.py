@@ -72,9 +72,9 @@ class TestCheckDuplicateMountName:
         _check_duplicate_mount_name("folder", "Data/folder", seen)
         assert seen["folder"] == "Data/folder"
 
-    def test_duplicate_raises_system_exit(self):
+    def test_duplicate_raises_value_error(self):
         seen = {"folder": "Data/folder"}
-        with pytest.raises(SystemExit):
+        with pytest.raises(ValueError):
             _check_duplicate_mount_name("folder", "OtherProject/Data/folder", seen)
 
 

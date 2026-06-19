@@ -73,15 +73,13 @@ def _make_link_client(cloudos_url, apikey, workspace_id, project_name, verify_ss
 
 
 def _check_duplicate_mount_name(mount_name, link_path, seen):
-    """Raise SystemExit(1) if mount_name already exists in seen, otherwise register it."""
+    """Raise ValueError if mount_name already exists in seen, otherwise register it."""
     if mount_name in seen:
-        click.secho(
-            f"Error: Duplicate mount name '{mount_name}' detected. "
+        raise ValueError(
+            f"Duplicate mount name '{mount_name}' detected. "
             f"The items '{seen[mount_name]}' and '{link_path}' "
-            f"would both be mounted with the same name. Please use items with unique names.",
-            fg='red', err=True
+            f"would both be mounted with the same name. Please use items with unique names."
         )
-        raise SystemExit(1)
     seen[mount_name] = link_path
 
 
@@ -506,7 +504,7 @@ def create_session(ctx,
                         if verbose:
                             print(f'\tCopying dataset: {data_project}/{dataset_path}')
                         fe_link = _make_link_client(cloudos_url, apikey, workspace_id, data_project, verify_ssl)
-                        resolved = fe_link._parse_file_explorer_item(dataset_path)["dataItem"]
+                        resolved = fe_link.parse_file_explorer_item(dataset_path)["dataItem"]
                         parsed_data_files.append(resolved)
                         _data_file_display_meta.append({
                             "is_file_explorer": True,
@@ -593,7 +591,7 @@ def create_session(ctx,
                         print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
                     try:
                         fe_link = _make_link_client(cloudos_url, apikey, workspace_id, folder_project, verify_ssl)
-                        fe_item = fe_link._parse_file_explorer_item(folder_path)
+                        fe_item = fe_link.parse_file_explorer_item(folder_path)
                         item_kind = fe_item["dataItem"]["kind"]
                         item_id = fe_item["dataItem"]["item"]
                         mount_name = fe_item["dataItem"]["name"]
