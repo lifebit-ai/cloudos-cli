@@ -3,6 +3,7 @@ This is the main class to create job queues.
 """
 
 import json
+import copy
 import pandas as pd
 from dataclasses import dataclass
 from typing import Union
@@ -365,7 +366,6 @@ class Queue(Cloudos):
             raise ValueError(
                 f"Unknown preset '{preset_name}'. Valid presets are: {valid}"
             )
-        import copy
         return copy.deepcopy(QUEUE_PRESETS[preset_name])
 
     def create_job_queue(self, label, description, preset_name, executor="nextflow",
