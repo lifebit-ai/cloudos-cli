@@ -638,6 +638,16 @@
       "source_file": "cloudos_cli/clos.py",
       "added_in_version": "2.91.0",
       "notes": "Called internally to poll folder deletion status during 'cloudos job workdir' and dataset operations"
+    },
+    {
+      "id": "analytics-team-summary",
+      "method": "GET",
+      "path": "/api/v1/analytics/team/summary",
+      "query_params": ["teamId", "startDate", "endDate", "granularity"],
+      "cli_command": "cloudos analytics team-summary",
+      "source_file": "cloudos_cli/analytics/analytics.py",
+      "added_in_version": "2.92.0",
+      "notes": "Returns aggregated team usage analytics (compute hours, job counts, spend) over a date range. Made-up endpoint added to exercise the endpoint-sync automation."
     }
   ]
 }
