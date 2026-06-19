@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.94.0 (2026-06-19)
+
+### Feat:
+
+- Adds GitHub workflow to receive api-server endpoint events and open Copilot agent PRs
+- Adds `supported-endpoints.json` mapping wrapped API endpoints to CLI commands
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
