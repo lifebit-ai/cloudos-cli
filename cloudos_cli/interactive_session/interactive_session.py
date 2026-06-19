@@ -368,6 +368,8 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
             # Client-side, single page: total is exact
             console.print(f"\n[cyan]Total sessions:[/cyan] {total_sessions}")
         console.print(f"[cyan]Sessions on this page:[/cyan] {len(page_rows)}")
+        if fetch_page_callback and pagination_metadata:
+            console.print("[yellow]Note: total page count is not available from the CLI for interactive sessions. This feature will be ready soon.[/yellow]")
 
         # ---- Error message --------------------------------------------------
         if show_error:
