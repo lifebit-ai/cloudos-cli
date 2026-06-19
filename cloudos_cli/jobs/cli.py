@@ -12,7 +12,6 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.utils.details import create_job_details, create_job_list_table
 from cloudos_cli.utils.nextflow_version import resolve_nextflow_version
-from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.related_analyses.related_analyses import related_analyses
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.link import Link
@@ -1448,62 +1447,6 @@ def abort_jobs(ctx,
                 click.secho(f"Job '{job}' aborted successfully.", fg='green', bold=True)
             except Exception as e:
                 click.secho(f"Failed to abort job {job}. Error: {e}", fg='red', bold=True)
-
-
-@job.command('cost')
-@click.option('-k',
-              '--apikey',
-              help='Your Lifebit Platform API key',
-              required=True)
-@click.option('-c',
-              '--cloudos-url',
-              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL,
-              required=True)
-@click.option('--workspace-id',
-              help='The specific Lifebit Platform workspace id.',
-              required=True)
-@click.option('--job-id',
-              help='The job id in Lifebit Platform to get costs for.',
-              required=True)
-@click.option('--output-format',
-              help='The desired file format (file extension) for the output. For json option --all-fields will be automatically set to True. Default=csv.',
-              type=click.Choice(['stdout', 'csv', 'json'], case_sensitive=False),
-              default='stdout')
-@click.option('--verbose',
-              help='Whether to print information messages or not.',
-              is_flag=True)
-@click.option('--disable-ssl-verification',
-              help=('Disable SSL certificate verification. Please, remember that this option is ' +
-                    'not generally recommended for security reasons.'),
-              is_flag=True)
-@click.option('--ssl-cert',
-              help='Path to your SSL certificate file.')
-@click.option('--profile', help='Profile to use from the config file', default=None)
-@click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id'])
-def job_cost(ctx,
-             apikey,
-             cloudos_url,
-             workspace_id,
-             job_id,
-             output_format,
-             verbose,
-             disable_ssl_verification,
-             ssl_cert,
-             profile):
-    """Retrieve job cost information in Lifebit Platform."""
-    # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
-
-    print('Retrieving cost information...')
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-    if verbose:
-        print('\t...Preparing objects')
-    cost_viewer = CostViewer(cloudos_url, apikey)
-    if verbose:
-        print(f'\tSearching for cost data for job id: {job_id}')
-    # Display costs with pagination
-    cost_viewer.display_costs(job_id, workspace_id, output_format, verify_ssl)
 
 
 @job.command('related')

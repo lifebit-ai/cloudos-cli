@@ -1,5 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-19)
+
+### Patch:
+
+- Removes `cloudos job cost` command: the underlying API endpoint
+  `GET /api/v1/jobs/{job_id}/costs/compute` has been removed from the platform
+- Confirms `PUT /api/v1/jobs` (`cloudos job archive` / `cloudos job unarchive`) already
+  sends the required `teamId` query parameter per the updated API specification
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:
