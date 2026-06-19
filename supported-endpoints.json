@@ -1,0 +1,15 @@
+{
+  "cli_version": "2.91.1",
+  "endpoints": [
+    {
+      "id": "analytics-team-summary",
+      "method": "GET",
+      "path": "/api/v1/analytics/team/summary",
+      "cli_command": "cloudos analytics team-summary",
+      "cli_source_file": "cloudos_cli/analytics/analytics.py",
+      "query_params": ["teamId", "startDate", "endDate", "granularity"],
+      "auth": [],
+      "summary": "Returns aggregated team usage analytics (compute hours, job counts, spend) over a date range."
+    }
+  ]
+}

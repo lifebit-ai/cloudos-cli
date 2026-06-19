@@ -1,0 +1,23 @@
+{
+  "teamId": "lv89ufc838sdig",
+  "startDate": "2024-01-01",
+  "endDate": "2024-12-31",
+  "granularity": "monthly",
+  "computeHours": 1234.56,
+  "jobCount": 42,
+  "spend": 987.65,
+  "breakdown": [
+    {
+      "period": "2024-01",
+      "computeHours": 100.5,
+      "jobCount": 3,
+      "spend": 80.0
+    },
+    {
+      "period": "2024-02",
+      "computeHours": 200.1,
+      "jobCount": 5,
+      "spend": 160.5
+    }
+  ]
+}
