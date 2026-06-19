@@ -99,32 +99,6 @@ class NoJobQueuesAvailableException(Exception):
         self.workflow_type = workflow_type
 
 
-class ComputeEnvAuthorizationException(Exception):
-    """Raised when adding a compute environment is rejected by the platform.
-
-    The add-compute-environment endpoint
-    (``apiAddComputeEnvironmentToJobQueue``) only accepts session/bearer
-    authentication. API keys are authenticated but not authorised for this
-    operation, so the platform responds with HTTP 401.
-
-    Parameters
-    ----------
-    queue_label : str
-        The label of the target job queue.
-    """
-    def __init__(self, queue_label):
-        msg = (
-            "Not authorised to add a compute environment to queue "
-            "'{}'. Adding a compute environment to an existing queue is not "
-            "supported with API key authentication; this operation requires "
-            "an interactive (session/bearer) login. You can still create a "
-            "new queue with a compute environment using "
-            "'cloudos queue create'.".format(queue_label)
-        )
-        super(ComputeEnvAuthorizationException, self).__init__(msg)
-        self.queue_label = queue_label
-
-
 class JobAccessDeniedException(Exception):
     def __init__(self, job_id, job_owner_name=None, current_user_name=None):
         if job_owner_name and current_user_name:

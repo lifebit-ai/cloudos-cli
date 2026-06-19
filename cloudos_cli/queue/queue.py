@@ -10,7 +10,6 @@ from typing import Union
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import (
     BadRequestException,
-    ComputeEnvAuthorizationException,
     NoJobQueuesAvailableException,
 )
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
@@ -167,15 +166,6 @@ VOLUME_SPECS = {
         "throughput": None,
     },
 }
-
-# Maximum number of compute environments a single job queue can hold.
-MAX_COMPUTE_ENVS = 3
-
-# Message shown once a job queue reaches the compute environment limit.
-CE_LIMIT_REACHED_MESSAGE = (
-    "You have reached the limit for compute environments for this job queue. "
-    f"Job queues can have up to {MAX_COMPUTE_ENVS} compute environments."
-)
 
 # Maximum number of compute environments a workspace can hold across all queues.
 MAX_WORKSPACE_COMPUTE_ENVS = 10
@@ -686,101 +676,3 @@ class Queue(Cloudos):
         if queues is None:
             queues = self.get_job_queues(exclude_system_queues=True)
         return sum(len(q.get('computeEnvironments', [])) for q in queues)
-
-    def add_compute_environment(self,
-                                queue_id,
-                                queue_label,
-                                ce_name,
-                                provisioning_type,
-                                allocation_strategy,
-                                max_vcpus,
-                                min_vcpus,
-                                instance_types,
-                                volume_type,
-                                size,
-                                iops,
-                                throughput=None):
-        """Add a compute environment to an existing job queue.
-
-        Parameters
-        ----------
-        queue_id : str
-            The Lifebit Platform ID of the target job queue.
-        queue_label : str
-            The label of the target job queue.
-        ce_name : str
-            Name for the new compute environment.
-        provisioning_type : str
-            One of ``'on-demand'`` or ``'spot'``.
-        allocation_strategy : str
-            AWS Batch allocation strategy. Must be valid for the chosen
-            ``provisioning_type`` (see ``ALLOCATION_STRATEGIES``).
-        max_vcpus : int
-            Maximum number of vCPUs for the compute environment.
-        min_vcpus : int
-            Minimum number of vCPUs for the compute environment.
-        instance_types : list[str]
-            Instance types to allow.
-        volume_type : str
-            One of ``'gp3'`` or ``'io2'``.
-        size : int
-            Volume size in GiB.
-        iops : int
-            Provisioned IOPS for the volume.
-        throughput : int or None, optional
-            Volume throughput in MB/s. Only applicable to ``gp3`` volumes.
-
-        Returns
-        -------
-        response_data : dict
-            The updated job queue as returned by the API.
-
-        Raises
-        ------
-        ValueError
-            If the provisioning type, allocation strategy or volume type are
-            not recognised, or the allocation strategy is incompatible with
-            the provisioning type.
-        BadRequestException
-            If the API returns a 4xx or 5xx response.
-        """
-        compute_resources = self._build_compute_resources(
-            provisioning_type=provisioning_type,
-            allocation_strategy=allocation_strategy,
-            max_vcpus=max_vcpus,
-            min_vcpus=min_vcpus,
-            instance_types=instance_types,
-            volume_type=volume_type,
-            size=size,
-            iops=iops,
-            throughput=throughput,
-        )
-        # The add-compute-environment endpoint only accepts the ``environment``
-        # object in the request body (see apiAddComputeEnvironmentToJobQueue).
-        payload = {
-            "environment": {
-                "computeEnvironmentName": ce_name,
-                "computeResources": compute_resources,
-            },
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "apikey": self.apikey,
-        }
-        r = retry_requests_post(
-            "{}/api/v1/teams/aws/v2/job-queue/{}/compute-environment?teamId={}".format(
-                self.cloudos_url, queue_id, self.workspace_id
-            ),
-            headers=headers,
-            json=payload,
-            verify=self.verify,
-        )
-        if r.status_code == 401:
-            # The add-compute-environment endpoint
-            # (apiAddComputeEnvironmentToJobQueue) only accepts session/bearer
-            # authentication; API keys are not authorised for it. Surface a
-            # clear, actionable message instead of a raw "Unauthorized".
-            raise ComputeEnvAuthorizationException(queue_label)
-        if r.status_code >= 400:
-            raise BadRequestException(r)
-        return json.loads(r.content)
