@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-19)
+
+### Feat:
+
+- Adds `cloudos analytics team-summary` command for `GET /api/v1/analytics/team/summary`
+- Returns aggregated team usage analytics (compute hours, job counts, spend) over a date range
+- Supports optional query parameters: `--start-date`, `--end-date`, `--granularity`
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

@@ -26,6 +26,7 @@ from cloudos_cli.datasets.cli import datasets
 from cloudos_cli.configure.cli import configure
 from cloudos_cli.link.cli import link
 from cloudos_cli.interactive_session.cli import interactive_session
+from cloudos_cli.analytics.cli import analytics
 
 
 # Install the custom exception handler
@@ -65,6 +66,7 @@ run_cloudos_cli.add_command(datasets)
 run_cloudos_cli.add_command(configure)
 run_cloudos_cli.add_command(link)
 run_cloudos_cli.add_command(interactive_session)
+run_cloudos_cli.add_command(analytics)
 
 if __name__ == '__main__':
     run_cloudos_cli()
