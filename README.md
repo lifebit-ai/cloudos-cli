@@ -29,6 +29,7 @@ Python package for interacting with Lifebit Platform
       - [Create Projects](#create-projects)
     - [Queue](#queue)
       - [List Queues](#list-queues)
+      - [Create Queue](#create-queue)
     - [Workflow](#workflow)
       - [List All Available Workflows](#list-all-available-workflows)
       - [Import a Nextflow Workflow](#import-a-nextflow-workflow)
@@ -440,6 +441,41 @@ cloudos queue list --profile my_profile --output-format csv
 ```
 
 > NOTE: The queue name that is visible in Lifebit Platform and must be used with the `--job-queue` parameter is the one in the `label` field.
+
+#### Create Queue
+
+You can create a new AWS batch job queue in your Lifebit Platform workspace using the `queue create` command. By default the queue is built from a preset template, selected with the `--preset` option. Available presets are:
+
+- **standard-stable** (default): On-demand stable instances
+- **standard-cost-saving**: Spot instances (up to ~80% cheaper, at risk of premature termination)
+- **read-write-optimised**: On-demand instances with increased disk I/O performance
+- **standard-gpu**: On-demand standard instances plus GPU instances
+
+To create a queue from a preset:
+
+```bash
+cloudos queue create --profile my_profile --label "my-new-queue" --description "Queue for RNA-seq jobs" --preset standard-stable
+```
+
+Before creating the queue, a summary is shown and confirmation is requested. To skip the confirmation prompt, add the `-y`/`--yes` flag. You can also set the new queue as the workspace default with `--set-default`.
+
+The expected output is something similar to:
+
+```console
+Executing queue create...
+	Queue "my-new-queue" created successfully.
+	Queue ID : 64f1a23b8e4c9d001234abcd
+	View at  : https://cloudos.lifebit.ai/app/job-queues/64f1a23b8e4c9d001234abcd
+```
+
+For full control over the compute environment, use the `--from-scratch` flag, which launches an interactive wizard (or runs non-interactively when combined with `-y`/`--yes`). This lets you customize provisioning type, allocation strategy, vCPUs, instance types, and volume settings:
+
+```bash
+cloudos queue create --profile my_profile --label "custom-queue" --description "Custom spot queue" --from-scratch --provisioning-type spot --max-vcpus 256 --instance-types optimal -y
+```
+
+> [!NOTE]
+> **Azure Platform**: Batch job queues are an AWS-only feature and are not available in Azure or HPC workspaces.
 
 **Job queues for platform workflows**
 
