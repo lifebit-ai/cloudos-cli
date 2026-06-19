@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.91.1 (2026-06-19)
+
+### Patch
+
+- Syncs `cloudos job archive` / `cloudos job unarchive` with api-server change: `PUT /api/v1/jobs` now requires `teamId` as a query parameter (api-server PR #5661)
+- Adds `supported-endpoints.json` as a source-of-truth mapping for supported CLI endpoints
+
 ## v2.91.0 (2026-05-28)
 
 ### Feat:

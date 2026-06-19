@@ -1,0 +1,16 @@
+[
+  {
+    "id": "jobs-archive",
+    "method": "PUT",
+    "path": "/api/v1/jobs",
+    "cli_command": "cloudos job archive",
+    "cli_source_file": "cloudos_cli/clos.py",
+    "query_params": [
+      "teamId"
+    ],
+    "auth": [],
+    "summary": "Archive or unarchive jobs. Body payload differentiates the action.",
+    "notes": "Also called by 'cloudos job unarchive'. Body payload differentiates the action.",
+    "cli_version": "2.91.1"
+  }
+]
