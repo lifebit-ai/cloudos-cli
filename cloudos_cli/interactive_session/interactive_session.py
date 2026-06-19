@@ -256,50 +256,95 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
     if len(sessions) == 0:
         console.print('[yellow]No interactive sessions found.[/yellow]')
         return
-    # Prepare rows data
-    rows = []
-    for session in sessions:
-        row_data = []
-        for col_name in columns_to_show:
-            if col_name not in all_columns:
-                continue
-            col_config = all_columns[col_name]
-            accessor = col_config['accessor']
-            # Extract value from session object
-            value = _get_nested_value(session, accessor)
-            # Format the value
-            formatted_value = _format_session_field(col_name, value)
-            row_data.append(formatted_value)
-        rows.append(row_data)
+    # ------------------------------------------------------------------
+    # Row-builder helper (keeps column-mapping in one place)
+    # ------------------------------------------------------------------
+    def _build_rows(sess_list):
+        result = []
+        for sess in sess_list:
+            row_data = []
+            for col_name in columns_to_show:
+                if col_name not in all_columns:
+                    continue
+                col_config = all_columns[col_name]
+                value = _get_nested_value(sess, col_config['accessor'])
+                row_data.append(_format_session_field(col_name, value))
+            result.append(row_data)
+        return result
 
-    # Interactive pagination - use API pagination metadata if available
+    # ------------------------------------------------------------------
+    # Pagination state
+    # ------------------------------------------------------------------
     if pagination_metadata:
-        # Server-side pagination
+        # Server-side pagination with fill-buffer.
+        # The server page may contain app-session types that are filtered
+        # client-side, leaving fewer than page_size rows.  We keep a
+        # carry_forward buffer and silently fetch ahead so that every
+        # virtual page is exactly page_size rows (or fewer only on the
+        # very last page).
         current_api_page = pagination_metadata.get('page', 1)
-        total_sessions = pagination_metadata.get('count', len(sessions))
-        total_pages = pagination_metadata.get('totalPages', 1)
+        total_sessions   = pagination_metadata.get('count', len(sessions))
+        total_pages      = pagination_metadata.get('totalPages', 1)
+
+        carry_forward            = list(sessions)   # fetched but not yet shown
+        last_fetched_server_page = current_api_page
+        virtual_page_history     = []               # for "prev" navigation
+
+        def _top_up():
+            """Silently fetch ahead until carry_forward >= page_size or exhausted."""
+            nonlocal last_fetched_server_page, total_pages
+            if not fetch_page_callback:
+                return
+            while (len(carry_forward) < page_size
+                   and last_fetched_server_page < total_pages):
+                try:
+                    extra = fetch_page_callback(last_fetched_server_page + 1)
+                    carry_forward.extend(extra.get('sessions', []))
+                    meta = extra.get('pagination_metadata', {})
+                    total_pages = meta.get('totalPages', total_pages)
+                    last_fetched_server_page += 1
+                except Exception:
+                    break
+
+        # Fill the first virtual page
+        _top_up()
+        current_page_sessions = carry_forward[:page_size]
+        del carry_forward[:page_size]
+
     else:
-        # Client-side pagination (fallback)
-        current_api_page = 0
-        total_sessions = len(sessions)
-        total_pages = (len(sessions) + page_size - 1) // page_size if len(sessions) > 0 else 1
-    show_error = None  # Track error messages to display
+        # Client-side pagination (all sessions already in memory)
+        current_api_page         = 0
+        total_sessions           = len(sessions)
+        total_pages              = (len(sessions) + page_size - 1) // page_size if sessions else 1
+        current_page_sessions    = None   # unused in client-side path
+        carry_forward            = []
+        last_fetched_server_page = 0
+        virtual_page_history     = []
+
+    virtual_page_num = 1
+    show_error = None   # Track error messages to display
+
     while True:
-        # For client-side pagination, start/end are indices into the local rows array
-        # For server-side pagination, we use the API page directly
+        # ---- Build display rows for the current virtual page ----------------
         if fetch_page_callback and pagination_metadata:
-            # Server-side pagination - sessions list contains current page data
-            page_rows = rows[:]  # All rows are from current page
+            page_rows = _build_rows(current_page_sessions)
         else:
-            # Client-side pagination
-            start = current_api_page * page_size
-            end = start + page_size
-            page_rows = rows[start:end]
-        # Clear console first
+            all_rows  = _build_rows(sessions)
+            start     = current_api_page * page_size
+            page_rows = all_rows[start:start + page_size]
+
+        # ---- Determine navigation availability ------------------------------
+        if fetch_page_callback and pagination_metadata:
+            has_next = bool(carry_forward) or last_fetched_server_page < total_pages
+            has_prev = bool(virtual_page_history)
+        else:
+            has_next = (current_api_page + 1) * page_size < len(sessions)
+            has_prev = current_api_page > 0
+        show_nav = has_next or has_prev
+
+        # ---- Render table --------------------------------------------------
         console.clear()
-        # Create table
         table = Table(title='Interactive Sessions')
-        # Add columns to table
         for col_name in columns_to_show:
             if col_name not in all_columns:
                 continue
@@ -309,100 +354,84 @@ def create_interactive_session_list_table(sessions, pagination_metadata=None, se
                 style=col_config.get('style', 'white'),
                 no_wrap=col_config.get('no_wrap', False)
             )
-        # Add rows to table
         for row in page_rows:
             table.add_row(*row)
-        # Print table
         console.print(table)
-        # Display pagination info
-        console.print(f"\n[cyan]Total sessions:[/cyan] {total_sessions}")
-        if total_pages > 1:
-            console.print(f"[cyan]Page:[/cyan] {current_api_page} of {total_pages}")
-            console.print(f"[cyan]Sessions on this page:[/cyan] {len(page_rows)}")
 
-        # Show error message if any
+        # ---- Pagination info ------------------------------------------------
+        # Sessions on this page is always the exact post-filter count.
+        # The virtual page number counts only pages with at least one session.
+        if show_nav:
+            page_display = virtual_page_num if (fetch_page_callback and pagination_metadata) else current_api_page + 1
+            console.print(f"\n[cyan]Page:[/cyan] {page_display}")
+        elif not pagination_metadata:
+            # Client-side, single page: total is exact
+            console.print(f"\n[cyan]Total sessions:[/cyan] {total_sessions}")
+        console.print(f"[cyan]Sessions on this page:[/cyan] {len(page_rows)}")
+
+        # ---- Error message --------------------------------------------------
         if show_error:
             console.print(show_error)
-            show_error = None  # Reset error after displaying
-        # Show pagination controls
-        if total_pages > 1:
-            # Check if we're in an interactive environment
+            show_error = None
+
+        # ---- Navigation controls -------------------------------------------
+        if show_nav:
             if not sys.stdin.isatty():
-                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                page_display = virtual_page_num if (fetch_page_callback and pagination_metadata) else current_api_page + 1
+                console.print(f"\n[yellow]Note: Pagination not available in non-interactive mode. Showing page {page_display}.[/yellow]")
                 console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
                 break
             console.print(f"\n[bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit")
-            # Get user input for navigation
             try:
                 choice = input(">>> ").strip().lower()
             except (EOFError, KeyboardInterrupt):
-                # Handle non-interactive environments or user interrupt
                 console.print("\n[yellow]Pagination interrupted.[/yellow]")
                 break
+
             if choice in ("q", "quit"):
                 break
+
             elif choice in ("n", "next"):
-                if current_api_page < total_pages:
-                    # Try to fetch the next page
-                    if fetch_page_callback:
-                        try:
-                            next_page_data = fetch_page_callback(current_api_page + 1)
-                            sessions = next_page_data.get('sessions', [])
-                            pagination_metadata = next_page_data.get('pagination_metadata', {})
-                            current_api_page = pagination_metadata.get('page', current_api_page + 1)
-                            total_pages = pagination_metadata.get('totalPages', total_pages)                          
-                            # Rebuild rows for the new page
-                            rows = []
-                            for session in sessions:
-                                row_data = []
-                                for col_name in columns_to_show:
-                                    if col_name not in all_columns:
-                                        continue
-                                    col_config = all_columns[col_name]
-                                    accessor = col_config['accessor']
-                                    value = _get_nested_value(session, accessor)
-                                    formatted_value = _format_session_field(col_name, value)
-                                    row_data.append(formatted_value)
-                                rows.append(row_data)
-                        except Exception as e:
-                            show_error = f"[red]Error fetching next page: {str(e)}[/red]"
+                if fetch_page_callback and pagination_metadata:
+                    if carry_forward or last_fetched_server_page < total_pages:
+                        virtual_page_history.append(current_page_sessions[:])
+                        _top_up()
+                        if carry_forward:
+                            current_page_sessions = carry_forward[:page_size]
+                            del carry_forward[:page_size]
+                            virtual_page_num += 1
+                        else:
+                            virtual_page_history.pop()
+                            show_error = "[yellow]No more sessions found.[/yellow]"
                     else:
+                        show_error = "[red]Already on the last page.[/red]"
+                else:
+                    if has_next:
                         current_api_page += 1
-                else:
-                    show_error = "[red]Invalid choice. Already on the last page.[/red]"
-            elif choice in ("p", "prev"):
-                if current_api_page > 1:
-                    # Try to fetch the previous page
-                    if fetch_page_callback:
-                        try:
-                            prev_page_data = fetch_page_callback(current_api_page - 1)
-                            sessions = prev_page_data.get('sessions', [])
-                            pagination_metadata = prev_page_data.get('pagination_metadata', {})
-                            current_api_page = pagination_metadata.get('page', current_api_page - 1)
-                            total_pages = pagination_metadata.get('totalPages', total_pages)
-                            # Rebuild rows for the new page
-                            rows = []
-                            for session in sessions:
-                                row_data = []
-                                for col_name in columns_to_show:
-                                    if col_name not in all_columns:
-                                        continue
-                                    col_config = all_columns[col_name]
-                                    accessor = col_config['accessor']
-                                    value = _get_nested_value(session, accessor)
-                                    formatted_value = _format_session_field(col_name, value)
-                                    row_data.append(formatted_value)
-                                rows.append(row_data)
-                        except Exception as e:
-                            show_error = f"[red]Error fetching previous page: {str(e)}[/red]"
                     else:
-                        current_api_page -= 1
+                        show_error = "[red]Already on the last page.[/red]"
+
+            elif choice in ("p", "prev"):
+                if fetch_page_callback and pagination_metadata:
+                    if virtual_page_history:
+                        # Return current sessions to the front of carry_forward,
+                        # then restore the previous virtual page from history.
+                        carry_forward[:0] = current_page_sessions
+                        current_page_sessions = virtual_page_history.pop()
+                        virtual_page_num -= 1
+                    else:
+                        show_error = "[red]Already on the first page.[/red]"
                 else:
-                    show_error = "[red]Invalid choice. Already on the first page.[/red]"
+                    if has_prev:
+                        current_api_page -= 1
+                    else:
+                        show_error = "[red]Already on the first page.[/red]"
+
             else:
                 show_error = "[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"
+
         else:
-            # Only one page, no need for input, just exit
+            # Single page or no sessions left — nothing to navigate
             break
 
 
@@ -1967,3 +1996,48 @@ def fetch_interactive_session_page(cl, workspace_id, page_num, limit, filter_sta
         include_archived=archived,
         verify=verify_ssl
     )
+
+
+def build_app_filtered_page_fetcher(cl, workspace_id, limit, filter_status, filter_only_mine, archived, verify_ssl):
+    """Return a page-fetch callback that strips app-type sessions from each page.
+
+    The returned callable is intended for use as the ``fetch_page_callback``
+    argument of :func:`create_interactive_session_list_table`.  It fetches a
+    page via :func:`fetch_interactive_session_page` and removes any session
+    whose ``interactiveSessionType`` belongs to :data:`APP_SESSION_TYPES`
+    before returning, ensuring app sessions never appear in the interactive
+    table even when the user navigates to subsequent pages.
+
+    Parameters
+    ----------
+    cl : Cloudos
+        API client instance.
+    workspace_id : str
+        Team/workspace identifier.
+    limit : int
+        Page size.
+    filter_status : tuple or None
+        Status values to pass to the API filter.
+    filter_only_mine : bool
+        Restrict results to the authenticated user's sessions.
+    archived : bool
+        Include archived sessions.
+    verify_ssl : bool or str
+        SSL verification setting.
+
+    Returns
+    -------
+    callable
+        A function ``fetch_page(page_num: int) -> dict`` that returns the API
+        response dict with app sessions already removed from ``"sessions"``.
+    """
+    def fetch_page(page_num):
+        page_result = fetch_interactive_session_page(
+            cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
+        )
+        page_result['sessions'] = [
+            s for s in page_result.get('sessions', [])
+            if s.get('interactiveSessionType') not in APP_SESSION_TYPES
+        ]
+        return page_result
+    return fetch_page
