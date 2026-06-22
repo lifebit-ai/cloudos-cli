@@ -12,8 +12,8 @@ import rich_click as click
 
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get
-from cloudos_cli.utils.errors import JoBNotCompletedException
-from cloudos_cli.utils.array_job import generate_datasets_for_project
+from cloudos_cli.datasets.datasets import Datasets
+from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException
 
 
 @dataclass
@@ -615,10 +615,47 @@ class Link(Cloudos):
         item_name = parts[-1]
         parent_path = "/".join(parts[:-1]) if len(parts) > 1 else ""
 
-        ds = generate_datasets_for_project(
-            self.cloudos_url, self.apikey, self.workspace_id, self.project_name, self.verify
-        )
-        contents = ds.list_folder_content(parent_path)
+        # Instantiate Datasets directly (instead of going through
+        # generate_datasets_for_project) so that "project not found" /
+        # "forbidden" surface as ValueError here rather than terminating
+        # the process via sys.exit(1) deep inside the helper.
+        try:
+            ds = Datasets(
+                cloudos_url=self.cloudos_url,
+                apikey=self.apikey,
+                workspace_id=self.workspace_id,
+                project_name=self.project_name,
+                verify=self.verify,
+                cromwell_token=None,
+            )
+        except ValueError as e:
+            raise ValueError(
+                f"Cannot resolve project '{self.project_name}': {e}"
+            )
+        except BadRequestException as e:
+            if 'Forbidden' in str(e):
+                raise ValueError(
+                    "Forbidden when accessing the project. Check your API key, "
+                    "workspace access, and any Airlock restrictions."
+                )
+            raise ValueError(f"Failed to access project '{self.project_name}': {e}")
+
+        # list_folder_content can itself raise BadRequestException (401/403/etc.).
+        # Wrap it so callers see a clean ValueError with actionable guidance.
+        try:
+            contents = ds.list_folder_content(parent_path)
+        except BadRequestException as e:
+            msg = str(e)
+            if 'Forbidden' in msg or '403' in msg or '401' in msg:
+                raise ValueError(
+                    f"Not authorised to list '{parent_path or '[project root]'}' "
+                    f"in project '{self.project_name}'. "
+                    "Check your API key and workspace access (Airlock may also be restricting you)."
+                )
+            raise ValueError(
+                f"Failed to list '{parent_path or '[project root]'}' "
+                f"in project '{self.project_name}': {e}"
+            )
 
         for item in contents.get("folders", []):
             if item.get("name") == item_name:
