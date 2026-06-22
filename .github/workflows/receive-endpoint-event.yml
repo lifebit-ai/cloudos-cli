@@ -1,0 +1,219 @@
+name: Receive endpoint change and generate CLI PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_payload:
+        description: "Full client_payload JSON (the object under client_payload from the dispatch body)"
+        required: true
+        default: '{"relevant": true, "source_pr_url": "", "commit": "", "summary": "1 supported endpoint(s) affected: GET /api/v1/analytics/team", "changed_files": ["src/api/analytics/router.ts"], "changed_endpoints": [{"method": "GET", "path": "/api/v1/analytics/team", "change_type": "modified", "auth": ["userApiToken"], "summary": "team analytics", "source": "typescript", "api_server_files": ["src/api/analytics/router.ts"], "id": "analytics-team", "cli_command": "cloudos analytics team", "cli_source_file": "cloudos_cli/analytics/analytics.py", "query_params": ["teamId"]}]}'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.AGENT_PR_PAT }}
+          fetch-depth: 0
+
+      - name: Resolve payload
+        id: payload
+        env:
+          # Use env vars to safely pass user inputs — avoids single-quote injection
+          # when the JSON payload contains quotes.
+          CLIENT_PAYLOAD: ${{ inputs.client_payload }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # workflow_dispatch receives the client_payload object as a JSON string
+            # input — write it via env var (safe against single-quote injection).
+            printf '%s' "$CLIENT_PAYLOAD" > /tmp/payload.json
+          else
+            # repository_dispatch: client_payload is already JSON — write via tojson filter
+            cat <<'EOJSON' > /tmp/payload.json
+          ${{ toJson(github.event.client_payload) }}
+          EOJSON
+          fi
+
+      - name: Build Copilot PR body
+        run: |
+          python3 - <<'EOF'
+          import json
+          import sys
+
+          payload = json.load(open("/tmp/payload.json"))
+
+          if not payload.get("relevant", True):
+            print("Payload marked as not relevant — skipping.")
+            sys.exit(0)
+
+          endpoints = payload.get("changed_endpoints", [])
+          if not endpoints:
+            print("No changed endpoints in payload — skipping.")
+            sys.exit(0)
+
+          source_pr = payload.get("source_pr_url") or "manual trigger"
+          commit = payload.get("commit", "")
+          overall = payload.get("summary", "")
+          changed_files = payload.get("changed_files", [])
+          version = open("cloudos_cli/_version.py").read().strip()
+
+          fence = "```"
+
+          def fmt_list(items):
+            return ", ".join(items) if items else "—"
+
+          # Group endpoints by the CLI source file they map to, so the agent can
+          # tackle one module at a time.
+          by_file = {}
+          for ep in endpoints:
+            by_file.setdefault(ep.get("cli_source_file") or "(unknown)", []).append(ep)
+
+          lines = []
+          lines.append("## Sync cloudos-cli with a CloudOS API endpoint change\n")
+          lines.append(f"**Source PR:** {source_pr}  ")
+          if commit:
+            lines.append(f"**api-server commit:** `{commit}`  ")
+          lines.append(f"**Summary:** {overall}\n")
+
+          lines.append("### What changed (and where to act)\n")
+          lines.append(
+            "Each endpoint below was detected as changed in the api-server. "
+            "`source` tells you whether the change was found in the OpenAPI "
+            "`specification.yaml` (`specification`), in the TypeScript route/handler "
+            "code (`typescript`), or both. A `typescript`-only change means the "
+            "public contract may have shifted WITHOUT a spec update — read the "
+            "linked api-server files carefully before assuming the request/response "
+            "shape.\n"
+          )
+
+          for ep in endpoints:
+            method = ep.get("method") or ""
+            path = ep.get("path") or ""
+            change = ep.get("change_type") or "modified"
+            header = f"#### `{change}` — {method} {path}".strip()
+            lines.append(header)
+            if ep.get("new_path"):
+              lines.append(f"- **Renamed/new path:** `{ep['new_path']}`")
+            if ep.get("id"):
+              lines.append(f"- **Endpoint id:** `{ep['id']}` (key in `supported-endpoints.json`)")
+            if ep.get("cli_command"):
+              lines.append(f"- **CLI command to update:** `{ep['cli_command']}`")
+            if ep.get("cli_source_file"):
+              lines.append(f"- **CLI source file:** `{ep['cli_source_file']}`")
+            if ep.get("query_params"):
+              lines.append(f"- **Query params:** {fmt_list(ep['query_params'])}")
+            if ep.get("auth"):
+              lines.append(f"- **Auth strategies:** {fmt_list(ep['auth'])}")
+            lines.append(f"- **Detection source:** {ep.get('source', 'specification')}")
+            if ep.get("api_server_files"):
+              lines.append(
+                "- **api-server files that changed:** "
+                + fmt_list([f"`{f}`" for f in ep["api_server_files"]])
+              )
+            if ep.get("summary"):
+              lines.append(f"- **Notes:** {ep['summary']}")
+            lines.append("")
+
+          if changed_files:
+            lines.append("<details><summary>All changed api-server files</summary>\n")
+            for f in changed_files:
+              lines.append(f"- `{f}`")
+            lines.append("\n</details>\n")
+
+          lines.append("### Full machine-readable payload\n")
+          lines.append(f"{fence}json\n{json.dumps(endpoints, indent=2)}\n{fence}\n")
+
+          lines.append("### How cloudos-cli is structured\n")
+          lines.append(
+            "- CLI command groups register in `cloudos_cli/__main__.py`.\n"
+            "- Each module under `cloudos_cli/<module>/` has a `cli.py` (Click "
+            "commands / options) plus a logic class (e.g. `<module>.py`) that "
+            "usually extends `Cloudos` in `cloudos_cli/clos.py`.\n"
+            "- All HTTP calls go through the wrappers in "
+            "`cloudos_cli/utils/requests.py` and send the `apikey` header.\n"
+            "- `supported-endpoints.json` is the source of truth mapping each "
+            "endpoint to its `cli_command` and `source_file`.\n"
+          )
+
+          lines.append("### Required steps\n")
+          lines.append(
+            "1. For every endpoint above, open its `cli_source_file` (fall back to "
+            "looking it up by `id` in `supported-endpoints.json` if missing) and "
+            "the api-server files listed, to understand the exact contract change.\n"
+            "2. Apply the change according to `change_type`:\n"
+            "   - `added`: add the new command/option and wrapper call.\n"
+            "   - `modified`: update params, request body, response parsing, and "
+            "any affected Click options to match the new contract.\n"
+            "   - `removed`: deprecate/remove the wrapping command and its tests.\n"
+            "   - renamed (`new_path` present): update the request path/URL builder.\n"
+            "3. Route all HTTP changes through `cloudos_cli/utils/requests.py`, keep "
+            "the `apikey` header, and match the style of neighbouring commands.\n"
+            "4. Add or update at least 2 tests under `tests/<module>/` using pytest "
+            "and `responses` (`@responses.activate`), covering happy path and one "
+            "failure/edge case.\n"
+            f"5. Bump the patch version in `cloudos_cli/_version.py` (currently "
+            f"`{version}`) and add a top `CHANGELOG.md` entry in the existing format.\n"
+            "6. Update `supported-endpoints.json` so the mapping reflects the new "
+            "path/params/method (and bump its `cli_version` if you change behaviour).\n"
+          )
+
+          body = "\n".join(lines)
+          open("/tmp/pr-body.md", "w").write(body)
+
+          # NOTE: PR title generation removed because it is not used by any subsequent step.
+          EOF
+
+      - name: Start Copilot cloud agent task (create session)
+        env:
+          # Agent tasks API requires a USER-to-server token (classic PAT / OAuth /
+          # GitHub App user token). Server-to-server (GITHUB_TOKEN / App installation
+          # tokens) are NOT supported.
+          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+          REPO: ${{ github.repository }}
+          AGENT_MODEL: claude-sonnet-4.6
+        run: |
+          set -euo pipefail
+          gh auth status
+
+          # Native cloud-agent session: POST /agents/repos/{owner}/{repo}/tasks.
+          # This starts the agent directly instead of assigning an issue, so it
+          # doesn't depend on the issue-assignment session bootstrap that was failing.
+          # Include "model" only when AGENT_MODEL is set (empty => auto selection).
+          jq -n \
+            --rawfile prompt /tmp/pr-body.md \
+            --arg base "main" \
+            --arg model "${AGENT_MODEL:-}" \
+            '{prompt: $prompt, base_ref: $base, create_pull_request: true}
+             + (if $model == "" then {} else {model: $model} end)' \
+          | gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/agents/repos/$REPO/tasks" \
+              --input -
+
+          echo "Cloud agent task created for $REPO (model: ${AGENT_MODEL:-auto})"
+
+      - name: Open fallback issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PR_PAT }}
+        run: |
+          {
+            echo "The agent workflow failed."
+            echo
+            echo "Trigger payload:"
+            echo '```json'
+            cat /tmp/payload.json
+            echo
+            echo '```'
+          } > /tmp/failure-body.md
+
+          gh issue create \
+            --title "Agent workflow failed: could not create Copilot task PR" \
+            --body-file /tmp/failure-body.md \
+            --label "agent-failed"

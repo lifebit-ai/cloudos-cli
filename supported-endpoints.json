@@ -1,0 +1,643 @@
+{
+  "version": "1.0",
+  "cli_version": "2.94.0",
+  "description": "Single source of truth mapping every API endpoint wrapped by cloudos-cli to the CLI command that wraps it. Used by the AI agent PR workflow to detect breaking changes in the api-server repo.",
+  "notes": [
+    "Path parameters are expressed as {param_name}.",
+    "Query parameters (teamId, page, limit, etc.) are omitted from 'path'; they appear in 'query_params'.",
+    "Entries with cli_command starting with '_internal/' are not directly user-facing but are called as helpers during a user command.",
+    "added_in_version reflects the CLI release when this mapping entry was first formally tracked. Historical endpoint additions were not back-filled."
+  ],
+  "endpoints": [
+    {
+      "id": "jobs-run",
+      "method": "POST",
+      "path": "/api/v2/jobs",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job run",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also called by 'cloudos bash job' and 'cloudos bash array-job'"
+    },
+    {
+      "id": "jobs-array-metadata",
+      "method": "GET",
+      "path": "/api/v1/jobs/array-file/metadata",
+      "query_params": [],
+      "cli_command": "cloudos job run",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called when submitting array jobs. Also called by 'cloudos bash array-job'"
+    },
+    {
+      "id": "jobs-status",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job status",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also used internally by 'cloudos job logs', 'cloudos job results', 'cloudos job workdir', 'cloudos job related'"
+    },
+    {
+      "id": "jobs-details",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job details",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Same endpoint as status but surfaced separately by the 'details' sub-command"
+    },
+    {
+      "id": "jobs-list",
+      "method": "GET",
+      "path": "/api/v2/jobs",
+      "query_params": ["teamId", "page", "limit"],
+      "cli_command": "cloudos job list",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "jobs-list-related-by-workdir",
+      "method": "GET",
+      "path": "/api/v2/jobs",
+      "query_params": ["workDirectory.folderId", "teamId"],
+      "cli_command": "cloudos job related",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Filters jobs by shared work-directory folder to find related analyses"
+    },
+    {
+      "id": "jobs-abort",
+      "method": "PUT",
+      "path": "/api/v2/jobs/{job_id}/abort",
+      "query_params": ["forceAbort", "teamId"],
+      "cli_command": "cloudos job abort",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "jobs-archive",
+      "method": "PUT",
+      "path": "/api/v1/jobs",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job archive",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also called by 'cloudos job unarchive'. Body payload differentiates the action."
+    },
+    {
+      "id": "jobs-delete-results",
+      "method": "DELETE",
+      "path": "/api/v1/jobs/{job_id}/data",
+      "query_params": ["properties[]", "teamId"],
+      "cli_command": "cloudos job workdir",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called when --delete flag is passed to 'cloudos job workdir'"
+    },
+    {
+      "id": "jobs-clone-resume-payload",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/request-payload",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job clone",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also called by 'cloudos job resume'"
+    },
+    {
+      "id": "jobs-clone-resume-submit",
+      "method": "POST",
+      "path": "/api/v2/jobs",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos job resume",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "POST after fetching the request-payload; also used by 'cloudos job clone'"
+    },
+    {
+      "id": "jobs-git-branches",
+      "method": "GET",
+      "path": "/api/v1/git/{strategy}/getBranches",
+      "query_params": [],
+      "cli_command": "cloudos job clone",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Used when resolving workflow branches for clone/resume. Also called by 'cloudos job resume'"
+    },
+    {
+      "id": "jobs-cost",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/costs/compute",
+      "query_params": [],
+      "cli_command": "cloudos job cost",
+      "source_file": "cloudos_cli/cost/cost.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "jobs-workdir-folder-lookup",
+      "method": "GET",
+      "path": "/api/v1/folders/",
+      "query_params": ["id", "teamId"],
+      "cli_command": "cloudos job workdir",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also used internally to resolve folder status for 'cloudos job related'"
+    },
+    {
+      "id": "bash-job",
+      "method": "POST",
+      "path": "/api/v2/jobs",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos bash job",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": "Bash job submission"
+    },
+    {
+      "id": "bash-array-job-metadata",
+      "method": "GET",
+      "path": "/api/v1/jobs/array-file/metadata",
+      "query_params": [],
+      "cli_command": "cloudos bash array-job",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "bash-array-job-submit",
+      "method": "POST",
+      "path": "/api/v2/jobs",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos bash array-job",
+      "source_file": "cloudos_cli/jobs/job.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "queue-list-user",
+      "method": "GET",
+      "path": "/api/v1/teams/aws/v2/job-queues",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos queue list",
+      "source_file": "cloudos_cli/queue/queue.py",
+      "added_in_version": "2.91.0",
+      "notes": "Returns user-visible / team job queues"
+    },
+    {
+      "id": "queue-list-system",
+      "method": "GET",
+      "path": "/api/v1/teams/aws/v2/system-job-queues",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos queue list",
+      "source_file": "cloudos_cli/queue/queue.py",
+      "added_in_version": "2.91.0",
+      "notes": "Returns system-level job queues; results merged with user queues in the CLI output"
+    },
+    {
+      "id": "projects-list",
+      "method": "GET",
+      "path": "/api/v2/projects",
+      "query_params": ["teamId", "pageSize", "page"],
+      "cli_command": "cloudos project list",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also accepts 'search' query param when filtering by name"
+    },
+    {
+      "id": "projects-create",
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos project create",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "workflows-list",
+      "method": "GET",
+      "path": "/api/v3/workflows",
+      "query_params": ["teamId", "pageSize", "page", "archived.status"],
+      "cli_command": "cloudos workflow list",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also accepts 'search' query param"
+    },
+    {
+      "id": "workflows-import",
+      "method": "POST",
+      "path": "/api/v2/workflows",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos workflow import",
+      "source_file": "cloudos_cli/import_wf/import_wf.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "workflows-import-legacy",
+      "method": "POST",
+      "path": "/api/v1/workflows",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos workflow import",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Legacy v1 fallback path for workflow import"
+    },
+    {
+      "id": "workflows-import-get-public-repo",
+      "method": "GET",
+      "path": "/api/v1/git/{platform}/getPublicRepo",
+      "query_params": [],
+      "cli_command": "cloudos workflow import",
+      "source_file": "cloudos_cli/import_wf/import_wf.py",
+      "added_in_version": "2.91.0",
+      "notes": "Fetches metadata for a public git repository before import"
+    },
+    {
+      "id": "workflows-import-get-config",
+      "method": "GET",
+      "path": "/api/v1/git/{platform}/getWorkflowConfig/{repo_name}/{repo_owner}",
+      "query_params": [],
+      "cli_command": "cloudos workflow import",
+      "source_file": "cloudos_cli/import_wf/import_wf.py",
+      "added_in_version": "2.91.0",
+      "notes": "Fetches the workflow main-file config for the repository"
+    },
+    {
+      "id": "cromwell-status",
+      "method": "GET",
+      "path": "/api/v1/cromwell",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos cromwell status",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "cromwell-start",
+      "method": "PUT",
+      "path": "/api/v1/cromwell/restart",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos cromwell start",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "cromwell-stop",
+      "method": "PUT",
+      "path": "/api/v1/cromwell/stop",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos cromwell stop",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "datasets-ls-project",
+      "method": "GET",
+      "path": "/api/v2/datasets",
+      "query_params": ["projectId", "teamId"],
+      "cli_command": "cloudos datasets ls",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Lists top-level dataset folders within a project"
+    },
+    {
+      "id": "datasets-ls-folder-items",
+      "method": "GET",
+      "path": "/api/v1/datasets/{folder_id}/items",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets ls",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Lists items inside a dataset folder"
+    },
+    {
+      "id": "datasets-ls-s3",
+      "method": "GET",
+      "path": "/api/v1/data-access/s3/bucket-contents",
+      "query_params": ["bucket", "path", "teamId"],
+      "cli_command": "cloudos datasets ls",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Lists S3 bucket contents for a given path"
+    },
+    {
+      "id": "datasets-ls-azure",
+      "method": "GET",
+      "path": "/api/v1/data-access/azure/container-contents",
+      "query_params": ["containerName", "path", "teamId"],
+      "cli_command": "cloudos datasets ls",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Lists Azure Blob Storage container contents"
+    },
+    {
+      "id": "datasets-ls-virtual-folder",
+      "method": "GET",
+      "path": "/api/v1/folders/virtual/{folder_id}/items",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets ls",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Lists items inside a virtual folder"
+    },
+    {
+      "id": "datasets-mv",
+      "method": "PUT",
+      "path": "/api/v1/dataItems/move",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets mv",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Moves files or folders to a different location"
+    },
+    {
+      "id": "datasets-rename-file",
+      "method": "PUT",
+      "path": "/api/v1/files/{item_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets rename",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Renames a file item"
+    },
+    {
+      "id": "datasets-rename-folder",
+      "method": "PUT",
+      "path": "/api/v1/folders/{item_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets rename",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Renames a folder item"
+    },
+    {
+      "id": "datasets-cp-virtual-folder",
+      "method": "POST",
+      "path": "/api/v1/folders/virtual",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets cp",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Creates a virtual folder copy. Also called by 'cloudos datasets mkdir'"
+    },
+    {
+      "id": "datasets-cp-s3-folder",
+      "method": "POST",
+      "path": "/api/v1/folders/s3",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets cp",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Copies an S3 folder into a dataset"
+    },
+    {
+      "id": "datasets-cp-s3-file",
+      "method": "POST",
+      "path": "/api/v1/files/s3",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets cp",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Copies an S3 file into a dataset"
+    },
+    {
+      "id": "datasets-cp-azure-folder",
+      "method": "POST",
+      "path": "/api/v1/folders/azure-blob",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets cp",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Copies an Azure Blob folder into a dataset"
+    },
+    {
+      "id": "datasets-cp-azure-file",
+      "method": "POST",
+      "path": "/api/v1/files/azure-blob",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets cp",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Copies an Azure Blob file into a dataset"
+    },
+    {
+      "id": "datasets-mkdir",
+      "method": "POST",
+      "path": "/api/v1/folders/virtual",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets mkdir",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Creates a new virtual folder"
+    },
+    {
+      "id": "datasets-rm-file",
+      "method": "DELETE",
+      "path": "/api/v1/files/{item_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets rm",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Deletes a file from a dataset"
+    },
+    {
+      "id": "datasets-rm-folder",
+      "method": "DELETE",
+      "path": "/api/v1/folders/{item_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets rm",
+      "source_file": "cloudos_cli/datasets/datasets.py",
+      "added_in_version": "2.91.0",
+      "notes": "Deletes a folder from a dataset"
+    },
+    {
+      "id": "datasets-link-mount-v2",
+      "method": "POST",
+      "path": "/api/v2/interactive-sessions/{session_id}/fuse-filesystem/mount",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets link",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Also called by 'cloudos link'. Falls back to v1 on error."
+    },
+    {
+      "id": "datasets-link-mount-v1-fallback",
+      "method": "POST",
+      "path": "/api/v1/interactive-sessions/{session_id}/fuse-filesystem/mount",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets link",
+      "source_file": "cloudos_cli/link/link.py",
+      "added_in_version": "2.91.0",
+      "notes": "Legacy v1 fallback. Also used by 'cloudos link'."
+    },
+    {
+      "id": "datasets-link-verify",
+      "method": "GET",
+      "path": "/api/v1/interactive-sessions/{session_id}/fuse-filesystems",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos datasets link",
+      "source_file": "cloudos_cli/link/link.py",
+      "added_in_version": "2.91.0",
+      "notes": "Polls mount status after requesting a link. Also used by 'cloudos link'."
+    },
+    {
+      "id": "interactive-session-list",
+      "method": "GET",
+      "path": "/api/v3/interactive-sessions",
+      "query_params": ["teamId", "page", "limit"],
+      "cli_command": "cloudos interactive-session list",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "interactive-session-create",
+      "method": "POST",
+      "path": "/api/v1/interactive-sessions",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos interactive-session create",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "interactive-session-status",
+      "method": "GET",
+      "path": "/api/v2/interactive-sessions/{session_id}",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos interactive-session status",
+      "source_file": "cloudos_cli/interactive_session/interactive_session.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "interactive-session-resume",
+      "method": "PUT",
+      "path": "/api/v1/interactive-sessions/{session_id}/resume",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos interactive-session resume",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "interactive-session-pause",
+      "method": "PUT",
+      "path": "/api/v1/interactive-sessions/{session_id}/abort",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos interactive-session pause",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "link-mount-v2",
+      "method": "POST",
+      "path": "/api/v2/interactive-sessions/{session_id}/fuse-filesystem/mount",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos link",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Primary mount call; falls back to v1 on failure"
+    },
+    {
+      "id": "link-mount-v1-fallback",
+      "method": "POST",
+      "path": "/api/v1/interactive-sessions/{session_id}/fuse-filesystem/mount",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos link",
+      "source_file": "cloudos_cli/link/link.py",
+      "added_in_version": "2.91.0",
+      "notes": "Legacy v1 fallback path"
+    },
+    {
+      "id": "link-verify",
+      "method": "GET",
+      "path": "/api/v1/interactive-sessions/{session_id}/fuse-filesystems",
+      "query_params": ["teamId"],
+      "cli_command": "cloudos link",
+      "source_file": "cloudos_cli/link/link.py",
+      "added_in_version": "2.91.0",
+      "notes": "Polls mount status after requesting a link"
+    },
+    {
+      "id": "procurement-images-list",
+      "method": "GET",
+      "path": "/api/v1/procurements/{procurement_id}/images",
+      "query_params": ["page", "limit"],
+      "cli_command": "cloudos procurement images list",
+      "source_file": "cloudos_cli/procurement/images.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "procurement-images-set",
+      "method": "PUT",
+      "path": "/api/v1/procurements/{procurement_id}/images",
+      "query_params": [],
+      "cli_command": "cloudos procurement images set",
+      "source_file": "cloudos_cli/procurement/images.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "procurement-images-reset",
+      "method": "PUT",
+      "path": "/api/v1/procurements/{procurement_id}/images/reset",
+      "query_params": [],
+      "cli_command": "cloudos procurement images reset",
+      "source_file": "cloudos_cli/procurement/images.py",
+      "added_in_version": "2.91.0",
+      "notes": null
+    },
+    {
+      "id": "_internal-cloud-azure-detect",
+      "method": "GET",
+      "path": "/api/v1/cloud/azure",
+      "query_params": ["teamId"],
+      "cli_command": "_internal/cloud-provider-detection",
+      "source_file": "cloudos_cli/utils/cloud.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called internally to detect whether the workspace is running on Azure; affects which dataset copy endpoints are used"
+    },
+    {
+      "id": "_internal-users-me",
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "query_params": [],
+      "cli_command": "_internal/current-user",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called internally to resolve the current authenticated user"
+    },
+    {
+      "id": "_internal-users-search-assist",
+      "method": "GET",
+      "path": "/api/v1/users/search-assist",
+      "query_params": ["q", "teamId"],
+      "cli_command": "_internal/user-search",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called internally to resolve a username/email to a user ID"
+    },
+    {
+      "id": "_internal-folders-status",
+      "method": "GET",
+      "path": "/api/v1/folders/",
+      "query_params": ["id", "status[]", "teamId"],
+      "cli_command": "_internal/folder-deletion-status",
+      "source_file": "cloudos_cli/clos.py",
+      "added_in_version": "2.91.0",
+      "notes": "Called internally to poll folder deletion status during 'cloudos job workdir' and dataset operations"
+    }
+  ]
+}
