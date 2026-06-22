@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "cli_version": "2.91.0",
+  "cli_version": "2.94.0",
   "description": "Single source of truth mapping every API endpoint wrapped by cloudos-cli to the CLI command that wraps it. Used by the AI agent PR workflow to detect breaking changes in the api-server repo.",
   "notes": [
     "Path parameters are expressed as {param_name}.",
     "Query parameters (teamId, page, limit, etc.) are omitted from 'path'; they appear in 'query_params'.",
     "Entries with cli_command starting with '_internal/' are not directly user-facing but are called as helpers during a user command.",
-    "added_in_version reflects the CLI release when this mapping was first formally tracked (2.91.0). Historical endpoint additions were not back-filled."
+    "added_in_version reflects the CLI release when this mapping entry was first formally tracked. Historical endpoint additions were not back-filled."
   ],
   "endpoints": [
     {
@@ -638,16 +638,6 @@
       "source_file": "cloudos_cli/clos.py",
       "added_in_version": "2.91.0",
       "notes": "Called internally to poll folder deletion status during 'cloudos job workdir' and dataset operations"
-    },
-    {
-      "id": "analytics-team-summary",
-      "method": "GET",
-      "path": "/api/v1/analytics/team/summary",
-      "query_params": ["teamId", "startDate", "endDate", "granularity"],
-      "cli_command": "cloudos analytics team-summary",
-      "source_file": "cloudos_cli/analytics/analytics.py",
-      "added_in_version": "2.92.0",
-      "notes": "Returns aggregated team usage analytics (compute hours, job counts, spend) over a date range. Made-up endpoint added to exercise the endpoint-sync automation."
     }
   ]
 }
