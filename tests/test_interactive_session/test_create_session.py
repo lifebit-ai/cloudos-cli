@@ -56,7 +56,7 @@ class TestInteractiveSessionCreateCommand:
         assert '--shared' in result.output
         assert '--cost-limit' in result.output
         assert '--shutdown-in' in result.output
-        assert '--mount' in result.output
+        assert '--copy' in result.output
         assert '--link' in result.output
         assert '--r-version' in result.output
         assert '--spark-master' in result.output
@@ -119,27 +119,19 @@ class TestInteractiveSessionCreateIntegration:
         # Command should execute (may fail at config loading but not at argument parsing)
         assert 'Error' not in result.output or result.exit_code == 0
 
-    @patch('cloudos_cli.interactive_session.cli.resolve_data_file_id')
-    @patch('cloudos_cli.interactive_session.cli.Datasets')
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
-    def test_create_session_with_all_options(self, mock_config, mock_cloudos, mock_datasets, mock_resolve):
+    def test_create_session_with_all_options(self, mock_config, mock_cloudos):
         """Test creating a session with all options specified."""
         runner = CliRunner()
-        
+
         mock_config.return_value = {
             'apikey': 'test_key',
             'cloudos_url': 'http://test.com',
             'workspace_id': 'test_team',
             'project_name': 'my_project'
         }
-        
-        # Mock Datasets API for resolving mounted files
-        mock_resolve.return_value = {
-            'type': 'CloudOSFile',
-            'item': 'file_id_123'
-        }
-        
+
         mock_cloudos_instance = MagicMock()
         mock_cloudos.return_value = mock_cloudos_instance
         mock_cloudos_instance.create_interactive_session.return_value = {
@@ -147,7 +139,7 @@ class TestInteractiveSessionCreateIntegration:
             'name': 'Advanced Session',
             'status': 'provisioning'
         }
-        
+
         result = runner.invoke(run_cloudos_cli, [
             'interactive-session', 'create',
             '--apikey', 'test_key',
@@ -162,9 +154,8 @@ class TestInteractiveSessionCreateIntegration:
             '--shared',
             '--cost-limit', '50.0',
             '--shutdown-in', '8h',
-            '--mount', 'MyDataset/datafile.csv'
         ])
-        
+
         # Command should be invoked without syntax errors
         assert result.exit_code == 0
 
@@ -426,12 +417,6 @@ class TestSessionCreatorHelpers:
         assert result5['s3_bucket'] == 'my-bucket'
         assert result5['s3_prefix'] == 'file.txt'
 
-    def test_resolve_data_file_id_function_exists(self):
-        """Test that resolve_data_file_id function exists."""
-        from cloudos_cli.interactive_session.interactive_session import resolve_data_file_id
-        
-        assert callable(resolve_data_file_id)
-
     def test_build_session_payload_function_exists(self):
         """Test that build_session_payload function exists."""
         from cloudos_cli.interactive_session.interactive_session import build_session_payload
@@ -476,6 +461,114 @@ class TestSessionCreatorHelpers:
         result = format_session_creation_table(session_data)
         # Should return a string representation
         assert isinstance(result, (str, type(None))) or hasattr(result, '__str__')
+
+
+class TestCreateSessionCopyFlag:
+    """Tests for the --copy flag in create_session."""
+
+    @pytest.fixture
+    def base_args(self):
+        return [
+            'interactive-session', 'create',
+            '--apikey', 'test_key',
+            '--cloudos-url', 'http://test.com',
+            '--workspace-id', 'test_team',
+            '--project-name', 'my_project',
+            '--name', 'Copy Session',
+            '--session-type', 'jupyter',
+        ]
+
+    @patch('cloudos_cli.interactive_session.cli._make_link_client')
+    @patch('cloudos_cli.interactive_session.cli.parse_data_file')
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_copy_with_file_explorer_path(self, mock_config, mock_cloudos, mock_parse, mock_link_client, base_args):
+        """--copy with a project-prefixed FE path resolves and copies the item."""
+        runner = CliRunner()
+        mock_config.return_value = {
+            'apikey': 'test_key',
+            'cloudos_url': 'http://test.com',
+            'workspace_id': 'test_team',
+            'project_name': 'my_project',
+        }
+        mock_parse.return_value = {
+            'type': 'cloudos',
+            'project_name': 'my_project',
+            'dataset_path': 'Data/file.csv',
+        }
+        fe_link = MagicMock()
+        fe_link.parse_file_explorer_item.return_value = {
+            'dataItem': {'item': 'item_id_123', 'name': 'file.csv', 'kind': 'File'}
+        }
+        mock_link_client.return_value = fe_link
+        mock_cloudos_instance = MagicMock()
+        mock_cloudos.return_value = mock_cloudos_instance
+        mock_cloudos_instance.create_interactive_session.return_value = {
+            '_id': 'sess_001', 'name': 'Copy Session', 'status': 'scheduled'
+        }
+
+        result = runner.invoke(run_cloudos_cli, base_args + ['--copy', '--link', 'my_project/Data/file.csv'])
+
+        assert result.exit_code == 0
+        mock_parse.assert_called_once_with('my_project/Data/file.csv')
+        fe_link.parse_file_explorer_item.assert_called_once_with('Data/file.csv')
+
+    @patch('cloudos_cli.interactive_session.cli._make_link_client')
+    @patch('cloudos_cli.interactive_session.cli.parse_data_file')
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_copy_with_known_root_folder_and_no_project_is_error(self, mock_config, mock_cloudos, mock_parse, mock_link_client, base_args):
+        """--copy with a bare known-root-folder path and no --project-name raises an error."""
+        runner = CliRunner()
+        mock_config.return_value = {
+            'apikey': 'test_key',
+            'cloudos_url': 'http://test.com',
+            'workspace_id': 'test_team',
+            'project_name': None,
+        }
+
+        args_no_project = [
+            'interactive-session', 'create',
+            '--apikey', 'test_key',
+            '--cloudos-url', 'http://test.com',
+            '--workspace-id', 'test_team',
+            '--name', 'Copy Session',
+            '--session-type', 'jupyter',
+            '--copy', '--link', 'Data/file.csv',
+        ]
+        result = runner.invoke(run_cloudos_cli, args_no_project)
+
+        assert result.exit_code != 0
+        assert 'project-name' in result.output.lower() or 'project_name' in result.output.lower() or 'Error' in result.output
+
+    @patch('cloudos_cli.interactive_session.cli._make_link_client')
+    @patch('cloudos_cli.interactive_session.cli.parse_data_file')
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_copy_with_s3_path_on_azure_is_error(self, mock_config, mock_cloudos, mock_parse, mock_link_client, base_args):
+        """--copy with an S3 path on Azure execution platform is rejected."""
+        runner = CliRunner()
+        mock_config.return_value = {
+            'apikey': 'test_key',
+            'cloudos_url': 'http://test.com',
+            'workspace_id': 'test_team',
+            'project_name': 'my_project',
+        }
+        mock_parse.return_value = {
+            'type': 's3',
+            's3_bucket': 'my-bucket',
+            's3_prefix': 'data/file.csv',
+        }
+        mock_cloudos_instance = MagicMock()
+        mock_cloudos.return_value = mock_cloudos_instance
+
+        result = runner.invoke(run_cloudos_cli, base_args + [
+            '--copy', '--link', 's3://my-bucket/data/file.csv',
+            '--execution-platform', 'azure',
+        ])
+
+        assert result.exit_code != 0
+        assert 'S3' in result.output or 'azure' in result.output.lower() or 'Azure' in result.output
 
 
 if __name__ == '__main__':

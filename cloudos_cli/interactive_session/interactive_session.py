@@ -783,125 +783,6 @@ def parse_data_file(data_file_str):
     }
 
 
-def resolve_data_file_id(datasets_api, dataset_path: str) -> dict:
-    """Resolve nested dataset path to actual file ID.
-
-    Searches across all datasets in the project to find the target file.
-    This allows paths like 'Data/file.txt' to work even if 'Data' is a folder
-    within a dataset (not a dataset name itself).
-
-    Parameters
-    ----------
-    datasets_api : Datasets
-        Initialized Datasets API instance (with correct project_name)
-    dataset_path : str
-        Nested path to file within the project (e.g., 'Data/file.txt' or 'Folder/subfolder/file.txt')
-        Can start with a dataset name or a folder name within any dataset.
-
-    Returns
-    -------
-    dict
-        Data item object with resolved file ID:
-        {"kind": "File", "item": "<fileId>", "name": "<fileName>"}
-
-    Raises
-    ------
-    ValueError
-        If file not found in any dataset/folder
-    """
-    try:
-        path_parts = dataset_path.strip('/').split('/')
-        file_name = path_parts[-1]
-        # First, try the path as-is (assuming first part is a dataset name)
-        try:
-            result = datasets_api.list_folder_content(dataset_path)
-            # Check if it's in the files list
-            for file_item in result.get('files', []):
-                if file_item.get('name') == file_name:
-                    return {
-                        "kind": "File",
-                        "item": file_item.get('_id'),
-                        "name": file_item.get('name')
-                    }
-            # If we got here, quick path didn't work, continue to search
-        except (Exception):
-            # First path attempt failed, try searching across all datasets
-            pass
-        # If the quick path didn't work, search across all datasets
-        # This handles the case where the first part is a folder, not a dataset name
-        project_content = datasets_api.list_project_content()
-        datasets = project_content.get('folders', [])
-        if not datasets:
-            raise ValueError(f"No datasets found in project. Cannot locate path '{dataset_path}'")
-        # Try to find the file in each dataset
-        found_files = []
-        for dataset in datasets:
-            dataset_name = dataset.get('name')
-            try:
-                # Try with the dataset name prepended to the path
-                full_path = f"{dataset_name}/{dataset_path}"
-                result = datasets_api.list_folder_content(full_path)
-                # Check files list
-                for file_item in result.get('files', []):
-                    if file_item.get('name') == file_name:
-                        found_files.append({
-                            "kind": "File",
-                            "item": file_item.get('_id'),
-                            "name": file_item.get('name')
-                        })
-                        # Return first match (most direct path)
-                        return found_files[0]
-            except Exception:
-                # This dataset doesn't contain the path, continue
-                continue
-        # Also try searching without dataset prefix (path is from root of datasets)
-        for dataset in datasets:
-            try:
-                dataset_name = dataset.get('name')
-                # List what's in this dataset at the top level
-                dataset_content = datasets_api.list_datasets_content(dataset_name)
-                # Check if the target file is directly in this dataset's files
-                for file_item in dataset_content.get('files', []):
-                    if file_item.get('name') == file_name:
-                        found_files.append({
-                            "kind": "File",
-                            "item": file_item.get('_id'),
-                            "name": file_item.get('name')
-                        })
-                # Check folders and navigate if needed
-                for folder in dataset_content.get('folders', []):
-                    if folder.get('name') == path_parts[0]:
-                        # This dataset has the target folder
-                        full_path = f"{dataset_name}/{dataset_path}"
-                        try:
-                            result = datasets_api.list_folder_content(full_path)
-                            for file_item in result.get('files', []):
-                                if file_item.get('name') == file_name:
-                                    return {
-                                        "kind": "File",
-                                        "item": file_item.get('_id'),
-                                        "name": file_item.get('name')
-                                    }
-                        except Exception:
-                            continue
-            except Exception:
-                continue
-        # If we found files, return the first one
-        if found_files:
-            return found_files[0]
-        # Nothing found - provide helpful error message
-        available_datasets = [d.get('name') for d in datasets]
-        raise ValueError(
-            f"File at path '{dataset_path}' not found in any dataset. "
-            f"Available datasets: {available_datasets}. "
-            f"Try using 'cloudos datasets ls' to explore your data structure."
-        )
-    except ValueError:
-        raise
-    except Exception as e:
-        raise ValueError(f"Error resolving dataset file at path '{dataset_path}': {str(e)}")
-
-
 def parse_link_path(link_path_str):
     """Parse link path format: supports S3, Lifebit Platform, or legacy colon format.
 
@@ -1168,6 +1049,8 @@ def build_resume_payload(
         Resume payload for API request
     """
     payload = {
+        # dataItems is intentionally empty: linking during resume is not supported.
+        # The API requires the field to be present; omitting it causes a 400.
         "dataItems": [],
         "fileSystemIds": []  # Always empty (deprecated)
     }
@@ -1267,20 +1150,26 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
 
     # Display mounted data files
     if data_files:
-        mounted_files = []
+        mounted_items = []
         for df in data_files:
             if isinstance(df, dict):
-                # Handle Lifebit Platform dataset files
-                if df.get('kind') == 'File':
-                    name = df.get('name', 'Unknown')
-                    mounted_files.append(name)
-                # Handle S3 files
+                if df.get('_isFileExplorer'):
+                    original_path = df.get('_originalPath', '')
+                    if original_path:
+                        mounted_items.append(f"File Explorer: {original_path}")
                 elif df.get('type') == 'S3File':
                     data = df.get('data', {})
-                    name = data.get('name', 'Unknown')
-                    mounted_files.append(f"{name} (S3)")
-        if mounted_files:
-            table.add_row("Mounted Data", ", ".join(mounted_files))
+                    bucket = data.get('s3BucketName', '')
+                    key = data.get('s3ObjectKey', '')
+                    if bucket and key:
+                        mounted_items.append(f"s3://{bucket}/{key}")
+                    elif bucket:
+                        mounted_items.append(f"s3://{bucket}/")
+                elif df.get('kind') in ('File', 'Folder'):
+                    name = df.get('name', 'Unknown')
+                    mounted_items.append(name)
+        if mounted_items:
+            table.add_row("Mounted Data", "\n".join(mounted_items))
 
     # Display linked S3 buckets and File Explorer items (files and folders)
     if s3_mounts:

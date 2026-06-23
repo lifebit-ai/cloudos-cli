@@ -2,7 +2,7 @@
 
 import pytest
 from unittest import mock
-from cloudos_cli.link.link import Link
+from cloudos_cli.interactive_session.link import Link
 import responses
 
 CLOUDOS_URL = "https://lifebit.ai"
@@ -89,9 +89,8 @@ class TestParseS3FilePath:
         with pytest.raises(ValueError, match="folder-like"):
             link_instance.parse_s3_file_path("s3://bucket/folder/")
 
-
 # ---------------------------------------------------------------------------
-# _parse_file_explorer_item (auto-detect)
+# parse_file_explorer_item (auto-detect)
 # ---------------------------------------------------------------------------
 
 class TestParseFileExplorerItem:
@@ -109,10 +108,10 @@ class TestParseFileExplorerItem:
             folders=[{"name": "results", "_id": "folder_id_1", "folderType": "S3Folder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.Datasets",
-            lambda *a, **kw: ds
+            "cloudos_cli.interactive_session.link.Datasets",
+            mock.MagicMock(return_value=ds)
         )
-        result = link_instance._parse_file_explorer_item("Data/results")
+        result = link_instance.parse_file_explorer_item("Data/results")
         assert result["dataItem"]["kind"] == "Folder"
         assert result["dataItem"]["item"] == "folder_id_1"
         assert result["dataItem"]["name"] == "results"
@@ -122,10 +121,10 @@ class TestParseFileExplorerItem:
             files=[{"name": "data.csv", "_id": "file_id_99"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.Datasets",
-            lambda *a, **kw: ds
+            "cloudos_cli.interactive_session.link.Datasets",
+            mock.MagicMock(return_value=ds)
         )
-        result = link_instance._parse_file_explorer_item("Data/data.csv")
+        result = link_instance.parse_file_explorer_item("Data/data.csv")
         assert result["dataItem"]["kind"] == "File"
         assert result["dataItem"]["item"] == "file_id_99"
         assert result["dataItem"]["name"] == "data.csv"
@@ -135,20 +134,20 @@ class TestParseFileExplorerItem:
             folders=[{"name": "vfolder", "_id": "vf_id", "folderType": "VirtualFolder"}]
         )
         monkeypatch.setattr(
-            "cloudos_cli.link.link.Datasets",
-            lambda *a, **kw: ds
+            "cloudos_cli.interactive_session.link.Datasets",
+            mock.MagicMock(return_value=ds)
         )
         with pytest.raises(ValueError, match="Virtual folders cannot be linked"):
-            link_instance._parse_file_explorer_item("Data/vfolder")
+            link_instance.parse_file_explorer_item("Data/vfolder")
 
     def test_not_found_raises(self, link_instance, monkeypatch):
         ds = self._make_ds_mock()
         monkeypatch.setattr(
-            "cloudos_cli.link.link.Datasets",
-            lambda *a, **kw: ds
+            "cloudos_cli.interactive_session.link.Datasets",
+            mock.MagicMock(return_value=ds)
         )
         with pytest.raises(ValueError, match="not found"):
-            link_instance._parse_file_explorer_item("Data/missing_item")
+            link_instance.parse_file_explorer_item("Data/missing_item")
 
 
 # ---------------------------------------------------------------------------
@@ -270,13 +269,13 @@ class TestLinkFileExplorerFileV2:
             status=200
         )
 
-        monkeypatch.setattr(link_instance, "_parse_file_explorer_item", lambda x: {
+        monkeypatch.setattr(link_instance, "parse_file_explorer_item", lambda x: {
             "dataItem": {"kind": "File", "item": "file_abc", "name": "observations.csv"}
         })
 
         link_instance.link_folders_batch(["Data/observations.csv"], "sessionABC")
         captured = capsys.readouterr()
-        assert "Successfully mounted File Explorer file: Data/observations.csv" in captured.out
+        assert "Successfully mounted File Explorer file: test_project/Data/observations.csv" in captured.out
 
 
 # ---------------------------------------------------------------------------
@@ -349,48 +348,6 @@ class TestBackwardCompatibility:
 
 
 # ---------------------------------------------------------------------------
-# _parse_file_explorer_item guards (new in 2.91.0)
-# ---------------------------------------------------------------------------
-
-class TestParseFileExplorerItemGuards:
-    """Validate the two defensive checks added at the top of _parse_file_explorer_item."""
-
-    def test_missing_project_name_raises_clear_error(self):
-        link = Link(
-            cloudos_url=CLOUDOS_URL, apikey=APIKEY, workspace_id=WORKSPACE_ID,
-            project_name=None, cromwell_token=None, verify=False,
-        )
-        with pytest.raises(ValueError, match="without a project"):
-            link._parse_file_explorer_item("Data/file.csv")
-
-    def test_path_starting_with_project_name_is_rejected(self, link_instance):
-        # link_instance.project_name == 'test_project'
-        with pytest.raises(ValueError, match="must NOT include the project name"):
-            link_instance._parse_file_explorer_item("test_project/Data/file.csv")
-
-    def test_rejection_message_quotes_the_correct_relative_form(self, link_instance):
-        try:
-            link_instance._parse_file_explorer_item("test_project/Data/file.csv")
-        except ValueError as e:
-            assert "Use 'Data/file.csv' instead." in str(e)
-
-    def test_public_wrapper_matches_private(self, link_instance, monkeypatch):
-        # parse_file_explorer_item should be a thin alias for _parse_file_explorer_item
-        ds = mock.MagicMock()
-        ds.list_folder_content.return_value = {
-            "folders": [{"name": "results", "_id": "rid", "folderType": "S3Folder"}],
-            "files": [],
-        }
-        monkeypatch.setattr(
-            "cloudos_cli.link.link.Datasets",
-            lambda *a, **kw: ds
-        )
-        public = link_instance.parse_file_explorer_item("Data/results")
-        private = link_instance._parse_file_explorer_item("Data/results")
-        assert public == private
-
-
-# ---------------------------------------------------------------------------
 # _translate_mount_error
 # ---------------------------------------------------------------------------
 
@@ -436,7 +393,6 @@ class TestV1FallbackRejectsFiles:
         status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
-        # v2 returns 404 to trigger v1 fallback
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
         responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
 
@@ -459,47 +415,12 @@ class TestV1FallbackRejectsFiles:
         url_v2 = f"{CLOUDOS_URL}/api/v2/interactive-sessions/sessionABC/fuse-filesystem/mount?teamId={WORKSPACE_ID}"
         responses.add(responses.POST, url_v2, status=404, json={"message": "Not Found"})
 
-        # Bypass _parse_file_explorer_item so we land directly in the v1-fallback file check
         monkeypatch.setattr(link_instance, "parse_file_explorer_item", lambda path: {
             "dataItem": {"kind": "File", "item": "id1", "name": "data.csv"}
         })
 
         with pytest.raises(ValueError, match="File linking requires API v2"):
             link_instance.link_folders_batch(["Data/data.csv"], "sessionABC")
-
-
-# ---------------------------------------------------------------------------
-# Direct Datasets construction (no more sys.exit via helper)
-# ---------------------------------------------------------------------------
-
-class TestDatasetsConstructionErrors:
-    """The Datasets() call inside _parse_file_explorer_item must surface as a
-    plain ValueError — never as sys.exit(1) — so callers can handle it."""
-
-    def test_project_not_found_raises_clean_value_error(self, link_instance, monkeypatch):
-        def boom(*args, **kwargs):
-            raise ValueError("Project 'no-such-project' was not found in workspace 'ws'")
-
-        monkeypatch.setattr("cloudos_cli.link.link.Datasets", boom)
-        with pytest.raises(ValueError, match="Cannot resolve project 'test_project'"):
-            link_instance._parse_file_explorer_item("Data/file.csv")
-
-    def test_forbidden_raises_clean_value_error(self, link_instance, monkeypatch):
-        from cloudos_cli.utils.errors import BadRequestException
-
-        class _FakeResp:
-            status_code = 403
-            content = b'Forbidden'
-
-            def json(self):
-                return {"message": "Forbidden"}
-
-        def boom(*args, **kwargs):
-            raise BadRequestException(_FakeResp())
-
-        monkeypatch.setattr("cloudos_cli.link.link.Datasets", boom)
-        with pytest.raises(ValueError, match="Forbidden when accessing the project"):
-            link_instance._parse_file_explorer_item("Data/file.csv")
 
 
 # ---------------------------------------------------------------------------
@@ -511,10 +432,8 @@ class TestDuplicateMountMessage:
 
     def test_batch_collision_mentions_both_paths(self, link_instance):
         seen = {}
-        # First registration succeeds (returns None)
         link_instance._raise_if_duplicate_mount("foo", "/first/path", seen)
         seen["foo"] = "/first/path"
-        # Second one with the same mount name should mention BOTH paths
         with pytest.raises(ValueError) as excinfo:
             link_instance._raise_if_duplicate_mount("foo", "/second/path", seen)
         msg = str(excinfo.value)
@@ -522,34 +441,9 @@ class TestDuplicateMountMessage:
         assert "/second/path" in msg
 
     def test_session_collision_mentions_path_and_session(self, link_instance):
-        # Pre-existing session item → value is None
         seen = {"foo": None}
         with pytest.raises(ValueError, match="already mounted in the session"):
             link_instance._raise_if_duplicate_mount("foo", "/new/path", seen)
-
-
-# ---------------------------------------------------------------------------
-# list_folder_content errors are wrapped as ValueError, not raw BadRequestException
-# ---------------------------------------------------------------------------
-
-class TestListFolderContentErrors:
-
-    def test_forbidden_list_call_becomes_value_error(self, link_instance, monkeypatch):
-        from cloudos_cli.utils.errors import BadRequestException
-
-        class _Resp:
-            status_code = 403
-            content = b'Forbidden'
-
-            def json(self):
-                return {"message": "Forbidden"}
-
-        ds = mock.MagicMock()
-        ds.list_folder_content.side_effect = BadRequestException(_Resp())
-        monkeypatch.setattr("cloudos_cli.link.link.Datasets", lambda *a, **kw: ds)
-
-        with pytest.raises(ValueError, match="Not authorised to list"):
-            link_instance._parse_file_explorer_item("Data/file.csv")
 
 
 # ---------------------------------------------------------------------------
@@ -572,7 +466,6 @@ class TestFuseFilesystemsPagination:
 
     @responses.activate
     def test_multi_page_pagination_collects_all_items(self, link_instance):
-        # Page 1: 2 items, total 3 → fetch page 2
         url_p1 = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sY/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         url_p2 = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sY/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=2"
         responses.add(

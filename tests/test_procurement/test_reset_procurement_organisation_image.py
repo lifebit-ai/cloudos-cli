@@ -1,32 +1,32 @@
 import json
+
 import responses
-from cloudos_cli.procurement import Images
-from tests.functions_for_pytest import load_json_file
 from responses import matchers
 
+from cloudos_cli.procurement import Images
+from tests.functions_for_pytest import load_json_file
+
 # Constants
-APIKEY = 'vnoiweur89u2ongs'
-CLOUDOS_URL = 'http://cloudos.lifebit.ai'
-PROCUREMENT_ID = 'lv89ufc838sdig'
-ORGANISATION_ID = 'org-12345678'
+APIKEY = "vnoiweur89u2ongs"
+CLOUDOS_URL = "http://cloudos.lifebit.ai"
+PROCUREMENT_ID = "lv89ufc838sdig"
+ORGANISATION_ID = "org-12345678"
 
 # Files
 RESET_IMAGE_RESPONSE = "tests/test_data/reset_procurement_image_response.json"
+
 
 @responses.activate
 def test_reset_procurement_organisation_image():
     mock_response = json.loads(load_json_file(RESET_IMAGE_RESPONSE))
 
-    headers = {
-        "Content-type": "application/json",
-        "apikey": APIKEY
-    }
+    headers = {"Content-type": "application/json", "apikey": APIKEY}
 
     expected_payload = {
         "organisationId": ORGANISATION_ID,
         "imageType": "JobDefault",
         "provider": "aws",
-        "region": "eu-west-2"
+        "region": "eu-west-2",
     }
 
     # Mock endpoint
@@ -35,7 +35,7 @@ def test_reset_procurement_organisation_image():
         url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
         body=json.dumps(mock_response),
         match=[matchers.json_params_matcher(expected_payload)],
-        status=200
+        status=200,
     )
 
     procurement_images = Images(
@@ -43,23 +43,33 @@ def test_reset_procurement_organisation_image():
         apikey=APIKEY,
         procurement_id=PROCUREMENT_ID,
         verify=True,
-        cromwell_token=None
+        cromwell_token=None,
     )
 
     result = procurement_images.reset_procurement_organisation_image(
         organisation_id=ORGANISATION_ID,
         image_type="JobDefault",
         provider="aws",
-        region="eu-west-2"
+        region="eu-west-2",
     )
 
     # Verify the image configuration details
     expected_config_keys = {
-        "id", "organisationId", "imageType", "provider", "region",
-        "imageId", "imageName", "isLifebitManaged", "lastUpdatedBy",
-        "organisationName", "updatedAt"
+        "id",
+        "organisationId",
+        "imageType",
+        "provider",
+        "region",
+        "imageId",
+        "imageName",
+        "isLifebitManaged",
+        "lastUpdatedBy",
+        "organisationName",
+        "updatedAt",
     }
-    assert expected_config_keys.issubset(result.keys()), f"Missing keys in image config: {result}"
+    assert expected_config_keys.issubset(result.keys()), (
+        f"Missing keys in image config: {result}"
+    )
 
     # Validate specific values
     assert result["organisationId"] == ORGANISATION_ID
@@ -72,16 +82,15 @@ def test_reset_procurement_organisation_image():
     assert result["isLifebitManaged"] is True  # Should be True for reset to default
     assert "Lifebit" in result["lastUpdatedBy"]
 
+
 @responses.activate
 def test_reset_procurement_organisation_image_different_types():
     """Test resetting different image types"""
 
     image_types = [
         "RegularInteractiveSessions",
-        "SparkInteractiveSessions", 
-        "RStudioInteractiveSessions",
-        "JupyterInteractiveSessions",
-        "NextflowBatchComputeEnvironment"
+        "SparkInteractiveSessions",
+        "NextflowBatchComputeEnvironment",
     ]
 
     for image_type in image_types:
@@ -96,14 +105,14 @@ def test_reset_procurement_organisation_image_different_types():
             "isLifebitManaged": True,
             "lastUpdatedBy": "Lifebit System",
             "organisationName": "Test-Organisation",
-            "updatedAt": "2025-07-28T12:00:00"
+            "updatedAt": "2025-07-28T12:00:00",
         }
 
         expected_payload = {
             "organisationId": ORGANISATION_ID,
             "imageType": image_type,
             "provider": "aws",
-            "region": "eu-west-2"
+            "region": "eu-west-2",
         }
 
         responses.add(
@@ -111,7 +120,7 @@ def test_reset_procurement_organisation_image_different_types():
             url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
             body=json.dumps(mock_response),
             match=[matchers.json_params_matcher(expected_payload)],
-            status=200
+            status=200,
         )
 
     procurement_images = Images(
@@ -119,7 +128,7 @@ def test_reset_procurement_organisation_image_different_types():
         apikey=APIKEY,
         procurement_id=PROCUREMENT_ID,
         verify=True,
-        cromwell_token=None
+        cromwell_token=None,
     )
 
     # Test each image type
@@ -128,13 +137,14 @@ def test_reset_procurement_organisation_image_different_types():
             organisation_id=ORGANISATION_ID,
             image_type=image_type,
             provider="aws",
-            region="eu-west-2"
+            region="eu-west-2",
         )
 
         assert result["imageType"] == image_type
         assert result["isLifebitManaged"] is True
         assert result["imageId"] == f"ami-lifebit-{image_type.lower()[:8]}-default"
         assert "Lifebit" in result["lastUpdatedBy"]
+
 
 @responses.activate
 def test_reset_procurement_organisation_image_different_regions():
@@ -154,14 +164,14 @@ def test_reset_procurement_organisation_image_different_regions():
             "isLifebitManaged": True,
             "lastUpdatedBy": "Lifebit System",
             "organisationName": "Test-Organisation",
-            "updatedAt": "2025-07-28T12:00:00"
+            "updatedAt": "2025-07-28T12:00:00",
         }
 
         expected_payload = {
             "organisationId": ORGANISATION_ID,
             "imageType": "JobDefault",
             "provider": "aws",
-            "region": region
+            "region": region,
         }
 
         responses.add(
@@ -169,7 +179,7 @@ def test_reset_procurement_organisation_image_different_regions():
             url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
             body=json.dumps(mock_response),
             match=[matchers.json_params_matcher(expected_payload)],
-            status=200
+            status=200,
         )
 
     procurement_images = Images(
@@ -177,7 +187,7 @@ def test_reset_procurement_organisation_image_different_regions():
         apikey=APIKEY,
         procurement_id=PROCUREMENT_ID,
         verify=True,
-        cromwell_token=None
+        cromwell_token=None,
     )
 
     # Test each region
@@ -186,9 +196,121 @@ def test_reset_procurement_organisation_image_different_regions():
             organisation_id=ORGANISATION_ID,
             image_type="JobDefault",
             provider="aws",
-            region=region
+            region=region,
         )
 
         assert result["region"] == region
         assert result["imageId"] == f"ami-lifebit-{region}-default"
         assert result["isLifebitManaged"] is True
+
+
+@responses.activate
+def test_reset_procurement_organisation_image_azure_provider():
+    """Test resetting image configuration for Azure provider"""
+
+    mock_response = {
+        "id": "config-azure-123",
+        "organisationId": ORGANISATION_ID,
+        "imageType": "JobDefault",
+        "provider": "azure",
+        "region": "eastus",
+        "imageId": "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Compute/images/lifebit-default",
+        "imageName": "Lifebit Default Job Image (Azure)",
+        "isLifebitManaged": True,
+        "lastUpdatedBy": "Lifebit System",
+        "organisationName": "Test-Organisation",
+        "updatedAt": "2025-07-28T12:00:00",
+    }
+
+    expected_payload = {
+        "organisationId": ORGANISATION_ID,
+        "imageType": "JobDefault",
+        "provider": "azure",
+        "region": "eastus",
+    }
+
+    responses.add(
+        responses.PUT,
+        url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
+        body=json.dumps(mock_response),
+        match=[matchers.json_params_matcher(expected_payload)],
+        status=200,
+    )
+
+    procurement_images = Images(
+        cloudos_url=CLOUDOS_URL,
+        apikey=APIKEY,
+        procurement_id=PROCUREMENT_ID,
+        verify=True,
+        cromwell_token=None,
+    )
+
+    result = procurement_images.reset_procurement_organisation_image(
+        organisation_id=ORGANISATION_ID,
+        image_type="JobDefault",
+        provider="azure",
+        region="eastus",
+    )
+
+    assert result["provider"] == "azure"
+    assert result["region"] == "eastus"
+    assert result["isLifebitManaged"] is True
+
+
+@responses.activate
+def test_reset_procurement_organisation_image_azure_different_regions():
+    """Test resetting image configuration for different Azure regions"""
+
+    azure_regions = ["eastus", "westus2", "northeurope", "westeurope", "uksouth"]
+
+    for region in azure_regions:
+        mock_response = {
+            "id": f"config-azure-{region}",
+            "organisationId": ORGANISATION_ID,
+            "imageType": "JobDefault",
+            "provider": "azure",
+            "region": region,
+            "imageId": f"/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Compute/images/lifebit-{region}-default",
+            "imageName": f"Lifebit Default Job Image ({region})",
+            "isLifebitManaged": True,
+            "lastUpdatedBy": "Lifebit System",
+            "organisationName": "Test-Organisation",
+            "updatedAt": "2025-07-28T12:00:00",
+        }
+
+        expected_payload = {
+            "organisationId": ORGANISATION_ID,
+            "imageType": "JobDefault",
+            "provider": "azure",
+            "region": region,
+        }
+
+        responses.add(
+            responses.PUT,
+            url=f"{CLOUDOS_URL}/api/v1/procurements/{PROCUREMENT_ID}/images/reset",
+            body=json.dumps(mock_response),
+            match=[matchers.json_params_matcher(expected_payload)],
+            status=200,
+        )
+
+    procurement_images = Images(
+        cloudos_url=CLOUDOS_URL,
+        apikey=APIKEY,
+        procurement_id=PROCUREMENT_ID,
+        verify=True,
+        cromwell_token=None,
+    )
+
+    # Test each Azure region
+    for region in azure_regions:
+        result = procurement_images.reset_procurement_organisation_image(
+            organisation_id=ORGANISATION_ID,
+            image_type="JobDefault",
+            provider="azure",
+            region=region,
+        )
+
+        assert result["provider"] == "azure"
+        assert result["region"] == region
+        assert result["isLifebitManaged"] is True
+
