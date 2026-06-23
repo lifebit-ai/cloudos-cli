@@ -4,8 +4,7 @@ import rich_click as click
 import json
 import time
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.datasets import Datasets
-from cloudos_cli.link import Link
+from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.interactive_session.interactive_session import (
@@ -18,7 +17,6 @@ from cloudos_cli.interactive_session.interactive_session import (
     parse_link_path,
     build_session_payload,
     format_session_creation_table,
-    resolve_data_file_id,
     validate_session_id,
     validate_instance_type,
     get_interactive_session_status,
@@ -37,17 +35,51 @@ from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
-def _check_duplicate_mount_name(mount_name, link_path, seen):
-    """Register mount_name in seen, or exit cleanly if already present.
+_PROJECT_ROOT_FOLDERS = {'data', 'analysesresults', 'analyses_results', 'analyses-results', 'cohorts'}
 
-    Delegates duplicate detection to Link._raise_if_duplicate_mount so the
-    error wording stays consistent between this command and `cloudos link`.
+
+def _normalize_file_explorer_path(path, project_name):
+    """Resolve (folder_path, resolved_project_name) for a File Explorer path.
+
+    If the first path segment is a known top-level folder name (Data,
+    AnalysesResults, Analyses_Results, Analyses-Results, Cohorts) the path is
+    treated as relative to the profile project (project_name).  Otherwise the
+    first segment is treated as the project name and the remainder as the path.
+    S3 / Azure paths are returned unchanged with project_name=None.
+
+    Returns (normalized_path, resolved_project_name).
     """
-    try:
-        Link._raise_if_duplicate_mount(mount_name, link_path, seen)
-    except ValueError as e:
-        click.secho(f"Error: {e}", fg='red', err=True)
-        raise SystemExit(1)
+    if path.startswith('s3://') or path.startswith('az://'):
+        return path, None
+    if '/' not in path:
+        return path, project_name
+    first_segment, _ = path.split('/', 1)
+    if first_segment.lower() in _PROJECT_ROOT_FOLDERS:
+        return path, project_name
+    inferred_project, folder_path = path.split('/', 1)
+    return folder_path, inferred_project
+
+
+def _make_link_client(cloudos_url, apikey, workspace_id, project_name, verify_ssl):
+    """Instantiate a Link client for the given project."""
+    return Link(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        cromwell_token=None,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=verify_ssl
+    )
+
+
+def _check_duplicate_mount_name(mount_name, link_path, seen):
+    """Raise ValueError if mount_name already exists in seen, otherwise register it."""
+    if mount_name in seen:
+        raise ValueError(
+            f"Duplicate mount name '{mount_name}' detected. "
+            f"The items '{seen[mount_name]}' and '{link_path}' "
+            f"would both be mounted with the same name. Please use items with unique names."
+        )
     seen[mount_name] = link_path
 
 
@@ -151,7 +183,7 @@ def list_sessions(ctx,
         raise ValueError('Please use a positive integer (>= 1) for the --page parameter')
     # Validate table columns if specified
 
-    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project', 
+    valid_columns = {'id', 'name', 'status', 'type', 'instance', 'cost', 'owner', 'project',
                      'created_at', 'runtime', 'saved_at', 'resources', 'backend', 'version',
                      'spot', 'cost_limit', 'time_left'}
     selected_columns = table_columns
@@ -192,9 +224,10 @@ def list_sessions(ctx,
         pagination_metadata = result.get('pagination_metadata', None)
 
         # Create callback function for fetching additional pages
-        fetch_page = lambda page_num: fetch_interactive_session_page(
-            cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
-        )
+        def fetch_page(page_num):
+            return fetch_interactive_session_page(
+                cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
+            )
 
         # Handle empty results
         if len(sessions) == 0:
@@ -217,7 +250,7 @@ def list_sessions(ctx,
             with open(outfile, 'w') as o:
                 o.write(json.dumps(sessions, indent=2))
             print(f'\tInteractive session list collected with a total of {len(sessions)} sessions on this page.')
-            print(f'\tInteractive session list saved to {outfile}')        
+            print(f'\tInteractive session list saved to {outfile}')
         else:
             raise ValueError('Unrecognised output format. Please use one of [stdout|csv|json]')
 
@@ -293,27 +326,12 @@ def list_sessions(ctx,
 @click.option('--shutdown-in',
               help='Auto-shutdown duration (e.g., 8h, 2d). Default=12h.',
               default='12h')
-@click.option('--mount',
-              multiple=True,
-              help='Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files. Format: project_name/dataset_path (e.g., leila-test/Data/file.csv) or s3://bucket/path/to/file (e.g., s3://my-bucket/data/file.csv). Can be used multiple times.')
 @click.option('--link',
               multiple=True,
-              help=(
-                  'Link a file or folder into the session for read access. Supports '
-                  'S3 files and folders (e.g. s3://bucket/path/file.csv or '
-                  's3://bucket/path/) and File Explorer files and folders '
-                  '(project-name/path/to/item — must include project name). S3 paths '
-                  'whose last segment contains a "." are treated as files; paths ending '
-                  'with "/" or without an extension are treated as folders. Both S3 and '
-                  'File Explorer items can be combined. Provide multiple paths as '
-                  'comma-separated values or use --link multiple times. '
-                  'Examples: --link s3://bucket/data/file.csv,my-project/Data/results '
-                  'OR --link s3://bucket1/path/ --link my-project/Data/file.csv. '
-                  'NOTE: format is `<project>/<relative-path>` — the project is part of '
-                  'the path, so a single command can link items from multiple projects. '
-                  'This differs from `cloudos link`, where the project comes from '
-                  '--project-name and must NOT appear in the path.'
-              ))
+              help='Link a file or folder into the session for read access. Supports S3 files/folders (s3://bucket/path/) and File Explorer files/folders. File Explorer paths can be given in two forms: (1) include the project name explicitly (e.g. my-project/Data/results) or (2) start with a known root folder (Data/, AnalysesResults/, Cohorts/, etc.) and --project-name or a profile project will be used to resolve the project. Both S3 and File Explorer types can be combined. Provide multiple paths as comma-separated values or use --link multiple times. Use --copy to copy data into the session instead. Examples: --link s3://bucket/data/,my-project/Data/results OR --link s3://bucket1/path/ --link Data/results')
+@click.option('--copy',
+              is_flag=True,
+              help='Copy data into the session instead of linking for read access. When specified, the paths provided by --link are copied into the session\'s data volume. Supports Lifebit Platform datasets (project_name/Data/file.csv) and S3 files (s3://bucket/path/to/file).')
 @click.option('--r-version',
               type=click.Choice(['4.5.2', '4.4.2'], case_sensitive=False),
               help='R version for RStudio. Options: 4.5.2 (default), 4.4.2.',
@@ -357,8 +375,8 @@ def create_session(ctx,
                    shared,
                    cost_limit,
                    shutdown_in,
-                   mount,
                    link,
+                   copy,
                    r_version,
                    spark_master,
                    spark_core,
@@ -370,7 +388,7 @@ def create_session(ctx,
                    verbose):
     """Create a new interactive session."""
 
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)    
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     # Default execution_platform to 'aws' if not specified by user or profile
     if execution_platform is None:
         execution_platform = 'aws'
@@ -439,22 +457,35 @@ def create_session(ctx,
                 click.secho(f'Error: Invalid shutdown duration: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and resolve mounted data files (both Lifebit Platform and S3)
+        # Flatten comma-separated paths within --link options
+        all_link_paths = []
+        for link_entry in link:
+            paths = [p.strip() for p in link_entry.split(',') if p.strip()]
+            all_link_paths.extend(paths)
+
         parsed_data_files = []
-        parsed_link_items = []  # Items go into FUSE mounts (S3 folders/files + File Explorer folders/files)
-        if mount:
+        parsed_s3_mounts = []  # S3 folders/files go into FUSE mounts
+        _data_file_display_meta = []  # Parallel list: display metadata per entry in parsed_data_files
+
+        # When --copy is set, copy data into the session (dataItems) instead of linking
+        if copy and all_link_paths:
             try:
-                for df in mount:
-                    parsed = parse_data_file(df)
+                for link_path in all_link_paths:
+                    if not link_path.startswith('s3://') and not link_path.startswith('az://'):
+                        norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                        if resolved_project is None:
+                            raise click.UsageError(
+                                f"--project-name is required for File Explorer paths that start with a known "
+                                f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{link_path}'"
+                            )
+                        link_path = f"{resolved_project}/{norm_path}"
+                    parsed = parse_data_file(link_path)
                     if parsed['type'] == 's3':
-                        # S3 files are only supported on AWS
                         if execution_platform != 'aws':
-                            click.secho(f'Error: S3 mounts are only supported on AWS. Use Lifebit Platform file explorer paths for Azure.', fg='red', err=True)
+                            click.secho(f'Error: S3 files are only supported on AWS. Use Lifebit Platform file explorer paths for Azure.', fg='red', err=True)
                             raise SystemExit(1)
-                        # S3 file: add to dataItems as S3File type
                         if verbose:
-                            print(f'\tMounting S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
-                        # Use the full path as the name
+                            print(f'\tCopying S3 file: s3://{parsed["s3_bucket"]}/{parsed["s3_prefix"]}')
                         s3_file_item = {
                             "type": "S3File",
                             "data": {
@@ -464,46 +495,56 @@ def create_session(ctx,
                             }
                         }
                         parsed_data_files.append(s3_file_item)
+                        _data_file_display_meta.append(None)
                         if verbose:
-                            print(f'\t  ✓ Added S3 file to mount')
+                            print(f'\t  ✓ Added S3 file to copy')
                     else:  # type == 'cloudos'
-                        # Lifebit Platform dataset file: resolve via Datasets API
                         data_project = parsed['project_name']
                         dataset_path = parsed['dataset_path']
                         if verbose:
-                            print(f'\tResolving dataset: {data_project}/{dataset_path}')
-                        # Create a Datasets API instance for this specific project
-                        datasets_api = Datasets(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=data_project,
-                            verify=verify_ssl,
-                            cromwell_token=None
-                        )
-                        resolved = resolve_data_file_id(datasets_api, dataset_path)
+                            print(f'\tCopying dataset: {data_project}/{dataset_path}')
+                        fe_link = _make_link_client(cloudos_url, apikey, workspace_id, data_project, verify_ssl)
+                        resolved = fe_link.parse_file_explorer_item(dataset_path)["dataItem"]
                         parsed_data_files.append(resolved)
+                        _data_file_display_meta.append({
+                            "is_file_explorer": True,
+                            "original_path": f"{data_project}/{dataset_path}"
+                        })
                         if verbose:
-                            print(f'\t  ✓ Resolved to file ID: {resolved["item"]}')
+                            print(f'\t  ✓ Resolved to ID: {resolved["item"]}')
+            except SystemExit:
+                raise
             except Exception as e:
-                click.secho(f'Error: Failed to resolve dataset files: {str(e)}', fg='red', err=True)
+                click.secho(f'Error: Failed to resolve data files for copy: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Parse and add linked items from --link (S3 or CloudOS, files or folders)
-        # Flatten comma-separated paths within --link options
-        all_link_paths = []
-        for link_entry in link:
-            paths = [p.strip() for p in link_entry.split(',') if p.strip()]
-            all_link_paths.extend(paths)
+        data_files_for_display = []
+        for df, meta in zip(parsed_data_files, _data_file_display_meta or [None] * len(parsed_data_files)):
+            if meta is not None:
+                display_df = df.copy()
+                display_df['_isFileExplorer'] = meta['is_file_explorer']
+                display_df['_originalPath'] = meta['original_path']
+                data_files_for_display.append(display_df)
+            else:
+                data_files_for_display.append(df)
 
+        # Parse and add linked items from --link (S3 or CloudOS, files or folders)
         mount_names_seen = {}  # Track mount names to detect duplicates
-        link_display_info = {}  # Track File Explorer paths for display (not sent to API)
-        for link_path in all_link_paths:
+        s3_mount_display_info = {}  # Track File Explorer paths for display (not sent to API)
+        for link_path in all_link_paths if not copy else []:
             try:
                 # Block all linking on Azure platforms
                 if execution_platform == 'azure':
-                    click.secho(f'Error: Linking is not supported on Azure. Please use `cloudos interactive-session create --mount` to load your data in the session.', fg='red', err=True)
+                    click.secho(f'Error: Linking is not supported on Azure. Use `--copy` flag with `--link` to copy data into the session instead.', fg='red', err=True)
                     raise SystemExit(1)
+                if not link_path.startswith('s3://') and not link_path.startswith('az://'):
+                    norm_path, resolved_project = _normalize_file_explorer_path(link_path, project_name)
+                    if resolved_project is None:
+                        raise click.UsageError(
+                            f"--project-name is required for File Explorer paths that start with a known "
+                            f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{link_path}'"
+                        )
+                    link_path = f"{resolved_project}/{norm_path}"
                 parsed = parse_link_path(link_path)
                 if parsed['type'] == 's3':
                     if execution_platform != 'aws':
@@ -539,7 +580,7 @@ def create_session(ctx,
                                 "s3Prefix": parsed["s3_prefix"]
                             }
                         }
-                    parsed_link_items.append(s3_mount_item)
+                    parsed_s3_mounts.append(s3_mount_item)
                     if verbose:
                         print(f'\t  ✓ Linked S3: {mount_name}')
 
@@ -549,20 +590,11 @@ def create_session(ctx,
                     if verbose:
                         print(f'\tLinking Lifebit Platform item: {folder_project}/{folder_path}')
                     try:
-                        fe_link = Link(
-                            cloudos_url=cloudos_url,
-                            apikey=apikey,
-                            workspace_id=workspace_id,
-                            project_name=folder_project,
-                            cromwell_token=None,
-                            verify=verify_ssl
-                        )
+                        fe_link = _make_link_client(cloudos_url, apikey, workspace_id, folder_project, verify_ssl)
                         fe_item = fe_link.parse_file_explorer_item(folder_path)
                         item_kind = fe_item["dataItem"]["kind"]
                         item_id = fe_item["dataItem"]["item"]
                         mount_name = fe_item["dataItem"]["name"]
-                    except ValueError:
-                        raise
                     except Exception as e:
                         error_msg = str(e)
                         if "404" in error_msg or "not found" in error_msg.lower():
@@ -580,9 +612,9 @@ def create_session(ctx,
                         "item": item_id,
                         "name": mount_name
                     }
-                    parsed_link_items.append(cloudos_mount_item)
+                    parsed_s3_mounts.append(cloudos_mount_item)
 
-                    link_display_info[mount_name] = {
+                    s3_mount_display_info[mount_name] = {
                         "is_file_explorer": True,
                         "original_path": f"{folder_project}/{folder_path}"
                     }
@@ -594,18 +626,18 @@ def create_session(ctx,
                 click.secho(f'Error: Failed to link item: {str(e)}', fg='red', err=True)
                 raise SystemExit(1)
 
-        # Create display version of link items with File Explorer markers
-        link_items_for_display = []
-        for mount in parsed_link_items:
+        # Create display version of s3_mounts with File Explorer markers
+        s3_mounts_for_display = []
+        for mount in parsed_s3_mounts:
             # FE items use kind/item/name; S3 items use type/data
             mount_name = mount.get('name') or mount.get('data', {}).get('name', '')
-            if mount_name in link_display_info:
+            if mount_name in s3_mount_display_info:
                 display_mount = mount.copy()
-                display_mount['_isFileExplorer'] = link_display_info[mount_name]['is_file_explorer']
-                display_mount['_originalPath'] = link_display_info[mount_name]['original_path']
-                link_items_for_display.append(display_mount)
+                display_mount['_isFileExplorer'] = s3_mount_display_info[mount_name]['is_file_explorer']
+                display_mount['_originalPath'] = s3_mount_display_info[mount_name]['original_path']
+                s3_mounts_for_display.append(display_mount)
             else:
-                link_items_for_display.append(mount)
+                s3_mounts_for_display.append(mount)
 
         # Build the session payload
         payload = build_session_payload(
@@ -620,7 +652,7 @@ def create_session(ctx,
             shutdown_at=shutdown_at_parsed,
             project_id=project_id,
             data_files=parsed_data_files,
-            s3_mounts=parsed_link_items if execution_platform == 'aws' else [],
+            s3_mounts=parsed_s3_mounts if execution_platform == 'aws' else [],
             r_version=r_version,
             spark_master_type=spark_master,
             spark_core_type=spark_core,
@@ -645,8 +677,8 @@ def create_session(ctx,
             spark_master=spark_master,
             spark_core=spark_core,
             spark_workers=spark_workers,
-            data_files=parsed_data_files,
-            s3_mounts=link_items_for_display,  # Use display version with markers
+            data_files=data_files_for_display,
+            s3_mounts=s3_mounts_for_display,  # Use display version with markers
             shutdown_in=shutdown_in
         )
         # Output session link in greppable format for CI/automation
@@ -972,7 +1004,7 @@ def pause_session(ctx,
             click.secho(f'Error: Cannot pause session - the session is already paused.', fg='red', err=True)
             click.secho(f'Tip: Check the session status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             raise SystemExit(1)
-        elif  api_status == 'aborting':
+        elif api_status == 'aborting':
             click.secho(f'Error: Cannot pause session - the session is already being paused.', fg='red', err=True)
             click.secho(f'Tip: Wait a moment and check status with: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
             raise SystemExit(1)
@@ -1233,7 +1265,7 @@ def resume_session(ctx,
                     click.secho(f'Tip: Terminated sessions cannot be resumed. Please create a new session instead.', fg='yellow', err=True)
                 else:
                     click.secho(f'Tip: Wait for the session to reach "paused" status, or check: cloudos interactive-session status --session-id {session_id}', fg='yellow', err=True)
-            except:
+            except Exception:
                 # Fallback if we can't fetch status
                 click.secho(f'Error: Cannot resume session - it is not in a resumable status.', fg='red', err=True)
                 click.secho(f'Only sessions with status "paused" can be resumed.', fg='yellow', err=True)
@@ -1256,3 +1288,209 @@ def resume_session(ctx,
             click.secho(f'Error: Failed to resume session: {str(e)}', fg='red', err=True)
         raise SystemExit(1)
 
+
+@interactive_session.command('link')
+@click.argument('path', required=False)
+@click.option('-k',
+              '--apikey',
+              help='Your Lifebit Platform API key',
+              required=True)
+@click.option('-c',
+              '--cloudos-url',
+              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
+              default=CLOUDOS_URL,
+              required=True)
+@click.option('--workspace-id',
+              help='The specific Lifebit Platform workspace id.',
+              required=True)
+@click.option('--session-id',
+              help='The specific Lifebit Platform interactive session id.',
+              required=True)
+@click.option('--job-id',
+              help='The job id in Lifebit Platform. When provided, links results, workdir and logs by default.',
+              required=False)
+@click.option('--project-name',
+              help='Fallback Lifebit Platform project name for File Explorer paths that start with a known root folder (Data/, AnalysesResults/, Cohorts/, etc.). Not needed when PATH includes the project as the first segment (e.g. my-project/Data/file.csv).',
+              required=False)
+@click.option('--results',
+              help='Link only results folder (only works with --job-id).',
+              is_flag=True)
+@click.option('--workdir',
+              help='Link only working directory (only works with --job-id).',
+              is_flag=True)
+@click.option('--logs',
+              help='Link only logs folder (only works with --job-id).',
+              is_flag=True)
+@click.option('--verbose',
+              help='Whether to print information messages or not.',
+              is_flag=True)
+@click.option('--disable-ssl-verification',
+              help=('Disable SSL certificate verification. Please, remember that this option is ' +
+                    'not generally recommended for security reasons.'),
+              is_flag=True)
+@click.option('--ssl-cert',
+              help='Path to your SSL certificate file.')
+@click.option('--profile', help='Profile to use from the config file', default=None)
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id'])
+def link_session(ctx,
+                 path,
+                 apikey,
+                 cloudos_url,
+                 workspace_id,
+                 session_id,
+                 job_id,
+                 project_name,
+                 results,
+                 workdir,
+                 logs,
+                 verbose,
+                 disable_ssl_verification,
+                 ssl_cert,
+                 profile):
+    """
+    Link files or folders to an interactive analysis session.
+
+    This command links S3 or File Explorer items (files and folders) to an active
+    interactive analysis session for direct read access.
+
+    PATH: Optional path(s) to link (S3 or File Explorer).
+          Required if --job-id is not provided.
+          Supports comma-separated list for multiple paths.
+
+          File Explorer path formats:
+
+          - project-name/Data/folder — project is inferred from the first path segment.
+            --project-name is not needed.
+
+          - Data/folder — path starts with a known top-level folder name (Data,
+            AnalysesResults, Cohorts, etc.). --project-name must be supplied so the
+            CLI knows which project to look in.
+
+    Two modes of operation:
+
+    1. Job-based linking (--job-id): Links job-related folders.
+       By default, links results, workdir, and logs folders.
+       Use --results, --workdir, or --logs flags to link only specific folders.
+
+    2. Direct path linking (PATH argument): Links specific path(s).
+       Supports S3 files/folders and Lifebit Platform File Explorer files/folders.
+       Both S3 and File Explorer paths can be combined.
+       S3 paths ending with '/' or without a file extension are treated as folders.
+       S3 paths whose last segment contains a '.' are treated as files.
+
+    Examples:
+
+        # Link all job folders (results, workdir, logs)
+        cloudos interactive-session link --job-id 12345 --session-id abc123
+
+        # Link a single S3 folder
+        cloudos interactive-session link s3://bucket/folder/ --session-id abc123
+
+        # Link a single S3 file
+        cloudos interactive-session link s3://bucket/data/file.csv --session-id abc123
+
+        # Link multiple S3 paths (comma-separated, files and folders mixed)
+        cloudos interactive-session link s3://bucket1/folder1/,s3://bucket2/data/file.csv --session-id abc123
+
+        # Link a File Explorer folder (project inferred from first path segment)
+        cloudos interactive-session link my-project/Data/folder --session-id abc123
+
+        # Link a File Explorer folder whose path starts with a top-level folder name
+        cloudos interactive-session link Data/folder --session-id abc123 --project-name my-project
+
+        # Combine S3 and File Explorer paths
+        cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/results --session-id abc123
+
+    """
+    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    if not job_id and not path:
+        raise click.UsageError("Either --job-id or PATH argument must be provided.")
+
+    if job_id and path:
+        raise click.UsageError("Cannot use both --job-id and PATH argument. Please provide only one.")
+
+    if (results or workdir or logs) and not job_id:
+        raise click.UsageError("--results, --workdir, and --logs flags can only be used with --job-id.")
+
+    if job_id and not (results or workdir or logs):
+        results = True
+        workdir = True
+        logs = True
+
+    if verbose:
+        print('Using the following parameters:')
+        print(f'\tLifebit Platform url: {cloudos_url}')
+        print(f'\tWorkspace ID: {workspace_id}')
+        print(f'\tSession ID: {session_id}')
+        if job_id:
+            print(f'\tJob ID: {job_id}')
+            print(f'\tLink results: {results}')
+            print(f'\tLink workdir: {workdir}')
+            print(f'\tLink logs: {logs}')
+        else:
+            print(f'\tPath: {path}')
+
+    try:
+        if job_id:
+            link_client = _make_link_client(cloudos_url, apikey, workspace_id, project_name, verify_ssl)
+            print(f'Linking folders from job {job_id} to interactive session {session_id}...\n')
+
+            if results:
+                link_client.link_job_results(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+            if workdir:
+                link_client.link_job_workdir(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+            if logs:
+                link_client.link_job_logs(job_id, workspace_id, session_id, verify_ssl, verbose)
+
+        else:
+            paths = [p.strip() for p in path.split(',') if p.strip()]
+
+            if len(paths) == 0:
+                raise click.UsageError("No valid paths provided.")
+
+            # Normalize paths and group by resolved project name.
+            # S3/Azure paths are keyed under None and sent as their own batch.
+            groups = {}
+            for p in paths:
+                norm_path, resolved = _normalize_file_explorer_path(p, project_name)
+                if resolved is None and not p.startswith('s3://') and not p.startswith('az://'):
+                    raise click.UsageError(
+                        f"--project-name is required for File Explorer paths that start with a known "
+                        f"top-level folder name (Data, AnalysesResults, Cohorts, etc.). Got: '{p}'"
+                    )
+                groups.setdefault(resolved, []).append(norm_path)
+
+            if len(paths) == 1:
+                print(f'Linking path to interactive session {session_id}...\n')
+            else:
+                print(f'Linking {len(paths)} paths to interactive session {session_id}...\n')
+
+            all_succeeded = True
+            try:
+                committed = 0
+                for grp_project, grp_paths in groups.items():
+                    client = _make_link_client(cloudos_url, apikey, workspace_id, grp_project, verify_ssl)
+                    if not client.link_folders_batch(grp_paths, session_id, committed_count=committed):
+                        all_succeeded = False
+                    committed += len(grp_paths)
+                if all_succeeded:
+                    print('\nLinking operation completed successfully!')
+                else:
+                    click.secho('\nLinking operation completed with errors. See details above.', fg='red', err=True)
+                    raise SystemExit(1)
+            except SystemExit:
+                raise
+            except Exception as e:
+                click.secho(f'\n✗ Failed: {str(e)}', fg='red', err=True)
+                raise SystemExit(1)
+
+    except BadRequestException as e:
+        click.secho(f'Error: Request failed: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)
+    except Exception as e:
+        click.secho(f'Error: Failed to link: {str(e)}', fg='red', err=True)
+        raise SystemExit(1)

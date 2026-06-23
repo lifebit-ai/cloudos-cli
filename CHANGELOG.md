@@ -1,5 +1,14 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.93.0 (2026-05-28)
+
+### Feat:
+
+- Moves `cloudos link` into the `interactive-session` module as `cloudos interactive-session link`
+- File Explorer paths now infer the project name from the first path segment (e.g. `my-project/Data/folder`); standard top-level folder names (`Data`, `AnalysesResults`, `Analyses_Results`, `Analyses-Results`, `Cohorts`) are treated as relative to the profile project
+- Removes `--mount` from `cloudos interactive-session create`
+- Introduces `--copy` as an optional flag of `--link` in `cloudos interactive-session create` to copy data into the session
+
 ## v2.92.0 (2026-06-23)
 
 ### Feat
@@ -14,12 +23,6 @@
 - Implements linking of files in interactive session creation
 - Implements linking of files in `cloudos link`
 - Removes support for linking while resuming a paused interactive session
-- Enforces a maximum of 100 linked items per interactive session
-- Adds clearer, actionable error messages when mounts fail (e.g. translates "prefix does not exist" / "access denied" into workspace-permission guidance)
-
-### Breaking
-
-- `cloudos link` and `cloudos datasets link`: File Explorer paths must now be RELATIVE to `--project-name` (do NOT prepend the project name). Previously the leading `<project>/` segment was advertised but produced confusing errors; it is now rejected up front with a clear message pointing to the correct form. `cloudos interactive-session create --link` still uses `<project>/<folder-path>` format — see each command's `--help` for the explicit cross-reference.
 
 ## v2.90.2 (2026-05-07)
 
