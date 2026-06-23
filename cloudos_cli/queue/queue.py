@@ -48,9 +48,59 @@ _GPU_INSTANCE_TYPES = [
     "r5.12xlarge", "r5.16xlarge", "r5.24xlarge", "r5.metal",
 ]
 
-# Union of every selectable instance type (standard + GPU families), used to
-# validate user-supplied instance types for custom (from-scratch) queues.
-ALL_INSTANCE_TYPES = sorted(set(_STANDARD_INSTANCE_TYPES) | set(_GPU_INSTANCE_TYPES))
+# ---------------------------------------------------------------------------
+# Additional instance types accepted for custom (from-scratch) queues.
+#
+# The preset lists above intentionally mirror the CloudOS Platform UI presets,
+# so they are left untouched. Custom queues may use any instance type AWS Batch
+# supports, so the validation set (``ALL_INSTANCE_TYPES``) is widened with the
+# current-generation Intel families below: compute-optimised (c6i/c7i),
+# general-purpose (m6i/m7i) and memory-optimised (r6i/r7i) for standard
+# workloads, plus g5/g6/p4d/p5 for GPU workloads. Sizes follow the AWS EC2
+# instance type catalogue.
+# https://aws.amazon.com/ec2/instance-types/
+# https://aws.amazon.com/ec2/instance-types/accelerated-computing/
+# ---------------------------------------------------------------------------
+
+_STANDARD_INSTANCE_TYPES_EXTRA = [
+    # Compute optimised
+    "c6i.large", "c6i.xlarge", "c6i.2xlarge", "c6i.4xlarge", "c6i.8xlarge",
+    "c6i.12xlarge", "c6i.16xlarge", "c6i.24xlarge", "c6i.32xlarge", "c6i.metal",
+    "c7i.large", "c7i.xlarge", "c7i.2xlarge", "c7i.4xlarge", "c7i.8xlarge",
+    "c7i.12xlarge", "c7i.16xlarge", "c7i.24xlarge", "c7i.48xlarge",
+    "c7i.metal-24xl", "c7i.metal-48xl",
+    # General purpose
+    "m6i.large", "m6i.xlarge", "m6i.2xlarge", "m6i.4xlarge", "m6i.8xlarge",
+    "m6i.12xlarge", "m6i.16xlarge", "m6i.24xlarge", "m6i.32xlarge", "m6i.metal",
+    "m7i.large", "m7i.xlarge", "m7i.2xlarge", "m7i.4xlarge", "m7i.8xlarge",
+    "m7i.12xlarge", "m7i.16xlarge", "m7i.24xlarge", "m7i.48xlarge",
+    "m7i.metal-24xl", "m7i.metal-48xl",
+    # Memory optimised
+    "r6i.large", "r6i.xlarge", "r6i.2xlarge", "r6i.4xlarge", "r6i.8xlarge",
+    "r6i.12xlarge", "r6i.16xlarge", "r6i.24xlarge", "r6i.32xlarge", "r6i.metal",
+    "r7i.large", "r7i.xlarge", "r7i.2xlarge", "r7i.4xlarge", "r7i.8xlarge",
+    "r7i.12xlarge", "r7i.16xlarge", "r7i.24xlarge", "r7i.48xlarge",
+    "r7i.metal-24xl", "r7i.metal-48xl",
+]
+
+_GPU_INSTANCE_TYPES_EXTRA = [
+    "g5.xlarge", "g5.2xlarge", "g5.4xlarge", "g5.8xlarge",
+    "g5.12xlarge", "g5.16xlarge", "g5.24xlarge", "g5.48xlarge",
+    "g6.xlarge", "g6.2xlarge", "g6.4xlarge", "g6.8xlarge",
+    "g6.12xlarge", "g6.16xlarge", "g6.24xlarge", "g6.48xlarge",
+    "p4d.24xlarge",
+    "p5.48xlarge",
+]
+
+# Union of every selectable instance type (preset standard + GPU families plus
+# the current-generation families above), used to validate user-supplied
+# instance types for custom (from-scratch) queues.
+ALL_INSTANCE_TYPES = sorted(
+    set(_STANDARD_INSTANCE_TYPES)
+    | set(_GPU_INSTANCE_TYPES)
+    | set(_STANDARD_INSTANCE_TYPES_EXTRA)
+    | set(_GPU_INSTANCE_TYPES_EXTRA)
+)
 
 QUEUE_PRESETS = {
     "standard-stable": {
