@@ -382,10 +382,12 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadRequestException</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_get</span><span class="p">,</span> <span class="n">retry_requests_put</span>
+
 
 <div class="viewcode-block" id="Images">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images">[docs]</a>
@@ -477,14 +479,12 @@
 <span class="sd">            The image type. Possible values are:</span>
 <span class="sd">            RegularInteractiveSessions</span>
 <span class="sd">            SparkInteractiveSessions</span>
-<span class="sd">            RStudioInteractiveSessions</span>
-<span class="sd">            JupyterInteractiveSessions</span>
 <span class="sd">            JobDefault</span>
 <span class="sd">            NextflowBatchComputeEnvironment</span>
 <span class="sd">        provider</span>
-<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39;.</span>
+<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39; and &#39;azure&#39;.</span>
 <span class="sd">        region</span>
-<span class="sd">            The region. Currently only supporting aws regions.</span>
+<span class="sd">            The region. Currently only supporting aws and azure regions.</span>
 <span class="sd">        imageId</span>
 <span class="sd">            The new value for image Id. Required.</span>
 <span class="sd">        imageName</span>
@@ -537,14 +537,12 @@
 <span class="sd">            The image type. Possible values are:</span>
 <span class="sd">            RegularInteractiveSessions</span>
 <span class="sd">            SparkInteractiveSessions</span>
-<span class="sd">            RStudioInteractiveSessions</span>
-<span class="sd">            JupyterInteractiveSessions</span>
 <span class="sd">            JobDefault</span>
 <span class="sd">            NextflowBatchComputeEnvironment</span>
 <span class="sd">        provider</span>
-<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39;.</span>
+<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39; and &#39;azure&#39;.</span>
 <span class="sd">        region</span>
-<span class="sd">            The region. Currently only supporting aws regions.</span>
+<span class="sd">            The region. Currently only supporting aws and azure regions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
