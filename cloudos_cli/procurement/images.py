@@ -4,10 +4,12 @@ This is the main class for procurement images interaction.
 
 import json
 from dataclasses import dataclass
-from cloudos_cli.clos import Cloudos
 from typing import Union
+
+from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_get, retry_requests_put
+
 
 @dataclass
 class Images(Cloudos):
@@ -92,14 +94,12 @@ class Images(Cloudos):
             The image type. Possible values are:
             RegularInteractiveSessions
             SparkInteractiveSessions
-            RStudioInteractiveSessions
-            JupyterInteractiveSessions
             JobDefault
             NextflowBatchComputeEnvironment
         provider
-            The cloud provider. Currently only supporting 'aws'.
+            The cloud provider. Currently only supporting 'aws' and 'azure'.
         region
-            The region. Currently only supporting aws regions.
+            The region. Currently only supporting aws and azure regions.
         imageId
             The new value for image Id. Required.
         imageName
@@ -149,14 +149,12 @@ class Images(Cloudos):
             The image type. Possible values are:
             RegularInteractiveSessions
             SparkInteractiveSessions
-            RStudioInteractiveSessions
-            JupyterInteractiveSessions
             JobDefault
             NextflowBatchComputeEnvironment
         provider
-            The cloud provider. Currently only supporting 'aws'.
+            The cloud provider. Currently only supporting 'aws' and 'azure'.
         region
-            The region. Currently only supporting aws regions.
+            The region. Currently only supporting aws and azure regions.
         """
 
         headers = {
