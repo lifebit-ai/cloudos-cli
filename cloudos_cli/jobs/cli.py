@@ -15,7 +15,7 @@ from cloudos_cli.utils.nextflow_version import resolve_nextflow_version
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.related_analyses.related_analyses import related_analyses
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
-from cloudos_cli.link import Link
+from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.constants import (
     JOB_COMPLETED,
     REQUEST_INTERVAL_CROMWELL,

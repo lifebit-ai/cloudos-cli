@@ -245,6 +245,155 @@ class TestInteractiveSessionAPIMethod:
             cl.get_interactive_session_list('test_team', limit=150)
 
 
+class TestAppSessionFilter:
+    """Tests for client-side app-session filtering."""
+
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_app_sessions_are_filtered_out(self, mock_config, mock_cloudos):
+        """list_sessions CLI must exclude awsCustomSession and azureCustomSession from its output."""
+        runner = CliRunner()
+        mock_config.return_value = {}
+        mock_cloudos_instance = mock.MagicMock()
+        mock_cloudos.return_value = mock_cloudos_instance
+        mock_cloudos_instance.get_interactive_session_list.return_value = {
+            'sessions': [
+                {'_id': 'aaa', 'name': 'Jupyter', 'status': 'running',
+                 'interactiveSessionType': 'awsJupyterNotebook',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+                {'_id': 'bbb', 'name': 'MyApp', 'status': 'running',
+                 'interactiveSessionType': 'awsCustomSession',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+                {'_id': 'ccc', 'name': 'AzureApp', 'status': 'running',
+                 'interactiveSessionType': 'azureCustomSession',
+                 'resources': {'instanceType': 'c5.xlarge'}, 'totalCostInUsd': 0.0},
+            ],
+            'pagination_metadata': {'count': 3, 'page': 1, 'limit': 10, 'totalPages': 1}
+        }
+
+        with runner.isolated_filesystem():
+            result = runner.invoke(run_cloudos_cli, [
+                'interactive-session', 'list',
+                '--apikey', 'test_key',
+                '--cloudos-url', 'http://test.com',
+                '--workspace-id', 'test_team',
+                '--output-format', 'json',
+            ])
+
+            assert result.exit_code == 0, result.output
+            with open('interactive_sessions_list.json') as f:
+                saved_sessions = json.load(f)
+
+        saved_ids = {s['_id'] for s in saved_sessions}
+        assert 'aaa' in saved_ids, "Regular session must be kept"
+        assert 'bbb' not in saved_ids, "awsCustomSession must be filtered out"
+        assert 'ccc' not in saved_ids, "azureCustomSession must be filtered out"
+        assert len(saved_sessions) == 1
+
+    def test_app_session_types_constant_contains_expected_values(self):
+        """APP_SESSION_TYPES must contain exactly the two app session type strings."""
+        from cloudos_cli.interactive_session.interactive_session import APP_SESSION_TYPES
+
+        assert len(APP_SESSION_TYPES) == 2, (
+            f"APP_SESSION_TYPES must have exactly 2 entries, got {len(APP_SESSION_TYPES)}: {APP_SESSION_TYPES}"
+        )
+        assert 'awsCustomSession' in APP_SESSION_TYPES
+        assert 'azureCustomSession' in APP_SESSION_TYPES
+
+    def test_regular_sessions_not_filtered(self):
+        """Regular session types must pass through the filter unchanged."""
+        from cloudos_cli.interactive_session.interactive_session import APP_SESSION_TYPES
+
+        regular_types = [
+            'awsJupyterNotebook', 'azureJupyterNotebook',
+            'awsVSCode', 'azureVSCode',
+            'awsRstudio', 'azureRstudio',
+            'awsSpark', 'awsWindowsSession',
+        ]
+        for t in regular_types:
+            assert t not in APP_SESSION_TYPES, f"{t} should not be filtered out"
+
+
+class TestBuildAppFilteredPageFetcher:
+    """Tests for build_app_filtered_page_fetcher, the factory used as fetch_page_callback."""
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_filters_app_sessions_from_page(self, mock_fetch):
+        """App sessions must be removed from the returned sessions list."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        mock_fetch.return_value = {
+            'sessions': [
+                {'_id': 'aaa', 'interactiveSessionType': 'awsJupyterNotebook'},
+                {'_id': 'bbb', 'interactiveSessionType': 'awsCustomSession'},
+                {'_id': 'ccc', 'interactiveSessionType': 'azureCustomSession'},
+            ],
+            'pagination_metadata': {'count': 3, 'page': 2, 'totalPages': 3}
+        }
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(2)
+
+        mock_fetch.assert_called_once_with(cl, 'ws1', 2, 10, None, False, False, True)
+        returned_ids = {s['_id'] for s in result['sessions']}
+        assert 'aaa' in returned_ids, "Regular session must be kept"
+        assert 'bbb' not in returned_ids, "awsCustomSession must be filtered"
+        assert 'ccc' not in returned_ids, "azureCustomSession must be filtered"
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_passes_all_params_to_api(self, mock_fetch):
+        """Factory closure must forward every captured parameter to fetch_interactive_session_page."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        mock_fetch.return_value = {'sessions': [], 'pagination_metadata': {}}
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 20, ('running',), True, False, True)
+        fetcher(5)
+
+        mock_fetch.assert_called_once_with(cl, 'ws1', 5, 20, ('running',), True, False, True)
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_keeps_all_regular_sessions(self, mock_fetch):
+        """Non-app session types must be returned unchanged."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        regular_sessions = [
+            {'_id': 'j1', 'interactiveSessionType': 'awsJupyterNotebook'},
+            {'_id': 'v1', 'interactiveSessionType': 'awsVSCode'},
+            {'_id': 'r1', 'interactiveSessionType': 'awsRstudio'},
+        ]
+        mock_fetch.return_value = {
+            'sessions': regular_sessions,
+            'pagination_metadata': {'count': 3, 'page': 1, 'totalPages': 1}
+        }
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(1)
+
+        assert len(result['sessions']) == 3
+
+    @patch('cloudos_cli.interactive_session.interactive_session.fetch_interactive_session_page')
+    def test_pagination_metadata_preserved(self, mock_fetch):
+        """pagination_metadata from the API response must be returned intact."""
+        from cloudos_cli.interactive_session.interactive_session import build_app_filtered_page_fetcher
+        from unittest.mock import MagicMock
+
+        expected_meta = {'count': 10, 'page': 3, 'totalPages': 5}
+        mock_fetch.return_value = {'sessions': [], 'pagination_metadata': expected_meta}
+
+        cl = MagicMock()
+        fetcher = build_app_filtered_page_fetcher(cl, 'ws1', 10, None, False, False, True)
+        result = fetcher(3)
+
+        assert result['pagination_metadata'] == expected_meta
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
 

@@ -197,10 +197,10 @@ This will tell you the implemented commands. Each implemented command has its ow
 ```bash
 cloudos job list --help
 ```
-```console                                                                                                      Usage: cloudos job list [OPTIONS]                                                                          
-                                                                                                            
- Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.                                     
-                                                                                                            
+```console                                                                                                      Usage: cloudos job list [OPTIONS]
+
+ Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.
+
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *  --apikey                    -k  TEXT        Your Lifebit Platform API key [required]                           │
 │ *  --cloudos-url               -c  TEXT        The Lifebit Platform url you are trying to access to.              │
@@ -265,7 +265,7 @@ $HOME
 
 ### Configure Default Profile
 
-To facilitate the reuse of required parameters, you can create profiles. 
+To facilitate the reuse of required parameters, you can create profiles.
 
 To generate a profile called `default`, use the following command:
 
@@ -287,7 +287,7 @@ The same prompts will appear, including the execution platform (aws or azure). I
 
 When configuring a profile, you can specify:
 - **API Key**: Your Lifebit Platform API credentials
-- **Platform URL**: The Lifebit Platform instance URL  
+- **Platform URL**: The Lifebit Platform instance URL
 - **Project Name**: Default project for commands
 - **Execution Platform**: `aws` (default) or `azure` - determines default instance types and available features
 - **Repository Platform**: Version control system (github, gitlab, etc.)
@@ -1315,7 +1315,7 @@ cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355
 The expected output is a formatted table showing:
 
 ```console
-                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -1344,7 +1344,7 @@ On page 1/2: n = next, p = prev, q = quit
 
 By pressing 'n', it will show the next page or the last if it is the case.
 
-                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -1463,7 +1463,7 @@ The expected output is a formatted table showing:
 ```console
 Total related analyses found: 15
 
-                                              Related Analyses                                              
+                                              Related Analyses
 ┏━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Status    ┃ Name                               ┃ Owner          ┃ ID                       ┃ Submit time         ┃ Run time  ┃ Total Cost ┃
 ┡━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩
@@ -1945,7 +1945,7 @@ Example Python Script:
 #!/usr/bin/python3
 print("Hello world")
 ```
- 
+
 2. Or use an interpreter command in the executable field
 
 If your script doesn’t have a shebang line, you can execute it by explicitly specifying the interpreter in the executable command:
@@ -2022,7 +2022,7 @@ Interactive sessions allow you to work within the platform using different virtu
 
 You can get a list of all interactive sessions in your workspace by running `cloudos interactive-session list`. The command can produce three different output formats that can be selected using the `--output-format` option:
 
-- **stdout** (default): Displays a table directly in the terminal with interactive pagination 
+- **stdout** (default): Displays a table directly in the terminal with interactive pagination
 - **csv**: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
 - **json**: Saves complete session information to a JSON file with all available fields
 
@@ -2037,7 +2037,7 @@ cloudos interactive-session list --profile my_profile --output-format stdout
 The table displays sessions with pagination controls (press `n` for next page, `p` for previous page, or `q` to quit):
 
 ```console
-                          Interactive Sessions                          
+                          Interactive Sessions
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
 ┃ Status  ┃ Name         ┃ Type           ┃ ID            ┃ Owner  ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
@@ -2183,9 +2183,9 @@ cloudos interactive-session create \
 - `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`, default: `12h`)
 
 **Data & Storage Management:**
-- `--mount`: Mount a data file into the session. Supports both Lifebit Platform datasets and S3 files (AWS only). Format: `project_name/dataset_path` (e.g., `leila-test/Data/file.csv`) or `s3://bucket/path/to/file` (e.g., `s3://my-bucket/data/file.csv`). Can be used multiple times.
-- `--link`: Link a file or folder into the session for read access (AWS only). Supports S3 files/folders (e.g., `s3://my-bucket/data/file.csv`, `s3://my-bucket/data/`) and File Explorer files/folders (e.g., `my-project/Data/file.csv`, `my-project/Data/results`). S3 paths whose last segment contains a `.` are treated as files; paths ending with `/` or without an extension are treated as folders. Multiple items can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument.
-**Note:** Linking is not supported on Azure. Use Lifebit Platform File Explorer for data access.
+- `--link`: Link a file or folder into the session for read access (AWS only). Supports S3 files/folders (e.g., `s3://my-bucket/data/file.csv`, `s3://my-bucket/data/`) and File Explorer files/folders (e.g., `my-project/Data/file.csv`, `my-project/Data/results`). S3 paths whose last segment contains a `.` are treated as files; paths ending with `/` or without an extension are treated as folders. Multiple items can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument. Use `--copy` to copy data into the session instead.
+- `--copy`: Copy data into the session instead of linking for read access. When specified, the paths provided by `--link` are copied into the session's data volume. Supports Lifebit Platform datasets (`project_name/Data/file.csv`) and S3 files (`s3://bucket/path/to/file`). AWS only for S3 files.
+**Note:** Linking is not supported on Azure. Use `--link --copy` to copy Lifebit Platform data into the session on Azure.
 
 **Backend-Specific:**
 - `--r-version`: R version for RStudio (options: `4.4.2`, `4.5.2`) - **optional for rstudio** (default: `4.4.2`)
@@ -2198,20 +2198,21 @@ cloudos interactive-session create \
 **Data Management**
 
 CloudOS CLI supports multiple ways to access data in interactive sessions, depending on your execution platform:
-- **Mount files** (`--mount`): Files are copied into the session's mounted-data volume. Supports CloudOS File Explorer files and S3 files (AWS only).
+- **Copy files** (`--link --copy`): Files are copied into the session's data volume. Supports Lifebit Platform File Explorer files and S3 files (AWS only).
 - **Link files/folders** (`--link`): Files and folders are mounted as read-accessible items in the session (AWS only). Supports S3 files, S3 folders, and Lifebit Platform File Explorer files and folders. Linked items appear with unique mount names based on the item name. Maximum 100 items per session.
 
 
-**Data Mounting Examples**
+**Data Management Examples**
 
-Mount a file from File Explorer:
+Copy a file from File Explorer into the session:
 
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
   --name "Data Analysis" \
   --session-type jupyter \
-  --mount "my_project/training_data.csv"
+  --link "my_project/training_data.csv" \
+  --copy
 ```
 
 Link an S3 folder:
@@ -2614,7 +2615,114 @@ All configuration parameters are optional. If not specified, the session resumes
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
 
-> To link or mount data to a running session, use `cloudos link` or `cloudos datasets link` after the session has resumed.
+> To link or copy data to a running session, use `cloudos interactive-session link` after the session has resumed.
+
+### Link
+
+The `cloudos interactive-session link` command provides a unified interface for linking files and folders to interactive analysis sessions. It consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
+
+#### Link Files and Folders to Interactive Analysis
+
+Link job-related folders or custom S3/File Explorer paths (files and folders) to your interactive analysis sessions for direct access to data without needing to copy files.
+
+**Two modes of operation:**
+
+1. **Job-based linking** (`--job-id`): Links folders from a completed or running job
+   - By default, links results, workdir, and logs folders
+   - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
+
+2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths (files or folders). Supports a single path or comma-separated multiple paths.
+   - S3 paths whose last segment contains a `.` are treated as files (e.g., `s3://bucket/data/file.csv`)
+   - S3 paths ending with `/` or without an extension are treated as folders
+   - File Explorer paths can point to either files or folders — the CLI detects the type automatically
+   - If the first path segment is a standard top-level folder name (`Data`, `AnalysesResults`, `Analyses_Results`, `Analyses-Results`, `Cohorts`), the path is resolved against the profile project. Otherwise the first segment is treated as the project name (e.g. `other-project/Data/file.csv`).
+
+**Basic usage:**
+
+```bash
+# Link all job folders (results, workdir, logs) - default behavior
+cloudos interactive-session link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
+
+# Link only specific folders from a job
+cloudos interactive-session link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
+cloudos interactive-session link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
+
+# Link a single S3 folder
+cloudos interactive-session link s3://bucket/folder/ --session-id <SESSION_ID> --profile my_profile
+
+# Link a single S3 file
+cloudos interactive-session link s3://bucket/data/file.csv --session-id <SESSION_ID> --profile my_profile
+
+# Link multiple S3 paths (comma-separated, files and folders mixed)
+cloudos interactive-session link s3://bucket1/data/,s3://bucket2/results/file.csv --session-id <SESSION_ID> --profile my_profile
+
+# Link a File Explorer folder from the profile project
+cloudos interactive-session link Data/MyFolder --session-id <SESSION_ID> --profile my_profile
+
+# Link a File Explorer file from a different project
+cloudos interactive-session link other-project/Data/file.csv --session-id <SESSION_ID> --profile my_profile
+
+# Mix paths from the profile project, another project, and S3
+cloudos interactive-session link Data/MultiQC,other-project/Data/file.csv,s3://bucket/results/ --session-id <SESSION_ID> --profile my_profile
+```
+
+**Command options:**
+
+- `PATH`: S3 or File Explorer path(s) to link (positional argument, required if `--job-id` is not provided). Supports comma-separated multiple paths for batch linking (e.g., `s3://bucket1/path1,s3://bucket2/path2`)
+- `--apikey` / `-k`: Your Lifebit Platform API key (required)
+- `--cloudos-url` / `-c`: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)
+- `--workspace-id`: The specific Lifebit Platform workspace ID (required)
+- `--session-id`: The specific Lifebit Platform interactive session ID (required)
+- `--job-id`: The job ID in Lifebit Platform (links results, workdir, and logs by default)
+- `--project-name`: Lifebit Platform project name (used as fallback for job-based linking)
+- `--results`: Link only results folder (only works with `--job-id`)
+- `--workdir`: Link only working directory (only works with `--job-id`)
+- `--logs`: Link only logs folder (only works with `--job-id`)
+- `--verbose`: Print detailed information messages
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+**Examples:**
+
+```bash
+# Link all folders from a completed job
+cloudos interactive-session link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --profile my_profile
+
+# Link only results from a job
+cloudos interactive-session link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --results --profile my_profile
+
+# Link workdir and logs (but not results)
+cloudos interactive-session link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --logs --profile my_profile
+
+# Link a single S3 bucket folder
+cloudos interactive-session link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
+
+# Link multiple S3 folders in one command
+cloudos interactive-session link s3://bucket1/data,s3://bucket2/results,s3://bucket3/final-output --session-id abc123 --profile my_profile
+
+# Link File Explorer paths from the profile project
+cloudos interactive-session link Data/MultiQC --session-id abc123 --profile my_profile
+
+# Link File Explorer paths from multiple projects in one command
+cloudos interactive-session link leila-test/Data/MultiQC,Daniel_Test_Files/Data/20131219.populations.tsv --session-id abc123 --profile my_profile
+```
+
+**Error handling:**
+
+The command provides clear error messages for common scenarios:
+- Job not completed (for results linking)
+- Folders not available or deleted
+- Job still initializing
+- Invalid paths or permissions
+
+> [!NOTE]
+> If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
+
+> [!NOTE]
+> Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
+
+---
 
 ### Datasets
 
@@ -2647,7 +2755,7 @@ The `datasets ls` command supports different output formats using the `--output-
 - **`stdout` (default)**: Displays results in the console with Rich formatting
   - Without `--details`: Simple list of file/folder names with color coding (blue underlined for folders)
   - With `--details`: Rich formatted table with all file information
-  
+
 - **`csv`**: Saves results to a CSV file
   - Without `--details`: CSV with two columns: "Name,Storage Path"
   - With `--details`: CSV with columns "Type, Owner, Size, Size (bytes), Last Updated, Virtual Name, Storage Path"
@@ -2697,7 +2805,7 @@ Any of the `source_path` must be a full path, starting from the `Data` datasets 
 An example of such command is:
 
 ```
-cloudos datasets mv Data/results/my_plot.png Data/plots 
+cloudos datasets mv Data/results/my_plot.png Data/plots
 ```
 
 #### Rename Files
@@ -2708,7 +2816,7 @@ Change file and folder names while keeping them in the same location. This helps
 > Files and folders within the `Data` dataset can be renamed using the following command
 
 ```bash
-cloudos datasets rename <path> <new_name> --profile my_profile 
+cloudos datasets rename <path> <new_name> --profile my_profile
 ```
 where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
 
@@ -2734,12 +2842,12 @@ or it can happen **across different projects**  within the same workspace
 cloudos datasets cp <source_path> <destination_path> --profile <profile> --destination-project-name <project>
 ```
 
-Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. 
+Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder.
 
 An example of such command is:
 
 ```
-cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots 
+cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 ```
 
 
@@ -2790,7 +2898,7 @@ Create new organizational folders within your projects to maintain structured da
 > New folders can be created within the `Data` dataset and its subfolders.
 
 ```bash
-cloudos datasets mkdir <new_folder_path> --profile my_profile 
+cloudos datasets mkdir <new_folder_path> --profile my_profile
 ```
 
 #### Remove Files or Folders
@@ -2798,120 +2906,13 @@ cloudos datasets mkdir <new_folder_path> --profile my_profile
 Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from Lifebit Platform but not from underlying cloud storage.
 
 > [!NOTE]
-> Files and folders can be removed in the `Data` datasets and its subfolders. 
+> Files and folders can be removed in the `Data` datasets and its subfolders.
 
 ```bash
 cloudos datasets rm <path> --profile my_profile
 ```
 > [!NOTE]
 > If a file was uploaded by the user, in order to be removed you must use  `--force` and that will permanently remove the file. If the file is "linked" (e.g a s3 folder or file), removing it using `cloudos datasets rm` will not remove it from the the s3 bucket.
- 
----
-
-### Link
-
-The `cloudos link` command provides a unified interface for linking files and folders to interactive analysis sessions. This command consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
-
-#### Link Files and Folders to Interactive Analysis
-
-Link job-related folders or custom S3/File Explorer paths (files and folders) to your interactive analysis sessions for direct access to data without needing to copy files.
-
-**Two modes of operation:**
-
-1. **Job-based linking** (`--job-id`): Links folders from a completed or running job
-   - By default, links results, workdir, and logs folders
-   - Use `--results`, `--workdir`, or `--logs` flags to link only specific folders
-
-2. **Direct path linking** (PATH argument): Links specific S3 or File Explorer paths (files or folders). Supports a single path or comma-separated multiple paths.
-   - S3 paths whose last segment contains a `.` are treated as files (e.g., `s3://bucket/data/file.csv`)
-   - S3 paths ending with `/` or without an extension are treated as folders
-   - File Explorer paths can point to either files or folders — the CLI detects the type automatically
-
-**Basic usage:**
-
-```bash
-# Link all job folders (results, workdir, logs) - default behavior
-cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --profile my_profile
-
-# Link only specific folders from a job
-cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --results --profile my_profile
-cloudos link --job-id <JOB_ID> --session-id <SESSION_ID> --workdir --logs --profile my_profile
-
-# Link a single S3 folder
-cloudos link s3://bucket/folder/ --session-id <SESSION_ID> --profile my_profile
-
-# Link a single S3 file
-cloudos link s3://bucket/data/file.csv --session-id <SESSION_ID> --profile my_profile
-
-# Link multiple S3 paths (comma-separated, files and folders mixed)
-cloudos link s3://bucket1/data/,s3://bucket2/results/file.csv --session-id <SESSION_ID> --profile my_profile
-
-# Link a File Explorer folder (path is RELATIVE to --project-name; do NOT prepend the project)
-cloudos link "Data/MyFolder" --project-name my-project --session-id <SESSION_ID> --profile my_profile
-
-# Link a File Explorer file (path is RELATIVE to --project-name)
-cloudos link "Data/file.csv" --project-name my-project --session-id <SESSION_ID> --profile my_profile
-
-# Link several File Explorer items at once (all in the same project)
-cloudos link "Data/MyFolder,Data/file.csv,Results/run-1" --project-name my-project --session-id <SESSION_ID> --profile my_profile
-```
-
-> [!IMPORTANT]
-> **`cloudos link` is single-project for File Explorer paths.** All File Explorer items linked in one invocation must belong to the project named in `--project-name`. The path must be relative to that project — prepending the project name to the path (e.g. `my-project/Data/file.csv`) is rejected. To link items from a different project, run `cloudos link` again with a different `--project-name`.
-
-**Command options:**
-
-
-- `PATH`: S3 or File Explorer path(s) to link (positional argument, required if `--job-id` is not provided). Supports comma-separated multiple paths for batch linking (e.g., `s3://bucket1/path1,s3://bucket2/path2`)
-- `--apikey` / `-k`: Your Lifebit Platform API key (required)
-- `--cloudos-url` / `-c`: The Lifebit Platform URL (default: https://cloudos.lifebit.ai)
-- `--workspace-id`: The specific Lifebit Platform workspace ID (required)
-- `--session-id`: The specific Lifebit Platform interactive session ID (required)
-- `--job-id`: The job ID in Lifebit Platform (links results, workdir, and logs by default)
-- `--project-name`: Lifebit Platform project name. Required when any PATH is a File Explorer path. All FE paths in one invocation must belong to this project and must be RELATIVE to it (do not prepend the project name)
-- `--results`: Link only results folder (only works with `--job-id`)
-- `--workdir`: Link only working directory (only works with `--job-id`)
-- `--logs`: Link only logs folder (only works with `--job-id`)
-- `--verbose`: Print detailed information messages
-- `--disable-ssl-verification`: Disable SSL certificate verification
-- `--ssl-cert`: Path to your SSL certificate file
-- `--profile`: Profile to use from the config file
-
-**Examples:**
-
-```bash
-# Link all folders from a completed job
-cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --profile my_profile
-
-# Link only results from a job
-cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --results --profile my_profile
-
-# Link workdir and logs (but not results)
-cloudos link --job-id 62c83a1191fe06013b7ef355 --session-id abc123 --workdir --logs --profile my_profile
-
-# Link a single S3 bucket folder
-cloudos link s3://my-bucket/analysis-results/2024 --session-id abc123 --profile my_profile
-
-# Link multiple S3 folders in one command
-cloudos link s3://bucket1/data,s3://bucket2/results,s3://bucket3/final-output --session-id abc123 --profile my_profile
-
-# Mix different S3 prefixes from the same or different buckets
-cloudos link s3://lifebit-datasets/pipelines/vep/,s3://lifebit-datasets/pipelines/phewas/,s3://my-results/output/ --session-id abc123 --profile my_profile
-```
-
-**Error handling:**
-
-The command provides clear error messages for common scenarios:
-- Job not completed (for results linking)
-- Folders not available or deleted
-- Job still initializing
-- Invalid paths or permissions
-
-> [!NOTE]
-> If running the CLI inside a Jupyter session, the pre-configured CLI installation will have the session ID already configured and only the `--apikey` needs to be added.
-
-> [!NOTE]
-> Azure Blob Storage paths (az://) are not supported for linking in Azure environments.
 
 ---
 
@@ -2927,7 +2928,7 @@ To list images for a specific procurement, use the following command:
 
 ```bash
 cloudos procurement images ls \
-    -- profile procurement_profile 
+    -- profile procurement_profile
     --procurement-id "your_procurement_id_here"
 ```
 
@@ -2986,12 +2987,10 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 - `--image-type`: The Lifebit Platform resource image type (required). Possible values:
   - `RegularInteractiveSessions`
   - `SparkInteractiveSessions`
-  - `RStudioInteractiveSessions`
-  - `JupyterInteractiveSessions`
   - `JobDefault`
   - `NextflowBatchComputeEnvironment`
-- `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--provider`: The cloud provider (required). Currently only supporting `aws` and `azure`.
+- `--region`: The cloud region (required). Currently only supporting aws and azure regions.
 - `--image-id`: The new image ID value (required)
 - `--image-name`: The new image name value (optional)
 - `--image-version`: The new image version (required)
@@ -3024,7 +3023,7 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 - `--organisation-id`: The organization ID where the change will be applied (required)
 - `--image-type`: The Lifebit Platform resource image type (required). Same values as for `set` command
 - `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--region`: The cloud region (required). Currently only supporting aws and azure regions.
 - `--disable-ssl-verification`: Disable SSL certificate verification
 - `--ssl-cert`: Path to your SSL certificate file
 - `--profile`: Profile to use from the config file
@@ -3053,7 +3052,7 @@ Executing status...
 	Current Cromwell server status is: Stopped
 ```
 
-```bash    
+```bash
 # Cromwell start
 cloudos cromwell start --profile my_profile
 ```
@@ -3279,8 +3278,8 @@ responses>=0.21.0
 mock>=3.0.5
 ```
 
-Command to run tests from the `cloudos-cli` main folder: 
+Command to run tests from the `cloudos-cli` main folder:
 
 ```
 python -m pytest -s -v
-``` 
+```
