@@ -29,7 +29,9 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_stop_success_output,
     poll_session_termination,
     build_resume_payload,
-    fetch_interactive_session_page
+    fetch_interactive_session_page,
+    APP_SESSION_TYPES,
+    build_app_filtered_page_fetcher
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
@@ -223,11 +225,16 @@ def list_sessions(ctx,
         sessions = result.get('sessions', [])
         pagination_metadata = result.get('pagination_metadata', None)
 
-        # Create callback function for fetching additional pages
-        def fetch_page(page_num):
-            return fetch_interactive_session_page(
-                cl, workspace_id, page_num, limit, filter_status, filter_only_mine, archived, verify_ssl
-            )
+        # Create callback function for fetching additional pages.
+        # App sessions must be filtered here too so that navigating to
+        # next/prev pages via interactive pagination never re-introduces them.
+        fetch_page = build_app_filtered_page_fetcher(
+            cl, workspace_id, limit, filter_status, filter_only_mine, archived, verify_ssl
+        )
+
+        # Filter out app sessions (awsCustomSession / azureCustomSession) — not supported via API key
+        # Client-side filter; the API has no type-exclusion parameter
+        sessions = [s for s in sessions if s.get('interactiveSessionType') not in APP_SESSION_TYPES]
 
         # Handle empty results
         if len(sessions) == 0:

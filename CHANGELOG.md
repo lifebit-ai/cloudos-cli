@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.93.1 (2026-06-12)
+
+### Fix:
+
+- Removes app sessions from the listing of interactive sessions
+
 ## v2.93.0 (2026-05-28)
 
 ### Feat:
