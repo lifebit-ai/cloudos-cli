@@ -196,10 +196,10 @@ This will tell you the implemented commands. Each implemented command has its ow
 ```bash
 cloudos job list --help
 ```
-```console                                                                                                      Usage: cloudos job list [OPTIONS]                                                                          
-                                                                                                            
- Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.                                     
-                                                                                                            
+```console                                                                                                      Usage: cloudos job list [OPTIONS]
+
+ Collect workspace jobs from a Lifebit Platform workspace in CSV or JSON format.
+
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *  --apikey                    -k  TEXT        Your Lifebit Platform API key [required]                           │
 │ *  --cloudos-url               -c  TEXT        The Lifebit Platform url you are trying to access to.              │
@@ -264,7 +264,7 @@ $HOME
 
 ### Configure Default Profile
 
-To facilitate the reuse of required parameters, you can create profiles. 
+To facilitate the reuse of required parameters, you can create profiles.
 
 To generate a profile called `default`, use the following command:
 
@@ -286,7 +286,7 @@ The same prompts will appear, including the execution platform (aws or azure). I
 
 When configuring a profile, you can specify:
 - **API Key**: Your Lifebit Platform API credentials
-- **Platform URL**: The Lifebit Platform instance URL  
+- **Platform URL**: The Lifebit Platform instance URL
 - **Project Name**: Default project for commands
 - **Execution Platform**: `aws` (default) or `azure` - determines default instance types and available features
 - **Repository Platform**: Version control system (github, gitlab, etc.)
@@ -1279,7 +1279,7 @@ cloudos job cost --profile my_profile --job-id 62c83a1191fe06013b7ef355
 The expected output is a formatted table showing:
 
 ```console
-                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -1308,7 +1308,7 @@ On page 1/2: n = next, p = prev, q = quit
 
 By pressing 'n', it will show the next page or the last if it is the case.
 
-                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355                              
+                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355
 ┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃        ┃            ┃            ┃            ┃          ┃             ┃            ┃ Compute     ┃         ┃
 ┃        ┃ Instance   ┃            ┃ Life-cycle ┃          ┃ Compute     ┃ Instance   ┃ storage     ┃         ┃
@@ -1427,7 +1427,7 @@ The expected output is a formatted table showing:
 ```console
 Total related analyses found: 15
 
-                                              Related Analyses                                              
+                                              Related Analyses
 ┏━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Status    ┃ Name                               ┃ Owner          ┃ ID                       ┃ Submit time         ┃ Run time  ┃ Total Cost ┃
 ┡━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩
@@ -1909,7 +1909,7 @@ Example Python Script:
 #!/usr/bin/python3
 print("Hello world")
 ```
- 
+
 2. Or use an interpreter command in the executable field
 
 If your script doesn’t have a shebang line, you can execute it by explicitly specifying the interpreter in the executable command:
@@ -1986,7 +1986,7 @@ Interactive sessions allow you to work within the platform using different virtu
 
 You can get a list of all interactive sessions in your workspace by running `cloudos interactive-session list`. The command can produce three different output formats that can be selected using the `--output-format` option:
 
-- **stdout** (default): Displays a table directly in the terminal with interactive pagination 
+- **stdout** (default): Displays a table directly in the terminal with interactive pagination
 - **csv**: Saves session data to a CSV file with a minimum predefined set of columns by default, or all available columns using the `--all-fields` parameter
 - **json**: Saves complete session information to a JSON file with all available fields
 
@@ -2001,7 +2001,7 @@ cloudos interactive-session list --profile my_profile --output-format stdout
 The table displays sessions with pagination controls (press `n` for next page, `p` for previous page, or `q` to quit):
 
 ```console
-                          Interactive Sessions                          
+                          Interactive Sessions
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━┓
 ┃ Status  ┃ Name         ┃ Type           ┃ ID            ┃ Owner  ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━┩
@@ -2611,7 +2611,7 @@ The `datasets ls` command supports different output formats using the `--output-
 - **`stdout` (default)**: Displays results in the console with Rich formatting
   - Without `--details`: Simple list of file/folder names with color coding (blue underlined for folders)
   - With `--details`: Rich formatted table with all file information
-  
+
 - **`csv`**: Saves results to a CSV file
   - Without `--details`: CSV with two columns: "Name,Storage Path"
   - With `--details`: CSV with columns "Type, Owner, Size, Size (bytes), Last Updated, Virtual Name, Storage Path"
@@ -2661,7 +2661,7 @@ Any of the `source_path` must be a full path, starting from the `Data` datasets 
 An example of such command is:
 
 ```
-cloudos datasets mv Data/results/my_plot.png Data/plots 
+cloudos datasets mv Data/results/my_plot.png Data/plots
 ```
 
 #### Rename Files
@@ -2672,7 +2672,7 @@ Change file and folder names while keeping them in the same location. This helps
 > Files and folders within the `Data` dataset can be renamed using the following command
 
 ```bash
-cloudos datasets rename <path> <new_name> --profile my_profile 
+cloudos datasets rename <path> <new_name> --profile my_profile
 ```
 where `path` is the full path to the file/folder to be renamed and `new_name` is just the name, no path required, as the file will not be moved.
 
@@ -2698,12 +2698,12 @@ or it can happen **across different projects**  within the same workspace
 cloudos datasets cp <source_path> <destination_path> --profile <profile> --destination-project-name <project>
 ```
 
-Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder. 
+Any of the `source_path` must be a full path; any `destination_path` must be a path starting with `Data` and finishing with the folder where to move the file/folder.
 
 An example of such command is:
 
 ```
-cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots 
+cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 ```
 
 
@@ -2754,7 +2754,7 @@ Create new organizational folders within your projects to maintain structured da
 > New folders can be created within the `Data` dataset and its subfolders.
 
 ```bash
-cloudos datasets mkdir <new_folder_path> --profile my_profile 
+cloudos datasets mkdir <new_folder_path> --profile my_profile
 ```
 
 #### Remove Files or Folders
@@ -2762,14 +2762,14 @@ cloudos datasets mkdir <new_folder_path> --profile my_profile
 Remove unnecessary files or empty folders from your File Explorer. Note that this removes files from Lifebit Platform but not from underlying cloud storage.
 
 > [!NOTE]
-> Files and folders can be removed in the `Data` datasets and its subfolders. 
+> Files and folders can be removed in the `Data` datasets and its subfolders.
 
 ```bash
 cloudos datasets rm <path> --profile my_profile
 ```
 > [!NOTE]
 > If a file was uploaded by the user, in order to be removed you must use  `--force` and that will permanently remove the file. If the file is "linked" (e.g a s3 folder or file), removing it using `cloudos datasets rm` will not remove it from the the s3 bucket.
- 
+
 ---
 
 ### Link
@@ -2891,7 +2891,7 @@ To list images for a specific procurement, use the following command:
 
 ```bash
 cloudos procurement images ls \
-    -- profile procurement_profile 
+    -- profile procurement_profile
     --procurement-id "your_procurement_id_here"
 ```
 
@@ -2950,12 +2950,10 @@ cloudos procurement images set --profile procurement_profile --image-type "JobDe
 - `--image-type`: The Lifebit Platform resource image type (required). Possible values:
   - `RegularInteractiveSessions`
   - `SparkInteractiveSessions`
-  - `RStudioInteractiveSessions`
-  - `JupyterInteractiveSessions`
   - `JobDefault`
   - `NextflowBatchComputeEnvironment`
-- `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--provider`: The cloud provider (required). Currently only supporting `aws` and `azure`.
+- `--region`: The cloud region (required). Currently only supporting aws and azure regions.
 - `--image-id`: The new image ID value (required)
 - `--image-name`: The new image name value (optional)
 - `--image-version`: The new image version (required)
@@ -2988,7 +2986,7 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 - `--organisation-id`: The organization ID where the change will be applied (required)
 - `--image-type`: The Lifebit Platform resource image type (required). Same values as for `set` command
 - `--provider`: The cloud provider (required). Currently only `aws` is supported
-- `--region`: The cloud region (required). Currently only AWS regions are supported
+- `--region`: The cloud region (required). Currently only supporting aws and azure regions.
 - `--disable-ssl-verification`: Disable SSL certificate verification
 - `--ssl-cert`: Path to your SSL certificate file
 - `--profile`: Profile to use from the config file
@@ -3017,7 +3015,7 @@ Executing status...
 	Current Cromwell server status is: Stopped
 ```
 
-```bash    
+```bash
 # Cromwell start
 cloudos cromwell start --profile my_profile
 ```
@@ -3243,8 +3241,8 @@ responses>=0.21.0
 mock>=3.0.5
 ```
 
-Command to run tests from the `cloudos-cli` main folder: 
+Command to run tests from the `cloudos-cli` main folder:
 
 ```
 python -m pytest -s -v
-``` 
+```
