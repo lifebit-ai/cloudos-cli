@@ -526,153 +526,158 @@ class TestCreateJobQueueFromScratch:
 # ===========================================================================
 # CLI integration tests – `cloudos queue create --from-scratch`
 # ===========================================================================
-
-class TestCreateQueueFromScratchCLI:
-    def test_from_scratch_options_in_help(self):
-        runner = CliRunner()
-        result = runner.invoke(run_cloudos_cli, ['queue', 'create', '--help'])
-        assert result.exit_code == 0
-        for opt in ['--from-scratch', '--provisioning-type', '--allocation-strategy',
-                    '--max-vcpus', '--min-vcpus', '--instance-types', '--volume-type',
-                    '--size', '--iops', '--throughput']:
-            assert opt in result.output
-
-    def test_from_scratch_yes_success(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--yes',
-        ]
-        with requests_mock_module.Mocker() as m:
-            _mock_get_queues_with_total_ces(m, 1)
-            m.post(
-                f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
-                text=CREATE_RESPONSE_JSON_STR,
-                status_code=200,
-            )
-            result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code == 0
-        assert 'created successfully' in result.output
-
-    def test_from_scratch_workspace_limit_reached_exits(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--yes',
-        ]
-        with requests_mock_module.Mocker() as m:
-            _mock_get_queues_with_total_ces(m, 10, n_queues=3)
-            result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code == 0
-        assert 'reached the limit for compute environments in your workspace' \
-            in result.output
-
-    def test_from_scratch_mutually_exclusive_with_preset(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--preset', 'standard-gpu', '--yes',
-        ]
-        result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code != 0
-        assert 'cannot be combined with --preset' in _plain(result.output)
-
-    def test_from_scratch_incompatible_strategy_rejected(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--yes',
-            '--provisioning-type', 'on-demand',
-            '--allocation-strategy', 'SPOT_CAPACITY_OPTIMIZED',
-        ]
-        result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code != 0
-
-    def test_from_scratch_gp3_iops_out_of_range_rejected(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--yes',
-            '--volume-type', 'gp3',
-            '--iops', '100',
-        ]
-        result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code != 0
-
-    def test_from_scratch_invalid_instance_type_rejected(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--label', 'Custom Queue',
-            '--description', 'A custom queue',
-            '--from-scratch', '--yes',
-            '--instance-types', 'not-an-instance',
-        ]
-        result = runner.invoke(run_cloudos_cli, args)
-        assert result.exit_code != 0
-
-    def test_from_scratch_interactive_wizard_success(self):
-        runner = CliRunner()
-        args = [
-            'queue', 'create',
-            '--apikey', APIKEY,
-            '--cloudos-url', CLOUDOS_URL,
-            '--workspace-id', WORKSPACE_ID,
-            '--description', 'A wizard queue',
-            '--from-scratch',
-        ]
-        # Wizard answers: name, provisioning, strategy, max, min, instances,
-        # volume type, size, iops, throughput.
-        wizard_input = '\n'.join([
-            'My Wizard Queue',
-            'on-demand',
-            'BEST_FIT_PROGRESSIVE',
-            '512',
-            '0',
-            'optimal',
-            'gp3',
-            '1000',
-            '3000',
-            '125',
-        ]) + '\n'
-        with requests_mock_module.Mocker() as m:
-            _mock_get_queues_with_total_ces(m, 1)
-            m.post(
-                f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
-                text=CREATE_RESPONSE_JSON_STR,
-                status_code=200,
-            )
-            result = runner.invoke(run_cloudos_cli, args, input=wizard_input)
-        assert result.exit_code == 0
-        assert 'created successfully' in result.output
+#
+# DISABLED: the --from-scratch CLI flow is hidden until the per-workspace
+# instance-types API endpoint is opened (the CLI options were commented out in
+# cloudos_cli/queue/cli.py). These integration tests are commented out together
+# with that feature and should be restored when it is re-enabled.
+#
+# class TestCreateQueueFromScratchCLI:
+#     def test_from_scratch_options_in_help(self):
+#         runner = CliRunner()
+#         result = runner.invoke(run_cloudos_cli, ['queue', 'create', '--help'])
+#         assert result.exit_code == 0
+#         for opt in ['--from-scratch', '--provisioning-type', '--allocation-strategy',
+#                     '--max-vcpus', '--min-vcpus', '--instance-types', '--volume-type',
+#                     '--size', '--iops', '--throughput']:
+#             assert opt in result.output
+#
+#     def test_from_scratch_yes_success(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--yes',
+#         ]
+#         with requests_mock_module.Mocker() as m:
+#             _mock_get_queues_with_total_ces(m, 1)
+#             m.post(
+#                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
+#                 text=CREATE_RESPONSE_JSON_STR,
+#                 status_code=200,
+#             )
+#             result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code == 0
+#         assert 'created successfully' in result.output
+#
+#     def test_from_scratch_workspace_limit_reached_exits(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--yes',
+#         ]
+#         with requests_mock_module.Mocker() as m:
+#             _mock_get_queues_with_total_ces(m, 10, n_queues=3)
+#             result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code == 0
+#         assert 'reached the limit for compute environments in your workspace' \
+#             in result.output
+#
+#     def test_from_scratch_mutually_exclusive_with_preset(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--preset', 'standard-gpu', '--yes',
+#         ]
+#         result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code != 0
+#         assert 'cannot be combined with --preset' in _plain(result.output)
+#
+#     def test_from_scratch_incompatible_strategy_rejected(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--yes',
+#             '--provisioning-type', 'on-demand',
+#             '--allocation-strategy', 'SPOT_CAPACITY_OPTIMIZED',
+#         ]
+#         result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code != 0
+#
+#     def test_from_scratch_gp3_iops_out_of_range_rejected(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--yes',
+#             '--volume-type', 'gp3',
+#             '--iops', '100',
+#         ]
+#         result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code != 0
+#
+#     def test_from_scratch_invalid_instance_type_rejected(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--label', 'Custom Queue',
+#             '--description', 'A custom queue',
+#             '--from-scratch', '--yes',
+#             '--instance-types', 'not-an-instance',
+#         ]
+#         result = runner.invoke(run_cloudos_cli, args)
+#         assert result.exit_code != 0
+#
+#     def test_from_scratch_interactive_wizard_success(self):
+#         runner = CliRunner()
+#         args = [
+#             'queue', 'create',
+#             '--apikey', APIKEY,
+#             '--cloudos-url', CLOUDOS_URL,
+#             '--workspace-id', WORKSPACE_ID,
+#             '--description', 'A wizard queue',
+#             '--from-scratch',
+#         ]
+#         # Wizard answers: name, provisioning, strategy, max, min, instances,
+#         # volume type, size, iops, throughput.
+#         wizard_input = '\n'.join([
+#             'My Wizard Queue',
+#             'on-demand',
+#             'BEST_FIT_PROGRESSIVE',
+#             '512',
+#             '0',
+#             'optimal',
+#             'gp3',
+#             '1000',
+#             '3000',
+#             '125',
+#         ]) + '\n'
+#         with requests_mock_module.Mocker() as m:
+#             _mock_get_queues_with_total_ces(m, 1)
+#             m.post(
+#                 f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queue?teamId={WORKSPACE_ID}",
+#                 text=CREATE_RESPONSE_JSON_STR,
+#                 status_code=200,
+#             )
+#             result = runner.invoke(run_cloudos_cli, args, input=wizard_input)
+#         assert result.exit_code == 0
+#         assert 'created successfully' in result.output
 
 
 # ===========================================================================
