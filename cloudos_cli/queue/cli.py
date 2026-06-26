@@ -630,61 +630,72 @@ def list_queues(ctx,
               default='nextflow',
               show_default=True,
               required=False)
-@click.option('--from-scratch',
-              help=('Create a custom job queue from scratch. By default this '
-                    'launches an interactive wizard. Combine with -y/--yes to '
-                    'create non-interactively using the options below. Mutually '
-                    'exclusive with --preset.'),
-              is_flag=True)
-@click.option('--provisioning-type',
-              help='Provisioning type for --from-scratch. Default=on-demand.',
-              type=click.Choice(list(PROVISIONING_TYPES.keys()), case_sensitive=False),
-              default='on-demand',
-              show_default=True)
-@click.option('--allocation-strategy',
-              help=('Allocation strategy for --from-scratch. spot supports all '
-                    'strategies; on-demand supports BEST_FIT and '
-                    'BEST_FIT_PROGRESSIVE. Default=BEST_FIT_PROGRESSIVE.'),
-              type=click.Choice(_ALL_ALLOCATION_STRATEGIES, case_sensitive=False),
-              default='BEST_FIT_PROGRESSIVE',
-              show_default=True)
-@click.option('--max-vcpus',
-              help=f'Max vCPUs for --from-scratch. Max {MAX_VCPUS_LIMIT}.',
-              type=click.IntRange(0, MAX_VCPUS_LIMIT),
-              default=DEFAULT_MAX_VCPUS,
-              show_default=True)
-@click.option('--min-vcpus',
-              help='Min vCPUs for --from-scratch.',
-              type=click.IntRange(0, MAX_VCPUS_LIMIT),
-              default=DEFAULT_MIN_VCPUS,
-              show_default=True)
-@click.option('--instance-types',
-              help=("Instance types for --from-scratch. 'optimal' or a "
-                    'comma-separated list of standard or GPU instance types. '
-                    'Default=optimal.'),
-              default='optimal',
-              show_default=True)
-@click.option('--volume-type',
-              help='Volume type for --from-scratch. Default=gp3.',
-              type=click.Choice(list(VOLUME_SPECS.keys()), case_sensitive=False),
-              default='gp3',
-              show_default=True)
-@click.option('--size',
-              help=f'Volume size in GiB for --from-scratch. Default={_DEFAULT_SIZE}.',
-              type=int,
-              default=_DEFAULT_SIZE,
-              show_default=True)
-@click.option('--iops',
-              help=f'Provisioned IOPS for --from-scratch. Default={_DEFAULT_IOPS}.',
-              type=int,
-              default=_DEFAULT_IOPS,
-              show_default=True)
-@click.option('--throughput',
-              help=('Volume throughput in MB/s for --from-scratch (gp3 only). '
-                    f'Default={_DEFAULT_THROUGHPUT}.'),
-              type=int,
-              default=_DEFAULT_THROUGHPUT,
-              show_default=True)
+# ---------------------------------------------------------------------------
+# DISABLED: --from-scratch (custom queue) options.
+#
+# The custom (from-scratch) queue creation flow depends on a per-workspace API
+# endpoint that returns the workspace's available instance types. That endpoint
+# is currently closed, so the entire --from-scratch feature is hidden from the
+# user. The code is intentionally kept (commented out) so it can be re-enabled
+# once the endpoint is opened: simply uncomment this option block, the matching
+# parameters in the create_queue signature, and the `if from_scratch:` dispatch
+# branch below.
+# ---------------------------------------------------------------------------
+# @click.option('--from-scratch',
+#               help=('Create a custom job queue from scratch. By default this '
+#                     'launches an interactive wizard. Combine with -y/--yes to '
+#                     'create non-interactively using the options below. Mutually '
+#                     'exclusive with --preset.'),
+#               is_flag=True)
+# @click.option('--provisioning-type',
+#               help='Provisioning type for --from-scratch. Default=on-demand.',
+#               type=click.Choice(list(PROVISIONING_TYPES.keys()), case_sensitive=False),
+#               default='on-demand',
+#               show_default=True)
+# @click.option('--allocation-strategy',
+#               help=('Allocation strategy for --from-scratch. spot supports all '
+#                     'strategies; on-demand supports BEST_FIT and '
+#                     'BEST_FIT_PROGRESSIVE. Default=BEST_FIT_PROGRESSIVE.'),
+#               type=click.Choice(_ALL_ALLOCATION_STRATEGIES, case_sensitive=False),
+#               default='BEST_FIT_PROGRESSIVE',
+#               show_default=True)
+# @click.option('--max-vcpus',
+#               help=f'Max vCPUs for --from-scratch. Max {MAX_VCPUS_LIMIT}.',
+#               type=click.IntRange(0, MAX_VCPUS_LIMIT),
+#               default=DEFAULT_MAX_VCPUS,
+#               show_default=True)
+# @click.option('--min-vcpus',
+#               help='Min vCPUs for --from-scratch.',
+#               type=click.IntRange(0, MAX_VCPUS_LIMIT),
+#               default=DEFAULT_MIN_VCPUS,
+#               show_default=True)
+# @click.option('--instance-types',
+#               help=("Instance types for --from-scratch. 'optimal' or a "
+#                     'comma-separated list of standard or GPU instance types. '
+#                     'Default=optimal.'),
+#               default='optimal',
+#               show_default=True)
+# @click.option('--volume-type',
+#               help='Volume type for --from-scratch. Default=gp3.',
+#               type=click.Choice(list(VOLUME_SPECS.keys()), case_sensitive=False),
+#               default='gp3',
+#               show_default=True)
+# @click.option('--size',
+#               help=f'Volume size in GiB for --from-scratch. Default={_DEFAULT_SIZE}.',
+#               type=int,
+#               default=_DEFAULT_SIZE,
+#               show_default=True)
+# @click.option('--iops',
+#               help=f'Provisioned IOPS for --from-scratch. Default={_DEFAULT_IOPS}.',
+#               type=int,
+#               default=_DEFAULT_IOPS,
+#               show_default=True)
+# @click.option('--throughput',
+#               help=('Volume throughput in MB/s for --from-scratch (gp3 only). '
+#                     f'Default={_DEFAULT_THROUGHPUT}.'),
+#               type=int,
+#               default=_DEFAULT_THROUGHPUT,
+#               show_default=True)
 @click.option('-y',
               '--yes',
               'skip_confirmation',
@@ -714,16 +725,17 @@ def create_queue(ctx,
                  description,
                  preset,
                  executor,
-                 from_scratch,
-                 provisioning_type,
-                 allocation_strategy,
-                 max_vcpus,
-                 min_vcpus,
-                 instance_types,
-                 volume_type,
-                 size,
-                 iops,
-                 throughput,
+                 # DISABLED: --from-scratch parameters (see option block above).
+                 # from_scratch,
+                 # provisioning_type,
+                 # allocation_strategy,
+                 # max_vcpus,
+                 # min_vcpus,
+                 # instance_types,
+                 # volume_type,
+                 # size,
+                 # iops,
+                 # throughput,
                  skip_confirmation,
                  set_default,
                  execution_platform,
@@ -732,8 +744,7 @@ def create_queue(ctx,
                  profile):
     """Create a new job queue in a Lifebit Platform workspace.
 
-    By default a preset template is used. Pass --from-scratch to build a custom
-    queue, either interactively (default) or non-interactively with -y/--yes.
+    A preset template is used to create the queue.
     """
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
@@ -752,29 +763,33 @@ def create_queue(ctx,
     if not description:
         raise click.UsageError('Missing option --description.')
 
-    if from_scratch:
-        _create_queue_from_scratch(
-            ctx=ctx,
-            cloudos_url=cloudos_url,
-            apikey=apikey,
-            workspace_id=workspace_id,
-            verify_ssl=verify_ssl,
-            label=label,
-            description=description,
-            executor=executor,
-            provisioning_type=provisioning_type,
-            allocation_strategy=allocation_strategy,
-            max_vcpus=max_vcpus,
-            min_vcpus=min_vcpus,
-            instance_types=instance_types,
-            volume_type=volume_type,
-            size=size,
-            iops=iops,
-            throughput=throughput,
-            skip_confirmation=skip_confirmation,
-            set_default=set_default,
-        )
-        return
+    # DISABLED: --from-scratch dispatch branch. The custom queue flow is hidden
+    # until the per-workspace instance-types endpoint is opened. To re-enable,
+    # uncomment this block along with the option block and signature parameters
+    # above.
+    # if from_scratch:
+    #     _create_queue_from_scratch(
+    #         ctx=ctx,
+    #         cloudos_url=cloudos_url,
+    #         apikey=apikey,
+    #         workspace_id=workspace_id,
+    #         verify_ssl=verify_ssl,
+    #         label=label,
+    #         description=description,
+    #         executor=executor,
+    #         provisioning_type=provisioning_type,
+    #         allocation_strategy=allocation_strategy,
+    #         max_vcpus=max_vcpus,
+    #         min_vcpus=min_vcpus,
+    #         instance_types=instance_types,
+    #         volume_type=volume_type,
+    #         size=size,
+    #         iops=iops,
+    #         throughput=throughput,
+    #         skip_confirmation=skip_confirmation,
+    #         set_default=set_default,
+    #     )
+    #     return
 
     if label is None:
         raise click.UsageError('Missing option --label.')
