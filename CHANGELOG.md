@@ -5,7 +5,6 @@
 ### Feat:
 
 - Adds `cloudos queue create` with preset templates (e.g. `standard-stable`, `standard-gpu`)
-- Adds `--from-scratch` to build custom queues via an interactive wizard or flags
 - Adds `--set-default` to mark a new queue as the workspace default
 
 ## v2.93.1 (2026-06-12)

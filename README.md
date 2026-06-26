@@ -468,12 +468,6 @@ Executing queue create...
 	View at  : https://cloudos.lifebit.ai/app/job-queues/64f1a23b8e4c9d001234abcd
 ```
 
-For full control over the compute environment, use the `--from-scratch` flag, which launches an interactive wizard (or runs non-interactively when combined with `-y`/`--yes`). This lets you customize provisioning type, allocation strategy, vCPUs, instance types, and volume settings:
-
-```bash
-cloudos queue create --profile my_profile --label "custom-queue" --description "Custom spot queue" --from-scratch --provisioning-type spot --max-vcpus 256 --instance-types optimal -y
-```
-
 > [!NOTE]
 > **Azure Platform**: Batch job queues are an AWS-only feature and are not available in Azure or HPC workspaces.
 
