@@ -2,6 +2,7 @@ import mock
 import pytest
 import responses
 from cloudos_cli.queue import Queue
+from cloudos_cli.utils.errors import NoJobQueuesAvailableException
 from tests.functions_for_pytest import load_json_file
 
 INPUT = 'tests/test_data/queue/queues.json'
@@ -147,3 +148,39 @@ def test_fetch_job_queue_id_batch_true_workflow_type_wrong():
     with pytest.raises(ValueError) as error:
         j_queue.fetch_job_queue_id('wrong_workflow_type', batch=True)
     assert 'Only nextflow or cromwell workflows are allowed' in str(error)
+
+
+@mock.patch('cloudos_cli.queue', mock.MagicMock())
+@responses.activate
+def test_fetch_job_queue_id_no_available_queues():
+    """
+    Tests fetch_job_queue_id when batch=True but there are no ready job queues
+    for the requested workflow type, so a NoJobQueuesAvailableException is raised.
+    """
+    header = {
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json;charset=UTF-8",
+        "apikey": APIKEY
+    }
+    # mock GET method for regular queues returning an empty list
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/job-queues?teamId={WORKSPACE_ID}",
+        body="[]",
+        headers=header,
+        status=200)
+    # mock GET method for system queues returning an empty list
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v1/teams/aws/v2/system-job-queues?teamId={WORKSPACE_ID}",
+        body="[]",
+        headers=header,
+        status=200)
+    # Initialise Queue
+    j_queue = Queue(cloudos_url=CLOUDOS_URL, apikey=APIKEY, cromwell_token=None,
+                    workspace_id=WORKSPACE_ID)
+    # Raise NoJobQueuesAvailableException
+    with pytest.raises(NoJobQueuesAvailableException) as error:
+        j_queue.fetch_job_queue_id(WORKFLOW_TYPE, batch=True)
+    assert f'There are no available job queues for {WORKFLOW_TYPE} workflows' in str(error.value)
+    assert error.value.workflow_type == WORKFLOW_TYPE

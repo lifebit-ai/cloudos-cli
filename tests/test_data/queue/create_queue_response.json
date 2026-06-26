@@ -1,0 +1,21 @@
+{
+  "_id": "6a2039447e4338212900fe65",
+  "id": "6a2039447e4338212900fe65",
+  "label": "My Custom Job Queue",
+  "description": "Custom job queue for batch processing workloads",
+  "executor": "nextflow",
+  "status": "ToCreate",
+  "isDefault": false,
+  "templateName": "Standard stable",
+  "templateDescription": "Standard stable (on-demand) instances of all resource types from c5, r5, m5, c4, r4, m4 instance families.",
+  "environment": {
+    "computeEnvironmentName": "OnDemandStandard",
+    "computeResources": {
+      "allocationStrategy": "BEST_FIT_PROGRESSIVE",
+      "instanceTypes": ["optimal", "c5.xlarge"],
+      "maxvCpus": 512,
+      "type": "EC2",
+      "minvCpus": 0
+    }
+  }
+}

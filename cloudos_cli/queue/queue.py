@@ -2,13 +2,139 @@
 This is the main class to create job queues.
 """
 
-import requests
 import json
+import copy
 import pandas as pd
 from dataclasses import dataclass
 from typing import Union
 from cloudos_cli.clos import Cloudos
-from cloudos_cli.utils.errors import BadRequestException
+from cloudos_cli.utils.errors import (
+    BadRequestException,
+    NoJobQueuesAvailableException,
+)
+from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post
+
+
+# ---------------------------------------------------------------------------
+# Preset templates (match the CloudOS Platform UI presets exactly)
+# ---------------------------------------------------------------------------
+
+_STANDARD_INSTANCE_TYPES = [
+    "optimal",
+    "c4.2xlarge", "c4.4xlarge", "c4.8xlarge",
+    "c5.xlarge", "c5.2xlarge", "c5.4xlarge", "c5.9xlarge",
+    "c5.12xlarge", "c5.18xlarge", "c5.24xlarge", "c5.metal",
+    "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "m4.16xlarge",
+    "m5.xlarge", "m5.2xlarge", "m5.4xlarge", "m5.8xlarge",
+    "m5.12xlarge", "m5.16xlarge", "m5.24xlarge", "m5.metal",
+    "r4.xlarge", "r4.2xlarge", "r4.4xlarge", "r4.8xlarge", "r4.16xlarge",
+    "r5.xlarge", "r5.2xlarge", "r5.4xlarge", "r5.8xlarge",
+    "r5.12xlarge", "r5.16xlarge", "r5.24xlarge", "r5.metal",
+]
+
+_GPU_INSTANCE_TYPES = [
+    "optimal",
+    "c4.2xlarge", "c4.4xlarge", "c4.8xlarge",
+    "c5.xlarge", "c5.2xlarge", "c5.4xlarge", "c5.9xlarge",
+    "c5.12xlarge", "c5.18xlarge", "c5.24xlarge", "c5.metal",
+    "g4dn.xlarge", "g4dn.2xlarge", "g4dn.4xlarge", "g4dn.8xlarge",
+    "g4dn.12xlarge", "g4dn.16xlarge", "g4dn.metal",
+    "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "m4.16xlarge",
+    "m5.xlarge", "m5.2xlarge", "m5.4xlarge", "m5.8xlarge",
+    "m5.12xlarge", "m5.16xlarge", "m5.24xlarge", "m5.metal",
+    "p3.2xlarge", "p3.8xlarge", "p3.16xlarge",
+    "r4.xlarge", "r4.2xlarge", "r4.4xlarge", "r4.8xlarge", "r4.16xlarge",
+    "r5.xlarge", "r5.2xlarge", "r5.4xlarge", "r5.8xlarge",
+    "r5.12xlarge", "r5.16xlarge", "r5.24xlarge", "r5.metal",
+]
+
+QUEUE_PRESETS = {
+    "standard-stable": {
+        "computeEnvironmentName": "OnDemandStandard",
+        "computeResources": {
+            "allocationStrategy": "BEST_FIT_PROGRESSIVE",
+            "instanceTypes": _STANDARD_INSTANCE_TYPES,
+            "maxvCpus": 512,
+            "type": "EC2",
+            "minvCpus": 0,
+        },
+        "templateName": "Standard stable",
+        "templateDescription": (
+            "Standard stable (on-demand) instances of all resource types from "
+            "c5, r5, m5, c4, r4, m4 instance families."
+        ),
+    },
+    "standard-cost-saving": {
+        "computeEnvironmentName": "OnDemandSpot",
+        "computeResources": {
+            "allocationStrategy": "SPOT_CAPACITY_OPTIMIZED",
+            "instanceTypes": _STANDARD_INSTANCE_TYPES,
+            "maxvCpus": 512,
+            "type": "SPOT",
+            "minvCpus": 0,
+            "bidPercentage": 100,
+        },
+        "templateName": "Standard cost-saving",
+        "templateDescription": (
+            "Standard cost-saving (spot) instances of all resource types from "
+            "c5, r5, m5, c4, r4, m4 instance families. Spot instances allow to "
+            "save up to 80% cost compared to on-demand stable instances at a risk "
+            "of being prematurely terminated. Useful for short-running processes. "
+            "It is advised to use retry error strategy in the workflow for this job queue."
+        ),
+    },
+    "read-write-optimised": {
+        "computeEnvironmentName": "OnDemandStandardHighDiskThroughput",
+        "computeResources": {
+            "allocationStrategy": "BEST_FIT_PROGRESSIVE",
+            "instanceTypes": _STANDARD_INSTANCE_TYPES,
+            "maxvCpus": 512,
+            "type": "EC2",
+            "minvCpus": 0,
+            "volume": {
+                "type": "gp3",
+                "size": {"usageQuantity": 1000, "usageUnit": "Gb"},
+                "iops": 5000,
+                "throughput": 500,
+                "deviceName": "/dev/xvda",
+                "deleteOnTermination": False,
+                "encrypted": False,
+            },
+        },
+        "templateName": "Read/write optimised",
+        "templateDescription": (
+            "Standard stable (on-demand) instances of all resource types from "
+            "c5, r5, m5, c4, r4, m4 instance families and increased disk I/O "
+            "performance. Useful for the jobs that require significant file read "
+            "and write activity. May increase the job cost."
+        ),
+    },
+    "standard-gpu": {
+        "computeEnvironmentName": "OnDemandStandardGPUs",
+        "computeResources": {
+            "allocationStrategy": "BEST_FIT_PROGRESSIVE",
+            "instanceTypes": _GPU_INSTANCE_TYPES,
+            "maxvCpus": 512,
+            "type": "EC2",
+            "minvCpus": 0,
+        },
+        "templateName": "Standard with GPUs",
+        "templateDescription": (
+            "Standard stable (on-demand) instances as well as GPU instances of "
+            "p3 and/or g4dn families. On-demand GPU machines typically incur higher costs."
+        ),
+    },
+}
+
+
+# Maximum number of compute environments a workspace can hold across all queues.
+MAX_WORKSPACE_COMPUTE_ENVS = 10
+
+# Message shown once a workspace reaches the compute environment limit.
+WORKSPACE_CE_LIMIT_REACHED_MESSAGE = (
+    "You have reached the limit for compute environments in your workspace. "
+    f"Workspaces can have up to {MAX_WORKSPACE_COMPUTE_ENVS} compute environments."
+)
 
 
 @dataclass
@@ -47,9 +173,9 @@ class Queue(Cloudos):
             A list of dicts, each corresponding to a job queue.
         """
         headers = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
-                                                                              self.workspace_id),
-                         headers=headers, verify=self.verify)
+        r = retry_requests_get("{}/api/v1/teams/aws/v2/job-queues?teamId={}".format(self.cloudos_url,
+                                                                                    self.workspace_id),
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         queues = json.loads(r.content)
@@ -69,9 +195,9 @@ class Queue(Cloudos):
             A list of dicts, each corresponding to a system job queue.
         """
         headers = {"apikey": self.apikey}
-        r = requests.get("{}/api/v1/teams/aws/v2/system-job-queues?teamId={}".format(self.cloudos_url,
-                                                                                       self.workspace_id),
-                         headers=headers, verify=self.verify)
+        r = retry_requests_get("{}/api/v1/teams/aws/v2/system-job-queues?teamId={}".format(self.cloudos_url,
+                                                                                            self.workspace_id),
+                               headers=headers, verify=self.verify)
         if r.status_code >= 400:
             raise BadRequestException(r)
         return json.loads(r.content)
@@ -143,8 +269,7 @@ class Queue(Cloudos):
         available_queues = [q for q in job_queues if q['status'] == 'Ready' and
                             q['executor'] == workflow_type]
         if len(available_queues) == 0:
-            raise Exception(f'There are no available job queues for {workflow_type} ' +
-                            'workflows. Consider creating one using Lifebit Platform UI.')
+            raise NoJobQueuesAvailableException(workflow_type)
         default_queue = [q for q in available_queues if q.get('isDefault', False)]
         if len(default_queue) > 0:
             default_queue_id = default_queue[0]['id']
@@ -164,3 +289,138 @@ class Queue(Cloudos):
                   f'queue instead: {default_queue_name}.')
             return default_queue_id
         return selected_queue[0]['id']
+
+    @staticmethod
+    def get_preset_template(preset_name):
+        """Return the environment and template fields for a given preset name.
+
+        Parameters
+        ----------
+        preset_name : str
+            One of: 'standard-stable', 'standard-cost-saving',
+            'read-write-optimised', 'standard-gpu'.
+
+        Returns
+        -------
+        template : dict
+            A dict with keys 'computeEnvironmentName', 'computeResources',
+            'templateName', and 'templateDescription'.
+
+        Raises
+        ------
+        ValueError
+            If ``preset_name`` is not a recognised preset.
+        """
+        if preset_name not in QUEUE_PRESETS:
+            valid = ', '.join(QUEUE_PRESETS.keys())
+            raise ValueError(
+                f"Unknown preset '{preset_name}'. Valid presets are: {valid}"
+            )
+        return copy.deepcopy(QUEUE_PRESETS[preset_name])
+
+    def create_job_queue(self, label, description, preset_name, executor="nextflow",
+                         is_default=False):
+        """Create a new job queue in the workspace using a preset template.
+
+        Parameters
+        ----------
+        label : str
+            Human-readable name for the queue.
+        description : str
+            Short description of the queue's purpose.
+        preset_name : str
+            One of the supported preset keys (see ``QUEUE_PRESETS``).
+        executor : str, optional
+            Workflow executor.  Defaults to ``'nextflow'``.
+        is_default : bool, optional
+            Whether to set the queue as the workspace default. Defaults to
+            ``False``.
+
+        Returns
+        -------
+        queue_id : str
+            The Lifebit Platform ID assigned to the newly created queue.
+
+        Raises
+        ------
+        BadRequestException
+            If the API returns a 4xx or 5xx response.
+        """
+        preset = self.get_preset_template(preset_name)
+        payload = {
+            "id": "",
+            "label": label,
+            "description": description,
+            "executor": executor,
+            "status": "ToCreate",
+            "environment": {
+                "computeEnvironmentName": preset["computeEnvironmentName"],
+                "computeResources": preset["computeResources"],
+            },
+            "templateName": preset["templateName"],
+            "templateDescription": preset["templateDescription"],
+            "isDefault": is_default,
+        }
+        return self._post_job_queue(payload)
+
+    def _post_job_queue(self, payload):
+        """POST a job queue payload to the Lifebit Platform and return its ID.
+
+        Parameters
+        ----------
+        payload : dict
+            The fully-built job queue creation payload.
+
+        Returns
+        -------
+        queue_id : str
+            The Lifebit Platform ID assigned to the newly created queue.
+
+        Raises
+        ------
+        BadRequestException
+            If the API returns a 4xx or 5xx response.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "apikey": self.apikey,
+        }
+        r = retry_requests_post(
+            "{}/api/v1/teams/aws/v2/job-queue?teamId={}".format(
+                self.cloudos_url, self.workspace_id
+            ),
+            headers=headers,
+            json=payload,
+            verify=self.verify,
+        )
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        response_data = json.loads(r.content)
+        queue_id = response_data.get("id") or response_data.get("_id")
+        if not queue_id:
+            raise RuntimeError(
+                "Job queue creation succeeded but the server response did not "
+                "include a queue ID."
+            )
+        return queue_id
+
+    def count_workspace_compute_environments(self, queues=None):
+        """Count the total compute environments across all queues in the workspace.
+
+        System job queues are not counted towards the workspace limit.
+
+        Parameters
+        ----------
+        queues : list or None, optional
+            A list of (non-system) job queue dicts as returned by
+            ``get_job_queues(exclude_system_queues=True)``. If ``None``, the
+            queues are fetched, excluding system queues.
+
+        Returns
+        -------
+        count : int
+            The total number of compute environments in the workspace.
+        """
+        if queues is None:
+            queues = self.get_job_queues(exclude_system_queues=True)
+        return sum(len(q.get('computeEnvironments', [])) for q in queues)

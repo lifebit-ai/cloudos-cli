@@ -80,6 +80,25 @@ class NoCloudForWorkspaceException(Exception):
         self.workspace_id = workspace_id
 
 
+class NoJobQueuesAvailableException(Exception):
+    """Raised when no suitable job queues exist for a given workflow type.
+
+    Parameters
+    ----------
+    workflow_type : str
+        The workflow type (e.g. ``'nextflow'`` or ``'cromwell'``) for which no
+        ready job queue could be found.
+    """
+    def __init__(self, workflow_type):
+        msg = (
+            f"There are no available job queues for {workflow_type} workflows. "
+            "Consider creating one using 'cloudos queue create' or the Lifebit "
+            "Platform UI."
+        )
+        super(NoJobQueuesAvailableException, self).__init__(msg)
+        self.workflow_type = workflow_type
+
+
 class JobAccessDeniedException(Exception):
     def __init__(self, job_id, job_owner_name=None, current_user_name=None):
         if job_owner_name and current_user_name:
