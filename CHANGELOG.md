@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.94.1 (2026-06-29)
+
+### Patch:
+
+- Add correct import for `cloudos interactive-session link` command in docs building
+
 ## v2.94.0 (2026-06-23)
 
 ### Feat:
