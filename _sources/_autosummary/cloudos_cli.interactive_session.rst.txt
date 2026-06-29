@@ -12,3 +12,4 @@ cloudos\_cli.interactive\_session
 
    cli
    interactive_session
+   link

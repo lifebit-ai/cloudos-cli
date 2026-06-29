@@ -19,8 +19,8 @@ The following sections are all the modules and submodules of the `cloudos_cli` p
    cloudos_cli.import_wf.import_wf
    cloudos_cli.jobs
    cloudos_cli.jobs.job
-   cloudos_cli.link
-   cloudos_cli.link.link
+   cloudos_cli.interactive_session
+   cloudos_cli.interactive_session.link
    cloudos_cli.procurement
    cloudos_cli.procurement.images
    cloudos_cli.queue

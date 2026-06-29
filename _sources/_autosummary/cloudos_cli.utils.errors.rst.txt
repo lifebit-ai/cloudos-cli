@@ -13,6 +13,7 @@ cloudos\_cli.utils.errors
       JoBNotCompletedException
       JobAccessDeniedException
       NoCloudForWorkspaceException
+      NoJobQueuesAvailableException
       NotAuthorisedException
       TimeOutException
    

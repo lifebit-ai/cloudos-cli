@@ -1,0 +1,12 @@
+cloudos\_cli.interactive\_session.link
+======================================
+
+.. automodule:: cloudos_cli.interactive_session.link
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Link
+   
