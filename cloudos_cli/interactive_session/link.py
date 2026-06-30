@@ -117,7 +117,7 @@ class Link(Cloudos):
         # Verify mount completion for all items (any 2xx response means success)
         if 200 <= status_code < 300:
             return self._verify_all_mounts(folder_info, session_id)
-        return True
+return False
 
     def _parse_items_to_data_items(self, folders: list, existing_mount_names: set = None) -> tuple:
         """Parse and validate folders/files, extracting data items for API payload.
@@ -238,7 +238,7 @@ class Link(Cloudos):
                     "The linking API (v2) is not available on this platform. "
                     "Contact your platform administrator."
                 )
-            self._handle_mount_error(v2_error, "folder")
+            self._handle_mount_error(v2_error, "data")
 
     def _verify_all_mounts(self, folder_info: list, session_id: str):
         """Verify mount completion status for all items (files and folders).
