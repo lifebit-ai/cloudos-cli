@@ -1,5 +1,4 @@
 import pytest
-from unittest import mock
 from cloudos_cli.interactive_session.link import Link
 import responses
 
