@@ -2846,7 +2846,7 @@ cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 
 
 > [!NOTE]
-> To link files or folders (S3 or File Explorer) to an interactive analysis session, use `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`/`resume`.
+> To link files or folders (S3 or File Explorer) to an interactive analysis session, use `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`.
 
 #### Create Folder
 
