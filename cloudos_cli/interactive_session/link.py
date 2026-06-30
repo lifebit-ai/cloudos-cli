@@ -117,7 +117,7 @@ class Link(Cloudos):
         # Verify mount completion for all items (any 2xx response means success)
         if 200 <= status_code < 300:
             return self._verify_all_mounts(folder_info, session_id)
-return False
+        return False
 
     def _parse_items_to_data_items(self, folders: list, existing_mount_names: set = None) -> tuple:
         """Parse and validate folders/files, extracting data items for API payload.
