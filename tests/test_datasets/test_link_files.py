@@ -383,7 +383,7 @@ class TestTranslateMountError:
 
 
 # ---------------------------------------------------------------------------
-# v1 fallback rejects file items
+# v2 unavailability raises an error for all item types
 # ---------------------------------------------------------------------------
 
 class TestV2UnavailableRaisesError:
