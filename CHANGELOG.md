@@ -1,8 +1,8 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.95.0 (2026-06-30)
+## v2.94.2 (2026-06-30)
 
-### Remove:
+### Fix:
 
 - Removes the `cloudos datasets link` command. Linking files and folders to an interactive analysis is now done through `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`
 
