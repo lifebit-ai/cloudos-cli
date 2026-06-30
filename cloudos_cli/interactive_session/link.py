@@ -78,8 +78,7 @@ class Link(Cloudos):
                            committed_count: int = 0) -> bool:
         """Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.
 
-        Attempts to use API v2 (which supports multiple items per request) first,
-        with automatic fallback to v1 (individual requests) if v2 is not available.
+        Uses API v2 which supports multiple items per request.
 
         Parameters
         ----------
@@ -112,15 +111,11 @@ class Link(Cloudos):
         # Parse and validate all items
         data_items, folder_info = self._parse_items_to_data_items(folders, existing_mount_names)
 
-        # Try v2 API first (supports batch)
+        # Mount via v2 API (supports batch)
         status_code = self._try_mount_v2(data_items, session_id)
 
-        if status_code is None:
-            # v2 failed or not available, fall back to v1
-            status_code = self._fallback_mount_v1(folder_info, session_id)
-
         # Verify mount completion for all items (any 2xx response means success)
-        if status_code is not None and 200 <= status_code < 300:
+        if 200 <= status_code < 300:
             return self._verify_all_mounts(folder_info, session_id)
         return True
 
@@ -206,7 +201,7 @@ class Link(Cloudos):
         )
 
     def _try_mount_v2(self, data_items: list, session_id: str) -> int:
-        """Attempt to mount folders using API v2.
+        """Mount items using API v2.
 
         Parameters
         ----------
@@ -217,151 +212,33 @@ class Link(Cloudos):
 
         Returns
         -------
-        int or None
-            Status code if successful, None if v2 unavailable (triggering fallback).
-
-        Raises
-        ------
-        ValueError
-            If v2 fails for reasons other than unavailability.
-        """
-        v2_payload = {"dataItems": data_items}
-
-        try:
-            status_code = self.mount_fuse_filesystem_v2(
-                session_id=session_id,
-                team_id=self.workspace_id,
-                payload=v2_payload,
-                verify=self.verify
-            )
-            return status_code
-        except Exception as v2_error:
-            # Check if error indicates v2 endpoint not available (404 only, but not session-not-found)
-            error_str = str(v2_error)
-            # Only fall back to v1 if it's a genuine endpoint-not-available 404
-            # Session-not-found errors should propagate immediately
-            if "Session not found" in error_str:
-                raise  # Re-raise session-not-found errors immediately
-
-            should_fallback = (
-                "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower()
-            )
-
-            if should_fallback:
-                return None  # Trigger v1 fallback
-            else:
-                # v2 failed for reasons other than not available
-                self._handle_mount_error(v2_error, "folder")
-
-    def _fallback_mount_v1(self, folder_info: list, session_id: str) -> int:
-        """Fall back to v1 API, mounting folders one at a time.
-
-        Parameters
-        ----------
-        folder_info : list
-            List of folder metadata dictionaries.
-        session_id : str
-            The interactive session ID.
-
-        Returns
-        -------
         int
-            Status code from the last successful mount (typically 204).
-
-        Raises
-        ------
-        ValueError
-            If any item is a file (v1 only supports folders), or if any folder
-            fails to mount. Note: Earlier folders may have successfully mounted
-            before the failure.
-        """
-        for f in folder_info:
-            item_type = f['data'].get('type', '')
-            item_kind = f['data'].get('kind', '')
-            if item_type == 'S3File' or item_kind == 'File':
-                raise ValueError(
-                    f"File linking requires API v2, which is not available for this session. "
-                    f"Only folder linking is supported via the v1 API fallback."
-                )
-
-        status_code = None
-        mounted_folders = []
-
-        for folder_data in folder_info:
-            try:
-                status_code = self._mount_single_folder_v1(folder_data, session_id)
-                mounted_folders.append(folder_data['path'])
-            except ValueError as e:
-                # If we've already mounted some folders, inform the user
-                if mounted_folders:
-                    error_msg = f"{str(e)}\n\nNote: The following folders were successfully mounted before this error: {', '.join(mounted_folders)}"
-                    raise ValueError(error_msg)
-                else:
-                    raise
-        return status_code
-
-    def _mount_single_folder_v1(self, folder_data: dict, session_id: str) -> int:
-        """Mount a single folder using API v1.
-
-        Parameters
-        ----------
-        folder_data : dict
-            Folder metadata including type, path, and data.
-        session_id : str
-            The interactive session ID.
-
-        Returns
-        -------
-        int
-            Status code (typically 204 on success).
+            HTTP status code on success.
 
         Raises
         ------
         ValueError
             If the mount request fails.
         """
-        v1_payload = {"dataItem": folder_data["data"]}
-
-        url = (
-            f"{self.cloudos_url}/api/v1/"
-            f"interactive-sessions/{session_id}/fuse-filesystem/mount"
-            f"?teamId={self.workspace_id}"
-        )
-        headers = {
-            "Content-type": "application/json",
-            "apikey": self.apikey
-        }
+        v2_payload = {"dataItems": data_items}
 
         try:
-            r = retry_requests_post(url, headers=headers, json=v1_payload, verify=self.verify)
-
-            if r.status_code >= 400:
-                # Handle v1 errors using consolidated error handling
-                if r.status_code == 403:
-                    raise ValueError(f"Provided {folder_data['type']} item already exists with 'mounted' status")
-                elif r.status_code == 401:
-                    raise ValueError("Unauthorized. Invalid API key or insufficient permissions.")
-                elif r.status_code == 400:
-                    try:
-                        r_content = json.loads(r.content)
-                        if r_content.get("message") == "Invalid Supported DataItem folderType. Supported values are S3Folder":
-                            raise ValueError(f"Invalid Supported DataItem '{folder_data['type']}' folderType. Virtual folders cannot be linked.")
-                        elif r_content.get("message") == "Request failed with status code 403":
-                            raise ValueError(f"Interactive Analysis session is not active")
-                        else:
-                            raise ValueError(f"Cannot link item")
-                    except json.JSONDecodeError:
-                        raise ValueError(f"Bad request (400): Unable to parse error response")
-                else:
-                    raise ValueError(f"Failed to mount item: HTTP {r.status_code}")
-
-            return r.status_code
-
-        except ValueError:
-            # Re-raise ValueError as-is
-            raise
-        except Exception as v1_error:
-            raise ValueError(f"Failed to mount {folder_data['type']} item: {str(v1_error)}")
+            return self.mount_fuse_filesystem_v2(
+                session_id=session_id,
+                team_id=self.workspace_id,
+                payload=v2_payload,
+                verify=self.verify
+            )
+        except Exception as v2_error:
+            error_str = str(v2_error)
+            if "Session not found" in error_str:
+                raise
+            if "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower():
+                raise ValueError(
+                    "The linking API (v2) is not available on this platform. "
+                    "Contact your platform administrator."
+                )
+            self._handle_mount_error(v2_error, "folder")
 
     def _verify_all_mounts(self, folder_info: list, session_id: str):
         """Verify mount completion status for all items (files and folders).

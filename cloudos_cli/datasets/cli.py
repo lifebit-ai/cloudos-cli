@@ -724,3 +724,19 @@ def rm_item(ctx,
             raise ValueError(f"Removal failed. {response.status_code} - {response.text}")
     except Exception as e:
         raise ValueError(f"Remove operation failed. {str(e)}")
+
+
+@datasets.command(
+    name="link",
+    hidden=True,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+@click.pass_context
+def link_deprecated(ctx):
+    """Removed. Use 'cloudos interactive-session link' or 'cloudos interactive-session create --link' instead."""
+    raise click.UsageError(
+        "'cloudos datasets link' has been removed.\n\n"
+        "Use one of the supported alternatives:\n"
+        "  cloudos interactive-session link <PATH> --session-id <SESSION_ID>\n"
+        "  cloudos interactive-session create --link <PATH> [...]"
+    )
