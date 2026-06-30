@@ -230,14 +230,13 @@ class Link(Cloudos):
                 verify=self.verify
             )
         except Exception as v2_error:
-            error_str = str(v2_error)
-            if "Session not found" in error_str:
+            if isinstance(v2_error, ValueError):
                 raise
-            if "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower():
+            if isinstance(v2_error, BadRequestException) and v2_error.rv.status_code == 404:
                 raise ValueError(
                     "The linking API (v2) is not available on this platform. "
                     "Contact your platform administrator."
-                )
+                ) from v2_error
             self._handle_mount_error(v2_error, "data")
 
     def _verify_all_mounts(self, folder_info: list, session_id: str):
