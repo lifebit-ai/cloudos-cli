@@ -237,7 +237,9 @@ class Link(Cloudos):
                     "The linking API (v2) is not available on this platform. "
                     "Contact your platform administrator."
                 ) from v2_error
-            label = "S3" if data_items and data_items[0].get("type", "").startswith("S3") else "File Explorer"
+            all_s3 = all(item.get("type", "").startswith("S3") for item in data_items)
+            all_fe = all(not item.get("type", "").startswith("S3") for item in data_items)
+            label = "S3" if all_s3 else "File Explorer" if all_fe else "item"
             self._handle_mount_error(v2_error, label)
 
     def _verify_all_mounts(self, folder_info: list, session_id: str):
