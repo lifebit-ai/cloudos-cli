@@ -2846,7 +2846,7 @@ cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 
 
 > [!NOTE]
-> To link files or folders (S3 or File Explorer) to an interactive analysis session, use `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`.
+> To link files or folders (S3 or File Explorer) to an interactive analysis session, use `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`. Virtual folders in File Explorer cannot be linked.
 
 > [!NOTE]
 > A maximum of 100 items can be linked per session. If the new items combined with already-linked items exceed this limit, the entire request is rejected.
