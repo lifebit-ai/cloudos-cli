@@ -738,5 +738,6 @@ def link_deprecated(ctx):
         "'cloudos datasets link' has been removed.\n\n"
         "Use one of the supported alternatives:\n"
         "  cloudos interactive-session link <PATH> --session-id <SESSION_ID>\n"
-        "  cloudos interactive-session create --link <PATH> [...]"
+        "  cloudos interactive-session create --link <PATH> [...]\n\n"
+        "Add --profile <my_profile> to either command to use a saved profile."
     )
