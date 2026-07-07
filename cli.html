@@ -1202,80 +1202,6 @@
 </dd></dl>
 
 </section>
-<section id="cloudos-datasets-link">
-<h4>link<a class="headerlink" href="#cloudos-datasets-link" title="Link to this heading">¶</a></h4>
-<p>Link a file or folder (S3 or File Explorer) to an active interactive analysis.</p>
-<p>PATH [path]: the full path to the S3 file/folder or relative path in File Explorer
-(relative to the project specified by –project-name).
-E.g.: ‘s3://bucket-name/folder/subfolder’, ‘s3://bucket/data/file.csv’,
-‘Data/Downloads’, ‘Data’, or ‘Data/file.csv’.</p>
-<p class="rubric">Usage</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>link<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH
-</pre></div>
-</div>
-<p class="rubric">Options</p>
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-k">
-<span id="cmdoption-cloudos-datasets-link-apikey"></span><span class="sig-name descname"><span class="pre">-k</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--apikey</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;apikey&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-k" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> Your Lifebit Platform API key</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-c">
-<span id="cmdoption-cloudos-datasets-link-cloudos-url"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cloudos-url</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;cloudos_url&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-c" title="Link to this definition">¶</a></dt>
-<dd><p>The Lifebit Platform url you are trying to access to. Default=https://cloudos.lifebit.ai.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-project-name">
-<span class="sig-name descname"><span class="pre">--project-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;project_name&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-project-name" title="Link to this definition">¶</a></dt>
-<dd><p>The name of a Lifebit Platform project.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-workspace-id">
-<span class="sig-name descname"><span class="pre">--workspace-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;workspace_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-workspace-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific Lifebit Platform workspace id.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-session-id">
-<span class="sig-name descname"><span class="pre">--session-id</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;session_id&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-session-id" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The specific Lifebit Platform interactive session id.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-disable-ssl-verification">
-<span class="sig-name descname"><span class="pre">--disable-ssl-verification</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-disable-ssl-verification" title="Link to this definition">¶</a></dt>
-<dd><p>Disable SSL certificate verification.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-ssl-cert">
-<span class="sig-name descname"><span class="pre">--ssl-cert</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ssl_cert&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-ssl-cert" title="Link to this definition">¶</a></dt>
-<dd><p>Path to your SSL certificate file.</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-debug">
-<span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-debug" title="Link to this definition">¶</a></dt>
-<dd><p>Show detailed error information and tracebacks</p>
-</dd></dl>
-
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-profile">
-<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-profile" title="Link to this definition">¶</a></dt>
-<dd><p>Profile to use from the config file</p>
-</dd></dl>
-
-<p class="rubric">Arguments</p>
-<dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-datasets-link-arg-PATH">
-<span class="sig-name descname"><span class="pre">PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-datasets-link-arg-PATH" title="Link to this definition">¶</a></dt>
-<dd><p>Required argument</p>
-</dd></dl>
-
-</section>
 <section id="cloudos-datasets-ls">
 <h4>ls<a class="headerlink" href="#cloudos-datasets-ls" title="Link to this heading">¶</a></h4>
 <p>List contents of a path within a Lifebit Platform workspace dataset.</p>
@@ -4829,7 +4755,6 @@ cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/resul
 </li>
 <li><a class="reference internal" href="#cloudos-datasets">datasets</a><ul>
 <li><a class="reference internal" href="#cloudos-datasets-cp">cp</a></li>
-<li><a class="reference internal" href="#cloudos-datasets-link">link</a></li>
 <li><a class="reference internal" href="#cloudos-datasets-ls">ls</a></li>
 <li><a class="reference internal" href="#cloudos-datasets-mkdir">mkdir</a></li>
 <li><a class="reference internal" href="#cloudos-datasets-mv">mv</a></li>

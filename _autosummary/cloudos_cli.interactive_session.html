@@ -1166,8 +1166,7 @@ about partial failure should observe this value.</p>
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.Link.link_folders_batch">
 <span class="sig-name descname"><span class="pre">link_folders_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folders</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">committed_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/link.html#Link.link_folders_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.Link.link_folders_batch" title="Link to this definition">¶</a></dt>
 <dd><p>Link multiple folders/files (S3 or File Explorer) to an interactive session in one request.</p>
-<p>Attempts to use API v2 (which supports multiple items per request) first,
-with automatic fallback to v1 (individual requests) if v2 is not available.</p>
+<p>Uses API v2 which supports multiple items per request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

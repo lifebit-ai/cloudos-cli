@@ -2720,7 +2720,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 </section>
 <section id="link">
 <h3>Link<a class="headerlink" href="#link" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">link</span></code> command provides a unified interface for linking files and folders to interactive analysis sessions. It consolidates functionality previously available through separate commands (<code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">results</span> <span class="pre">--link</span></code>, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">workdir</span> <span class="pre">--link</span></code>, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">logs</span> <span class="pre">--link</span></code>, and <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">datasets</span> <span class="pre">link</span></code>) into a single, intuitive interface.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">link</span></code> command provides a unified interface for linking files and folders to interactive analysis sessions. It consolidates functionality previously available through separate commands (<code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">results</span> <span class="pre">--link</span></code>, <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">workdir</span> <span class="pre">--link</span></code>, and <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">logs</span> <span class="pre">--link</span></code>) into a single, intuitive interface.</p>
 <section id="link-files-and-folders-to-interactive-analysis">
 <h4>Link Files and Folders to Interactive Analysis<a class="headerlink" href="#link-files-and-folders-to-interactive-analysis" title="Link to this heading">¶</a></h4>
 <p>Link job-related folders or custom S3/File Explorer paths (files and folders) to your interactive analysis sessions for direct access to data without needing to copy files.</p>
@@ -2942,37 +2942,9 @@ Files and folders can be copied <strong>from</strong> anywhere in the project <s
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cloudos</span> <span class="n">datasets</span> <span class="n">cp</span> <span class="n">AnalysesResults</span><span class="o">/</span><span class="n">my_analysis</span><span class="o">/</span><span class="n">results</span><span class="o">/</span><span class="n">my_plot</span><span class="o">.</span><span class="n">png</span> <span class="n">Data</span><span class="o">/</span><span class="n">plots</span>
 </pre></div>
 </div>
-</section>
-<section id="id1">
-<h4>Link Files and Folders to Interactive Analysis<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
-<p>Connect external S3 buckets, S3 files, or File Explorer files/folders to your interactive analysis sessions. This provides direct access to data without needing to copy files.</p>
-<p>This subcommand uses the <code class="docutils literal notranslate"><span class="pre">--session-id</span></code> option to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>datasets<span class="w"> </span>link<span class="w"> </span>&lt;PATH&gt;<span class="w"> </span>--profile<span class="w"> </span>&lt;profile&gt;<span class="w"> </span>--session-id<span class="w"> </span>&lt;SESSION_ID&gt;
-</pre></div>
-</div>
-<p>Link an S3 folder:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos datasets link s3://bucket/path/folder --profile test --session-id 1234</span>
-</pre></div>
-</div>
-<p>Link an S3 file:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos datasets link s3://bucket/path/data.csv --profile test --session-id 1234</span>
-</pre></div>
-</div>
-<p>Link a File Explorer folder (requires <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos datasets link &quot;Data/HLA&quot; --project-name my-project --session-id 1234</span>
-</pre></div>
-</div>
-<p>Link a File Explorer file (requires <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cloudos datasets link &quot;Data/observations.csv&quot; --project-name my-project --session-id 1234</span>
-</pre></div>
-</div>
 <blockquote>
 <div><p>[!NOTE]
-If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the <code class="docutils literal notranslate"><span class="pre">--apikey</span></code> needs to be added.</p>
-</div></blockquote>
-<blockquote>
-<div><p>[!NOTE]
-Virtual folders in File Explorer (folders created in File Explorer that are not actual storage locations) cannot be linked.</p>
+To link files or folders (S3 or File Explorer) to an interactive analysis session, use <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">link</span></code> or the <code class="docutils literal notranslate"><span class="pre">--link</span></code> option of <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">create</span></code>. Virtual folders in File Explorer cannot be linked.</p>
 </div></blockquote>
 <blockquote>
 <div><p>[!NOTE]
