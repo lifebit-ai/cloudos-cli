@@ -2613,7 +2613,7 @@ All configuration parameters are optional. If not specified, the session resumes
 
 ### Link
 
-The `cloudos interactive-session link` command provides a unified interface for linking files and folders to interactive analysis sessions. It consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, `cloudos job logs --link`, and `cloudos datasets link`) into a single, intuitive interface.
+The `cloudos interactive-session link` command provides a unified interface for linking files and folders to interactive analysis sessions. It consolidates functionality previously available through separate commands (`cloudos job results --link`, `cloudos job workdir --link`, and `cloudos job logs --link`) into a single, intuitive interface.
 
 #### Link Files and Folders to Interactive Analysis
 
@@ -2845,41 +2845,8 @@ cloudos datasets cp AnalysesResults/my_analysis/results/my_plot.png Data/plots
 ```
 
 
-#### Link Files and Folders to Interactive Analysis
-
-Connect external S3 buckets, S3 files, or File Explorer files/folders to your interactive analysis sessions. This provides direct access to data without needing to copy files.
-
-This subcommand uses the `--session-id` option to access the correct interactive session. This option can be added to the CLI or defined in a profile, for convenience.
-
-```bash
-cloudos datasets link <PATH> --profile <profile> --session-id <SESSION_ID>
-```
-
-Link an S3 folder:
-```console
-cloudos datasets link s3://bucket/path/folder --profile test --session-id 1234
-```
-
-Link an S3 file:
-```console
-cloudos datasets link s3://bucket/path/data.csv --profile test --session-id 1234
-```
-
-Link a File Explorer folder (requires `--project-name`):
-```console
-cloudos datasets link "Data/HLA" --project-name my-project --session-id 1234
-```
-
-Link a File Explorer file (requires `--project-name`):
-```console
-cloudos datasets link "Data/observations.csv" --project-name my-project --session-id 1234
-```
-
 > [!NOTE]
-> If running the CLI inside a jupyter session, the pre-configured CLI installation will have the session ID already installed and only the `--apikey` needs to be added.
-
-> [!NOTE]
-> Virtual folders in File Explorer (folders created in File Explorer that are not actual storage locations) cannot be linked.
+> To link files or folders (S3 or File Explorer) to an interactive analysis session, use `cloudos interactive-session link` or the `--link` option of `cloudos interactive-session create`. Virtual folders in File Explorer cannot be linked.
 
 > [!NOTE]
 > A maximum of 100 items can be linked per session. If the new items combined with already-linked items exceed this limit, the entire request is rejected.

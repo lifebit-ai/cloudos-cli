@@ -4,7 +4,6 @@ import rich_click as click
 import csv
 import sys
 from cloudos_cli.datasets import Datasets
-from cloudos_cli.interactive_session.link import Link
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.logging.logger import update_command_context_from_click
@@ -727,57 +726,18 @@ def rm_item(ctx,
         raise ValueError(f"Remove operation failed. {str(e)}")
 
 
-@datasets.command(name="link")
-@click.argument("path", required=True)
-@click.option('-k', '--apikey', help='Your Lifebit Platform API key', required=True)
-@click.option('-c', '--cloudos-url',
-              help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
-              default=CLOUDOS_URL)
-@click.option('--project-name',
-              help='The name of a Lifebit Platform project.',
-              required=False)
-@click.option('--workspace-id', help='The specific Lifebit Platform workspace id.', required=True)
-@click.option('--session-id', help='The specific Lifebit Platform interactive session id.', required=True)
-@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
-@click.option('--ssl-cert', help='Path to your SSL certificate file.')
-@click.option('--profile', help='Profile to use from the config file', default='default')
+@datasets.command(
+    name="link",
+    hidden=True,
+    add_help_option=False,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
 @click.pass_context
-@with_profile_config(required_params=['apikey', 'workspace_id', 'session_id'])
-def link(ctx,
-         path,
-         apikey,
-         cloudos_url,
-         project_name,
-         workspace_id,
-         session_id,
-         disable_ssl_verification,
-         ssl_cert,
-         profile):
-    """
-    Link a file or folder (S3 or File Explorer) to an active interactive analysis.
-
-    PATH [path]: the full path to the S3 file/folder or relative path in File Explorer
-    (relative to the project specified by --project-name).
-    E.g.: 's3://bucket-name/folder/subfolder', 's3://bucket/data/file.csv',
-    'Data/Downloads', 'Data', or 'Data/file.csv'.
-    """
-    if not path.startswith("s3://") and project_name is None:
-        raise click.UsageError("When using File Explorer paths '--project-name' needs to be defined")
-
-    verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
-
-    link_p = Link(
-        cloudos_url=cloudos_url,
-        apikey=apikey,
-        workspace_id=workspace_id,
-        cromwell_token=None,
-        project_name=project_name,
-        verify=verify_ssl
+def link_deprecated(ctx):
+    raise click.ClickException(
+        "'cloudos datasets link' has been removed.\n\n"
+        "Use one of the supported alternatives:\n"
+        "  cloudos interactive-session link <PATH> --session-id <SESSION_ID>\n"
+        "  cloudos interactive-session create --link <PATH> [...]\n\n"
+        "Add --profile <my_profile> to either command to use a saved profile."
     )
-
-    try:
-        success = link_p.link_folder(path, session_id)
-    except Exception as e:
-        raise ValueError(f"Could not link item. {e}")
-    if not success:
-        raise click.ClickException("Linking failed: mount verification did not reach 'mounted' status.")

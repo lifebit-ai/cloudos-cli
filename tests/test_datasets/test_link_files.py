@@ -383,13 +383,13 @@ class TestTranslateMountError:
 
 
 # ---------------------------------------------------------------------------
-# v1 fallback rejects file items
+# v2 unavailability raises an error for all item types
 # ---------------------------------------------------------------------------
 
-class TestV1FallbackRejectsFiles:
+class TestV2UnavailableRaisesError:
 
     @responses.activate
-    def test_v1_fallback_rejects_s3_file(self, link_instance, monkeypatch):
+    def test_v2_unavailable_s3_file_raises(self, link_instance, monkeypatch):
         status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
@@ -404,11 +404,11 @@ class TestV1FallbackRejectsFiles:
             }
         })
 
-        with pytest.raises(ValueError, match="File linking requires API v2"):
+        with pytest.raises(ValueError, match="linking API.*not available"):
             link_instance.link_folders_batch(["s3://b/p/file.csv"], "sessionABC")
 
     @responses.activate
-    def test_v1_fallback_rejects_fe_file(self, link_instance, monkeypatch):
+    def test_v2_unavailable_fe_file_raises(self, link_instance, monkeypatch):
         status_url = f"{CLOUDOS_URL}/api/v1/interactive-sessions/sessionABC/fuse-filesystems?teamId={WORKSPACE_ID}&limit=100&page=1"
         responses.add(responses.GET, status_url, json={"fuseFileSystems": []}, status=200)
 
@@ -419,7 +419,7 @@ class TestV1FallbackRejectsFiles:
             "dataItem": {"kind": "File", "item": "id1", "name": "data.csv"}
         })
 
-        with pytest.raises(ValueError, match="File linking requires API v2"):
+        with pytest.raises(ValueError, match="linking API.*not available"):
             link_instance.link_folders_batch(["Data/data.csv"], "sessionABC")
 
 
