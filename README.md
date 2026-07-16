@@ -231,9 +231,8 @@ cloudos job list --help
 │                                                workflow (by date).                                       │
 │    --filter-job-id                 TEXT        Filter jobs by specific job ID.                           │
 │    --filter-only-mine                          Filter to show only jobs belonging to the current user.   │
-│    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │
-│                                                in batch environment. Non-batch jobs are preserved in     │
-│                                                results.                                                  │
+│    --filter-queue                  TEXT        Filter jobs by queue name. Only batch jobs running on     │
+│                                                the specified queue are returned.                         │
 │    --filter-owner                  TEXT        Filter jobs by owner username.                            │
 │    --verbose                                   Whether to print information messages or not.             │
 │    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │
@@ -912,7 +911,7 @@ You can find specific jobs within your workspace using the filtering options. Fi
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
 - **`--filter-owner`**: Show only jobs for the specified owner (exact match required, e.g., "John Doe")
-- **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs)
+- **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs). Queue filtering is performed client-side, so all the workspace jobs are scanned; a progress message is displayed during the scan, which can take a while on workspaces with many jobs
 
 **Filtering Examples**
 

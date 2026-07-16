@@ -1185,7 +1185,7 @@ def job_details(ctx,
               help='Filter to show only jobs belonging to the current user.',
               is_flag=True)
 @click.option('--filter-queue',
-              help='Filter jobs by queue name. Only applies to jobs running in batch environment. Non-batch jobs are preserved in results.')
+              help='Filter jobs by queue name. Only batch jobs running on the specified queue are returned.')
 @click.option('--filter-owner',
               help='Filter jobs by owner username.')
 @click.option('--verbose',
@@ -1326,15 +1326,11 @@ def list_jobs(ctx,
             # For client-filtered results, we have all jobs already
             # Create a callback that paginates them client-side using helper function
             fetch_page = create_client_pagination_callback(my_jobs_r, page_size)
-            
-            # Show first page of filtered results
-            first_page_jobs = my_jobs_r[:page_size]
-            first_page_metadata = {
-                'Pagination-Count': len(my_jobs_r),
-                'Pagination-Page': 1,
-                'Pagination-Limit': page_size
-            }
-            create_job_list_table(first_page_jobs, cloudos_url, first_page_metadata, selected_columns, fetch_page_callback=fetch_page)
+
+            # Show the requested page of filtered results
+            initial_page = fetch_page(page)
+            create_job_list_table(initial_page['jobs'], cloudos_url, initial_page['pagination_metadata'],
+                                  selected_columns, fetch_page_callback=fetch_page)
         else:
             # For normal (non-filtered) results, use API pagination with helper function
             fetch_page = create_api_pagination_callback(

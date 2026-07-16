@@ -7,7 +7,41 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 
-def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def create_retry_session(total=5, status_forcelist=(429, 500, 502, 503, 504),
+                         allowed_methods=None):
+    """Create a requests.Session with a retry strategy mounted.
+
+    Reusing the returned session across several requests to the same host
+    avoids re-establishing a TCP/TLS connection for every request.
+
+    Parameters
+    ----------
+    total : int
+        Total number of retries
+    status_forcelist : iterable of int
+        The status codes to trigger the retries
+    allowed_methods : iterable of str, optional
+        HTTP methods allowed to be retried. When None, the urllib3
+        default set of idempotent methods is used.
+
+    Returns
+    -------
+    session : requests.Session
+        A session object with the retry strategy mounted.
+    """
+    retry_kwargs = dict(total=total, status_forcelist=status_forcelist)
+    if allowed_methods is not None:
+        retry_kwargs['allowed_methods'] = allowed_methods
+    retry_strategy = Retry(**retry_kwargs)
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session = requests.Session()
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+
+def retry_requests_get(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
+                       session=None, **kwargs):
     """Wrap normal requests get with an error strategy.
 
     Parameters
@@ -16,32 +50,25 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
+    session : requests.Session, optional
+        An existing session to reuse (e.g. created with
+        `create_retry_session`). When None, a new session is created
+        for this single request.
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
-    retry_strategy = Retry(
-        total=total,
-        status_forcelist=status_forcelist
-    )
-    # Create an HTTP adapter with the retry strategy and mount it to session
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-
-    # Create a new session object
-    session = requests.Session()
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-
-    # Make a request using the session object
-    response = session.get(url, **kwargs)
-    return response
+    if session is not None:
+        return session.get(url, **kwargs)
+    with create_retry_session(total, status_forcelist) as single_use_session:
+        return single_use_session.get(url, **kwargs)
 
 
-def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_post(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """Wrap normal requests post with an error strategy.
 
     Parameters
@@ -50,32 +77,19 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
-    retry_strategy = Retry(
-        total=total,
-        status_forcelist=status_forcelist
-    )
-    # Create an HTTP adapter with the retry strategy and mount it to session
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-
-    # Create a new session object
-    session = requests.Session()
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-
-    # Make a request using the session object
-    response = session.post(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist) as session:
+        return session.post(url, **kwargs)
 
 
-def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_put(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """Wrap normal requests put with an error strategy.
 
     Parameters
@@ -84,32 +98,19 @@ def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
-    retry_strategy = Retry(
-        total=total,
-        status_forcelist=status_forcelist
-    )
-    # Create an HTTP adapter with the retry strategy and mount it to session
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-
-    # Create a new session object
-    session = requests.Session()
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-
-    # Make a request using the session object
-    response = session.put(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist) as session:
+        return session.put(url, **kwargs)
 
 
-def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_delete(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """
     Wrap normal requests DELETE with an error retry strategy.
 
@@ -119,7 +120,7 @@ def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 50
         The request URL.
     total : int
         Total number of retry attempts.
-    status_forcelist : list of int
+    status_forcelist : iterable of int
         HTTP status codes that should trigger a retry.
     **kwargs :
         Additional keyword arguments passed to `requests.delete`.
@@ -129,16 +130,5 @@ def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 50
     requests.Response
         The Response object returned by the API server.
     """
-    retry_strategy = Retry(
-        total=total,
-        status_forcelist=status_forcelist,
-        allowed_methods=["DELETE"]
-    )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-
-    session = requests.Session()
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-
-    response = session.delete(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist, allowed_methods=["DELETE"]) as session:
+        return session.delete(url, **kwargs)
