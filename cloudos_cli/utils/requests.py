@@ -24,8 +24,8 @@ def create_retry_session(total=5, status_forcelist=(429, 500, 502, 503, 504),
         HTTP methods allowed to be retried. When None, the urllib3
         default set of idempotent methods is used.
 
-    Return
-    ------
+    Returns
+    -------
     session : requests.Session
         A session object with the retry strategy mounted.
     """
@@ -50,15 +50,15 @@ def retry_requests_get(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
     session : requests.Session, optional
         An existing session to reuse (e.g. created with
         `create_retry_session`). When None, a new session is created
         for this single request.
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
@@ -80,8 +80,8 @@ def retry_requests_post(url, total=5, status_forcelist=(429, 500, 502, 503, 504)
     status_forcelist : list
         A list of ints with the status codes to trigger the retries
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
@@ -102,8 +102,8 @@ def retry_requests_put(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
     status_forcelist : list
         A list of ints with the status codes to trigger the retries
 
-    Return
-    ------
+    Returns
+    -------
     response : requests.Response
         The Response object returned by the API server
     """
