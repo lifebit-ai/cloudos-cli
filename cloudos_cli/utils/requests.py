@@ -62,10 +62,10 @@ def retry_requests_get(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
     response : requests.Response
         The Response object returned by the API server
     """
-    if session is None:
-        session = create_retry_session(total, status_forcelist)
-    response = session.get(url, **kwargs)
-    return response
+    if session is not None:
+        return session.get(url, **kwargs)
+    with create_retry_session(total, status_forcelist) as single_use_session:
+        return single_use_session.get(url, **kwargs)
 
 
 def retry_requests_post(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
@@ -77,17 +77,16 @@ def retry_requests_post(url, total=5, status_forcelist=(429, 500, 502, 503, 504)
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
 
     Returns
     -------
     response : requests.Response
         The Response object returned by the API server
     """
-    session = create_retry_session(total, status_forcelist)
-    response = session.post(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist) as session:
+        return session.post(url, **kwargs)
 
 
 def retry_requests_put(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
@@ -99,17 +98,16 @@ def retry_requests_put(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
         The request URL
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
+    status_forcelist : iterable of int
+        HTTP status codes to trigger the retries
 
     Returns
     -------
     response : requests.Response
         The Response object returned by the API server
     """
-    session = create_retry_session(total, status_forcelist)
-    response = session.put(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist) as session:
+        return session.put(url, **kwargs)
 
 
 def retry_requests_delete(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
@@ -122,7 +120,7 @@ def retry_requests_delete(url, total=5, status_forcelist=(429, 500, 502, 503, 50
         The request URL.
     total : int
         Total number of retry attempts.
-    status_forcelist : list of int
+    status_forcelist : iterable of int
         HTTP status codes that should trigger a retry.
     **kwargs :
         Additional keyword arguments passed to `requests.delete`.
@@ -132,6 +130,5 @@ def retry_requests_delete(url, total=5, status_forcelist=(429, 500, 502, 503, 50
     requests.Response
         The Response object returned by the API server.
     """
-    session = create_retry_session(total, status_forcelist, allowed_methods=["DELETE"])
-    response = session.delete(url, **kwargs)
-    return response
+    with create_retry_session(total, status_forcelist, allowed_methods=["DELETE"]) as session:
+        return session.delete(url, **kwargs)
