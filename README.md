@@ -912,7 +912,7 @@ You can find specific jobs within your workspace using the filtering options. Fi
 - **`--filter-job-id`**: Filter jobs by specific job ID (exact match required)
 - **`--filter-only-mine`**: Show only jobs belonging to the current user
 - **`--filter-owner`**: Show only jobs for the specified owner (exact match required, e.g., "John Doe")
-- **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs)
+- **`--filter-queue`**: Filter jobs by queue name (works with both regular and system queues; only applies to batch jobs). Queue filtering is performed client-side, so all the workspace jobs are scanned; a progress message is displayed during the scan, which can take a while on workspaces with many jobs
 
 **Filtering Examples**
 

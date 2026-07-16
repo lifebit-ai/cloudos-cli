@@ -212,3 +212,76 @@ def test_filter_by_system_queue(mock_get_queues):
     mock_get_queues.assert_called_once()
 
 
+def make_job(job_id, queue_id):
+    """Build a minimal job dict assigned to the given queue."""
+    return {
+        "_id": job_id,
+        "name": job_id,
+        "status": "completed",
+        "batch": {"jobQueue": {"id": queue_id, "name": "queue-name"}}
+    }
+
+
+@responses.activate
+@mock.patch('cloudos_cli.queue.queue.Queue.get_job_queues')
+def test_filter_by_queue_scans_with_max_page_size(mock_get_queues):
+    """Queue filtering must scan from page 1 using the API maximum page size (100),
+    regardless of the requested page and page_size (pagination is client-side)."""
+    mock_get_queues.return_value = MOCK_QUEUE_LIST
+    expected_params = {
+        "teamId": WORKSPACE_ID,
+        "archived.status": "false",
+        "limit": 100,
+        "page": 1
+    }
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        json=MOCK_JOB_LIST,
+        match=[matchers.query_param_matcher(expected_params)],
+        status=200
+    )
+    clos = setup_clos()
+    result = clos.get_job_list(WORKSPACE_ID, filter_queue="v41", page=2, page_size=10)
+    jobs = result['jobs']
+    assert len(jobs) == 1
+    assert jobs[0]["_id"] == "job1"
+
+
+@responses.activate
+@mock.patch('cloudos_cli.queue.queue.Queue.get_job_queues')
+def test_filter_by_queue_aggregates_all_pages(mock_get_queues):
+    """Queue filtering must aggregate matching jobs across every API page and
+    return pagination metadata flagged for client-side pagination."""
+    mock_get_queues.return_value = MOCK_QUEUE_LIST
+    # First page is full (100 jobs, 2 matching), second page is the last (1 matching)
+    page_1_jobs = [make_job(f"job_{i}", QUEUE_ID if i < 2 else "other_queue_id")
+                   for i in range(100)]
+    page_2_jobs = [make_job("job_100", QUEUE_ID)]
+    common_params = {"teamId": WORKSPACE_ID, "archived.status": "false", "limit": 100}
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        json={"jobs": page_1_jobs,
+              "paginationMetadata": {"Pagination-Count": 101, "Pagination-Page": 1,
+                                     "Pagination-Limit": 100}},
+        match=[matchers.query_param_matcher({**common_params, "page": 1})],
+        status=200
+    )
+    responses.add(
+        responses.GET,
+        url=f"{CLOUDOS_URL}/api/v2/jobs",
+        json={"jobs": page_2_jobs,
+              "paginationMetadata": {"Pagination-Count": 101, "Pagination-Page": 2,
+                                     "Pagination-Limit": 100}},
+        match=[matchers.query_param_matcher({**common_params, "page": 2})],
+        status=200
+    )
+    clos = setup_clos()
+    result = clos.get_job_list(WORKSPACE_ID, filter_queue="v41", page=1, page_size=10)
+    jobs = result['jobs']
+    assert [job["_id"] for job in jobs] == ["job_0", "job_1", "job_100"]
+    metadata = result['pagination_metadata']
+    assert metadata['_client_filtered'] is True
+    assert metadata['Pagination-Count'] == 3
+    assert metadata['Pagination-Limit'] == 10
