@@ -231,9 +231,8 @@ cloudos job list --help
 │                                                workflow (by date).                                       │
 │    --filter-job-id                 TEXT        Filter jobs by specific job ID.                           │
 │    --filter-only-mine                          Filter to show only jobs belonging to the current user.   │
-│    --filter-queue                  TEXT        Filter jobs by queue name. Only applies to jobs running   │
-│                                                in batch environment. Non-batch jobs are preserved in     │
-│                                                results.                                                  │
+│    --filter-queue                  TEXT        Filter jobs by queue name. Only batch jobs running on     │
+│                                                the specified queue are returned.                         │
 │    --filter-owner                  TEXT        Filter jobs by owner username.                            │
 │    --verbose                                   Whether to print information messages or not.             │
 │    --disable-ssl-verification                  Disable SSL certificate verification. Please, remember    │

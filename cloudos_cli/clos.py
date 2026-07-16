@@ -1050,8 +1050,8 @@ class Cloudos:
             Filter jobs by owner username (will be resolved to user ID).
         filter_queue : string, optional
             Filter jobs by queue name (will be resolved to queue ID).
-            Only applies to jobs running in batch environment.
-            Non-batch jobs are preserved in results as they don't use queues.
+            Only batch jobs running on the specified queue are returned;
+            jobs without a batch queue are excluded.
             Note: the API does not support server-side queue filtering, so
             all the workspace jobs are scanned and filtered client-side.
         last : bool, optional
@@ -1212,66 +1212,66 @@ class Cloudos:
             params["limit"] = 100
         else:
             params["limit"] = current_page_size
-        session = create_retry_session()
         last_pagination_metadata = None  # Track the last pagination metadata
         scanned_job_count = 0
 
-        while True:
-            params["page"] = current_page
+        with create_retry_session() as session:
+            while True:
+                params["page"] = current_page
 
-            r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params,
-                                   headers=headers, verify=verify, session=session)
-            if r.status_code >= 400:
-                raise BadRequestException(r)
+                r = retry_requests_get(f"{self.cloudos_url}/api/v2/jobs", params=params,
+                                       headers=headers, verify=verify, session=session)
+                if r.status_code >= 400:
+                    raise BadRequestException(r)
 
-            content = r.json()
-            page_jobs = content.get('jobs', [])
-            raw_page_job_count = len(page_jobs)
+                content = r.json()
+                page_jobs = content.get('jobs', [])
+                raw_page_job_count = len(page_jobs)
 
-            # Capture pagination metadata
-            last_pagination_metadata = content.get('paginationMetadata', None)
+                # Capture pagination metadata
+                last_pagination_metadata = content.get('paginationMetadata', None)
 
-            # No jobs returned, we've reached the end
-            if not page_jobs:
-                break
-
-            # Apply queue filter during pagination (if specified)
-            # jobQueue is a dict with "id" and "name" keys, extract the id for comparison
-            if filter_queue and queue_id:
-                filtered_jobs = []
-                for job in page_jobs:
-                    job_queue = job.get("batch", {}).get("jobQueue", {})
-                    # jobQueue is a dict like {"id": "...", "name": "...", ...}
-                    job_queue_id = job_queue.get("id") if isinstance(job_queue, dict) else job_queue
-                    if job_queue_id == queue_id:
-                        filtered_jobs.append(job)
-                page_jobs = filtered_jobs
-
-            all_jobs.extend(page_jobs)
-
-            if scan_all_pages:
-                scanned_job_count += raw_page_job_count
-                total_job_count = (last_pagination_metadata or {}).get('Pagination-Count', '?')
-                print(f"\r\tScanning workspace jobs for queue '{filter_queue}': "
-                      f"{scanned_job_count}/{total_job_count} jobs scanned, "
-                      f"{len(all_jobs)} matching...", end='', flush=True)
-
-            # Check stopping conditions based on mode
-            if use_pagination_mode:
-                # In pagination mode (last_n_jobs), continue until we have enough jobs (after filtering)
-                if target_job_count != 'all' and len(all_jobs) >= target_job_count:
-                    break
-            else:
-                if not filter_queue and len(all_jobs) >= current_page_size:
+                # No jobs returned, we've reached the end
+                if not page_jobs:
                     break
 
-            # Check if we reached the last page (fewer jobs than requested page size)
-            # Note: For queue filter, we check the unfiltered job count from the API
-            # This ensures we stop when the API has exhausted results
-            if raw_page_job_count < params["limit"]:
-                break  # Last page
+                # Apply queue filter during pagination (if specified)
+                # jobQueue is a dict with "id" and "name" keys, extract the id for comparison
+                if filter_queue and queue_id:
+                    filtered_jobs = []
+                    for job in page_jobs:
+                        job_queue = job.get("batch", {}).get("jobQueue", {})
+                        # jobQueue is a dict like {"id": "...", "name": "...", ...}
+                        job_queue_id = job_queue.get("id") if isinstance(job_queue, dict) else job_queue
+                        if job_queue_id == queue_id:
+                            filtered_jobs.append(job)
+                    page_jobs = filtered_jobs
 
-            current_page += 1
+                all_jobs.extend(page_jobs)
+
+                if scan_all_pages:
+                    scanned_job_count += raw_page_job_count
+                    total_job_count = (last_pagination_metadata or {}).get('Pagination-Count', '?')
+                    print(f"\r\tScanning workspace jobs for queue '{filter_queue}': "
+                          f"{scanned_job_count}/{total_job_count} jobs scanned, "
+                          f"{len(all_jobs)} matching...", end='', flush=True)
+
+                # Check stopping conditions based on mode
+                if use_pagination_mode:
+                    # In pagination mode (last_n_jobs), continue until we have enough jobs (after filtering)
+                    if target_job_count != 'all' and len(all_jobs) >= target_job_count:
+                        break
+                else:
+                    if not filter_queue and len(all_jobs) >= current_page_size:
+                        break
+
+                # Check if we reached the last page (fewer jobs than requested page size)
+                # Note: For queue filter, we check the unfiltered job count from the API
+                # This ensures we stop when the API has exhausted results
+                if raw_page_job_count < params["limit"]:
+                    break  # Last page
+
+                current_page += 1
 
         if scan_all_pages and scanned_job_count:
             print()  # End the progress line

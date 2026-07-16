@@ -756,7 +756,7 @@ def create_job_list_table(jobs, cloudos_url, pagination_metadata=None, selected_
         # Show pagination controls only if there are multiple pages
         if total_pages > 1:
             if not sys.stdin.isatty():
-                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page 1 of {0}.[/yellow]".format(total_pages))
+                console.print("\n[yellow]Note: Pagination not available in non-interactive mode. Showing page {0} of {1}.[/yellow]".format(current_page, total_pages))
                 console.print("[yellow]Run in an interactive terminal to navigate through all pages.[/yellow]")
                 break
 

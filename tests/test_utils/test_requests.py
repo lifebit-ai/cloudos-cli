@@ -12,13 +12,13 @@ def test_create_retry_session_mounts_retry_adapters():
         adapter = session.get_adapter(f'{prefix}example.com')
         assert isinstance(adapter, HTTPAdapter)
         assert adapter.max_retries.total == 3
-        assert adapter.max_retries.status_forcelist == [500]
+        assert set(adapter.max_retries.status_forcelist) == {500}
 
 
 def test_create_retry_session_allowed_methods():
     session = create_retry_session(allowed_methods=["DELETE"])
     adapter = session.get_adapter('https://example.com')
-    assert adapter.max_retries.allowed_methods == ["DELETE"]
+    assert set(adapter.max_retries.allowed_methods) == {"DELETE"}
 
 
 def test_retry_requests_get_reuses_given_session():

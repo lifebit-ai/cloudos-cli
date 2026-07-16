@@ -6,6 +6,8 @@
 
 - `cloudos job list --filter-queue` appeared to hang forever on large workspaces. Queue filtering is client-side (the jobs API has no queue parameter), so all workspace jobs must be scanned; the scan now uses the API maximum page size (100 jobs per request instead of `--page-size`, typically 10), reuses a single HTTP connection and prints scan progress
 - The queue-filtered scan now always starts from the first API page, so results are no longer silently missing when combined with `--page`
+- `--page` is now honoured as the initially displayed page of the filtered results when combined with `--filter-queue`
+- Documentation now correctly states that `--filter-queue` returns only batch jobs running on the specified queue (non-batch jobs were never preserved)
 
 ## v2.95.0 (2026-06-30)
 

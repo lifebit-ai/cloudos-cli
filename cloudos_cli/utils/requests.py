@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 
-def create_retry_session(total=5, status_forcelist=[429, 500, 502, 503, 504],
+def create_retry_session(total=5, status_forcelist=(429, 500, 502, 503, 504),
                          allowed_methods=None):
     """Create a requests.Session with a retry strategy mounted.
 
