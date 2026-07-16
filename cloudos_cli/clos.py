@@ -1253,9 +1253,15 @@ class Cloudos:
                 if scan_all_pages:
                     scanned_job_count += raw_page_job_count
                     total_job_count = (last_pagination_metadata or {}).get('Pagination-Count', '?')
-                    print(f"\r\tScanning workspace jobs for queue '{filter_queue}': "
-                          f"{scanned_job_count}/{total_job_count} jobs scanned, "
-                          f"{len(all_jobs)} matching...", end='', flush=True, file=sys.stderr)
+                    progress_msg = (f"\tScanning workspace jobs for queue '{filter_queue}': "
+                                    f"{scanned_job_count}/{total_job_count} jobs scanned, "
+                                    f"{len(all_jobs)} matching...")
+                    if sys.stderr.isatty():
+                        # Self-updating single line on interactive terminals
+                        print(f"\r{progress_msg}", end='', flush=True, file=sys.stderr)
+                    else:
+                        # Newline-terminated lines when redirected (e.g. CI logs)
+                        print(progress_msg, flush=True, file=sys.stderr)
 
                 # Check stopping conditions based on mode
                 if use_pagination_mode:
@@ -1274,8 +1280,8 @@ class Cloudos:
 
                 current_page += 1
 
-        if scan_all_pages and scanned_job_count:
-            print(file=sys.stderr)  # End the progress line
+        if scan_all_pages and scanned_job_count and sys.stderr.isatty():
+            print(file=sys.stderr)  # End the self-updating progress line
 
         # --- Apply limit after all filtering ---
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:

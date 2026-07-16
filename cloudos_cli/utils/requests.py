@@ -18,9 +18,9 @@ def create_retry_session(total=5, status_forcelist=(429, 500, 502, 503, 504),
     ----------
     total : int
         Total number of retries
-    status_forcelist : list
-        A list of ints with the status codes to trigger the retries
-    allowed_methods : list, optional
+    status_forcelist : iterable of int
+        The status codes to trigger the retries
+    allowed_methods : iterable of str, optional
         HTTP methods allowed to be retried. When None, the urllib3
         default set of idempotent methods is used.
 
