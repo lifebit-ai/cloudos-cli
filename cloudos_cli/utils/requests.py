@@ -40,7 +40,7 @@ def create_retry_session(total=5, status_forcelist=(429, 500, 502, 503, 504),
     return session
 
 
-def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
+def retry_requests_get(url, total=5, status_forcelist=(429, 500, 502, 503, 504),
                        session=None, **kwargs):
     """Wrap normal requests get with an error strategy.
 
@@ -68,7 +68,7 @@ def retry_requests_get(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
     return response
 
 
-def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_post(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """Wrap normal requests post with an error strategy.
 
     Parameters
@@ -90,7 +90,7 @@ def retry_requests_post(url, total=5, status_forcelist=[429, 500, 502, 503, 504]
     return response
 
 
-def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_put(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """Wrap normal requests put with an error strategy.
 
     Parameters
@@ -112,7 +112,7 @@ def retry_requests_put(url, total=5, status_forcelist=[429, 500, 502, 503, 504],
     return response
 
 
-def retry_requests_delete(url, total=5, status_forcelist=[429, 500, 502, 503, 504], **kwargs):
+def retry_requests_delete(url, total=5, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
     """
     Wrap normal requests DELETE with an error retry strategy.
 

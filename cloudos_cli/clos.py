@@ -3,13 +3,14 @@ This is the main class of the package.
 """
 
 import requests
+import sys
 import time
 import json
 from dataclasses import dataclass
 from cloudos_cli.utils.cloud import find_cloud
 from cloudos_cli.utils.errors import BadRequestException, JoBNotCompletedException, NotAuthorisedException, JobAccessDeniedException
-from cloudos_cli.utils.requests import retry_requests_get, retry_requests_post, retry_requests_put, \
-    create_retry_session
+from cloudos_cli.utils.requests import (retry_requests_get, retry_requests_post,
+                                        retry_requests_put, create_retry_session)
 import pandas as pd
 from cloudos_cli.utils.last_wf import youngest_workflow_id_by_name
 from datetime import datetime, timezone
@@ -1254,7 +1255,7 @@ class Cloudos:
                     total_job_count = (last_pagination_metadata or {}).get('Pagination-Count', '?')
                     print(f"\r\tScanning workspace jobs for queue '{filter_queue}': "
                           f"{scanned_job_count}/{total_job_count} jobs scanned, "
-                          f"{len(all_jobs)} matching...", end='', flush=True)
+                          f"{len(all_jobs)} matching...", end='', flush=True, file=sys.stderr)
 
                 # Check stopping conditions based on mode
                 if use_pagination_mode:
@@ -1274,7 +1275,7 @@ class Cloudos:
                 current_page += 1
 
         if scan_all_pages and scanned_job_count:
-            print()  # End the progress line
+            print(file=sys.stderr)  # End the progress line
 
         # --- Apply limit after all filtering ---
         if use_pagination_mode and target_job_count != 'all' and isinstance(target_job_count, int) and target_job_count > 0:
