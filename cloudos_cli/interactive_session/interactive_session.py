@@ -6,6 +6,7 @@ import re
 import json
 import time
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 from rich.table import Table
 from rich.console import Console
 from rich.panel import Panel
@@ -804,7 +805,12 @@ def parse_link_path(link_path_str):
         For Lifebit Platform: {"project_name": "...", "folder_path": "..."}
     """
     # Check for Azure blob storage paths and provide helpful error
-    if link_path_str.startswith('az://') or link_path_str.startswith('https://') and '.blob.core.windows.net' in link_path_str:
+    _parsed_url = urlparse(link_path_str)
+    _is_azure_https = (
+        _parsed_url.scheme == 'https'
+        and (_parsed_url.hostname or '').endswith('.blob.core.windows.net')
+    )
+    if link_path_str.startswith('az://') or _is_azure_https:
         raise ValueError(
             f"Azure blob storage paths are not supported for linking. "
             f"Folder linking is not supported on Azure execution platforms. "
