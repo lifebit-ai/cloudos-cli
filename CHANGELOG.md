@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.95.1 (2026-08-20)
+
+### Fix:
+
+- `--job-config` parse errors now report the line number and the offending line, instead of only naming the file
+- `--job-config` no longer absorbs an end-of-line comment into a parameter value, which silently sent values such as `0.5//colocwindowsizeinMBp`
+- `--job-config` gives a specific error for a value spanning several lines, pointing to `--params-file` for structured values
+- `--job-config` skips block comment continuation lines (`*`, `*/`) instead of failing on them
+- Documents that `--job-config` takes only flat `name = value` parameters and is not a `nextflow.config` file
+
 ## v2.95.0 (2026-06-30)
 
 ### Breaking:

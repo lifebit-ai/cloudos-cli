@@ -176,6 +176,97 @@ class Job(Cloudos):
         else:
             raise ValueError(f'No {name} element in {resource} was found')
 
+    @staticmethod
+    def strip_inline_comment(line):
+        """Remove a trailing '//' or '#' comment from a job config line.
+
+        Only comments preceded by whitespace are removed, so that values
+        containing these characters, such as 's3://bucket/key', are preserved.
+
+        Parameters
+        ----------
+        line : string
+            A single raw line from a job config file.
+
+        Returns
+        -------
+        string
+            The line with any trailing comment removed.
+        """
+        return re.sub(r'\s+(?://|#).*$', '', line)
+
+    @staticmethod
+    def parse_job_config_params(job_config, workflow_type='nextflow'):
+        """Parse a job config file into a list of (name, value) parameter pairs.
+
+        The job config file is a list of parameters, equivalent to repeating
+        '--parameter name=value' on the command line. Only flat 'name = value'
+        pairs are supported: the Lifebit Platform API takes named scalar
+        parameters, so arrays, nested blocks and values spanning several lines
+        cannot be represented.
+
+        Parameters
+        ----------
+        job_config : string
+            Path to the job config file.
+        workflow_type : string
+            The type of workflow to run. Quotes are kept for 'wdl' workflows.
+
+        Returns
+        -------
+        list
+            A list of (name, value) tuples, in file order.
+
+        Raises
+        ------
+        ValueError
+            If a line inside the params block is not a 'name = value' pair. The
+            message reports the line number and the offending line.
+        """
+        parsed = []
+        with open(job_config, 'r') as p:
+            reading = False
+            for line_no, p_l in enumerate(p, start=1):
+                if 'params' in p_l.lower():
+                    reading = True
+                    continue
+                if not reading:
+                    continue
+                p_l_no_comment = Job.strip_inline_comment(p_l)
+                if workflow_type == 'wdl':
+                    p_l_strip = p_l_no_comment.strip().replace(' ', '')
+                else:
+                    p_l_strip = p_l_no_comment.strip().replace(
+                        ' ', '').replace('\"', '').replace('\'', '')
+                if len(p_l_strip) == 0:
+                    continue
+                elif p_l_strip[0] in ('/', '#', '*'):
+                    continue
+                elif p_l_strip == '}':
+                    reading = False
+                    continue
+                p_list = p_l_strip.split('=')
+                if len(p_list) < 2:
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Expected a \'name = value\' pair. ' +
+                        'The job config file is a list of parameters, not a ' +
+                        'Nextflow config: it cannot contain arrays, nested ' +
+                        'blocks, values spanning several lines, or sections ' +
+                        'such as \'process\' and \'profiles\'.')
+                p_name = p_list[0]
+                p_value = '='.join(p_list[1:])
+                if p_value.count('[') > p_value.count(']'):
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Values spanning several lines are ' +
+                        'not supported, and the Lifebit Platform API cannot ' +
+                        'take array parameters. Define arrays in the ' +
+                        'pipeline\'s own nextflow.config, or pass them with ' +
+                        '--params-file using a JSON or YAML file.')
+                parsed.append((p_name, p_value))
+        return parsed
+
     def build_parameters_file_payload(self, params_file):
         """Build the parametersFile payload for a params file path."""
         if params_file is None:
@@ -422,47 +513,12 @@ class Job(Cloudos):
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
         if job_config is not None:
-            with open(job_config, 'r') as p:
-                reading = False
-                for p_l in p:
-                    if 'params' in p_l.lower():
-                        reading = True
-                    else:
-                        if reading:
-                            if workflow_type == 'wdl':
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '')
-                            else:
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '').replace('\"', '').replace('\'', '')
-                            if len(p_l_strip) == 0:
-                                continue
-                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
-                                continue
-                            elif p_l_strip == '}':
-                                reading = False
-                            else:
-                                p_list = p_l_strip.split('=')
-                                p_name = p_list[0]
-                                p_value = '='.join(p_list[1:])
-                                if len(p_list) < 2:
-                                    raise ValueError('Please, specify your ' +
-                                                     'parameters in ' +
-                                                     f'{job_config} using ' +
-                                                     'the \'=\' as spacer. ' +
-                                                     'E.g: name = my_name')
-                                elif workflow_type == 'wdl':
-                                    param = {"prefix": "",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
-                                    workflow_params.append(param)
-                                else:
-                                    param = {"prefix": "--",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
-                                    workflow_params.append(param)
+            p_prefix = "" if workflow_type == 'wdl' else "--"
+            for p_name, p_value in Job.parse_job_config_params(job_config, workflow_type):
+                workflow_params.append({"prefix": p_prefix,
+                                        "name": p_name,
+                                        "parameterKind": "textValue",
+                                        "textValue": p_value})
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')

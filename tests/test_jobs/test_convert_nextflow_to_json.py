@@ -148,10 +148,58 @@ def test_convert_nextflow_to_json_badly_formed_config():
             memory=param_dict["memory"]
             )
         print(str(excinfo.value))
-    assert "Please, specify your parameters in\
-            tests/test_data/wrong_params.config\
-            using the \'=\' as spacer.\
-            E.g: name = my_name".replace("           ", "") in str(excinfo.value)
+    assert "Could not parse line 2 of tests/test_data/wrong_params.config" in str(excinfo.value)
+    assert "reads    s3://lifebit-featured-datasets/pipelines/rnatoy-data" in str(excinfo.value)
+
+
+def test_parse_job_config_params_reports_offending_line():
+    """A line that is not 'name = value' names the line number and its content."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/wrong_params.config")
+    message = str(excinfo.value)
+    assert "line 2" in message
+    assert "tests/test_data/wrong_params.config" in message
+    assert "reads    s3://lifebit-featured-datasets/pipelines/rnatoy-data" in message
+
+
+def test_parse_job_config_params_rejects_multiline_value():
+    """A value spanning several lines fails with a message naming the cause."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/multiline_params.config")
+    message = str(excinfo.value)
+    assert "line 2" in message
+    assert "acceleratedFileSystems=[" in message
+    assert "several lines" in message
+    assert "--params-file" in message
+
+
+def test_parse_job_config_params_strips_inline_comments():
+    """Trailing comments are removed instead of being absorbed into the value."""
+    parsed = Job.parse_job_config_params("tests/test_data/inline_comment_params.config")
+    assert parsed == [("reads", "s3://my-bucket/reads"),
+                      ("coloc_window", "0.5"),
+                      ("genome", "s3://my-bucket/genome.fa")]
+
+
+def test_strip_inline_comment_preserves_urls():
+    """The '//' of a URL scheme is not mistaken for a comment."""
+    assert Job.strip_inline_comment("reads = s3://bucket/key") == "reads = s3://bucket/key"
+    assert Job.strip_inline_comment("reads = s3://bucket/key  // note") == "reads = s3://bucket/key"
+    assert Job.strip_inline_comment("reads = s3://bucket/key  # note") == "reads = s3://bucket/key"
+
+
+def test_parse_job_config_params_examples_unchanged():
+    """The shipped example configs keep parsing exactly as before."""
+    assert Job.parse_job_config_params("cloudos_cli/examples/rnatoy.config") == [
+        ("reads", "s3://lifebit-featured-datasets/pipelines/rnatoy-data"),
+        ("genome", "s3://lifebit-featured-datasets/pipelines/rnatoy-data/"
+                   "ggal_1_48850000_49020000.Ggal71.500bpflank.fa"),
+        ("annot", "s3://lifebit-featured-datasets/pipelines/rnatoy-data/"
+                  "ggal_1_48850000_49020000.bed.gff")]
+    # WDL keeps quotes, so arrays and maps survive as text
+    wdl = dict(Job.parse_job_config_params("cloudos_cli/examples/wdl.config", "wdl"))
+    assert wdl["test.arrayTest"] == '["lala"]'
+    assert wdl["test.mapTest"] == '{"some":"props"}'
 
 
 def test_params_file_payload_s3():

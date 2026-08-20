@@ -574,7 +574,7 @@ First, configure your local environment to ease parameter input. We will try to 
 cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos_cli/examples/rnatoy.config --resumable
 ```
 
-As you can see, a file with the job parameters is used to configure the job. This file could be a regular `nextflow.config` file or any file with the following structure:
+As you can see, a file with the job parameters is used to configure the job. This file is a list of the parameters to pass to your job, and nothing else. It has the following structure:
 
 ```
 params {
@@ -582,6 +582,18 @@ params {
         annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
 }
 ```
+
+`--job-config` is shorthand for repeating `--parameter` on the command line: the CLI reads the file line by line, splits each line on the first `=`, and sends each result as one named parameter.
+
+Because of this, only flat `name = value` pairs are supported. A `--job-config` file is **not** a `nextflow.config` file and cannot contain:
+
+- arrays or lists (e.g. `my_param = ['a', 'b']`)
+- nested blocks (e.g. `genomes { ... }`)
+- values spanning several lines
+- `process`, `profiles`, `docker` or other config sections
+- a comment after a value on the same line (put comments on their own line)
+
+The Lifebit Platform API accepts a list of named scalar parameters, so there is no way to send a structured value through this option. If you need one, either define it in the pipeline's own `nextflow.config` in the git repository and expose the parts you want to change as individual parameters, or pass it with `--params-file` (see below), which supports JSON and YAML with full type fidelity.
 
 In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance:
 
