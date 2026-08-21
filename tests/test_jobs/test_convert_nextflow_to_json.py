@@ -211,6 +211,28 @@ def test_parse_job_config_params_keeps_single_line_lists():
     assert parsed["coloc_window"] == "0.5"
 
 
+def test_list_literal_warning_reports_count_and_received_value():
+    """A list literal warns, naming the elements and the string actually sent."""
+    warning = Job.list_literal_warning("tools", "[fastqc,multiqc,star]")
+    assert "3 elements" in warning
+    assert "'fastqc', 'multiqc', 'star'" in warning
+    assert "--tools '[fastqc,multiqc,star]'" in warning
+    assert "--params-file" in warning
+
+
+def test_list_literal_warning_singular_element():
+    """A single-element list is described in the singular."""
+    warning = Job.list_literal_warning("coloc_prior", "[1e-5]")
+    assert "1 element ('1e-5')" in warning
+
+
+def test_list_literal_warning_none_for_scalars():
+    """Plain values, including paths and numbers, are not warned about."""
+    assert Job.list_literal_warning("reads", "s3://bucket/key") is None
+    assert Job.list_literal_warning("chunk_size", "50") is None
+    assert Job.list_literal_warning("pattern", "sample[1].txt") is None
+
+
 def test_parse_job_config_params_examples_unchanged():
     """The shipped example configs keep parsing exactly as before."""
     assert Job.parse_job_config_params("cloudos_cli/examples/rnatoy.config") == [

@@ -585,7 +585,11 @@ params {
 
 `--job-config` is shorthand for repeating `--parameter` on the command line: the CLI reads the file line by line, splits each line on the first `=`, and sends each result as one named parameter.
 
-Every value is passed through as text, exactly as it would be when launching Nextflow from the command line. A literal such as `my_param = ['a', 'b']` is therefore fine: it reaches the pipeline as the string `['a', 'b']`.
+Every value is passed through as text, exactly as it would be when launching Nextflow from the command line.
+
+> **IMPORTANT: `[ ]` is not expanded into a Nextflow list.** In a real `nextflow.config`, `my_param = ['a', 'b']` gives the pipeline a list of two items. Through `--job-config` it gives the pipeline the *string* `[a,b]`. The line is accepted and the job is submitted, so this fails silently at the point where your pipeline tries to iterate over the value. The CLI prints a warning when it sees a value that looks like a list, showing exactly what the pipeline will receive.
+
+To pass a genuine list, define it in the pipeline's own `nextflow.config` in the git repository, or use `--params-file` with a JSON or YAML file (see below), which preserves types.
 
 What a `--job-config` file cannot contain, because it is **not** a `nextflow.config` file:
 

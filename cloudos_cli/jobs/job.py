@@ -196,6 +196,41 @@ class Job(Cloudos):
         return re.sub(r'\s+(?://|#).*$', '', line)
 
     @staticmethod
+    def list_literal_warning(p_name, p_value):
+        """Build a warning for a value that looks like a list but is sent as text.
+
+        A '[a, b]' literal in a job config file is not expanded into a Nextflow
+        list: every job config value is sent as text. Users coming from real
+        nextflow.config files expect the expansion, so warn and show the value
+        the pipeline actually receives.
+
+        Parameters
+        ----------
+        p_name : string
+            The parameter name.
+        p_value : string
+            The parameter value, as it will be sent.
+
+        Returns
+        -------
+        string or None
+            The warning message, or None if the value is not a list literal.
+        """
+        if not (p_value.startswith('[') and p_value.endswith(']')):
+            return None
+        elements = [e for e in p_value[1:-1].split(',') if len(e) > 0]
+        plural = 'element' if len(elements) == 1 else 'elements'
+        listed = ', '.join(f"'{e}'" for e in elements) if elements else 'nothing'
+        return (f"Warning: parameter '{p_name}' looks like a list of "
+                f"{len(elements)} {plural} ({listed}), but every --job-config "
+                'value is sent as text.\n'
+                f"\tThe pipeline will receive the string --{p_name} '{p_value}', "
+                'not a Nextflow list of '
+                f'{len(elements)} {plural}.\n'
+                "\tTo pass a real list, define it in the pipeline's own "
+                'nextflow.config, or use --params-file with a JSON or YAML file.')
+
+    @staticmethod
     def parse_job_config_params(job_config, workflow_type='nextflow'):
         """Parse a job config file into a list of (name, value) parameter pairs.
 
@@ -271,6 +306,10 @@ class Job(Cloudos):
                         'value. Give it a value, or remove the line. A value ' +
                         'that starts with \'//\' or \'#\' must be quoted, ' +
                         'otherwise it is read as a comment.')
+                if workflow_type != 'wdl':
+                    warning = Job.list_literal_warning(p_name, p_value)
+                    if warning is not None:
+                        click.secho(warning, fg='yellow', bold=True)
                 parsed.append((p_name, p_value))
         return parsed
 
