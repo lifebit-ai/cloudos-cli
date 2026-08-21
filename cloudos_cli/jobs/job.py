@@ -176,6 +176,167 @@ class Job(Cloudos):
         else:
             raise ValueError(f'No {name} element in {resource} was found')
 
+    @staticmethod
+    def strip_inline_comment(line):
+        """Remove a trailing '//' or '#' comment from a job config line.
+
+        Only comments preceded by whitespace are removed, so that values
+        containing these characters, such as 's3://bucket/key', are preserved.
+
+        Parameters
+        ----------
+        line : string
+            A single raw line from a job config file.
+
+        Returns
+        -------
+        string
+            The line with any trailing comment removed.
+        """
+        return re.sub(r'\s+(?://|#).*$', '', line)
+
+    @staticmethod
+    def list_literal_warning(p_name, p_value):
+        """Build a warning for a value that looks like a list but is sent as text.
+
+        A '[a, b]' literal in a job config file is not expanded into a Nextflow
+        list: every job config value is sent as text. Users coming from real
+        nextflow.config files expect the expansion, so warn and show the value
+        the pipeline actually receives.
+
+        Parameters
+        ----------
+        p_name : string
+            The parameter name.
+        p_value : string
+            The parameter value, as it will be sent.
+
+        Returns
+        -------
+        string or None
+            The warning message, or None if the value is not a list literal.
+        """
+        if not (p_value.startswith('[') and p_value.endswith(']')):
+            return None
+        elements = [e for e in p_value[1:-1].split(',') if len(e) > 0]
+        element_noun = 'element' if len(elements) == 1 else 'elements'
+        listed = ', '.join(f"'{e}'" for e in elements) if elements else 'nothing'
+        return (f"Warning: parameter '{p_name}' looks like a list of "
+                f"{len(elements)} {element_noun} ({listed}), but every "
+                '--job-config value is sent as text.\n'
+                f"\tThe pipeline will receive the string --{p_name} '{p_value}', "
+                'not a Nextflow list of '
+                f'{len(elements)} {element_noun}.\n'
+                "\tTo pass a real list, define it in the pipeline's own "
+                'nextflow.config, or use --params-file with a JSON or YAML file.')
+
+    @staticmethod
+    def parse_job_config_params(job_config, workflow_type='nextflow'):
+        """Parse a job config file into a list of (name, value) parameter pairs.
+
+        The job config file is a list of parameters, equivalent to repeating
+        '--parameter name=value' on the command line. Every value is sent as
+        text, exactly as when launching Nextflow from the command line, so a
+        literal such as "['a', 'b']" is passed through as a string. Values
+        spanning several lines and nested blocks cannot be represented.
+
+        Parameters
+        ----------
+        job_config : string
+            Path to the job config file.
+        workflow_type : string
+            The type of workflow to run. Quotes are kept for 'wdl' workflows.
+
+        Returns
+        -------
+        list
+            A list of (name, value) tuples, in file order.
+
+        Raises
+        ------
+        ValueError
+            If the file has no 'params' block, if the block is opened and closed
+            on the same line, or if a line inside the block is not a
+            'name = value' pair, has a value spanning several lines, or has no
+            value at all. Every message reports the offending line, and all but
+            the missing block report its line number.
+
+        Notes
+        -----
+        A value that looks like a list is parsed and returned, but prints a
+        warning first, since it is sent as text rather than as a Nextflow list.
+        The warning is skipped for 'wdl' workflows.
+        """
+        parsed = []
+        with open(job_config, 'r') as p:
+            reading = False
+            found_params_block = False
+            for line_no, p_l in enumerate(p, start=1):
+                if re.match(r'^\s*params\s*\{', p_l, re.IGNORECASE):
+                    found_params_block = True
+                    reading = True
+                    remainder = Job.strip_inline_comment(p_l).split('{', 1)[1].strip()
+                    if len(remainder) > 0 and remainder[0] not in ('/', '#'):
+                        raise ValueError(
+                            f'Could not parse line {line_no} of {job_config}: ' +
+                            f'"{p_l.strip()}". The \'params\' block must span ' +
+                            'several lines, with one \'name = value\' pair per ' +
+                            'line.')
+                    continue
+                if not reading:
+                    continue
+                p_l_no_comment = Job.strip_inline_comment(p_l)
+                if workflow_type == 'wdl':
+                    p_l_strip = p_l_no_comment.strip().replace(' ', '')
+                else:
+                    p_l_strip = p_l_no_comment.strip().replace(
+                        ' ', '').replace('\"', '').replace('\'', '')
+                if len(p_l_strip) == 0:
+                    continue
+                elif p_l_strip[0] in ('/', '#', '*'):
+                    continue
+                elif p_l_strip == '}':
+                    reading = False
+                    continue
+                p_list = p_l_strip.split('=')
+                if len(p_list) < 2:
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Expected a \'name = value\' pair. ' +
+                        'The job config file is a list of parameters, not a ' +
+                        'Nextflow config: it cannot contain values spanning ' +
+                        'several lines, nested blocks, or sections such as ' +
+                        '\'process\' and \'profiles\'.')
+                p_name = p_list[0]
+                p_value = '='.join(p_list[1:])
+                if p_value.count('[') > p_value.count(']'):
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Values spanning several lines are ' +
+                        'not supported. Keep the value on a single line, ' +
+                        'define it in the pipeline\'s own nextflow.config, ' +
+                        'or pass it with --params-file using a JSON or YAML ' +
+                        'file.')
+                if len(p_value) == 0:
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Parameter \'{p_name}\' has no ' +
+                        'value. Give it a value, or remove the line. A value ' +
+                        'that starts with \'//\' or \'#\' must be quoted, ' +
+                        'otherwise it is read as a comment.')
+                if workflow_type != 'wdl':
+                    warning = Job.list_literal_warning(p_name, p_value)
+                    if warning is not None:
+                        click.secho(warning, fg='yellow', bold=True)
+                parsed.append((p_name, p_value))
+        if not found_params_block:
+            raise ValueError(
+                f'No \'params\' block was found in {job_config}. ' +
+                'The parameters must be listed inside a \'params { ... }\' ' +
+                'block, one \'name = value\' pair per line. The ' +
+                '\'params.name = value\' form is not supported.')
+        return parsed
+
     def build_parameters_file_payload(self, params_file):
         """Build the parametersFile payload for a params file path."""
         if params_file is None:
@@ -323,12 +484,12 @@ class Job(Cloudos):
                                  command,
                                  cpus,
                                  memory):
-        """Converts a nextflow.config file into a json formatted dict.
+        """Converts a job config file into a json formatted dict.
 
         Parameters
         ----------
         job_config : string
-            Path to a nextflow.config file with parameters scope.
+            Path to a file with parameters scope.
         params_file : string
             S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple
@@ -422,47 +583,12 @@ class Job(Cloudos):
             raise ValueError('No --job-config or --parameter were provided. At least one of ' +
                              'these are required for WDL workflows.')
         if job_config is not None:
-            with open(job_config, 'r') as p:
-                reading = False
-                for p_l in p:
-                    if 'params' in p_l.lower():
-                        reading = True
-                    else:
-                        if reading:
-                            if workflow_type == 'wdl':
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '')
-                            else:
-                                p_l_strip = p_l.strip().replace(
-                                    ' ', '').replace('\"', '').replace('\'', '')
-                            if len(p_l_strip) == 0:
-                                continue
-                            elif p_l_strip[0] == '/' or p_l_strip[0] == '#':
-                                continue
-                            elif p_l_strip == '}':
-                                reading = False
-                            else:
-                                p_list = p_l_strip.split('=')
-                                p_name = p_list[0]
-                                p_value = '='.join(p_list[1:])
-                                if len(p_list) < 2:
-                                    raise ValueError('Please, specify your ' +
-                                                     'parameters in ' +
-                                                     f'{job_config} using ' +
-                                                     'the \'=\' as spacer. ' +
-                                                     'E.g: name = my_name')
-                                elif workflow_type == 'wdl':
-                                    param = {"prefix": "",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
-                                    workflow_params.append(param)
-                                else:
-                                    param = {"prefix": "--",
-                                             "name": p_name,
-                                             "parameterKind": "textValue",
-                                             "textValue": p_value}
-                                    workflow_params.append(param)
+            p_prefix = "" if workflow_type == 'wdl' else "--"
+            for p_name, p_value in Job.parse_job_config_params(job_config, workflow_type):
+                workflow_params.append({"prefix": p_prefix,
+                                        "name": p_name,
+                                        "parameterKind": "textValue",
+                                        "textValue": p_value})
             if len(workflow_params) == 0:
                 raise ValueError(f'The {job_config} file did not contain any ' +
                                  'valid parameter')
@@ -611,7 +737,7 @@ class Job(Cloudos):
         Parameters
         ----------
         job_config : string
-            Path to a nextflow.config file with parameters scope.
+            Path to a file with parameters scope.
         params_file : string
             S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple

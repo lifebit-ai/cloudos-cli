@@ -574,7 +574,7 @@ First, configure your local environment to ease parameter input. We will try to 
 cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos_cli/examples/rnatoy.config --resumable
 ```
 
-As you can see, a file with the job parameters is used to configure the job. This file could be a regular `nextflow.config` file or any file with the following structure:
+As you can see, a file with the job parameters is used to configure the job. This file is a list of the parameters to pass to your job, and nothing else. It has the following structure:
 
 ```
 params {
@@ -582,6 +582,24 @@ params {
         annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
 }
 ```
+
+`--job-config` is shorthand for repeating `--parameter` on the command line: the CLI reads the file line by line, splits each line on the first `=`, and sends each result as one named parameter.
+
+Every value is passed through as text, exactly as it would be when launching Nextflow from the command line.
+
+> **IMPORTANT: `[ ]` is not expanded into a Nextflow list.** In a real `nextflow.config`, `my_param = ['a', 'b']` gives the pipeline a list of two items. Through `--job-config` it gives the pipeline the *string* `[a,b]`. The line is accepted and the job is submitted, so this fails silently at the point where your pipeline tries to iterate over the value. The CLI prints a warning when it sees a value that looks like a list, showing exactly what the pipeline will receive.
+
+To pass a genuine list, define it in the pipeline's own `nextflow.config` in the git repository, or use `--params-file` with a JSON or YAML file (see below), which preserves types.
+
+What a `--job-config` file cannot contain, because it is **not** a `nextflow.config` file:
+
+- values spanning several lines
+- nested blocks (e.g. `genomes { ... }`)
+- `process`, `profiles`, `docker` or other config sections
+
+Comments are supported, both on their own line and after a value, using `//` or `#`.
+
+If a parameter needs a genuinely structured value rather than a string, either define it in the pipeline's own `nextflow.config` in the git repository and expose the parts you want to change as individual parameters, or pass it with `--params-file` (see below), which supports JSON and YAML with full type fidelity.
 
 In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance:
 

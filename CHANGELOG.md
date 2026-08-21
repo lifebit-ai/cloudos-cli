@@ -1,5 +1,20 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.95.1 (2026-08-20)
+
+### Fix:
+
+- `--job-config` parse errors now report the line number and the offending line, instead of only naming the file
+- `--job-config` no longer absorbs an end-of-line comment into a parameter value, which silently sent values such as `0.5//colocwindowsizeinMBp`
+- `--job-config` gives a specific error for a value spanning several lines, pointing to `--params-file` for structured values
+- `--job-config` no longer silently drops parameters whose name contains `params`, such as `input_params` or `extra_params_file`
+- `--job-config` raises an error for a parameter with no value, instead of sending an empty one to the pipeline
+- `--job-config` reports a file with no `params { ... }` block, and names the unsupported `params.name = value` form, instead of failing with `did not contain any valid parameter`
+- `--job-config` reports a `params` block opened and closed on the same line, instead of silently parsing no parameters
+- `--job-config` warns when a value looks like a list, showing the element count and the exact string the pipeline will receive, since `[ ]` is not expanded into a Nextflow list
+- `--job-config` skips block comment continuation lines (`*`, `*/`) instead of failing on them
+- Documents that `--job-config` takes only flat `name = value` parameters and is not a `nextflow.config` file
+
 ## v2.95.0 (2026-06-30)
 
 ### Breaking:
