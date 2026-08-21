@@ -219,14 +219,14 @@ class Job(Cloudos):
         if not (p_value.startswith('[') and p_value.endswith(']')):
             return None
         elements = [e for e in p_value[1:-1].split(',') if len(e) > 0]
-        plural = 'element' if len(elements) == 1 else 'elements'
+        element_noun = 'element' if len(elements) == 1 else 'elements'
         listed = ', '.join(f"'{e}'" for e in elements) if elements else 'nothing'
         return (f"Warning: parameter '{p_name}' looks like a list of "
-                f"{len(elements)} {plural} ({listed}), but every --job-config "
-                'value is sent as text.\n'
+                f"{len(elements)} {element_noun} ({listed}), but every "
+                '--job-config value is sent as text.\n'
                 f"\tThe pipeline will receive the string --{p_name} '{p_value}', "
                 'not a Nextflow list of '
-                f'{len(elements)} {plural}.\n'
+                f'{len(elements)} {element_noun}.\n'
                 "\tTo pass a real list, define it in the pipeline's own "
                 'nextflow.config, or use --params-file with a JSON or YAML file.')
 
@@ -255,15 +255,33 @@ class Job(Cloudos):
         Raises
         ------
         ValueError
-            If a line inside the params block is not a 'name = value' pair. The
-            message reports the line number and the offending line.
+            If the file has no 'params' block, if the block is opened and closed
+            on the same line, or if a line inside the block is not a
+            'name = value' pair, has a value spanning several lines, or has no
+            value at all. Every message reports the offending line, and all but
+            the missing block report its line number.
+
+        Notes
+        -----
+        A value that looks like a list is parsed and returned, but prints a
+        warning first, since it is sent as text rather than as a Nextflow list.
+        The warning is skipped for 'wdl' workflows.
         """
         parsed = []
         with open(job_config, 'r') as p:
             reading = False
+            found_params_block = False
             for line_no, p_l in enumerate(p, start=1):
                 if re.match(r'^\s*params\s*\{', p_l, re.IGNORECASE):
+                    found_params_block = True
                     reading = True
+                    remainder = Job.strip_inline_comment(p_l).split('{', 1)[1].strip()
+                    if len(remainder) > 0 and remainder[0] not in ('/', '#'):
+                        raise ValueError(
+                            f'Could not parse line {line_no} of {job_config}: ' +
+                            f'"{p_l.strip()}". The \'params\' block must span ' +
+                            'several lines, with one \'name = value\' pair per ' +
+                            'line.')
                     continue
                 if not reading:
                     continue
@@ -311,6 +329,12 @@ class Job(Cloudos):
                     if warning is not None:
                         click.secho(warning, fg='yellow', bold=True)
                 parsed.append((p_name, p_value))
+        if not found_params_block:
+            raise ValueError(
+                f'No \'params\' block was found in {job_config}. ' +
+                'The parameters must be listed inside a \'params { ... }\' ' +
+                'block, one \'name = value\' pair per line. The ' +
+                '\'params.name = value\' form is not supported.')
         return parsed
 
     def build_parameters_file_payload(self, params_file):

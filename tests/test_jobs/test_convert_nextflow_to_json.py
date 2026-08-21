@@ -205,6 +205,25 @@ def test_parse_job_config_params_rejects_empty_value():
     assert "'empty' has no value" in message
 
 
+def test_parse_job_config_params_requires_a_params_block():
+    """A file with no 'params' block says so, instead of parsing nothing."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/no_params_block.config")
+    message = str(excinfo.value)
+    assert "No 'params' block was found" in message
+    assert "tests/test_data/no_params_block.config" in message
+    assert "'params.name = value' form is not supported" in message
+
+
+def test_parse_job_config_params_rejects_one_line_params_block():
+    """A block opened and closed on one line is reported, not silently empty."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/oneline_params.config")
+    message = str(excinfo.value)
+    assert "line 1" in message
+    assert "must span several lines" in message
+
+
 def test_parse_job_config_params_keeps_single_line_lists():
     """A single-line list literal is passed through as text."""
     parsed = dict(Job.parse_job_config_params("tests/test_data/inline_comment_params.config"))
